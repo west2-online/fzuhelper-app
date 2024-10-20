@@ -20,3 +20,5 @@ expo-env.d.ts
 # @end expo-cli
 
 .idea/
+
+nativewind-env.d.ts

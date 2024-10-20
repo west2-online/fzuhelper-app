@@ -5,6 +5,5 @@ module.exports = {
   plugins: ['prettier'],
   rules: {
     'prettier/prettier': 'warn',
-    'react-native/no-inline-styles': 0,
   },
 };
