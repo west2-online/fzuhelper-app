@@ -1,20 +1,44 @@
-# Welcome to your Expo app 👋
+# fzuhelper-app
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Getting started
 
-## Get started
+<details>
+<summary><b>Baoshuo's local development environment [click to expand]</b></summary>
 
-1. Install dependencies
+_Updated at Oct 20, 2024._
 
-   ```bash
-   npm install
-   ```
+- Develop machine: Intel(R) Core(TM) Ultra 9 185H, 64 GiB RAM
+- Operating system: Windows 11 Pro 23H2 (22631.4317)
 
-2. Start the app
+| Software or tool name   | Version                                   |
+| ----------------------- | ----------------------------------------- |
+| Node.js                 | 20.14.0                                   |
+| Android SDK             | 33 (Android 13.0)                         |
+| Android Studio          | 2024.1.2 (Koala Feature Drop)             |
+| OpenJDK                 | 21.0.4+7 (winget Microsoft.OpenJDK.21)    |
+| Android Studio Emulator | Pixel 8 Pro API 33 (Android 13.0, x86_64) |
 
-   ```bash
-    npx expo start
-   ```
+</details>
+
+Before you start, make sure you have [Node.js](https://nodejs.org/), [Yarn](https://yarnpkg.com/), and [Android Studio](https://developer.android.com/studio) installed on your computer.
+
+Then create an Android Studio emulator, you can follow the instructions in the [Expo documentation](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated).
+
+After you have installed the required software, you can start developing the app.
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/renbaoshuo/fzuhelper-app.git
+cd fzuhelper-app
+yarn install
+```
+
+Start the app:
+
+```bash
+yarn start
+```
 
 In the output, you'll find options to open the app in a
 
@@ -24,27 +48,3 @@ In the output, you'll find options to open the app in a
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
