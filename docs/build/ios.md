@@ -2,10 +2,10 @@
 
 ## 预先准备
 
-1. 一台搭在新版 macOS 的电脑
+1. 一台搭载新版 macOS 的电脑
 2. 电脑上安装过 CocoaPods 以及 Xcode
 
-CocoaPods安装很简单，`brew install cocoapods` 即可，[brew](https://brew.sh/https://brew.sh/) 是 macOS 下的包管理工具，他们官网提供了一键安装脚本
+CocoaPods安装很简单，`brew install cocoapods` 即可，[brew](https://brew.sh/) 是 macOS 下的包管理工具，他们官网提供了一键安装脚本
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
