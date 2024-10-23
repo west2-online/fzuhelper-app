@@ -22,3 +22,6 @@ expo-env.d.ts
 .idea/
 
 nativewind-env.d.ts
+
+/ios
+/android

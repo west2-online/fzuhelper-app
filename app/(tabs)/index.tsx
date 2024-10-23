@@ -6,7 +6,7 @@ export default function HomePage() {
   return (
     <>
       <ThemedView>
-        <Text>Home</Text>
+        <Text>Homes</Text>
       </ThemedView>
     </>
   );
