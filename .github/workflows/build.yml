@@ -1,0 +1,49 @@
+name: Build Debug APK
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.14.0
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Prebuild
+        run: yarn run prebuild:android
+
+      - name: Build Debug APK
+        run: cd android && ./gradlew app:packageDebugUniversalApk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 0
+
+      - name: Upload output metadata 
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-metadata.json
+          path: android/app/build/outputs/apk/debug/output-metadata.json
+          retention-days: 0
