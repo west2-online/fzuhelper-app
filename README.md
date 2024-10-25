@@ -16,7 +16,7 @@ _Updated at Oct 24, 2024._
 | Android Studio          | 2024.1.2 (Koala Feature Drop)             |
 | Android SDK             | 33 (Android 13.0)                         |
 | NDK                     | 26.1.10909125                             |
-| OpenJDK                 | 21.0.4+7 (winget Microsoft.OpenJDK.21)    |
+| OpenJDK                 | 17.0.13+11 (winget Microsoft.OpenJDK.17)  |
 | Android Studio Emulator | Pixel 8 Pro API 33 (Android 13.0, x86_64) |
 
 </details>
