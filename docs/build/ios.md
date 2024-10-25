@@ -115,6 +115,12 @@ pod 安装是并发的，网络流量走的很快，不必在意
 
 选择发布到 App Store Connect 即可，后续可以在 [App Store Connect](https://appstoreconnect.apple.com/) 上操作
 
+## 修改构建版本号
+
+修改 `app.json` 中的 `expo.ios.buildNumber` 字段，每次将 patch 递增 1 即可。
+
+这个版本号并不是显示的版本号，是用来让系统识别构建版本的。
+
 ## 如果你是 west2-online 的开发者
 
 1. 联系学长，将你加入我们的 Develop Team

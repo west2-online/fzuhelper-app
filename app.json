@@ -13,11 +13,13 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "FzuHelper.FzuHelper"
+      "bundleIdentifier": "FzuHelper.FzuHelper",
+      "buildNumber": "7.0.0",
+      "supportsTablet": true
     },
     "android": {
       "package": "com.helper.west2ol.fzuhelper",
+      "versionCode": "700001",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
