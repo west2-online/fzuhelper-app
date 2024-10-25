@@ -3,9 +3,9 @@
 ## Getting started
 
 <details>
-<summary><b>Baoshuo's local development environment [click to expand]</b></summary>
+<summary><b>@renbaoshuo's local development environment [click to expand]</b></summary>
 
-_Updated at Oct 20, 2024._
+_Updated at Oct 24, 2024._
 
 - Develop machine: Intel(R) Core(TM) Ultra 9 185H, 64 GiB RAM
 - Operating system: Windows 11 Pro 23H2 (22631.4317)
@@ -13,8 +13,9 @@ _Updated at Oct 20, 2024._
 | Software or tool name   | Version                                   |
 | ----------------------- | ----------------------------------------- |
 | Node.js                 | 20.14.0                                   |
-| Android SDK             | 33 (Android 13.0)                         |
 | Android Studio          | 2024.1.2 (Koala Feature Drop)             |
+| Android SDK             | 33 (Android 13.0)                         |
+| NDK                     | 26.1.10909125                             |
 | OpenJDK                 | 21.0.4+7 (winget Microsoft.OpenJDK.21)    |
 | Android Studio Emulator | Pixel 8 Pro API 33 (Android 13.0, x86_64) |
 

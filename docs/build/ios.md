@@ -22,15 +22,16 @@ CocoaPods安装很简单，`brew install cocoapods` 即可，[brew](https://brew
 在项目根目录中执行
 
 ```bash
-npx expo prebuild --platform ios
+yarn prebuild:ios
 ```
+
 这会开始执行预构建流程，下面是几个要点
 
 ### Bundle identifier
 
-iOS bundle identifier 必须是`FzuHelper.FzuHelper`，套装 id（即 bundle identifier）是在程序第一次上架时就锁死的，要继续发布必须使用相同的id
+iOS bundle identifier 必须是 `FzuHelper.FzuHelper`，套装 id（即 bundle identifier）是在程序第一次上架时就锁死的，要继续发布必须使用相同的 id，目前已经在 `app.json` 中配置好了。
 
-会提示`The app 福uu by Fuzhou West2Online Internet Inc. is already using FzuHelper.FzuHelper`，这是正常的
+会提示 `The app 福uu by Fuzhou West2Online Internet Inc. is already using FzuHelper.FzuHelper`，这是正常的，不用管。
 
 ### Installing CocoaPods...
 
@@ -43,6 +44,7 @@ iOS bundle identifier 必须是`FzuHelper.FzuHelper`，套装 id（即 bundle id
 预构建结束后我们需要安装对应的 pods，这个实际上就是依赖（Dependency）
 
 在你的项目根目录执行
+
 ```bash
 npx pod-install
 ```
@@ -86,7 +88,6 @@ pod 安装是并发的，网络流量走的很快，不必在意
 按照它的说明，`5.7.5`这个版本已经被使用了，我们需要使用更高的版本，这个往往出现在你错误的选择了版本号，你应该选择`5.7.6`
 
 #### This bundle is invalid
-
 
 检查你的`app.json`文件，里面的`version`应该要更高，我这里出现问题是因为我的`app.json`内的版本设置为`1.0.0`，需要设置为标准的版本号
 
