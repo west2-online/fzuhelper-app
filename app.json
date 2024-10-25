@@ -2,7 +2,7 @@
   "expo": {
     "name": "fzuhelper-app",
     "slug": "fzuhelper-app",
-    "version": "5.7.6",
+    "version": "7.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -30,9 +30,7 @@
       "output": "static",
       "favicon": "./assets/images/icon.png"
     },
-    "plugins": [
-      "expo-router"
-    ],
+    "plugins": ["expo-router"],
     "experiments": {
       "typedRoutes": true
     }
