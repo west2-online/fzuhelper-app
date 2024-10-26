@@ -5,7 +5,7 @@
     "version": "7.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "fzuhelper",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -19,11 +19,7 @@
     },
     "android": {
       "package": "com.helper.west2ol.fzuhelper",
-      "versionCode": "700001",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#ffffff"
-      }
+      "versionCode": "700001"
     },
     "web": {
       "bundler": "metro",

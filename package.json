@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "run:android": "expo run:android",
-    "run:ios": "expo run:ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "prebuild:android": "expo prebuild --platform android",
     "prebuild:ios": "expo prebuild --platform ios",
     "test": "jest --watchAll",
