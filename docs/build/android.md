@@ -40,7 +40,7 @@ android {
 +       keyAlias FZUHELPER_UPLOAD_KEY_ALIAS
 +       keyPassword FZUHELPER_UPLOAD_KEY_PASSWORD
 +     }
-    }
++   }
   }
   buildTypes {
     // ...
