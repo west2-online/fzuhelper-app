@@ -120,7 +120,7 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
       res.push(
         <View
           key={i}
-          className="flex-grow-1 flex min-h-14 flex-shrink-0 basis-0 flex-col items-center justify-center border border-gray-200"
+          className="flex-grow-1 flex min-h-14 flex-shrink-0 basis-0 flex-col items-center justify-center"
         />,
       );
     }
