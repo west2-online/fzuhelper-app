@@ -7126,14 +7126,14 @@ nanoid@^3.1.23, nanoid@^3.3.7:
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.7.tgz#d0c301a691bc8d54efa0a2226ccf3fe2fd656bd8"
   integrity sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==
 
-nativewind@^4.0.1:
-  version "4.1.17"
-  resolved "https://registry.yarnpkg.com/nativewind/-/nativewind-4.1.17.tgz#4732c4f98160d75d81fef5a4e9e65a0d5278d45e"
-  integrity sha512-8PtNtyKyDI0iAsBeCn7cuDGvHrVf+cMkhA1nxPh9PbOHXOpnaZl8yI2pplEoKPQpamqSNEJVVnUJMPVh+2N2zQ==
+nativewind@^4.1.21:
+  version "4.1.21"
+  resolved "https://registry.yarnpkg.com/nativewind/-/nativewind-4.1.21.tgz#110361a3e38cac6eca358f87b333a52727e6372f"
+  integrity sha512-CYlxaP3pJ6K81l+mgXVnC5YakiNlm7zvSob8yYH91tVEBZbNd8SNImsSKJAsq0ULCDAhdWjB8kd7591r1yfnyg==
   dependencies:
     comment-json "^4.2.5"
     debug "^4.3.7"
-    react-native-css-interop "0.1.16"
+    react-native-css-interop "0.1.20"
 
 natural-compare@^1.4.0:
   version "1.4.0"
@@ -7932,10 +7932,10 @@ react-is@^17.0.1:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==
 
-react-native-css-interop@0.1.16:
-  version "0.1.16"
-  resolved "https://registry.yarnpkg.com/react-native-css-interop/-/react-native-css-interop-0.1.16.tgz#66d5d4fa6f721197e7d0e672f7ea33d062dffddf"
-  integrity sha512-W/wzYJLSn9+PsluLTUGnkZw1XpbcwlRZtwIv5tyWdOF2nwhmtXI0nqJfg4wWOB+mYMtc8IzXlZcnccE6boDeTg==
+react-native-css-interop@0.1.20:
+  version "0.1.20"
+  resolved "https://registry.yarnpkg.com/react-native-css-interop/-/react-native-css-interop-0.1.20.tgz#42af4adc627124bf4a3d93c336d6eba8af4b092b"
+  integrity sha512-afFcrXkFEv35pkMgc9R5k79d6KyZpTtDgci0tM9NTs76/0NZcQu2YuEXoC1r4Efg/2PsWI/1/GJKVXww7RQNDg==
   dependencies:
     "@babel/helper-module-imports" "^7.22.15"
     "@babel/traverse" "^7.23.0"
