@@ -39,7 +39,7 @@ jobs:
         run: yarn run prebuild:android
 
       - name: Build Debug APK
-        run: cd android && ./gradlew app:packageDebugUniversalApk
+        run: cd android && ./gradlew app:packageDebug
 
       - name: Upload outputs
         uses: actions/upload-artifact@v4
