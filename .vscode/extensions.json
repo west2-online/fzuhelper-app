@@ -5,7 +5,6 @@
     "visualstudioexptteam.vscodeintellicode",
     "visualstudioexptteam.intellicode-api-usage-examples",
     "esbenp.prettier-vscode",
-    "ms-ceintl.vscode-language-pack-zh-hans",
-    "bradlc.vscode-tailwindcss"
+    "ms-ceintl.vscode-language-pack-zh-hans"
   ]
 }
