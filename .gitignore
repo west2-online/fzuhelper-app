@@ -21,10 +21,8 @@ expo-env.d.ts
 
 .idea/
 
+nativewind-env.d.ts
+
 # Build generated files
 /ios
 /android
-
-# Tamagui
-.tamagui/
-/tamagui-web.css
