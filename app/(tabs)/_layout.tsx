@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
-import { Text, View } from 'tamagui';
 
 import { HeaderIcon } from '@/components/HeaderIcon';
 import { TabBarIcon } from '@/components/TabBarIcon';
+import { Text, View } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -14,13 +14,13 @@ export default function TabLayout() {
           headerTitleAlign: 'center',
           // eslint-disable-next-line react/no-unstable-nested-components
           headerLeft: props => (
-            <View paddingHorizontal="$3.5">
+            <View className="px-4">
               <Text>第 X 周</Text>
             </View>
           ),
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: props => (
-            <View paddingHorizontal="$3.5">
+            <View className="px-4">
               <HeaderIcon name="settings-outline" />
             </View>
           ),

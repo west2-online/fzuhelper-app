@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'tamagui';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { getCourseListRes } from '@/mockdata';
 import { parseCourses, type ParsedCourse } from '@/utils/parseCourses';
@@ -20,63 +20,56 @@ const classes = [
 
 function Header() {
   return (
-    <View
-      display="flex"
-      flexDirection="row"
-      alignItems="center"
-      backgroundColor="$white1"
-      flexBasis={0}
-      flexGrow={0}
-      flexShrink={0}
-    >
-      <View width={32} flexShrink={0} flexGrow={0}>
-        <View
-          flexShrink={0}
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          paddingHorizontal="$2"
-          paddingVertical="$3"
-        >
+    <View className="flex flex-none flex-row items-center bg-white shadow ring-1 ring-black ring-opacity-5">
+      <View className="w-[32px] flex-shrink-0 flex-grow-0">
+        <View className="flex flex-shrink-0 flex-col items-center justify-center px-2 py-3">
           <Text>10</Text>
           <Text>月</Text>
         </View>
       </View>
-      <View display="flex" flexDirection="row" flexGrow={1} flexShrink={1}>
-        {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map(
-          (day, index) => (
-            <View
-              key={index}
-              display="flex"
-              flexDirection="column"
-              alignItems="center"
-              paddingBottom="$3"
-              paddingTop="$2"
-              flexGrow={1}
-              flexShrink={1}
-            >
-              <Text color="$gray500">{day}</Text>
-              <View
-                marginTop="$1"
-                height={32}
-                width={32}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                borderRadius={16}
-                backgroundColor={index === 0 ? '$blue9' : 'transparent'}
-              >
-                <Text
-                  textAlign="center"
-                  fontWeight="bold"
-                  color={index === 0 ? '$white' : '$black'}
-                >
-                  {10 + index}
-                </Text>
-              </View>
-            </View>
-          ),
-        )}
+      <View className="flex flex-shrink flex-grow flex-row">
+        <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
+          <Text className="text-sm text-gray-500">周一</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-center align-middle font-semibold text-white">
+            10
+          </Text>
+        </Pressable>
+        <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
+          <Text className="text-sm text-gray-500">周二</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+            11
+          </Text>
+        </Pressable>
+        <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
+          <Text className="text-sm text-gray-500">周三</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+            12
+          </Text>
+        </Pressable>
+        <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
+          <Text className="text-sm text-gray-500">周四</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+            13
+          </Text>
+        </Pressable>
+        <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
+          <Text className="text-sm text-gray-500">周五</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+            14
+          </Text>
+        </Pressable>
+        <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
+          <Text className="text-sm text-gray-500">周六</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+            15
+          </Text>
+        </Pressable>
+        <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
+          <Text className="text-sm text-gray-500">周日</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+            16
+          </Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -105,31 +98,21 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
       const span = schedule.endClass - schedule.startClass + 1;
 
       res.push(
-        <View
+        <Pressable
           key={i}
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          borderWidth={1}
-          borderColor="$black"
-          flexShrink={0}
-          flexGrow={span}
-          height={(span * 11) / height}
-          overflow="hidden"
+          className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center border border-gray-200"
+          style={{
+            flexGrow: span,
+            height: (span / 11) * height,
+          }}
         >
-          <Text
-            numberOfLines={2}
-            textAlign="center"
-            textWrap="wrap"
-            // eslint-disable-next-line react-native/no-inline-styles
-            style={{
-              wordBreak: 'break-all',
-            }}
-          >
+          <Text className="truncate text-wrap break-all text-center text-[10px] text-gray-500">
             {schedule.name}
           </Text>
-          <Text textAlign="center">{schedule.location}</Text>
-        </View>,
+          <Text className="text-wrap break-all text-[8px] text-gray-500">
+            {schedule.location}
+          </Text>
+        </Pressable>,
       );
 
       i += span - 1;
@@ -137,14 +120,7 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
       res.push(
         <View
           key={i}
-          flexGrow={1}
-          minHeight={49}
-          flexShrink={0}
-          flexBasis={0}
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          height={(1 / 11) * height}
+          className="flex-grow-1 flex min-h-14 flex-shrink-0 basis-0 flex-col items-center justify-center"
         />,
       );
     }
@@ -152,10 +128,7 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
 
   return (
     <View
-      width="14.285714%"
-      flexShrink={0}
-      flexGrow={1}
-      flexDirection="column"
+      className="flex w-[14.285714%] flex-shrink-0 flex-grow flex-col"
       onLayout={({ nativeEvent }) => {
         setHeight(nativeEvent.layout.height);
       }}
@@ -170,35 +143,28 @@ export default function HomePage() {
 
   return (
     <ScrollView
-      flex={1}
-      flexDirection="column"
-      backgroundColor="$white"
+      className="flex h-full flex-auto flex-col overflow-auto bg-white"
       stickyHeaderIndices={[0]}
       overScrollMode="never"
       bounces={false}
     >
       <Header />
-      <View flexDirection="row" paddingVertical="$1">
-        <View width={32} flexShrink={0} flexGrow={0} flexDirection="column">
+      <View className="flex flex-none flex-grow flex-row py-1">
+        <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
           {classes.map((time, index) => (
             <View
               key={index}
-              minHeight={56}
-              width={32}
-              flexGrow={1}
-              flexDirection="column"
-              alignItems="center"
-              paddingVertical="$1"
+              className="flex min-h-14 w-[32px] flex-grow flex-col items-center py-1"
             >
-              <Text fontWeight="bold" color="$gray500">
+              <Text className="text-[12px] font-bold text-gray-500">
                 {index + 1}
               </Text>
-              <Text color="$gray500">{time[0]}</Text>
-              <Text color="$gray500">{time[1]}</Text>
+              <Text className="text-[8px] text-gray-500">{time[0]}</Text>
+              <Text className="text-[8px] text-gray-500">{time[1]}</Text>
             </View>
           ))}
         </View>
-        <View flexDirection="row" flexGrow={1} flexShrink={1}>
+        <View className="flex flex-shrink flex-grow flex-row">
           {Array.from({ length: 7 }).map((_, index) => (
             <CalendarCol
               key={index}
