@@ -54,6 +54,25 @@ android {
 }
 ```
 
+## 配置不同架构的分包
+
+修改 `android\app\build.gradle`，添加以下内容：
+
+```diff
+android {
+    // ...
+
++    splits {
++        abi {
++            reset()
++            enable true
++            universalApk true
++            include "armeabi-v7a", "arm64-v8a", "x86_64"
++        }
++    }
+}
+```
+
 ## 修改构建版本号
 
 修改 `app.json` 中的 `expo.android.versionCode` 字段，每次递增 1 即可。
@@ -66,7 +85,7 @@ android {
 
 ```bash
 ./gradlew app:bundleRelease
-./gradlew app:packageReleaseUniversalApk
+./gradlew app:packageRelease
 ```
 
-第一个命令会构建出一个 `aab` 文件（`android\app\build\outputs\bundle\release\app-release.aab`），用于一些应用商店的上传；第二个命令会构建出一个 `apk` 文件（`android\app\build\outputs\apk_from_bundle\release\app-release-universal.apk`），用于另外一些应用商店的上传和官网发布。
+第一个命令会构建出一个 `aab` 文件（`android\app\build\outputs\bundle\release\app-release.aab`），用于一些应用商店的上传；第二个命令会构建出一些 `apk` 文件（`android\app\build\outputs\apk\release\` 目录下），用于另外一些应用商店的上传和官网发布。
