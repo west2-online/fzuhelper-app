@@ -1,5 +1,6 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import { type Config } from 'tailwindcss';
+
+const config: Config = {
   content: ['./{app,components,constants,hooks}/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {
@@ -11,3 +12,5 @@ module.exports = {
     require('@tailwindcss/forms'),
   ],
 };
+
+export default config;
