@@ -1,6 +1,8 @@
 import { Tabs } from 'expo-router';
 
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { HeaderIcon } from '@/components/HeaderIcon';
+import { TabBarIcon } from '@/components/TabBarIcon';
+import { Text, View } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -8,7 +10,20 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: '主页',
+          title: '课程',
+          headerTitleAlign: 'center',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerLeft: props => (
+            <View className="px-4">
+              <Text>第 X 周</Text>
+            </View>
+          ),
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: props => (
+            <View className="px-4">
+              <HeaderIcon name="settings-outline" />
+            </View>
+          ),
           // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
