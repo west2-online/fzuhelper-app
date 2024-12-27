@@ -23,6 +23,15 @@ export default function HomePage() {
     try {
       const response = await post(url, headers, formData);
       setDictionary(response);
+      Alert.alert('结果', JSON.stringify(response));
+    } catch (error) {
+      Alert.alert('错误', String(error));
+    }
+  };
+
+  const handlePressGet = async () => {
+    try {
+      const response = await get('https://jwch.fzu.edu.cn');
       Alert.alert('结果', response);
     } catch (error) {
       Alert.alert('错误', String(error));
@@ -33,7 +42,8 @@ export default function HomePage() {
     <>
       <ThemedView>
         <Text>User</Text>
-        <Button title="获取数据" onPress={handlePress} />
+        <Button title="获取数据POST" onPress={handlePress} />
+        <Button title="获取数据GET" onPress={handlePressGet} />
         {Object.entries(dictionary).map(([key, value]) => (
           <Text key={key}>
             {key}: {value}
