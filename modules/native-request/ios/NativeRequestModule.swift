@@ -6,6 +6,16 @@ struct StringMapper: Record {
     @Field var data: [String: String] = [:]
 }
 
+// 用于统一返回数据格式
+struct ResponseMapper: Record {
+  // 数据内容
+  @Field var data: String = ""
+  // 响应头
+  @Field var headers: [AnyHashable: Any] = [:]
+  // 错误信息
+  @Field var error: String = ""
+}
+
 public class NativeRequestModule: Module {
   // Each module class must implement the definition function. The definition consists of components
   // that describes the module's functionality and behavior.
@@ -16,45 +26,50 @@ public class NativeRequestModule: Module {
     // The module will be accessible from `requireNativeModule('NativeRequest')` in JavaScript.
     Name("NativeRequest")
 
-    AsyncFunction("get") { (url: String) in
-      do {
-        let response = await AF.request(url).serializingData().response
-
-        // 检查请求状态
-        guard let statusCode = response.response?.statusCode, (200...299).contains(statusCode) else {
-          return "请求失败，状态码: \(response.response?.statusCode ?? -1)"
-        }
-
-        // 获取字符串内容
-        if let data = response.data, let resultString = String(data: data, encoding: .utf8) {
-            return resultString + " iOS"
-        } else {
-            return "没有数据"
-        }
-      } catch {
-        return "请求失败: \(error)"
-      }
-    }
-
-    AsyncFunction("post") { (url: String, headers: StringMapper, formData: StringMapper) in
+    AsyncFunction("get") { (url: String, headers: StringMapper) -> (ResponseMapper) in
       // 创建 Alamofire 的 Session，启用 HTTPCookieStorage
       let configuration = URLSessionConfiguration.af.default
       configuration.httpCookieStorage = HTTPCookieStorage.shared
       let session = Alamofire.Session(configuration: configuration)
 
-      var result: [String: Any] = [:]
-      do{
-
-        let response = await session.request(url, method: .post, parameters: formData.data, encoder: URLEncodedFormParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
-
-        result["status"] = response.response?.statusCode ?? -1 // 状态码, -1 表示没有获取到状态码
-        result["data"] = String(data: response.data ?? Data(), encoding: .utf8) ?? "" // 数据内容
-        result["set-cookies"] = response.response?.allHeaderFields["Set-Cookie"] ?? "" // Set-Cookie
-
-        return result
-
+      var resp = ResponseMapper(data: "", headers: [:], error: "")
+      do {
+        let response = await session.request(url, headers: HTTPHeaders(headers.data)).serializingData().response
+        // // 检查请求状态
+        // guard let statusCode = response.response?.statusCode, (200...299).contains(statusCode) else {
+        //     result["data"] = "请求失败，状态码: \(response.response?.statusCode ?? -1)"
+        //     result["headers"] = response.response?.allHeaderFields ?? [:]
+        //     return result
+        // }
+        resp.data = String(data: response.data ?? Data(), encoding: .utf8) ?? "" // 数据内容
+        resp.headers = response.response?.allHeaderFields ?? [:] // Headers
+        return resp
       } catch {
-        result["error"] = "请求失败: \(error)"
+        resp.error = "请求失败: \(error)"
+        return resp
+      }
+    }
+
+    AsyncFunction("post") { (url: String, headers: StringMapper, formData: StringMapper) -> (ResponseMapper) in
+      // 创建 Alamofire 的 Session，启用 HTTPCookieStorage
+      let configuration = URLSessionConfiguration.af.default
+      configuration.httpCookieStorage = HTTPCookieStorage.shared
+      let session = Alamofire.Session(configuration: configuration)
+      var resp = ResponseMapper(data: "", headers: [:], error: "")
+      do{
+        let response = await session.request(url, method: .post, parameters: formData.data, encoder: URLEncodedFormParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
+        // // 检查请求状态
+        // guard let statusCode = response.response?.statusCode, (200...299).contains(statusCode) else {
+        //     result["data"] = "请求失败，状态码: \(response.response?.statusCode ?? -1)"
+        //     result["headers"] = response.response?.allHeaderFields ?? [:]
+        //     return result
+        // }
+        resp.data = String(data: response.data ?? Data(), encoding: .utf8) ?? "" // 数据内容
+        resp.headers = response.response?.allHeaderFields ?? [:] // Headers
+        return resp
+      } catch {
+        resp.error = "请求失败: \(error)"
+        return resp
       }
     }
   }

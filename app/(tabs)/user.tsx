@@ -21,9 +21,13 @@ export default function HomePage() {
 
   const handlePress = async () => {
     try {
-      const response = await post(url, headers, formData);
-      setDictionary(response);
-      Alert.alert('结果', JSON.stringify(response));
+      const { data: respData, headers: respHeaders } = await post(
+        url,
+        headers,
+        formData,
+      );
+      setDictionary(respHeaders);
+      Alert.alert('结果', JSON.stringify(respData));
     } catch (error) {
       Alert.alert('错误', String(error));
     }
@@ -31,8 +35,9 @@ export default function HomePage() {
 
   const handlePressGet = async () => {
     try {
-      const response = await get('https://jwch.fzu.edu.cn');
-      Alert.alert('结果', response);
+      const { data: respData, headers: respHeaders } = await get(url, headers);
+      setDictionary(respHeaders);
+      Alert.alert('结果', JSON.stringify(respData));
     } catch (error) {
       Alert.alert('错误', String(error));
     }
