@@ -41,3 +41,8 @@ android {
     abortOnError false
   }
 }
+
+dependencies {
+    // 解决请求很慢的问题(fastFallback)
+    implementation('com.squareup.okhttp3:okhttp:5.0.0-alpha.14')
+}

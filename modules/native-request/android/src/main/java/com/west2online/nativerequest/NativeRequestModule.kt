@@ -1,19 +1,17 @@
 package com.west2online.nativerequest
 
-import androidx.annotation.Keep
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.OutputStream
-import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import okhttp3.FormBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import javax.net.ssl.*
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.X509TrustManager
 
 class NativeRequestModule : Module() {
     // Each module class must implement the definition function. The definition consists of components
@@ -25,27 +23,25 @@ class NativeRequestModule : Module() {
         // The module will be accessible from `requireNativeModule('NativeRequest')` in JavaScript.
         Name("NativeRequest")
 
+        val trustAllCerts = object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate?>?, authType: String?) {
+            }
 
-        fun createAllTrustingSSLContext(): SSLContext {
-            val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-                override fun checkClientTrusted(
-                    chain: Array<out X509Certificate>?,
-                    authType: String?
-                ) {
-                }
+            override fun checkServerTrusted(chain: Array<X509Certificate?>?, authType: String?) {}
 
-                override fun checkServerTrusted(
-                    chain: Array<out X509Certificate>?,
-                    authType: String?
-                ) {
-                }
+            override fun getAcceptedIssuers(): Array<X509Certificate?> {
+                return arrayOfNulls(0)
+            }
+        }
 
-                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-            })
+        val getSSLSocketFactory: SSLSocketFactory by lazy {
 
             val sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(null, trustAllCerts, java.security.SecureRandom())
-            return sslContext
+            sslContext.init(
+                null, arrayOf(trustAllCerts),
+                SecureRandom()
+            )
+            sslContext.socketFactory
         }
 
         class StringMapper : Record {
@@ -68,74 +64,73 @@ class NativeRequestModule : Module() {
         }
 
         AsyncFunction("get") { url: String, headers: StringMapper ->
-            val sslContext = createAllTrustingSSLContext()
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
-            HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
+            val client = OkHttpClient.Builder()
+                .sslSocketFactory(getSSLSocketFactory, trustAllCerts)
+                .hostnameVerifier { _, _ -> true }
+                .build()
 
-            val urlConnection = URL(url).openConnection() as HttpURLConnection
-            urlConnection.requestMethod = "GET"
+            val requestBuilder = Request.Builder()
+                .url(url)
+                .get()
 
             headers.data.forEach { (key, value) ->
-                urlConnection.setRequestProperty(key, value)
+                requestBuilder.addHeader(key, value)
             }
+
+            val request = requestBuilder.build()
 
             val resp = ResponseMapper()
             try {
-                val responseCode = urlConnection.responseCode
-                resp.status = responseCode
-                resp.headers = urlConnection.headerFields
+                val response = client.newCall(request).execute()
+                resp.status = response.code
+                resp.headers = response.headers.toMultimap()
 
-                if (responseCode in 200..299) {
-                    val inputStream = urlConnection.inputStream
-                    resp.data = inputStream.readBytes()
+                if (response.isSuccessful) {
+                    resp.data = response.body.bytes()
+                } else {
+                    resp.error = "请求失败，状态码: ${response.code}"
                 }
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
-            } finally {
-                urlConnection.disconnect()
             }
             return@AsyncFunction resp
         }
 
         AsyncFunction("post") { url: String, headers: Map<String, String>, formData: Map<String, String> ->
-            val sslContext = createAllTrustingSSLContext()
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
-            HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
+            val client = OkHttpClient.Builder()
+                .sslSocketFactory(getSSLSocketFactory, trustAllCerts)
+                .hostnameVerifier { _, _ -> true }
+                .build()
 
-            val urlObj = URL(url)
-            val urlConnection = urlObj.openConnection() as HttpURLConnection
-            urlConnection.requestMethod = "POST"
+            val formBodyBuilder = FormBody.Builder()
+            formData.forEach { (key, value) ->
+                formBodyBuilder.add(key, value)
+            }
+            val formBody = formBodyBuilder.build()
+
+            val requestBuilder = Request.Builder()
+                .url(url)
+                .post(formBody)
 
             headers.forEach { (key, value) ->
-                urlConnection.setRequestProperty(key, value)
+                requestBuilder.addHeader(key, value)
             }
 
-            urlConnection.doOutput = true
-            urlConnection.doInput = true
-
-            val postData = formData.entries.joinToString("&") {
-                "${URLEncoder.encode(it.key, "UTF-8")}=${URLEncoder.encode(it.value, "UTF-8")}"
-            }.encodeToByteArray()
-
-            urlConnection.outputStream.use { outputStream ->
-                outputStream.write(postData)
-                outputStream.flush()
-            }
+            val request = requestBuilder.build()
 
             val resp = ResponseMapper()
             try {
-                val responseCode = urlConnection.responseCode
-                resp.status = responseCode
-                resp.headers = urlConnection.headerFields
+                val response = client.newCall(request).execute()
+                resp.status = response.code
+                resp.headers = response.headers.toMultimap()
 
-                if (responseCode in 200..299) {
-                    val inputStream = urlConnection.inputStream
-                    resp.data = inputStream.readBytes()
+                if (response.isSuccessful) {
+                    resp.data = response.body.bytes()
+                } else {
+                    resp.error = "请求失败，状态码: ${response.code}"
                 }
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
-            } finally {
-                urlConnection.disconnect()
             }
             return@AsyncFunction resp
         }
