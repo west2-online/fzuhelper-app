@@ -1,7 +1,10 @@
 package com.west2online.nativerequest
 
+import androidx.annotation.Keep
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.records.Field
+import expo.modules.kotlin.records.Record
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStream
@@ -45,34 +48,53 @@ class NativeRequestModule : Module() {
             return sslContext
         }
 
-        AsyncFunction("get") { url: String ->
+        class StringMapper : Record {
+            @Field
+            val data: Map<String, String> = emptyMap()
+        }
+
+        class ResponseMapper : Record {
+            @Field
+            var status: Int = -1
+
+            @Field
+            var data: ByteArray? = null
+
+            @Field
+            var headers: Map<String, List<String>> = emptyMap()
+
+            @Field
+            var error: String? = null
+        }
+
+        AsyncFunction("get") { url: String, headers: StringMapper ->
+            val sslContext = createAllTrustingSSLContext()
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
+            HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
+
             val urlConnection = URL(url).openConnection() as HttpURLConnection
             urlConnection.requestMethod = "GET"
 
+            headers.data.forEach { (key, value) ->
+                urlConnection.setRequestProperty(key, value)
+            }
+
+            val resp = ResponseMapper()
             try {
                 val responseCode = urlConnection.responseCode
+                resp.status = responseCode
+                resp.headers = urlConnection.headerFields
+
                 if (responseCode in 200..299) {
-                    BufferedReader(
-                        InputStreamReader(
-                            urlConnection.inputStream,
-                            StandardCharsets.UTF_8
-                        )
-                    ).use { reader ->
-                        val content = StringBuilder()
-                        var line: String?
-                        while (reader.readLine().also { line = it } != null) {
-                            content.append(line)
-                        }
-                        return@AsyncFunction content.toString() + " Android"
-                    }
-                } else {
-                    return@AsyncFunction "请求失败，状态码: $responseCode"
+                    val inputStream = urlConnection.inputStream
+                    resp.data = inputStream.readBytes()
                 }
             } catch (e: Exception) {
-                return@AsyncFunction "请求失败: ${e.message}"
+                resp.error = "请求失败: ${e.message}"
             } finally {
                 urlConnection.disconnect()
             }
+            return@AsyncFunction resp
         }
 
         AsyncFunction("post") { url: String, headers: Map<String, String>, formData: Map<String, String> ->
@@ -100,37 +122,24 @@ class NativeRequestModule : Module() {
                 outputStream.flush()
             }
 
-            val responseCode = urlConnection.responseCode
-            val responseMessage = StringBuilder()
-            val result = mutableMapOf<String, Any>()
+            val resp = ResponseMapper()
             try {
-                result["status"] = responseCode
+                val responseCode = urlConnection.responseCode
+                resp.status = responseCode
+                resp.headers = urlConnection.headerFields
+
                 if (responseCode in 200..299) {
-                    BufferedReader(
-                        InputStreamReader(
-                            urlConnection.inputStream,
-                            StandardCharsets.UTF_8
-                        )
-                    ).use { reader ->
-                        var line: String?
-                        while (reader.readLine().also { line = it } != null) {
-                            responseMessage.append(line)
-                        }
-                    }
-                    result["data"] = responseMessage.toString()
-                } else {
-                    result["data"] = ""
+                    val inputStream = urlConnection.inputStream
+                    resp.data = inputStream.readBytes()
                 }
-                result["set-cookies"] =
-                    urlConnection.headerFields["Set-Cookie"]?.joinToString("; ") ?: ""
             } catch (e: Exception) {
-                result["error"] = "请求失败: ${e.message}"
+                resp.error = "请求失败: ${e.message}"
             } finally {
                 urlConnection.disconnect()
             }
-
-            return@AsyncFunction result
+            return@AsyncFunction resp
         }
+
     }
 
 }

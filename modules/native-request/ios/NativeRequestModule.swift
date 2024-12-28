@@ -37,12 +37,6 @@ public class NativeRequestModule: Module {
       var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
       do {
         let response = await session.request(url, headers: HTTPHeaders(headers.data)).serializingData().response
-        // // 检查请求状态
-        // guard let statusCode = response.response?.statusCode, (200...299).contains(statusCode) else {
-        //     result["data"] = "请求失败，状态码: \(response.response?.statusCode ?? -1)"
-        //     result["headers"] = response.response?.allHeaderFields ?? [:]
-        //     return result
-        // }
         resp.status = response.response?.statusCode ?? -1
         resp.data = response.data
         resp.headers = response.response?.allHeaderFields ?? [:] // Headers
@@ -61,12 +55,6 @@ public class NativeRequestModule: Module {
       var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
       do{
         let response = await session.request(url, method: .post, parameters: formData.data, encoder: URLEncodedFormParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
-        // // 检查请求状态
-        // guard let statusCode = response.response?.statusCode, (200...299).contains(statusCode) else {
-        //     result["data"] = "请求失败，状态码: \(response.response?.statusCode ?? -1)"
-        //     result["headers"] = response.response?.allHeaderFields ?? [:]
-        //     return result
-        // }
         resp.status = response.response?.statusCode ?? -1
         resp.data = response.data
         resp.headers = response.response?.allHeaderFields ?? [:]
