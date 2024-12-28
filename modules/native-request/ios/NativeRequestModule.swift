@@ -8,12 +8,14 @@ struct StringMapper: Record {
 
 // 用于统一返回数据格式
 struct ResponseMapper: Record {
+  // 响应状态码
+  @Field var status: Int = -1 // 默认为 -1
   // 数据内容
-  @Field var data: String = ""
+  @Field var data: Data? = nil // 默认为空，需要 SDK50+ 支持
   // 响应头
   @Field var headers: [AnyHashable: Any] = [:]
   // 错误信息
-  @Field var error: String = ""
+  @Field var error: String? = nil // 默认不存在错误
 }
 
 public class NativeRequestModule: Module {
@@ -32,7 +34,7 @@ public class NativeRequestModule: Module {
       configuration.httpCookieStorage = HTTPCookieStorage.shared
       let session = Alamofire.Session(configuration: configuration)
 
-      var resp = ResponseMapper(data: "", headers: [:], error: "")
+      var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
       do {
         let response = await session.request(url, headers: HTTPHeaders(headers.data)).serializingData().response
         // // 检查请求状态
@@ -41,7 +43,8 @@ public class NativeRequestModule: Module {
         //     result["headers"] = response.response?.allHeaderFields ?? [:]
         //     return result
         // }
-        resp.data = String(data: response.data ?? Data(), encoding: .utf8) ?? "" // 数据内容
+        resp.status = response.response?.statusCode ?? -1
+        resp.data = response.data
         resp.headers = response.response?.allHeaderFields ?? [:] // Headers
         return resp
       } catch {
@@ -55,7 +58,7 @@ public class NativeRequestModule: Module {
       let configuration = URLSessionConfiguration.af.default
       configuration.httpCookieStorage = HTTPCookieStorage.shared
       let session = Alamofire.Session(configuration: configuration)
-      var resp = ResponseMapper(data: "", headers: [:], error: "")
+      var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
       do{
         let response = await session.request(url, method: .post, parameters: formData.data, encoder: URLEncodedFormParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
         // // 检查请求状态
@@ -64,8 +67,9 @@ public class NativeRequestModule: Module {
         //     result["headers"] = response.response?.allHeaderFields ?? [:]
         //     return result
         // }
-        resp.data = String(data: response.data ?? Data(), encoding: .utf8) ?? "" // 数据内容
-        resp.headers = response.response?.allHeaderFields ?? [:] // Headers
+        resp.status = response.response?.statusCode ?? -1
+        resp.data = response.data
+        resp.headers = response.response?.allHeaderFields ?? [:]
         return resp
       } catch {
         resp.error = "请求失败: \(error)"
