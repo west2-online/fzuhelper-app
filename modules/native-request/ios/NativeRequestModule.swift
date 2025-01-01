@@ -31,8 +31,8 @@ public class NativeRequestModule: Module {
     AsyncFunction("get") { (url: String, headers: StringMapper) -> (ResponseMapper) in
       // 创建 Alamofire 的 Session，启用 HTTPCookieStorage
       let configuration = URLSessionConfiguration.af.default
-      configuration.httpCookieStorage = HTTPCookieStorage.shared
-      let session = Alamofire.Session(configuration: configuration)
+      configuration.httpCookieStorage = nil // 禁用系统共享的 Cookie 存储
+      let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
 
       var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
       do {
@@ -50,8 +50,8 @@ public class NativeRequestModule: Module {
     AsyncFunction("post") { (url: String, headers: StringMapper, formData: StringMapper) -> (ResponseMapper) in
       // 创建 Alamofire 的 Session，启用 HTTPCookieStorage
       let configuration = URLSessionConfiguration.af.default
-      configuration.httpCookieStorage = HTTPCookieStorage.shared
-      let session = Alamofire.Session(configuration: configuration)
+      configuration.httpCookieStorage = nil // 禁用系统共享的 Cookie 存储
+      let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
       var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
       do{
         let response = await session.request(url, method: .post, parameters: formData.data, encoder: URLEncodedFormParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
@@ -65,4 +65,16 @@ public class NativeRequestModule: Module {
       }
     }
   }
+}
+
+// 自定义 RedirectHandler 来避免自动重定向
+class NoRedirectHandler: RedirectHandler {
+    func task(_ task: URLSessionTask, willBeRedirectedTo request: URLRequest, for response: HTTPURLResponse, completion: @escaping (URLRequest?) -> Void) {
+        // 如果状态码为 302，则阻止重定向
+        if response.statusCode == 302 {
+            completion(nil)
+        } else {
+            completion(request)
+        }
+    }
 }

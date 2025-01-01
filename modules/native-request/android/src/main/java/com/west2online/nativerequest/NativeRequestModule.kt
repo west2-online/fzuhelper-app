@@ -4,8 +4,10 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
+import okhttp3.CookieJar
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -57,18 +59,24 @@ class NativeRequestModule : Module() {
             var data: ByteArray? = null
 
             @Field
-            var headers: Map<String, List<String>> = emptyMap()
+            var headers: Map<String, String> = emptyMap()
 
             @Field
             var error: String? = null
         }
 
-        AsyncFunction("get") { url: String, headers: StringMapper ->
-            val client = OkHttpClient.Builder()
+        val client by lazy {
+            OkHttpClient.Builder()
+                .protocols(listOf(Protocol.HTTP_1_1)) // okhttp在HTTP2的情况下会把响应headers转为小写，禁用以保留原样
                 .sslSocketFactory(getSSLSocketFactory, trustAllCerts)
                 .hostnameVerifier { _, _ -> true }
+                .followRedirects(false)
+                .followSslRedirects(false)
+                .cookieJar(CookieJar.NO_COOKIES)
                 .build()
+        }
 
+        AsyncFunction("get") { url: String, headers: StringMapper ->
             val requestBuilder = Request.Builder()
                 .url(url)
                 .get()
@@ -83,27 +91,17 @@ class NativeRequestModule : Module() {
             try {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
-                resp.headers = response.headers.toMultimap()
-
-                if (response.isSuccessful) {
-                    resp.data = response.body.bytes()
-                } else {
-                    resp.error = "请求失败，状态码: ${response.code}"
-                }
+                resp.headers = response.headers.toMap()
+                resp.data = response.body.bytes()
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
             return@AsyncFunction resp
         }
 
-        AsyncFunction("post") { url: String, headers: Map<String, String>, formData: Map<String, String> ->
-            val client = OkHttpClient.Builder()
-                .sslSocketFactory(getSSLSocketFactory, trustAllCerts)
-                .hostnameVerifier { _, _ -> true }
-                .build()
-
+        AsyncFunction("post") { url: String, headers: StringMapper, formData: StringMapper ->
             val formBodyBuilder = FormBody.Builder()
-            formData.forEach { (key, value) ->
+            formData.data.forEach { (key, value) ->
                 formBodyBuilder.add(key, value)
             }
             val formBody = formBodyBuilder.build()
@@ -112,7 +110,7 @@ class NativeRequestModule : Module() {
                 .url(url)
                 .post(formBody)
 
-            headers.forEach { (key, value) ->
+            headers.data.forEach { (key, value) ->
                 requestBuilder.addHeader(key, value)
             }
 
@@ -122,13 +120,8 @@ class NativeRequestModule : Module() {
             try {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
-                resp.headers = response.headers.toMultimap()
-
-                if (response.isSuccessful) {
-                    resp.data = response.body.bytes()
-                } else {
-                    resp.error = "请求失败，状态码: ${response.code}"
-                }
+                resp.headers = response.headers.toMap()
+                resp.data = response.body.bytes()
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
