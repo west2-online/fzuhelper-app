@@ -3,7 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 获取学分统计 注意这里可能涉及到辅修 GET /api/v1/jwch/academic/credit */
+/** 获取学分统计 注意这里可能涉及到辅修 GET /api/v1/jwch/academic/credit https://apifox.com/web/project/3275694/apis/api-109631159-run */
 export async function getApiV1JwchAcademicCredit(options?: {
   [key: string]: unknown;
 }) {
@@ -17,7 +17,7 @@ export async function getApiV1JwchAcademicCredit(options?: {
   });
 }
 
-/** 绩点排名 GET /api/v1/jwch/academic/gpa */
+/** 绩点排名 GET /api/v1/jwch/academic/gpa https://apifox.com/web/project/3275694/apis/api-109631157-run */
 export async function getApiV1JwchAcademicGpa(options?: {
   [key: string]: unknown;
 }) {
@@ -31,7 +31,7 @@ export async function getApiV1JwchAcademicGpa(options?: {
   });
 }
 
-/** 获取专业培养计划 GET /api/v1/jwch/academic/plan */
+/** 获取专业培养计划 GET /api/v1/jwch/academic/plan https://apifox.com/web/project/3275694/apis/api-109631160-run */
 export async function getApiV1JwchAcademicPlan(options?: {
   [key: string]: unknown;
 }) {
@@ -44,7 +44,7 @@ export async function getApiV1JwchAcademicPlan(options?: {
   );
 }
 
-/** 成绩详情 GET /api/v1/jwch/academic/scores */
+/** 成绩详情 GET /api/v1/jwch/academic/scores https://apifox.com/web/project/3275694/apis/api-109631158-run */
 export async function getApiV1JwchAcademicScores(options?: {
   [key: string]: unknown;
 }) {
@@ -66,7 +66,7 @@ export async function getApiV1JwchAcademicScores(options?: {
   });
 }
 
-/** 统考成绩 CET、省计算机 GET /api/v1/jwch/academic/unified-exam */
+/** 统考成绩 CET、省计算机 GET /api/v1/jwch/academic/unified-exam https://apifox.com/web/project/3275694/apis/api-109631161-run */
 export async function getApiV1JwchAcademicUnifiedExam(options?: {
   [key: string]: unknown;
 }) {

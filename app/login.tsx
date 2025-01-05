@@ -63,7 +63,7 @@ const LoginPage: React.FC = () => {
 
       Alert.alert('成功', JSON.stringify({ id, cookies }));
     } catch (error: any) {
-      console.error(error);
+      console.error(JSON.stringify(error));
       Alert.alert(
         '错误',
         '登录失败: ' + (error.data?.message || error.message),
