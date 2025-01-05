@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Button, Image, TextInput, View } from 'react-native';
 
+import { getApiV1LoginAccessToken } from '@/api/generate';
 import { ThemedView } from '@/components/ThemedView';
 import UserLogin from '@/lib/user-login';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginPage: React.FC = () => {
-  const loginRef = useRef<UserLogin>(new UserLogin());
+  const loginRef = useRef<UserLogin | null>(null);
+  if (!loginRef.current) {
+    loginRef.current = new UserLogin();
+  }
   const [captchaImage, setCaptchaImage] = useState<string>('');
 
   const [username, setUsername] = useState<string>('');
@@ -14,8 +19,8 @@ const LoginPage: React.FC = () => {
 
   useEffect(() => {
     try {
-      loginRef.current
-        .getCaptcha()
+      loginRef
+        .current!.getCaptcha()
         .then(res =>
           setCaptchaImage(
             `data:image/png;base64,${btoa(String.fromCharCode(...res))}`,
@@ -41,16 +46,28 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      const { id, cookies } = await loginRef.current.login(
+      const { id, cookies } = await loginRef.current!.login(
         username,
         password,
         captcha,
       );
 
+      await AsyncStorage.multiSet([
+        ['user_id', username],
+        ['user_password', password],
+        ['id', id],
+        ['cookies', cookies],
+      ]);
+
+      await getApiV1LoginAccessToken();
+
       Alert.alert('成功', JSON.stringify({ id, cookies }));
     } catch (error: any) {
       console.error(error);
-      Alert.alert('错误', '登录失败: ' + error.message);
+      Alert.alert(
+        '错误',
+        '登录失败: ' + (error.data?.message || error.message),
+      );
     }
   }, [loginRef, username, password, captcha]);
 
