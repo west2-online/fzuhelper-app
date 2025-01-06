@@ -21,8 +21,6 @@ export async function userLogin(data: { id: string; password: string }) {
       ['cookies', cookies],
     ]);
 
-    console.log(id, cookies, 'login success');
-
     try {
       await getApiV1LoginAccessToken();
       return Promise.resolve();

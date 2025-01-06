@@ -50,7 +50,6 @@ request.interceptors.response.use(
         });
         const { 'access-token': accessToken, 'refresh-token': refreshToken } =
           res.headers;
-        console.log(accessToken, refreshToken);
         accessToken &&
           (await AsyncStorage.setItem('access_token', accessToken));
         refreshToken &&
@@ -147,7 +146,6 @@ request.interceptors.request.use(async function (config) {
   if (cookies) {
     config.headers.Cookies = cookies;
   }
-  console.log(accessToken, id, cookies);
   return config;
 });
 

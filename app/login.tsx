@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Button, Image, TextInput, View } from 'react-native';
 
@@ -61,7 +62,7 @@ const LoginPage: React.FC = () => {
 
       await getApiV1LoginAccessToken();
 
-      Alert.alert('成功', JSON.stringify({ id, cookies }));
+      router.push('/'); // 跳转到首页
     } catch (error: any) {
       console.error(JSON.stringify(error));
       Alert.alert(
