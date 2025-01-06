@@ -51,11 +51,7 @@ class UserLogin {
     return data;
   }
 
-  async #post(
-    url: string,
-    headers: Record<string, string>,
-    formData: Record<string, string>,
-  ) {
+  async #post(url: string, headers: Record<string, string>, formData: Record<string, string>) {
     const { data, headers: resHeaders } = await post(url, headers, formData);
 
     if (resHeaders['Set-Cookie']) {
@@ -134,11 +130,7 @@ class UserLogin {
     return '';
   }
 
-  async login(
-    username: string,
-    password: string,
-    _captcha: string | Uint8Array,
-  ) {
+  async login(username: string, password: string, _captcha: string | Uint8Array) {
     let captcha: string;
 
     if (typeof _captcha !== 'string') {
@@ -147,11 +139,7 @@ class UserLogin {
       captcha = _captcha;
     }
 
-    const {
-      token,
-      id: id0,
-      num,
-    } = await this.#loginCheck(username, password, captcha);
+    const { token, id: id0, num } = await this.#loginCheck(username, password, captcha);
     await this.#ssoLogin(token);
     const { id } = await this.#finishLogin(id0, num);
 

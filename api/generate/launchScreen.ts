@@ -1,13 +1,13 @@
 /* eslint-disable */
 // @ts-ignore
-import * as API from './types';
 import request from '../axios';
+import * as API from './types';
 
 /** GetImage get image GET /api/v1/launch-screen/image https://apifox.com/web/project/3275694/apis/api-225730370-run */
 export async function getApiV1LaunchScreenImage(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1LaunchScreenImageParams,
-  options?: { [key: string]: unknown }
+  options?: { [key: string]: unknown },
 ) {
   return request<{
     code: string;
@@ -43,7 +43,7 @@ export async function putApiV1LaunchScreenImage(
   params: API.putApiV1LaunchScreenImageParams,
   body: {},
   image?: File,
-  options?: { [key: string]: unknown }
+  options?: { [key: string]: unknown },
 ) {
   const formData = new FormData();
 
@@ -51,13 +51,13 @@ export async function putApiV1LaunchScreenImage(
     formData.append('image', image);
   }
 
-  Object.keys(body).forEach((ele) => {
+  Object.keys(body).forEach(ele => {
     const item = (body as { [key: string]: any })[ele];
 
     if (item !== undefined && item !== null) {
       if (typeof item === 'object' && !(item instanceof File)) {
         if (item instanceof Array) {
-          item.forEach((f) => formData.append(ele, f || ''));
+          item.forEach(f => formData.append(ele, f || ''));
         } else {
           formData.append(ele, JSON.stringify(item));
         }
@@ -105,7 +105,7 @@ export async function postApiV1LaunchScreenImage(
   params: API.postApiV1LaunchScreenImageParams,
   body: {},
   image?: File,
-  options?: { [key: string]: unknown }
+  options?: { [key: string]: unknown },
 ) {
   const formData = new FormData();
 
@@ -113,13 +113,13 @@ export async function postApiV1LaunchScreenImage(
     formData.append('image', image);
   }
 
-  Object.keys(body).forEach((ele) => {
+  Object.keys(body).forEach(ele => {
     const item = (body as { [key: string]: any })[ele];
 
     if (item !== undefined && item !== null) {
       if (typeof item === 'object' && !(item instanceof File)) {
         if (item instanceof Array) {
-          item.forEach((f) => formData.append(ele, f || ''));
+          item.forEach(f => formData.append(ele, f || ''));
         } else {
           formData.append(ele, JSON.stringify(item));
         }
@@ -165,43 +165,37 @@ export async function postApiV1LaunchScreenImage(
 export async function deleteApiV1LaunchScreenImage(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.deleteApiV1LaunchScreenImageParams,
-  options?: { [key: string]: unknown }
+  options?: { [key: string]: unknown },
 ) {
-  return request<{ code: string; message: string }>(
-    '/api/v1/launch-screen/image',
-    {
-      method: 'DELETE',
-      params: {
-        ...params,
-      },
-      ...(options || {}),
-    }
-  );
+  return request<{ code: string; message: string }>('/api/v1/launch-screen/image', {
+    method: 'DELETE',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
 }
 
 /** AddImagePointTime add image point time GET /api/v1/launch-screen/image/point-time https://apifox.com/web/project/3275694/apis/api-225730374-run */
 export async function getApiV1LaunchScreenImagePointTime(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1LaunchScreenImagePointTimeParams,
-  options?: { [key: string]: unknown }
+  options?: { [key: string]: unknown },
 ) {
-  return request<{ code: string; message: string }>(
-    '/api/v1/launch-screen/image/point-time',
-    {
-      method: 'GET',
-      params: {
-        ...params,
-      },
-      ...(options || {}),
-    }
-  );
+  return request<{ code: string; message: string }>('/api/v1/launch-screen/image/point-time', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
 }
 
 /** ChangeImageProperty change image's properties PUT /api/v1/launch-screen/image/property https://apifox.com/web/project/3275694/apis/api-225730372-run */
 export async function putApiV1LaunchScreenImageProperty(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.putApiV1LaunchScreenImagePropertyParams,
-  options?: { [key: string]: unknown }
+  options?: { [key: string]: unknown },
 ) {
   return request<{
     code: string;
@@ -235,7 +229,7 @@ export async function putApiV1LaunchScreenImageProperty(
 export async function getApiV1LaunchScreenScreen(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1LaunchScreenScreenParams,
-  options?: { [key: string]: unknown }
+  options?: { [key: string]: unknown },
 ) {
   return request<{
     code: string;

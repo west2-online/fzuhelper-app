@@ -26,15 +26,11 @@ function usePersistedQuery<
     {
       queryKey,
       queryFn: async (...res): Promise<TQueryFnData> => {
-        if (typeof queryFn !== 'function')
-          throw new Error('queryFn is required');
+        if (typeof queryFn !== 'function') throw new Error('queryFn is required');
         const persistedData = await AsyncStorage.getItem(queryKey.join('__'));
         try {
           const response = await queryFn(...res);
-          await AsyncStorage.setItem(
-            queryKey.join('__'),
-            JSON.stringify(response),
-          );
+          await AsyncStorage.setItem(queryKey.join('__'), JSON.stringify(response));
           return response;
         } catch (error) {
           console.error(error);

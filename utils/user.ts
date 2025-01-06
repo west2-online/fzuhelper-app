@@ -1,7 +1,4 @@
-import {
-  getApiV1LoginAccessToken,
-  postApiV1UserValidateCode,
-} from '@/api/generate';
+import { getApiV1LoginAccessToken, postApiV1UserValidateCode } from '@/api/generate';
 import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

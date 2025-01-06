@@ -48,12 +48,9 @@ request.interceptors.response.use(
             Authorization: await AsyncStorage.getItem('refresh_token'),
           },
         });
-        const { 'access-token': accessToken, 'refresh-token': refreshToken } =
-          res.headers;
-        accessToken &&
-          (await AsyncStorage.setItem('access_token', accessToken));
-        refreshToken &&
-          (await AsyncStorage.setItem('refresh_token', refreshToken));
+        const { 'access-token': accessToken, 'refresh-token': refreshToken } = res.headers;
+        accessToken && (await AsyncStorage.setItem('access_token', accessToken));
+        refreshToken && (await AsyncStorage.setItem('refresh_token', refreshToken));
 
         queue.forEach(({ config, resolve }) => {
           resolve(request(config));
@@ -111,8 +108,7 @@ request.interceptors.response.use(
     }
 
     // 更新accessToken和refreshToken
-    const { 'access-token': accessToken, 'refresh-token': refreshToken } =
-      response.headers;
+    const { 'access-token': accessToken, 'refresh-token': refreshToken } = response.headers;
     accessToken && (await AsyncStorage.setItem('access_token', accessToken));
     refreshToken && (await AsyncStorage.setItem('refresh_token', refreshToken));
 

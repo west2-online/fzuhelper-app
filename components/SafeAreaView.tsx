@@ -11,15 +11,8 @@ interface SafeAreaViewProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const SafeAreaView: React.FC<React.PropsWithChildren<SafeAreaViewProps>> = ({
-  children,
-  style,
-}) => {
-  return (
-    <SafeAreaViewRN style={[styles.container, style]}>
-      {children}
-    </SafeAreaViewRN>
-  );
+const SafeAreaView: React.FC<React.PropsWithChildren<SafeAreaViewProps>> = ({ children, style }) => {
+  return <SafeAreaViewRN style={[styles.container, style]}>{children}</SafeAreaViewRN>;
 };
 
 const styles = StyleSheet.create({

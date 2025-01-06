@@ -3,12 +3,7 @@ import { withAppBuildGradle } from 'expo/config-plugins';
 
 function insertAfter(s: string, searchString: string, content: string): string {
   const index = s.indexOf(searchString);
-  return (
-    s.slice(0, index) +
-    searchString +
-    content +
-    s.slice(index + searchString.length)
-  );
+  return s.slice(0, index) + searchString + content + s.slice(index + searchString.length);
 }
 
 // 比较 dirty 的解决方法，多次 prebuild:android 会破坏 build.gradle 文件
