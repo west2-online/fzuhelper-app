@@ -50,7 +50,6 @@ request.interceptors.response.use(
         });
         const { 'access-token': accessToken, 'refresh-token': refreshToken } =
           res.headers;
-        console.log(accessToken, refreshToken);
         accessToken &&
           (await AsyncStorage.setItem('access_token', accessToken));
         refreshToken &&
@@ -114,7 +113,6 @@ request.interceptors.response.use(
     // 更新accessToken和refreshToken
     const { 'access-token': accessToken, 'refresh-token': refreshToken } =
       response.headers;
-    console.log(response.headers);
     accessToken && (await AsyncStorage.setItem('access_token', accessToken));
     refreshToken && (await AsyncStorage.setItem('refresh_token', refreshToken));
 
@@ -140,6 +138,7 @@ request.interceptors.request.use(async function (config) {
   const cookies = await AsyncStorage.getItem('cookies');
   if (accessToken) {
     config.headers.Authorization = accessToken;
+    config.headers['Access-Token'] = accessToken;
   }
   if (id) {
     config.headers.Id = id;

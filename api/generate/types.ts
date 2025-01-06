@@ -1,7 +1,7 @@
 /* eslint-disable */
 // @ts-ignore
 
-export type deleteLaunchScreenApiImageParams = {
+export type deleteApiV1LaunchScreenImageParams = {
   /** 图片id */
   picture_id: number;
 };
@@ -25,17 +25,17 @@ export type getApiV1JwchCourseListParams = {
   term: string;
 };
 
-export type getLaunchScreenApiImageParams = {
+export type getApiV1LaunchScreenImageParams = {
   /** 图片id */
   picture_id: number;
 };
 
-export type getLaunchScreenApiImagePointParams = {
+export type getApiV1LaunchScreenImagePointTimeParams = {
   /** 图片id */
   picture_id: number;
 };
 
-export type getLaunchScreenApiScreenParams = {
+export type getApiV1LaunchScreenScreenParams = {
   /** 类型 */
   type: number;
   /** 学号 */
@@ -44,7 +44,7 @@ export type getLaunchScreenApiScreenParams = {
   device: number;
 };
 
-export type postLaunchScreenApiImageParams = {
+export type postApiV1LaunchScreenImageParams = {
   /** 1纯图片，2为页面url跳转，3为app的activity跳转 */
   pic_type: number;
   /** 开屏时长（秒） */
@@ -69,12 +69,12 @@ export type postLaunchScreenApiImageParams = {
   regex: string;
 };
 
-export type putLaunchScreenApiImageImgParams = {
+export type putApiV1LaunchScreenImageParams = {
   /** 图片id */
   picture_id: number;
 };
 
-export type putLaunchScreenApiImageParams = {
+export type putApiV1LaunchScreenImagePropertyParams = {
   /** id */
   picture_id: number;
   /** 1为空，2为页面跳转，3为app跳转 */
