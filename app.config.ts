@@ -1,8 +1,7 @@
 import { type ExpoConfig } from 'expo/config';
 import 'ts-node/register'; // Add this to import TypeScript files
 
-const value = (prodValue: string, devValue: string) =>
-  process.env.NODE_ENV === 'production' ? prodValue : devValue;
+const value = (prodValue: string, devValue: string) => (process.env.NODE_ENV === 'production' ? prodValue : devValue);
 
 const config: ExpoConfig = {
   name: 'fzuhelper-app',
@@ -23,10 +22,7 @@ const config: ExpoConfig = {
     supportsTablet: true,
   },
   android: {
-    package: value(
-      'com.helper.west2ol.fzuhelper',
-      'com.helper.west2ol.fzuhelper.dev',
-    ),
+    package: value('com.helper.west2ol.fzuhelper', 'com.helper.west2ol.fzuhelper.dev'),
     versionCode: 700001,
   },
   web: {
