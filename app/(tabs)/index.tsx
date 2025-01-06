@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { getCourseListRes } from '@/mockdata';
+import { getApiV1JwchCourseList } from '@/api/generate';
+import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { parseCourses, type ParsedCourse } from '@/utils/parseCourses';
 
 const classes = [
@@ -139,7 +140,18 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
 }
 
 export default function HomePage() {
-  const schedules = parseCourses(getCourseListRes.data);
+  const term = '202401';
+  const week = 10;
+  const { data, isLoading } = usePersistedQuery({
+    queryKey: ['getApiV1JwchCourseList', term],
+    queryFn: () => getApiV1JwchCourseList({ term }),
+  });
+
+  console.log(data, isLoading);
+
+  if (!data) return null;
+
+  const schedules = parseCourses(data.data.data);
 
   return (
     <ScrollView
@@ -168,7 +180,7 @@ export default function HomePage() {
           {Array.from({ length: 7 }).map((_, index) => (
             <CalendarCol
               key={index}
-              week={10}
+              week={week}
               weekday={index + 1}
               schedules={schedules}
             />
