@@ -26,3 +26,6 @@ nativewind-env.d.ts
 # Build generated files
 /ios
 /android
+
+# yarn
+yarn-error.log
