@@ -85,15 +85,13 @@ interface CalendarColProps {
 function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
   const [height, setHeight] = useState<number>(49 * 11);
 
-  const schedulesOnDay = schedules.filter(
-    schedule => schedule.weekday === weekday,
-  );
+  const schedulesOnDay = schedules.filter(schedule => schedule.weekday === weekday);
+
+  console.log(schedulesOnDay, weekday);
   const res: React.ReactNode[] = [];
 
   for (let i = 1; i <= 11; i++) {
-    const schedule = schedulesOnDay.find(
-      s => s.startClass === i && s.startWeek <= week && s.endWeek >= week,
-    );
+    const schedule = schedulesOnDay.find(s => s.startClass === i && s.startWeek <= week && s.endWeek >= week);
 
     if (schedule) {
       const span = schedule.endClass - schedule.startClass + 1;
@@ -107,12 +105,8 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
             height: (span / 11) * height,
           }}
         >
-          <Text className="truncate text-wrap break-all text-center text-[10px] text-gray-500">
-            {schedule.name}
-          </Text>
-          <Text className="text-wrap break-all text-[8px] text-gray-500">
-            {schedule.location}
-          </Text>
+          <Text className="truncate text-wrap break-all text-center text-[10px] text-gray-500">{schedule.name}</Text>
+          <Text className="text-wrap break-all text-[8px] text-gray-500">{schedule.location}</Text>
         </Pressable>,
       );
 
@@ -147,8 +141,6 @@ export default function HomePage() {
     queryFn: () => getApiV1JwchCourseList({ term }),
   });
 
-  console.log(data, isLoading);
-
   if (!data) return null;
 
   const schedules = parseCourses(data.data.data);
@@ -164,13 +156,8 @@ export default function HomePage() {
       <View className="flex flex-none flex-grow flex-row py-1">
         <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
           {classes.map((time, index) => (
-            <View
-              key={index}
-              className="flex min-h-14 w-[32px] flex-grow flex-col items-center py-1"
-            >
-              <Text className="text-[12px] font-bold text-gray-500">
-                {index + 1}
-              </Text>
+            <View key={index} className="flex min-h-14 w-[32px] flex-grow flex-col items-center py-1">
+              <Text className="text-[12px] font-bold text-gray-500">{index + 1}</Text>
               <Text className="text-[8px] text-gray-500">{time[0]}</Text>
               <Text className="text-[8px] text-gray-500">{time[1]}</Text>
             </View>
@@ -178,12 +165,7 @@ export default function HomePage() {
         </View>
         <View className="flex flex-shrink flex-grow flex-row">
           {Array.from({ length: 7 }).map((_, index) => (
-            <CalendarCol
-              key={index}
-              week={week}
-              weekday={index + 1}
-              schedules={schedules}
-            />
+            <CalendarCol key={index} week={week} weekday={index + 1} schedules={schedules} />
           ))}
         </View>
       </View>
