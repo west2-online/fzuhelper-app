@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { ThemedView } from '@/components/ThemedView';
+import QRCode from 'react-native-qrcode-svg';
 
 export default function YmtPage() {
   const [user_id, setUserId] = useState('');
@@ -47,28 +48,28 @@ export default function YmtPage() {
   return (
     <>
       <ThemedView>
-        <ThemedView>
-          <TextInput value={user_id} onChangeText={setUserId} placeholder="用户名" />
-          <TextInput value={password} onChangeText={setPassword} placeholder="密码" secureTextEntry />
-          <Button title="登录" onPress={() => login(user_id, password)} />
+        <TextInput value={user_id} onChangeText={setUserId} placeholder="用户名" />
+        <TextInput value={password} onChangeText={setPassword} placeholder="密码" secureTextEntry />
+        <Button title="登录" onPress={() => login(user_id, password)} />
 
-          <Text>access_token: {access_token}</Text>
-          <Button title="获取支付码" onPress={() => getPayCode(access_token)} />
+        <Text>access_token: {access_token}</Text>
+        <Button title="获取支付码" onPress={() => getPayCode(access_token)} />
 
-          <ScrollView>
-            {pay_code.map((code, index) => (
-              <View key={index} style={{ backgroundColor: '#add8e6', margin: 5, padding: 5 }}>
-                <Text>devId: {code.devId}</Text>
-                <Text>expiredTime: {code.expiredTime}</Text>
-                <Text>payAcctId: {code.payAcctId}</Text>
-                <Text>payPrdCode: {code.payPrdCode}</Text>
-                <Text>
-                  prePayId: {code.prePayId.slice(0, 3)}*****{code.prePayId.slice(15)}
-                </Text>
-              </View>
-            ))}
-          </ScrollView>
-        </ThemedView>
+        <ScrollView>
+          {pay_code.map((code, index) => (
+            <View key={index} style={{ backgroundColor: '#add8e6', margin: 5, padding: 5 }}>
+              <Text>devId: {code.devId}</Text>
+              <Text>expiredTime: {code.expiredTime}</Text>
+              <Text>payAcctId: {code.payAcctId}</Text>
+              <Text>payPrdCode: {code.payPrdCode}</Text>
+              <Text>
+                prePayId: {code.prePayId.slice(0, 3)}*****{code.prePayId.slice(15)}
+              </Text>
+
+              {code.prePayId === '' ? <></> : <QRCode value={code.prePayId} size={200} />}
+            </View>
+          ))}
+        </ScrollView>
       </ThemedView>
     </>
   );
