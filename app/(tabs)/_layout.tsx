@@ -24,7 +24,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="ymt"
+        name="yi_ma_tong"
         options={{
           title: '一码通',
           // eslint-disable-next-line react/no-unstable-nested-components
