@@ -1,4 +1,4 @@
-import YMTLogin, { PayCodeResData } from '@/lib/ymt-login';
+import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -10,7 +10,9 @@ export default function YiMaTongPage() {
   const [name, setName] = useState<string | null>(null);
   const ymtLogin = new YMTLogin();
 
-  const [PayCodes, setPayCodes] = useState<PayCodeResData[]>([]);
+  const [PayCodes, setPayCodes] = useState<PayCodeRespData[]>([]);
+  const [IdentifyCode, setIdentifyCode] = useState<IdentifyRespData | null>(null);
+
   // 尝试读取本地数据
   useEffect(() => {
     async function getLocalData() {
@@ -43,6 +45,11 @@ export default function YiMaTongPage() {
         console.log(payCodes);
         setPayCodes(payCodes);
       });
+
+      await ymtLogin.getIdentifyCode(accessToken).then(identifyCode => {
+        console.log(identifyCode);
+        setIdentifyCode(identifyCode);
+      });
     }
   }
 
@@ -64,17 +71,10 @@ export default function YiMaTongPage() {
             setName(null);
           }}
         />
-        <Button
-          title="Refresh"
-          onPress={() => {
-            ymtLogin.getPayCode(accessToken).then(payCodes => {
-              console.log(payCodes);
-              setPayCodes(payCodes);
-            });
-          }}
-        />
+        <Button title="Refresh" onPress={refresh} />
 
         {PayCodes.length > 0 && <QRCode value={PayCodes[0].prePayId} size={200} />}
+        {IdentifyCode && <QRCode value={IdentifyCode.content} size={200} color={IdentifyCode.color} />}
       </>
     );
   }
