@@ -86,12 +86,14 @@ export default function YiMaTongPage() {
   }
 
   if (!accessToken) {
+    // 未登录
     return (
       <Link href="/qrcode-login-page" asChild>
         <Button title="Login" />
       </Link>
     );
   } else {
+    // 已登录
     return (
       <>
         {/* 主功能区 */}
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
-    padding: 10,
+    padding: 15,
     margin: 10,
     borderRadius: 10,
     backgroundColor: MAIN_COLOR,
@@ -226,6 +228,7 @@ const styles = StyleSheet.create({
   // 中文字
   text: {
     flex: 10,
+    marginBottom: 3, //视觉居中
     fontSize: 20,
     color: 'black',
     justifyContent: 'center',
