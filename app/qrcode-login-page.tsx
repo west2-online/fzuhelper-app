@@ -13,12 +13,11 @@ export default function YiMaTongLoginPage() {
     try {
       const { name, accessToken } = await ymtLogin.login(account, accountPassword);
 
-      await AsyncStorage.setItem('name', name);
       await AsyncStorage.setItem('accessToken', accessToken);
 
       console.log('登录成功:', name, accessToken);
 
-      router.push('/yi_ma_tong'); // 跳转到一码通页面
+      router.push('/qrcode'); // 跳转到一码通页面
     } catch (error: any) {
       console.error(error);
       Alert.alert('登录失败', error.message);
