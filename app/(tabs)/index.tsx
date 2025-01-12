@@ -1,6 +1,12 @@
 import { Alert, Button, Text, TextInput } from 'react-native';
 
 import { getApiV1JwchCourseList, getApiV1JwchUserInfo } from '@/api/generate';
+import {
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListRow,
+  DescriptionListTerm,
+} from '@/components/DescriptionList';
 import { ThemedView } from '@/components/ThemedView';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useState } from 'react';
@@ -35,6 +41,21 @@ export default function HomePage() {
             test2();
           }}
         />
+
+        <DescriptionList>
+          <DescriptionListRow>
+            <DescriptionListTerm>Term</DescriptionListTerm>
+            <DescriptionListDescription>{term}</DescriptionListDescription>
+          </DescriptionListRow>
+          <DescriptionListRow>
+            <DescriptionListTerm>Term</DescriptionListTerm>
+            <DescriptionListDescription>{term}</DescriptionListDescription>
+          </DescriptionListRow>
+          <DescriptionListRow>
+            <DescriptionListTerm>Term</DescriptionListTerm>
+            <DescriptionListDescription>{term}</DescriptionListDescription>
+          </DescriptionListRow>
+        </DescriptionList>
       </ThemedView>
     </>
   );
