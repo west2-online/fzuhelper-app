@@ -24,7 +24,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="yi_ma_tong"
+        name="qrcode"
         options={{
           title: '一码通',
           // eslint-disable-next-line react/no-unstable-nested-components
