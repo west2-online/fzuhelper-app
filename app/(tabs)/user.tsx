@@ -1,5 +1,7 @@
 import { Link } from 'expo-router';
-import { Button, Text } from 'react-native';
+import { Text } from 'react-native';
+
+import Button from '@/components/Button';
 
 import { ThemedView } from '@/components/ThemedView';
 
@@ -10,7 +12,7 @@ export default function HomePage() {
         <Text>User</Text>
         <Text>111</Text>
         <Link href="/login" asChild>
-          <Button title="Login" />
+          <Button>登录</Button>
         </Link>
       </ThemedView>
     </>
