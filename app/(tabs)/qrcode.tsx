@@ -2,7 +2,7 @@ import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -10,16 +10,17 @@ import QRCode from 'react-native-qrcode-svg';
 const MAIN_COLOR = 'lightblue';
 
 export default function YiMaTongPage() {
+  const ymtLogin = useMemo(() => new YMTLogin(), []);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const [PayCodes, setPayCodes] = useState<PayCodeRespData[]>([]);
   const [IdentifyCode, setIdentifyCode] = useState<IdentifyRespData | null>(null);
   const [selectedCode, setSelectedCode] = useState<'消费码' | '认证码'>('消费码');
-  const ymtLogin = new YMTLogin();
 
-  // 尝试读取本地数据
+  // 初始化时读取本地数据
   useEffect(() => {
+    // 读取本地数据
     async function getLocalData() {
       try {
         const storedAccessToken = await AsyncStorage.getItem('accessToken');
@@ -27,12 +28,25 @@ export default function YiMaTongPage() {
         setAccessToken(storedAccessToken);
 
         console.log('读取本地数据成功:', storedAccessToken);
+        refresh();
       } catch (error) {
         console.error('读取本地数据失败:', error);
         await AsyncStorage.removeItem('accessToken');
       }
     }
     getLocalData();
+    // 设置刷新和时间间隔
+    const refreshInterval = setInterval(() => {
+      if (accessToken) {
+        refresh();
+      }
+    }, 50000);
+    const timeInterval = setInterval(() => setCurrentTime(new Date()), 1000);
+
+    return () => {
+      clearInterval(refreshInterval);
+      clearInterval(timeInterval);
+    };
   }, []);
 
   // accessToken 变化时自动刷新
@@ -40,28 +54,18 @@ export default function YiMaTongPage() {
     refresh();
   }, [accessToken]);
 
-  // 每50s自动刷新
-  useEffect(() => {
-    const interval = setInterval(refresh, 50000);
-
-    return () => clearInterval(interval);
-  }, []);
-  // 刷新时间
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   async function refresh() {
     if (accessToken) {
-      await ymtLogin.getPayCode(accessToken).then(payCodes => {
+      try {
+        const payCodes = await ymtLogin.getPayCode(accessToken);
         setPayCodes(payCodes);
-      });
 
-      await ymtLogin.getIdentifyCode(accessToken).then(identifyCode => {
+        const identifyCode = await ymtLogin.getIdentifyCode(accessToken);
         setIdentifyCode(identifyCode);
-      });
+      } catch (error: any) {
+        console.error('刷新失败:', error);
+        Alert.alert('刷新失败', error.message);
+      }
     }
   }
   async function logout() {
@@ -100,17 +104,25 @@ export default function YiMaTongPage() {
         <View style={styles.mainArea}>
           {/* 二维码容器 */}
           <View style={styles.qrcodeContainer}>
-            {selectedCode === '消费码'
-              ? PayCodes.length > 0 && (
-                  <View style={styles.qrcode}>
-                    <QRCode value={PayCodes[0].prePayId} size={300} />
-                  </View>
-                )
-              : IdentifyCode && (
-                  <View style={styles.qrcode}>
-                    <QRCode value={IdentifyCode.content} size={300} color={IdentifyCode.color} />
-                  </View>
-                )}
+            {selectedCode === '消费码' ? (
+              PayCodes.length > 0 ? (
+                <View style={styles.qrcode}>
+                  <QRCode value={PayCodes[0].prePayId} size={300} />
+                </View>
+              ) : (
+                <View style={styles.qrcode}>
+                  <Text>Loadimg...</Text>
+                </View>
+              )
+            ) : IdentifyCode ? (
+              <View style={styles.qrcode}>
+                <QRCode value={IdentifyCode.content} size={300} color={IdentifyCode.color} />
+              </View>
+            ) : (
+              <View style={styles.qrcode}>
+                <Text>Loadimg...</Text>
+              </View>
+            )}
           </View>
           <Text style={styles.time}>
             {currentTime.toLocaleDateString()} {currentTime.toLocaleTimeString()}
