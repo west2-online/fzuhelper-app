@@ -42,6 +42,14 @@ const config: ExpoConfig = {
       },
     ],
     './inject-android-config',
+    [
+      './modules/umeng-bridge/app.plugin.js',
+      {
+        appkey: '677631911233c160e700af49', // 发布（正式包名）时需更换
+        channel: 'default',
+        msgsec: 'd494151a2eed479371d1e13c0f52b1fa',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
