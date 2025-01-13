@@ -89,6 +89,15 @@ export default function YiMaTongPage() {
     );
   }
 
+  function renderQRCode() {
+    if (selectedCode === '消费码' && PayCodes.length > 0) {
+      return <QRCode value={PayCodes[0].prePayId} size={300} />;
+    } else if (IdentifyCode?.content) {
+      return <QRCode value={IdentifyCode.content} size={300} color={IdentifyCode.color ?? 'green'} />;
+    }
+    return <Text>Loading...</Text>;
+  }
+
   if (!accessToken) {
     // 未登录
     return (
@@ -104,25 +113,7 @@ export default function YiMaTongPage() {
         <View style={styles.mainArea}>
           {/* 二维码容器 */}
           <View style={styles.qrcodeContainer}>
-            {selectedCode === '消费码' ? (
-              PayCodes.length > 0 ? (
-                <View style={styles.qrcode}>
-                  <QRCode value={PayCodes[0].prePayId} size={300} />
-                </View>
-              ) : (
-                <View style={styles.qrcode}>
-                  <Text>Loadimg...</Text>
-                </View>
-              )
-            ) : IdentifyCode ? (
-              <View style={styles.qrcode}>
-                <QRCode value={IdentifyCode.content} size={300} color={IdentifyCode.color} />
-              </View>
-            ) : (
-              <View style={styles.qrcode}>
-                <Text>Loadimg...</Text>
-              </View>
-            )}
+            <View style={styles.qrcode}>{renderQRCode()}</View>
           </View>
           <Text style={styles.time}>
             {currentTime.toLocaleDateString()} {currentTime.toLocaleTimeString()}
