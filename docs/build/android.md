@@ -12,6 +12,15 @@
 yarn prebuild:android
 ```
 
+## 构建调试版本
+
+由于引入了本地模块，本项目不能在浏览器中或使用Expo Go运行。
+
+```bash
+yarn android # 等价于在Android Studio中执行编译
+yarn start # 启动调试服务器
+```
+
 ## 配置签名文件
 
 **注意一定不要把签名文件上传到 Git 仓库中！**
