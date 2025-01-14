@@ -67,12 +67,15 @@ class NativeRequestModule : Module() {
 
         val client by lazy {
             OkHttpClient.Builder()
-                .protocols(listOf(Protocol.HTTP_1_1)) // okhttp在HTTP2的情况下会把响应headers转为小写，禁用以保留原样
+                .protocols(listOf(Protocol.HTTP_1_1)) // 设置禁用 HTTP2.0
                 .sslSocketFactory(getSSLSocketFactory, trustAllCerts)
                 .hostnameVerifier { _, _ -> true }
                 .followRedirects(false)
                 .followSslRedirects(false)
-                .cookieJar(CookieJar.NO_COOKIES)
+                .cookieJar(CookieJar.NO_COOKIES) // 设置禁用 Cookie
+                .connectTimeout(10, TimeUnit.SECONDS) // 设置连接超时为 10 秒
+                .readTimeout(10, TimeUnit.SECONDS)    // 设置读取超时为 10 秒
+                .writeTimeout(10, TimeUnit.SECONDS)   // 设置写入超时为 10 秒
                 .build()
         }
 
