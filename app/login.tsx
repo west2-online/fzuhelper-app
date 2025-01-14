@@ -3,10 +3,10 @@ import Input from '@/components/Input';
 import { ThemedView } from '@/components/ThemedView';
 import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Checkbox from 'expo-checkbox';
 import { router, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { CheckBox } from 'react-native-btr';
 
 const NAVIGATION_TITLE = '登录';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
@@ -169,7 +169,7 @@ const LoginPage: React.FC = () => {
         </View>
         {/* 底部协议 */}
         <View className="mb-6 mt-24 w-full flex-row justify-center">
-          <CheckBox checked={isAgree} onPress={() => setIsAgree(!isAgree)} color="#1089FF" />
+          <Checkbox value={isAgree} onValueChange={setIsAgree} color={isAgree ? '#1089FF' : undefined} />
           <Text className="text-center text-gray-400">
             {'  '}
             阅读并同意{' '}
