@@ -10,6 +10,7 @@ import { Alert, Image, Linking, Text, TouchableOpacity, View } from 'react-nativ
 const NAVIGATION_TITLE = '登录';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
 const URL_PRIVATE_POLICY = 'https://fzuhelper.west2.online/onekey/FZUHelper.html';
+const URL_RESET_PASSWORD = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
 
 const LoginPage: React.FC = () => {
   const loginRef = useRef<UserLogin | null>(null);
@@ -17,7 +18,6 @@ const LoginPage: React.FC = () => {
     loginRef.current = new UserLogin();
   }
 
-  // 设置页面标题
   const navigation = useNavigation();
   useLayoutEffect(() => {
     navigation.setOptions({ title: NAVIGATION_TITLE });
@@ -48,6 +48,11 @@ const LoginPage: React.FC = () => {
   // 打开隐私政策
   const openPrivatePolicy = useCallback(() => {
     Linking.openURL(URL_PRIVATE_POLICY).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+  }, []);
+
+  // 打开重置密码
+  const oepnResetPassword = useCallback(() => {
+    Linking.openURL(URL_RESET_PASSWORD).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
   }, []);
 
   // 刷新验证码
@@ -153,8 +158,11 @@ const LoginPage: React.FC = () => {
 
         {/* 其他操作 */}
         <View className="w-full flex-row justify-between px-4">
+          {/* TODO: 研究生登录 */}
           <Text className="text-gray-500">研究生登录</Text>
-          <Text className="text-blue-500">重置密码</Text>
+          <Text className="text-blue-500" onPress={oepnResetPassword}>
+            重置密码
+          </Text>
           {/* <Text className="text-blue-500">游客登录</Text> */}
         </View>
       </View>
