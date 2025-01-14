@@ -14,6 +14,7 @@ export default function YiMaTongLoginPage() {
       const { name, accessToken } = await ymtLogin.login(account, accountPassword);
 
       await AsyncStorage.setItem('accessToken', accessToken);
+      await AsyncStorage.setItem('name', name);
 
       console.log('登录成功:', name, accessToken);
 

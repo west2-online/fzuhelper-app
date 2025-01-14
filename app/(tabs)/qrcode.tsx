@@ -12,6 +12,7 @@ export default function YiMaTongPage() {
   const ymtLogin = useMemo(() => new YMTLogin(), []);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [Name, setName] = useState<string | null>(null);
 
   const [PayCodes, setPayCodes] = useState<PayCodeRespData[]>();
   const [IdentifyCode, setIdentifyCode] = useState<IdentifyRespData>();
@@ -23,8 +24,10 @@ export default function YiMaTongPage() {
     async function getLocalData() {
       try {
         const storedAccessToken = await AsyncStorage.getItem('accessToken');
+        const storedName = await AsyncStorage.getItem('name');
 
         setAccessToken(storedAccessToken);
+        setName(storedName);
 
         console.log('读取本地数据成功:', storedAccessToken);
         refresh();
@@ -88,7 +91,7 @@ export default function YiMaTongPage() {
     );
   }
 
-  function renderQRCodeCard(title: string, codeContent: string, codeColor: string) {
+  function renderQRCodeCard(title: string, codeContent: string | null, codeColor: string) {
     return (
       <Card>
         <CardHeader className="">
@@ -96,11 +99,12 @@ export default function YiMaTongPage() {
           <CardDescription>
             {currentTime.toLocaleDateString() + ' '}
             {currentTime.toLocaleTimeString()}
+            {Name ? ' - ' + Name : ''}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="flex-row justify-center gap-4">
-          <QRCode value={codeContent} size={340} color={codeColor} />
+          {codeContent ? <QRCode value={codeContent} size={340} color={codeColor} /> : <Text>Loading...</Text>}
         </CardContent>
 
         <CardFooter className="flex-row gap-4">
@@ -120,10 +124,6 @@ export default function YiMaTongPage() {
       <Button onPress={() => router.push('/qrcode-login-page')}>
         <Text>Login</Text>
       </Button>
-
-      // <Link href="/qrcode-login-page" asChild>
-      //   <Button title="Login" />
-      // </Link>
     );
   } else {
     // 已登录
@@ -131,15 +131,11 @@ export default function YiMaTongPage() {
       <View className="flex-1">
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="mx-auto max-w-[400px] gap-1.5">
           <TabsContent value="消费码">
-            {PayCodes ? renderQRCodeCard('消费码', PayCodes[0].prePayId, '#000000') : <Text>Loading...</Text>}
+            {PayCodes && renderQRCodeCard('消费码', PayCodes[0].prePayId, '#000000')}
           </TabsContent>
 
           <TabsContent value="认证码">
-            {IdentifyCode ? (
-              renderQRCodeCard('认证码', IdentifyCode.content, IdentifyCode.color)
-            ) : (
-              <Text>Loading...</Text>
-            )}
+            {IdentifyCode && renderQRCodeCard('认证码', IdentifyCode.content, IdentifyCode.color)}
           </TabsContent>
 
           <TabsList className="w-full flex-row">
