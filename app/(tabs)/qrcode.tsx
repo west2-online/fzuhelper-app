@@ -1,22 +1,21 @@
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Text } from '@/components/ui/text';
 import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-
-// 定义常量
-const MAIN_COLOR = 'lightblue';
-
 export default function YiMaTongPage() {
   const ymtLogin = useMemo(() => new YMTLogin(), []);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const [PayCodes, setPayCodes] = useState<PayCodeRespData[]>([]);
-  const [IdentifyCode, setIdentifyCode] = useState<IdentifyRespData | null>(null);
-  const [selectedCode, setSelectedCode] = useState<'消费码' | '认证码'>('消费码');
+  const [PayCodes, setPayCodes] = useState<PayCodeRespData[]>();
+  const [IdentifyCode, setIdentifyCode] = useState<IdentifyRespData>();
+  const [currentTab, setCurrentTab] = useState('消费码');
 
   // 初始化时读取本地数据
   useEffect(() => {
@@ -89,158 +88,70 @@ export default function YiMaTongPage() {
     );
   }
 
-  function renderQRCode() {
-    if (selectedCode === '消费码' && PayCodes.length > 0) {
-      return <QRCode value={PayCodes[0].prePayId} size={300} />;
-    } else if (IdentifyCode?.content) {
-      return <QRCode value={IdentifyCode.content} size={300} color={IdentifyCode.color ?? 'green'} />;
-    }
-    return <Text>Loading...</Text>;
-  }
+  function renderQRCodeCard(title: string, codeContent: string, codeColor: string) {
+    return (
+      <Card>
+        <CardHeader className="">
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>
+            {currentTime.toLocaleDateString() + ' '}
+            {currentTime.toLocaleTimeString()}
+          </CardDescription>
+        </CardHeader>
 
+        <CardContent className="flex-row justify-center gap-4">
+          <QRCode value={codeContent} size={340} color={codeColor} />
+        </CardContent>
+
+        <CardFooter className="flex-row gap-4">
+          <Button onPress={logout} className="width-full flex-5">
+            <Text>登出</Text>
+          </Button>
+          <Button onPress={refresh} className="width-full flex-1 bg-blue-500">
+            <Text>刷新</Text>
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
   if (!accessToken) {
     // 未登录
     return (
-      <Link href="/qrcode-login-page" asChild>
-        <Button title="Login" />
-      </Link>
+      <Button onPress={() => router.push('/qrcode-login-page')}>
+        <Text>Login</Text>
+      </Button>
+
+      // <Link href="/qrcode-login-page" asChild>
+      //   <Button title="Login" />
+      // </Link>
     );
   } else {
     // 已登录
     return (
-      <>
-        {/* 主功能区 */}
-        <View style={styles.mainArea}>
-          {/* 二维码容器 */}
-          <View style={styles.qrcodeContainer}>
-            <View style={styles.qrcode}>{renderQRCode()}</View>
-          </View>
-          <Text style={styles.time}>
-            {currentTime.toLocaleDateString()} {currentTime.toLocaleTimeString()}
-          </Text>
-          {/* 两个切换按钮 */}
-          <View style={styles.selectButtonContainer}>
-            <TouchableOpacity style={styles.selectButton} onPress={() => setSelectedCode('消费码')}>
-              {selectedCode === '消费码' && <Ionicons name="checkmark" size={20} />}
+      <View className="flex-1">
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="mx-auto max-w-[400px] gap-1.5">
+          <TabsContent value="消费码">
+            {PayCodes ? renderQRCodeCard('消费码', PayCodes[0].prePayId, '#000000') : <Text>Loading...</Text>}
+          </TabsContent>
+
+          <TabsContent value="认证码">
+            {IdentifyCode ? (
+              renderQRCodeCard('认证码', IdentifyCode.content, IdentifyCode.color)
+            ) : (
+              <Text>Loading...</Text>
+            )}
+          </TabsContent>
+
+          <TabsList className="w-full flex-row">
+            <TabsTrigger value="消费码" className="flex-1">
               <Text>消费码</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.selectButton} onPress={() => setSelectedCode('认证码')}>
-              {selectedCode === '认证码' && <Ionicons name="checkmark" size={20} />}
+            </TabsTrigger>
+            <TabsTrigger value="认证码" className="flex-1">
               <Text>认证码</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* 辅功能区 */}
-        <View style={styles.quickActionArea}>
-          {/* 刷新 */}
-          <TouchableOpacity style={styles.quickActionButton} onPress={refresh}>
-            <Ionicons name="refresh" color="#fff" style={styles.leftIcon} />
-            <Text style={styles.text}>刷新</Text>
-            <Ionicons name="arrow-forward" color="#fff" style={styles.rightIcon} />
-          </TouchableOpacity>
-
-          {/* 登出 */}
-          <TouchableOpacity style={styles.quickActionButton} onPress={logout}>
-            <Ionicons name="log-out" color="#fff" style={styles.leftIcon} />
-            <Text style={styles.text}>登出</Text>
-            <Ionicons name="arrow-forward" color="#fff" style={styles.rightIcon} />
-          </TouchableOpacity>
-        </View>
-      </>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </View>
     );
   }
 }
-
-// 样式
-const styles = StyleSheet.create({
-  // 主功能区
-  mainArea: {},
-  // 二维码容器
-  qrcodeContainer: {
-    alignItems: 'center', // 水平居中
-    padding: 10,
-    borderRadius: 10,
-  },
-  // 二维码
-  qrcode: {
-    margin: 10,
-    padding: 10,
-    // 居中
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 350,
-    height: 350,
-    // 边框
-    borderWidth: 1,
-    borderColor: '#000',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 7,
-    // 圆角
-    elevation: 5,
-  },
-  // 时间
-  time: {
-    textAlign: 'center',
-    fontSize: 20,
-  },
-  // 选择按钮容器
-  selectButtonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    margin: 10,
-  },
-  // 选择按钮
-  selectButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 1,
-    padding: 15,
-    margin: 10,
-    borderRadius: 10,
-    backgroundColor: MAIN_COLOR,
-  },
-  // 辅功能区
-  quickActionArea: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 10,
-    borderRadius: 10,
-  },
-  // 功能按钮
-  quickActionButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
-    margin: 10,
-    borderRadius: 10,
-    backgroundColor: MAIN_COLOR,
-  },
-  // 左图标
-  leftIcon: {
-    flex: 1,
-    marginRight: 10,
-    fontSize: 30,
-    color: 'black',
-  },
-  // 中文字
-  text: {
-    flex: 10,
-    marginBottom: 3, //视觉居中
-    fontSize: 20,
-    color: 'black',
-    justifyContent: 'center',
-  },
-  // 右图标
-  rightIcon: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 30,
-    color: 'black',
-  },
-});
