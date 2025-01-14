@@ -42,6 +42,9 @@ android {
     lintOptions {
         abortOnError false
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 dependencies {
 //  implementation project(':expo-modules-core')

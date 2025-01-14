@@ -9,6 +9,7 @@ import {
 } from '@/components/DescriptionList';
 import { ThemedView } from '@/components/ThemedView';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
+import ExpoUmengModule from '@/modules/umeng-bridge';
 import { useState } from 'react';
 
 export default function HomePage() {
@@ -39,6 +40,27 @@ export default function HomePage() {
           title="ss2"
           onPress={() => {
             test2();
+          }}
+        />
+
+        <Button
+          title="已同意协议 初始化友盟"
+          onPress={() => {
+            ExpoUmengModule.initUmeng();
+          }}
+        />
+
+        <Button
+          title="取是否授予通知权限"
+          onPress={() => {
+            Alert.alert(ExpoUmengModule.hasPermission().toString());
+          }}
+        />
+
+        <Button
+          title="请求通知权限"
+          onPress={() => {
+            ExpoUmengModule.requirePermission();
           }}
         />
 

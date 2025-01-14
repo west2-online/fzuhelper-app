@@ -2,8 +2,6 @@
   "name": "umeng-bridge",
   "version": "0.1.0",
   "description": "Expo umeng bridge",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
   "scripts": {
     "build": "expo-module build",
     "clean": "expo-module clean",

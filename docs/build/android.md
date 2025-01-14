@@ -18,8 +18,9 @@ yarn prebuild:android
 
 ```bash
 yarn android # 等价于在Android Studio中执行编译
-yarn start # 启动调试服务器
 ```
+
+执行后等待编译完成，会自动安装并启动，且启动调试服务器。
 
 ## 配置签名文件
 

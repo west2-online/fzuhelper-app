@@ -17,8 +17,6 @@ public class MfrMessageActivity extends Activity {
     public void onMessage(UMessage msg) {
       Map<String, String> newMsg = msg.extra;
       newMsg.put("time", String.valueOf(System.currentTimeMillis()));
-      getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE).edit().putString("msg", newMsg.toString())
-          .apply();
     }
   };
 
