@@ -127,7 +127,6 @@ class YMTLogin {
   // 退出登录
   async logout() {
     await AsyncStorage.removeItem('accessToken');
-    await AsyncStorage.removeItem('name');
   }
 }
 

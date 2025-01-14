@@ -80,7 +80,7 @@ export default function YiMaTongPage() {
         {
           text: '确定',
           onPress: async () => {
-            await AsyncStorage.removeItem('accessToken');
+            ymtLogin.logout();
             setAccessToken(null);
           },
         },
