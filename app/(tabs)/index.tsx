@@ -1,6 +1,7 @@
-import { Alert, Button, Text, TextInput } from 'react-native';
+import { Alert, Text, TextInput } from 'react-native';
 
 import { getApiV1JwchCourseList, getApiV1JwchUserInfo } from '@/api/generate';
+import Button from '@/components/Button';
 import {
   DescriptionList,
   DescriptionListDescription,
@@ -36,11 +37,14 @@ export default function HomePage() {
         <Text>{JSON.stringify(data, null, 2)}</Text>
 
         <Button
-          title="ss2"
           onPress={() => {
             test2();
           }}
-        />
+        >
+          ss2
+        </Button>
+
+        <Button variant="link">link</Button>
 
         <DescriptionList>
           <DescriptionListRow>
