@@ -4,7 +4,14 @@ const config: Config = {
   content: ['./{app,components,constants,hooks}/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {
-    extend: {},
+    colors: {
+      primary: '#1089FF',
+    },
+    extend: {
+      borderRadius: {
+        '4xl': '2.5rem',
+      },
+    },
   },
   plugins: [],
 };
