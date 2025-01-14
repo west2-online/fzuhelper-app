@@ -1,6 +1,10 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Button, Image, TextInput, View } from 'react-native';
+import { Alert, Image, View } from 'react-native';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
 import { ThemedView } from '@/components/ThemedView';
@@ -63,8 +67,8 @@ const LoginPage: React.FC = () => {
 
   return (
     <ThemedView>
-      <TextInput value={username} onChangeText={setUsername} placeholder="用户名" className="m-4 border p-2" />
-      <TextInput value={password} onChangeText={setPassword} placeholder="密码" className="m-4 border p-2" />
+      <Input value={username} onChangeText={setUsername} placeholder="用户名" className="m-4 border p-2" />
+      <Input value={password} onChangeText={setPassword} placeholder="密码" className="m-4 border p-2" />
 
       {captchaImage && (
         <View>
@@ -72,9 +76,11 @@ const LoginPage: React.FC = () => {
         </View>
       )}
 
-      <TextInput value={captcha} onChangeText={setCaptcha} placeholder="验证码" className="m-4 border p-2" />
+      <Input value={captcha} onChangeText={setCaptcha} placeholder="验证码" className="m-4 border p-2" />
 
-      <Button title="登录" onPress={handleLogin} />
+      <Button onPress={handleLogin}>
+        <Text>登录</Text>
+      </Button>
     </ThemedView>
   );
 };
