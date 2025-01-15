@@ -1,12 +1,14 @@
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
+
 import { getApiV1LoginAccessToken } from '@/api/generate';
-import Input from '@/components/Input';
 import { ThemedView } from '@/components/ThemedView';
 import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Checkbox from 'expo-checkbox';
 import { router, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, ScrollView, TouchableOpacity, View } from 'react-native';
 
 const NAVIGATION_TITLE = '登录';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
