@@ -1,26 +1,37 @@
-import { router } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, View } from 'react-native';
-
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
 import { ThemedView } from '@/components/ThemedView';
+import { Checkbox } from '@/components/ui/checkbox';
 import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, useNavigation } from 'expo-router';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Alert, Image, Linking, ScrollView, TouchableOpacity, View } from 'react-native';
+
+const NAVIGATION_TITLE = '登录';
+const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
+const URL_PRIVACY_POLICY = 'https://fzuhelper.west2.online/onekey/FZUHelper.html';
+const URL_RESET_PASSWORD = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
 
 const LoginPage: React.FC = () => {
   const loginRef = useRef<UserLogin | null>(null);
   if (!loginRef.current) {
     loginRef.current = new UserLogin();
   }
-  const [captchaImage, setCaptchaImage] = useState<string>('');
 
+  const navigation = useNavigation();
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: NAVIGATION_TITLE });
+  }, [navigation]);
+
+  const [captchaImage, setCaptchaImage] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [captcha, setCaptcha] = useState<string>('');
+  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+  const [isAgree, setIsAgree] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -33,18 +44,52 @@ const LoginPage: React.FC = () => {
     }
   }, []);
 
-  const handleLogin = useCallback(async () => {
-    if (!username) {
-      Alert.alert('错误', '请输入用户名');
-    }
+  // 打开用户协议
+  const openUserAgreement = useCallback(() => {
+    Linking.openURL(URL_USER_AGREEMENT).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+  }, []);
 
+  // 打开隐私政策
+  const openPrivacyPolicy = useCallback(() => {
+    Linking.openURL(URL_PRIVACY_POLICY).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+  }, []);
+
+  // 打开重置密码
+  const oepnResetPassword = useCallback(() => {
+    Linking.openURL(URL_RESET_PASSWORD).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+  }, []);
+
+  // 刷新验证码
+  const refreshCaptcha = useCallback(async () => {
+    try {
+      const res = await loginRef.current!.getCaptcha();
+      setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`);
+    } catch (error) {
+      console.error(error);
+      Alert.alert('错误', '获取验证码失败');
+    }
+  }, []);
+
+  // 处理登录逻辑
+  const handleLogin = useCallback(async () => {
+    if (!isAgree) {
+      Alert.alert('错误', '请先阅读并同意用户协议和隐私政策');
+      return;
+    }
+    if (!username) {
+      Alert.alert('错误', '请输入学号');
+      return;
+    }
     if (!password) {
       Alert.alert('错误', '请输入密码');
+      return;
     }
-
     if (!captcha) {
       Alert.alert('错误', '请输入验证码');
+      return;
     }
+
+    setIsLoggingIn(true); // 禁用按钮
 
     try {
       const { id, cookies } = await loginRef.current!.login(username, password, captcha);
@@ -60,28 +105,87 @@ const LoginPage: React.FC = () => {
 
       router.push('/'); // 跳转到首页
     } catch (error: any) {
-      console.error(JSON.stringify(error));
       Alert.alert('错误', '登录失败: ' + (error.data?.message || error.message));
+      await refreshCaptcha();
+    } finally {
+      setIsLoggingIn(false); // 恢复按钮状态
     }
-  }, [loginRef, username, password, captcha]);
+  }, [isAgree, username, password, captcha, refreshCaptcha]);
 
   return (
-    <ThemedView>
-      <Input value={username} onChangeText={setUsername} placeholder="用户名" className="m-4 border p-2" />
-      <Input value={password} onChangeText={setPassword} placeholder="密码" className="m-4 border p-2" />
-
-      {captchaImage && (
-        <View>
-          <Image source={{ uri: captchaImage }} width={120} height={35} resizeMode="stretch" />
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+      <ThemedView className="bg-gray-100 flex-1 justify-between px-6">
+        {/* 左上角标题 */}
+        <View className="ml-1 mt-14">
+          <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
+          <Text className="text-gray-500 text-lg">综合性最强的福大校内APP</Text>
         </View>
-      )}
-
-      <Input value={captcha} onChangeText={setCaptcha} placeholder="验证码" className="m-4 border p-2" />
-
-      <Button onPress={handleLogin}>
-        <Text>登录</Text>
-      </Button>
-    </ThemedView>
+        {/* 页面内容 */}
+        <View className="items-center justify-center">
+          {/* 用户名输入框 */}
+          <Input
+            value={username}
+            onChangeText={setUsername}
+            placeholder="请输入学号"
+            className="border-gray-300 my-4 w-full px-1 py-3 text-lg"
+          />
+          {/* 密码输入框 */}
+          <Input
+            value={password}
+            onChangeText={setPassword}
+            placeholder="请输入密码"
+            secureTextEntry
+            className="border-gray-300 mb-4 w-full px-1 py-3 text-lg"
+          />
+          {/* 验证码输入框和图片 */}
+          <View className="mb-12 w-full flex-row items-center justify-between">
+            <Input
+              value={captcha}
+              onChangeText={setCaptcha}
+              placeholder="请输入验证码"
+              className="border-gray-300 mr-4 flex-1 px-1 py-3 text-lg"
+            />
+            {captchaImage && (
+              <TouchableOpacity onPress={refreshCaptcha}>
+                <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
+              </TouchableOpacity>
+            )}
+          </View>
+          {/* 登录按钮 */}
+          <TouchableOpacity
+            onPress={isLoggingIn ? undefined : handleLogin}
+            disabled={isLoggingIn}
+            className={`mb-6 w-full items-center justify-center rounded-4xl py-3 ${
+              isLoggingIn ? 'bg-gray-400' : 'bg-primary'
+            }`}
+          >
+            <Text className="text-white text-lg font-bold">{isLoggingIn ? '登录中...' : '登 录'}</Text>
+          </TouchableOpacity>
+          {/* 其他操作 */}
+          <View className="w-full flex-row justify-between px-2">
+            <Text className="text-gray-500">研究生登录</Text>
+            <Text className="text-primary" onPress={oepnResetPassword}>
+              重置密码
+            </Text>
+          </View>
+        </View>
+        {/* 底部协议 */}
+        <View className="mb-6 mt-24 w-full flex-row justify-center">
+          <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
+          <Text className="text-gray-400 text-center">
+            {'  '}
+            阅读并同意{' '}
+            <Text className="text-primary" onPress={openUserAgreement}>
+              用户协议
+            </Text>{' '}
+            和{' '}
+            <Text className="text-primary" onPress={openPrivacyPolicy}>
+              隐私政策
+            </Text>
+          </Text>
+        </View>
+      </ThemedView>
+    </ScrollView>
   );
 };
 

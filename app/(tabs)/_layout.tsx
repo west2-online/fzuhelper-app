@@ -1,8 +1,27 @@
-import { Tabs } from 'expo-router';
-
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { Tabs, useFocusEffect, useNavigation } from 'expo-router';
+import { useCallback, useLayoutEffect } from 'react';
+
+const NAVIGATION_TITLE = '主页';
 
 export default function TabLayout() {
+  const navigation = useNavigation();
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: NAVIGATION_TITLE });
+  }, [navigation]);
+
+  // 定义一个函数来检查登录状态
+  const checkLoginStatus = async () => {
+    console.log('Trigger Once');
+  };
+
+  // 使用 useFocusEffect 在组件获得焦点时检查登录状态
+  useFocusEffect(
+    useCallback(() => {
+      checkLoginStatus();
+    }, []),
+  );
+
   return (
     <Tabs>
       <Tabs.Screen

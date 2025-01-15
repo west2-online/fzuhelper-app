@@ -30,8 +30,10 @@ public class NativeRequestModule: Module {
 
     AsyncFunction("get") { (url: String, headers: StringMapper) -> (ResponseMapper) in
       // 创建 Alamofire 的 Session，启用 HTTPCookieStorage
-      let configuration = URLSessionConfiguration.af.default
+      let configuration = URLSessionConfiguration.af.default // 配置自定义 configuration，默认禁用了 HTTP2.0
       configuration.httpCookieStorage = nil // 禁用系统共享的 Cookie 存储
+      configuration.timeoutIntervalForRequest = 10 // 设置请求超时为 10 秒
+      configuration.timeoutIntervalForResource = 10 // 设置资源超时为 10 秒
       let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
 
       var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
@@ -49,8 +51,10 @@ public class NativeRequestModule: Module {
 
     AsyncFunction("post") { (url: String, headers: StringMapper, formData: StringMapper) -> (ResponseMapper) in
       // 创建 Alamofire 的 Session，启用 HTTPCookieStorage
-      let configuration = URLSessionConfiguration.af.default
+      let configuration = URLSessionConfiguration.af.default // 配置自定义 configuration，默认禁用了 HTTP2.0
       configuration.httpCookieStorage = nil // 禁用系统共享的 Cookie 存储
+      configuration.timeoutIntervalForRequest = 10 // 设置请求超时为 10 秒
+      configuration.timeoutIntervalForResource = 10 // 设置资源超时为 10 秒
       let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
       var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
       do{
