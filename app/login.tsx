@@ -113,7 +113,7 @@ const LoginPage: React.FC = () => {
   }, [isAgree, username, password, captcha, refreshCaptcha]);
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       <ThemedView className="bg-gray-100 flex-1 justify-between px-6">
         {/* 左上角标题 */}
         <View className="ml-1 mt-14">
