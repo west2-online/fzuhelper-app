@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, TextInput, View } from 'react-native';
+import { Alert, Image, View } from 'react-native';
 
-import Button from '@/components/Button';
-import Input from '@/components/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
 import { ThemedView } from '@/components/ThemedView';
@@ -77,7 +78,9 @@ const LoginPage: React.FC = () => {
 
       <Input value={captcha} onChangeText={setCaptcha} placeholder="验证码" className="m-4 border p-2" />
 
-      <Button onPress={handleLogin}>登录</Button>
+      <Button onPress={handleLogin}>
+        <Text>登录</Text>
+      </Button>
     </ThemedView>
   );
 };
