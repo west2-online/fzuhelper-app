@@ -18,7 +18,7 @@ export default function TabLayout() {
       const result = await getApiV1JwchPing();
       console.log('请求成功:' + result.data.message);
     } catch (e) {
-      // console.log('遇到错误:' + JSON.stringify(e));
+      console.log('遇到错误:' + JSON.stringify(e));
       console.log('遇到错误');
     }
   };
