@@ -2,6 +2,8 @@ import { ResultEnum } from '@/api/enum';
 import { userLogin } from '@/utils/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosRequestConfig } from 'axios';
+import { router } from 'expo-router';
+import { Alert } from 'react-native';
 
 const baseURL = 'https://fzuhelper.west2.online/';
 
@@ -60,7 +62,9 @@ request.interceptors.response.use(
         return request(config);
       } catch (error: any) {
         if (error?.data?.code === ResultEnum.AuthRefreshExpiredCode) {
-          //TODO 重新输入账号密码登录
+          // 重新输入账号密码登录
+          Alert.alert('提示', '访问令牌已过期，请重新登录');
+          router.push('/login');
         } else {
           queue.forEach(({ config, reject }) => {
             reject(request(config));
@@ -107,7 +111,7 @@ request.interceptors.response.use(
       return Promise.reject(response);
     }
 
-    // 更新accessToken和refreshToken
+    // 更新AccessToken和refreshToken
     const { 'access-token': accessToken, 'refresh-token': refreshToken } = response.headers;
     accessToken && (await AsyncStorage.setItem('access_token', accessToken));
     refreshToken && (await AsyncStorage.setItem('refresh_token', refreshToken));

@@ -1,16 +1,13 @@
-import { useState } from 'react';
-import { Alert, View } from 'react-native';
-
-import { ThemedView } from '@/components/ThemedView';
+import { getApiV1JwchCourseList, getApiV1JwchUserInfo } from '@/api/generate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
-
-import { getApiV1JwchCourseList, getApiV1JwchUserInfo } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
+import { useState } from 'react';
+import { Alert, View } from 'react-native';
 
 export default function HomePage() {
   const [term, setTerm] = useState('202401');

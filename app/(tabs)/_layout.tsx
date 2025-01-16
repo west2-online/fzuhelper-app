@@ -1,3 +1,4 @@
+import { getApiV1JwchPing } from '@/api/generate';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Tabs, useFocusEffect, useNavigation } from 'expo-router';
 import { useCallback, useLayoutEffect } from 'react';
@@ -13,6 +14,13 @@ export default function TabLayout() {
   // 定义一个函数来检查登录状态
   const checkLoginStatus = async () => {
     console.log('Trigger Once');
+    try {
+      const result = await getApiV1JwchPing();
+      console.log('请求成功:' + result.data.message);
+    } catch (e) {
+      // console.log('遇到错误:' + JSON.stringify(e));
+      console.log('遇到错误');
+    }
   };
 
   // 使用 useFocusEffect 在组件获得焦点时检查登录状态
