@@ -56,7 +56,18 @@ const LoginPage: React.FC = () => {
 
   // 打开重置密码
   const oepnResetPassword = useCallback(() => {
-    Linking.openURL(URL_RESET_PASSWORD).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+    Alert.alert(
+      '忘记密码',
+      '本科生登录账号为学号，密码为教务处密码。\n\n点击“重置密码”，可前往教务处网站进行密码重置。',
+      [
+        {
+          text: '重置密码',
+          onPress: () =>
+            Linking.openURL(URL_RESET_PASSWORD).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')')),
+        },
+        { text: '确定', style: 'cancel' },
+      ],
+    );
   }, []);
 
   // 刷新验证码
@@ -165,7 +176,7 @@ const LoginPage: React.FC = () => {
           <View className="w-full flex-row justify-between px-2">
             <Text className="text-muted-foreground">研究生登录</Text>
             <Text className="text-primary" onPress={oepnResetPassword}>
-              重置密码
+              忘记密码
             </Text>
           </View>
         </View>
