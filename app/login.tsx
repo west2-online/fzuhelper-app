@@ -114,11 +114,11 @@ const LoginPage: React.FC = () => {
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-      <ThemedView className="flex-1 justify-between bg-gray-100 px-6">
+      <ThemedView className="flex-1 justify-between bg-background px-6">
         {/* 左上角标题 */}
         <View className="ml-1 mt-14">
           <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
-          <Text className="text-lg text-gray-500">综合性最强的福大校内APP</Text>
+          <Text className="text-lg text-muted-foreground">综合性最强的福大校内APP</Text>
         </View>
         {/* 页面内容 */}
         <View className="items-center justify-center">
@@ -127,7 +127,7 @@ const LoginPage: React.FC = () => {
             value={username}
             onChangeText={setUsername}
             placeholder="请输入学号"
-            className="my-4 w-full border-gray-300 px-1 py-3 text-lg"
+            className="my-4 w-full px-1 py-3"
           />
           {/* 密码输入框 */}
           <Input
@@ -135,7 +135,7 @@ const LoginPage: React.FC = () => {
             onChangeText={setPassword}
             placeholder="请输入密码"
             secureTextEntry
-            className="mb-4 w-full border-gray-300 px-1 py-3 text-lg"
+            className="mb-4 w-full px-1 py-3"
           />
           {/* 验证码输入框和图片 */}
           <View className="mb-12 w-full flex-row items-center justify-between">
@@ -143,7 +143,7 @@ const LoginPage: React.FC = () => {
               value={captcha}
               onChangeText={setCaptcha}
               placeholder="请输入验证码"
-              className="mr-4 flex-1 border-gray-300 px-1 py-3 text-lg"
+              className="mr-4 flex-1 px-1 py-3"
             />
             {captchaImage && (
               <TouchableOpacity onPress={refreshCaptcha}>
@@ -163,7 +163,7 @@ const LoginPage: React.FC = () => {
           </TouchableOpacity>
           {/* 其他操作 */}
           <View className="w-full flex-row justify-between px-2">
-            <Text className="text-gray-500">研究生登录</Text>
+            <Text className="text-muted-foreground">研究生登录</Text>
             <Text className="text-primary" onPress={oepnResetPassword}>
               重置密码
             </Text>
@@ -172,7 +172,7 @@ const LoginPage: React.FC = () => {
         {/* 底部协议 */}
         <View className="mb-6 mt-24 w-full flex-row justify-center">
           <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-          <Text className="text-center text-gray-400">
+          <Text className="text-center text-muted-foreground">
             {'  '}
             阅读并同意{' '}
             <Text className="text-primary" onPress={openUserAgreement}>
