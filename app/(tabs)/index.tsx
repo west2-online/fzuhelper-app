@@ -24,8 +24,8 @@ export default function HomePage() {
     const data = {
       term: '202401',
     };
-    const res = await getApiV1JwchUserInfo(data);
-    Alert.alert(JSON.stringify(res));
+    // const res = await getApiV1JwchUserInfo(data);
+    // Alert.alert(JSON.stringify(res));
   }
 
   return (

@@ -1,9 +1,7 @@
-import { ResultEnum } from '@/api/enum';
+import { RejectEnum, ResultEnum } from '@/api/enum';
 import { userLogin } from '@/utils/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosRequestConfig } from 'axios';
-import { router } from 'expo-router';
-import { Alert } from 'react-native';
 
 const baseURL = 'https://fzuhelper.west2.online/';
 
@@ -37,6 +35,11 @@ request.interceptors.response.use(
       });
     }
 
+    // 鉴权出现问题
+    if (data.code === ResultEnum.AuthInvalidCode) {
+      return Promise.reject({ type: RejectEnum.AuthFailed });
+    }
+
     // accessToken过期
     if (data.code === ResultEnum.AuthAccessExpiredCode) {
       refreshing = true;
@@ -50,6 +53,10 @@ request.interceptors.response.use(
             Authorization: await AsyncStorage.getItem('refresh_token'),
           },
         });
+        if (res.data.code !== ResultEnum.SuccessCode) {
+          throw res;
+        }
+
         const { 'access-token': accessToken, 'refresh-token': refreshToken } = res.headers;
         accessToken && (await AsyncStorage.setItem('access_token', accessToken));
         refreshToken && (await AsyncStorage.setItem('refresh_token', refreshToken));
@@ -61,10 +68,12 @@ request.interceptors.response.use(
         queue = [];
         return request(config);
       } catch (error: any) {
-        if (error?.data?.code === ResultEnum.AuthRefreshExpiredCode) {
-          // 重新输入账号密码登录
-          Alert.alert('提示', '访问令牌已过期，请重新登录');
-          router.push('/login');
+        // 需要同时判断是否是 access-token 过期，否则会进入无限循环
+        if (
+          error?.data?.code === ResultEnum.AuthRefreshExpiredCode ||
+          error?.data?.code === ResultEnum.AuthAccessExpiredCode
+        ) {
+          Promise.reject({ type: RejectEnum.AuthFailed }); // 这里颗粒度粗一点，直接表示鉴权失败，统一返回 Login 页
         } else {
           queue.forEach(({ config, reject }) => {
             reject(request(config));
@@ -100,7 +109,7 @@ request.interceptors.response.use(
           });
           refreshing = false;
           queue = [];
-          return Promise.reject();
+          return Promise.reject({ type: RejectEnum.ReLoginFailed });
         }
       }
     }
@@ -108,7 +117,10 @@ request.interceptors.response.use(
     // 其他错误
     if (data.code !== ResultEnum.SuccessCode) {
       //TODO 错误消息提示处理
-      return Promise.reject(response);
+      return Promise.reject({
+        type: RejectEnum.BizFailed,
+        data: response.data,
+      });
     }
 
     // 更新AccessToken和refreshToken
@@ -128,7 +140,7 @@ request.interceptors.response.use(
       //TODO 网络错误消息处理
     }
 
-    return Promise.reject(error);
+    return Promise.reject({ type: RejectEnum.InternalFailed });
   },
 );
 

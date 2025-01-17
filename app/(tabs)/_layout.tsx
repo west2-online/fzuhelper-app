@@ -1,5 +1,6 @@
 import { getApiV1JwchPing } from '@/api/generate';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { Tabs, useFocusEffect, useNavigation } from 'expo-router';
 import { useCallback, useLayoutEffect } from 'react';
 
@@ -11,15 +12,20 @@ export default function TabLayout() {
     navigation.setOptions({ title: NAVIGATION_TITLE });
   }, [navigation]);
 
+  const { handleError } = useSafeResponseSolve();
+
   // 定义一个函数来检查登录状态
   const checkLoginStatus = async () => {
     console.log('Trigger Once');
     try {
       const result = await getApiV1JwchPing();
       console.log('请求成功:' + result.data.message);
-    } catch (e) {
-      console.log('遇到错误:' + JSON.stringify(e));
-      console.log('遇到错误');
+    } catch (error: any) {
+      const data = handleError(error);
+      if (data) {
+        console.log('业务错误', data);
+      }
+      // 我该如何在这里判断是属于异常及过期
     }
   };
 
