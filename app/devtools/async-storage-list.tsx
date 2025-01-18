@@ -1,24 +1,24 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Stack } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, View } from 'react-native';
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Text } from '@/components/ui/text';
+import { useNavigation } from 'expo-router';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { Alert, Button, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const NAVIGATION_TITLE = 'AsyncStorage List';
+const MAX_LENGTH = 50; // 设置最大长度
 
 export default function HomePage() {
-  const [storageItems, setStorageItems] = useState<{ key: string; value: string | null }[]>([]);
+  const navigation = useNavigation();
+  const [storageItems, setStorageItems] = useState<{ key: string; value: string | null; expanded: boolean }[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null); // 当前正在修改的 Key
   const [editingValue, setEditingValue] = useState<string | null>(null); // 当前正在修改的 Value
   const [isModalVisible, setModalVisible] = useState(false); // 控制模态框显示
   const [isAdding, setIsAdding] = useState(false); // 区分新增和编辑模式
+  const [inputHeight, setInputHeight] = useState(40); // 初始高度
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: NAVIGATION_TITLE });
+  }, [navigation]);
 
   useEffect(() => {
     const fetchStorageItems = async () => {
@@ -28,6 +28,7 @@ export default function HomePage() {
         const formattedItems = items.map(([key, value]) => ({
           key,
           value,
+          expanded: false, // 新增的属性，用于控制展开状态
         }));
         setStorageItems(formattedItems);
       } catch (error) {
@@ -38,11 +39,23 @@ export default function HomePage() {
     fetchStorageItems();
   }, []);
 
+  // 切换展开状态
+  const toggleExpand = (index: number) => {
+    setStorageItems(prevItems =>
+      prevItems.map((item, idx) => {
+        if (idx === index) {
+          return { ...item, expanded: !item.expanded }; // 切换展开状态
+        }
+        return { ...item, expanded: false }; // 其他项折叠
+      }),
+    );
+  };
+
   // 添加 Item
   const addItem = useCallback(async (key: string, value: string) => {
     try {
       await AsyncStorage.setItem(key, value);
-      setStorageItems(prevItems => [...prevItems, { key, value }]);
+      setStorageItems(prevItems => [...prevItems, { key, value, expanded: false }]);
     } catch (error) {
       console.error('Error adding item:', error);
       Alert.alert('新增失败', '无法添加该项，请稍后重试');
@@ -107,24 +120,24 @@ export default function HomePage() {
   }, []);
 
   // 复制指定 Item 的 KV 对
-  const copyItem = useCallback((key: string, value: string | null) => {
+  const copyItem = (key: string, value: string | null) => {
     Clipboard.setString(`${key}: ${value}`);
     Alert.alert('复制成功', `键 { ${key} } 及其值已复制到剪贴板`);
-  }, []);
+  };
 
-  const openModal = useCallback((key: string | null = null, value: string | null = null, adding = false) => {
+  const openModal = (key: string | null = null, value: string | null = null, adding = false) => {
     setEditingKey(key);
     setEditingValue(value);
     setIsAdding(adding);
     setModalVisible(true);
-  }, []);
+  };
 
-  const closeModal = useCallback(() => {
+  const closeModal = () => {
     setEditingValue(null);
     setModalVisible(false);
-  }, []);
+  };
 
-  const handleSave = useCallback(() => {
+  const handleSave = () => {
     if (isAdding) {
       if (!editingKey || !editingValue) {
         Alert.alert('错误', '键和值不能为空');
@@ -134,92 +147,154 @@ export default function HomePage() {
     } else if (editingKey && editingValue !== null) {
       editItem(editingKey, editingValue);
     }
-
     closeModal();
-  }, [isAdding, editingKey, editingValue, addItem, editItem, closeModal]);
+  };
 
-  const renderItem = ({ item }: { item: { key: string; value: string | null } }) => (
-    <Card className="mb-4">
-      <Collapsible>
-        <CardHeader>
-          <CollapsibleTrigger asChild>
-            <CardTitle>{item.key}</CardTitle>
-          </CollapsibleTrigger>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardContent>
-            <Text>{item.value}</Text>
-          </CardContent>
-
-          <CardFooter>
-            <Button onPress={() => deleteItem(item.key)} variant="destructive">
-              <Text>删除</Text>
-            </Button>
-            <Button onPress={() => copyItem(item.key, item.value)}>
-              <Text>复制</Text>
-            </Button>
-            <Button onPress={() => openModal(item.key, item.value)}>
-              <Text>修改</Text>
-            </Button>
-          </CardFooter>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
+  // Modal 负责新增和编辑操作
+  const renderEditModal = () => (
+    <Modal visible={isModalVisible} transparent animationType="fade" onRequestClose={closeModal}>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>{isAdding ? '新增' : '修改 [' + editingKey + ']'}</Text>
+          {isAdding && (
+            <TextInput style={styles.input} value={editingKey || ''} onChangeText={setEditingKey} placeholder="Key" />
+          )}
+          {/* Value 输入框，支持多行，动态调整高度 */}
+          <TextInput
+            style={[styles.input, { height: inputHeight }]} // 动态设置高度
+            value={editingValue || ''}
+            onChangeText={setEditingValue}
+            placeholder="请输入值"
+            multiline
+            textAlignVertical="top"
+            onContentSizeChange={event => {
+              const height = event.nativeEvent.contentSize.height;
+              setInputHeight(Math.max(Math.min(height + 20, 400), 40)); // 限制最大高度为 200
+            }}
+          />
+          <View style={styles.modalButtons}>
+            <Button title="取消" onPress={closeModal} />
+            <Button title="保存" onPress={handleSave} />
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
+
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: { key: string; value: string | null; expanded: boolean };
+    index: number;
+  }) => {
+    const displayValue =
+      item.expanded || !item.value || item.value.length <= MAX_LENGTH
+        ? item.value
+        : item.value.substring(0, MAX_LENGTH) + '...';
+
+    return (
+      <View style={styles.itemContainer}>
+        <TouchableOpacity onPress={() => toggleExpand(index)} style={styles.itemTouchable}>
+          <Text style={styles.keyText}>{item.key}</Text>
+          {item.expanded && (
+            <View style={styles.buttonContainer}>
+              <Button title="删除" onPress={() => deleteItem(item.key)} color="red" />
+              <Button title="复制" onPress={() => copyItem(item.key, item.value)} />
+              <Button title="修改" onPress={() => openModal(item.key, item.value)} />
+            </View>
+          )}
+          <Text style={styles.valueText}>{displayValue}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
-    <>
-      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
-
-      <View className="flex-1 gap-4 bg-muted p-4">
-        <View className="flex flex-row justify-between">
-          <Button onPress={() => openModal(null, null, true)}>
-            <Text>新增</Text>
-          </Button>
-          <Button onPress={clearAll} variant="destructive">
-            <Text>清空</Text>
-          </Button>
-        </View>
-
-        <FlatList data={storageItems} keyExtractor={item => item.key} renderItem={renderItem} />
-
-        <Dialog open={isModalVisible} onOpenChange={setModalVisible}>
-          <DialogContent className="w-[90vw]">
-            <DialogHeader>
-              <DialogTitle>{isAdding ? '新增' : `修改 [${editingKey}]`}</DialogTitle>
-            </DialogHeader>
-
-            {isAdding && (
-              <Input
-                className="mb-4 border p-3"
-                value={editingKey || ''}
-                onChangeText={setEditingKey}
-                placeholder="Key"
-              />
-            )}
-            {/* Value 输入框，支持多行，动态调整高度 */}
-            <Input
-              className="mb-4 border p-3"
-              value={editingValue || ''}
-              onChangeText={setEditingValue}
-              style={{ height: 96 }}
-              placeholder="请输入值"
-              multiline
-              textAlignVertical="top"
-            />
-
-            <DialogFooter>
-              <Button onPress={closeModal} variant="secondary">
-                <Text>取消</Text>
-              </Button>
-
-              <Button onPress={handleSave}>
-                <Text>保存</Text>
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+    <View style={styles.container}>
+      <View style={styles.headerButtons}>
+        <Button title="新增" onPress={() => openModal(null, null, true)} />
+        <Button title="清空" onPress={clearAll} color="red" />
       </View>
-    </>
+      <FlatList
+        data={storageItems}
+        keyExtractor={item => item.key}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
+      />
+      {renderEditModal()}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f9f9f9',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  listContent: {
+    paddingBottom: 20,
+  },
+  itemContainer: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 10,
+    elevation: 2,
+  },
+  itemTouchable: {
+    flex: 1,
+  },
+  keyText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#333',
+  },
+  valueText: {
+    fontSize: 14,
+    color: '#555',
+    marginVertical: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+});

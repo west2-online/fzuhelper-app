@@ -93,7 +93,6 @@ class UserLogin {
     const _data = await this.#post(JWCH_URLS.LOGIN_CHECK, headers, formData);
     const data = this.#responseToString(_data);
     const result = this.#checkErrors(data);
-    console.log(data, result);
     if (result) {
       throw new Error(result);
     }
