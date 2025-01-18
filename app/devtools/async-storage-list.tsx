@@ -19,7 +19,6 @@ export default function HomePage() {
   const [editingValue, setEditingValue] = useState<string | null>(null); // 当前正在修改的 Value
   const [isModalVisible, setModalVisible] = useState(false); // 控制模态框显示
   const [isAdding, setIsAdding] = useState(false); // 区分新增和编辑模式
-  const [inputHeight, setInputHeight] = useState(40); // 初始高度
 
   useEffect(() => {
     const fetchStorageItems = async () => {
@@ -201,16 +200,12 @@ export default function HomePage() {
             {/* Value 输入框，支持多行，动态调整高度 */}
             <Input
               className="mb-4 border p-3"
-              style={{ height: inputHeight }} // 动态设置高度
               value={editingValue || ''}
               onChangeText={setEditingValue}
+              style={{ height: 96 }}
               placeholder="请输入值"
               multiline
               textAlignVertical="top"
-              onContentSizeChange={event => {
-                const height = event.nativeEvent.contentSize.height;
-                setInputHeight(Math.max(Math.min(height + 20, 400), 40)); // 限制最大高度为 200
-              }}
             />
 
             <DialogFooter>
