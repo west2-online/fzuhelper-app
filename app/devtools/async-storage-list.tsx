@@ -1,24 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useNavigation } from 'expo-router';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { Stack } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Alert, Button, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const NAVIGATION_TITLE = 'AsyncStorage List';
 const MAX_LENGTH = 50; // 设置最大长度
 
 export default function HomePage() {
-  const navigation = useNavigation();
   const [storageItems, setStorageItems] = useState<{ key: string; value: string | null; expanded: boolean }[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null); // 当前正在修改的 Key
   const [editingValue, setEditingValue] = useState<string | null>(null); // 当前正在修改的 Value
   const [isModalVisible, setModalVisible] = useState(false); // 控制模态框显示
   const [isAdding, setIsAdding] = useState(false); // 区分新增和编辑模式
   const [inputHeight, setInputHeight] = useState(40); // 初始高度
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: NAVIGATION_TITLE });
-  }, [navigation]);
 
   useEffect(() => {
     const fetchStorageItems = async () => {
@@ -211,19 +206,23 @@ export default function HomePage() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerButtons}>
-        <Button title="新增" onPress={() => openModal(null, null, true)} />
-        <Button title="清空" onPress={clearAll} color="red" />
+    <>
+      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
+
+      <View style={styles.container}>
+        <View style={styles.headerButtons}>
+          <Button title="新增" onPress={() => openModal(null, null, true)} />
+          <Button title="清空" onPress={clearAll} color="red" />
+        </View>
+        <FlatList
+          data={storageItems}
+          keyExtractor={item => item.key}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+        />
+        {renderEditModal()}
       </View>
-      <FlatList
-        data={storageItems}
-        keyExtractor={item => item.key}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-      />
-      {renderEditModal()}
-    </View>
+    </>
   );
 }
 

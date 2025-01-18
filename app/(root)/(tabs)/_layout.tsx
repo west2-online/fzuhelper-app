@@ -1,8 +1,7 @@
-import { getApiV1JwchPing } from '@/api/generate';
+import { Tabs, useNavigation } from 'expo-router';
+import { useLayoutEffect } from 'react';
+
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { Tabs, useFocusEffect, useNavigation } from 'expo-router';
-import { useCallback, useLayoutEffect } from 'react';
 
 const NAVIGATION_TITLE = '主页';
 
@@ -11,30 +10,6 @@ export default function TabLayout() {
   useLayoutEffect(() => {
     navigation.setOptions({ title: NAVIGATION_TITLE });
   }, [navigation]);
-
-  const { handleError } = useSafeResponseSolve();
-
-  // 定义一个函数来检查登录状态
-  const checkLoginStatus = async () => {
-    console.log('Trigger Once');
-    try {
-      const result = await getApiV1JwchPing();
-      console.log('请求成功:' + result.data.message);
-    } catch (error: any) {
-      const data = handleError(error);
-      if (data) {
-        console.log('业务错误', data);
-      }
-      // 我该如何在这里判断是属于异常及过期
-    }
-  };
-
-  // 使用 useFocusEffect 在组件获得焦点时检查登录状态
-  useFocusEffect(
-    useCallback(() => {
-      checkLoginStatus();
-    }, []),
-  );
 
   return (
     <Tabs>

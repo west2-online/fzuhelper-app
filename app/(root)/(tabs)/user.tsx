@@ -7,7 +7,7 @@ export default function HomePage() {
   return (
     <>
       <ThemedView>
-        <Link href="/devtools/devtools" asChild>
+        <Link href="/devtools" asChild>
           <Button>
             <Text>开发者选项</Text>
           </Button>
