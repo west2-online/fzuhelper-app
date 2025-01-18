@@ -22,12 +22,12 @@ const LoginPage: React.FC = () => {
     loginRef.current = new UserLogin();
   }
 
-  const [captchaImage, setCaptchaImage] = useState<string>('');
-  const [username, setUsername] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [captcha, setCaptcha] = useState<string>('');
-  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
-  const [isAgree, setIsAgree] = useState<boolean>(false);
+  const [captchaImage, setCaptchaImage] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [captcha, setCaptcha] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isAgree, setIsAgree] = useState(false);
 
   useEffect(() => {
     try {
@@ -123,13 +123,14 @@ const LoginPage: React.FC = () => {
     <>
       <Stack.Screen options={{ title: NAVIGATION_TITLE, headerShown: false }} />
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+      <ScrollView className="flex-grow" keyboardShouldPersistTaps="handled">
         <ThemedView className="flex-1 justify-between bg-background px-6">
           {/* 左上角标题 */}
           <View className="ml-1 mt-14">
             <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
             <Text className="text-lg text-muted-foreground">综合性最强的福大校内APP</Text>
           </View>
+
           {/* 页面内容 */}
           <View className="items-center justify-center">
             {/* 用户名输入框 */}
@@ -139,6 +140,7 @@ const LoginPage: React.FC = () => {
               placeholder="请输入学号"
               className="my-4 w-full px-1 py-3"
             />
+
             {/* 密码输入框 */}
             <Input
               value={password}
@@ -147,6 +149,7 @@ const LoginPage: React.FC = () => {
               secureTextEntry
               className="mb-4 w-full px-1 py-3"
             />
+
             {/* 验证码输入框和图片 */}
             <View className="mb-12 w-full flex-row items-center justify-between">
               <Input
@@ -161,6 +164,7 @@ const LoginPage: React.FC = () => {
                 </TouchableOpacity>
               )}
             </View>
+
             {/* 登录按钮 */}
             <TouchableOpacity
               onPress={isLoggingIn ? undefined : handleLogin}
@@ -171,6 +175,7 @@ const LoginPage: React.FC = () => {
             >
               <Text className="text-lg font-bold text-white">{isLoggingIn ? '登录中...' : '登 录'}</Text>
             </TouchableOpacity>
+
             {/* 其他操作 */}
             <View className="w-full flex-row justify-between px-2">
               <Text className="text-muted-foreground">研究生登录</Text>
@@ -179,6 +184,7 @@ const LoginPage: React.FC = () => {
               </Text>
             </View>
           </View>
+
           {/* 底部协议 */}
           <View className="mb-6 mt-24 w-full flex-row justify-center">
             <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
