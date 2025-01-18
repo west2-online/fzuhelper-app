@@ -1,8 +1,7 @@
-import { Slot, Stack, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
-
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { Slot, Stack, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 
 export default function RootLayout() {
   const { handleError } = useSafeResponseSolve();

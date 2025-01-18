@@ -4,11 +4,12 @@ import { Alert } from 'react-native';
 import { useSafePush } from './useSafePush';
 
 interface RejectError {
-  type: RejectEnum; // Type 被精简为只有 4 种，具体查看 api/enum.ts
+  type: RejectEnum; // Type 被精简为只有 6 种，具体查看 api/enum.ts
   data?: any; // 仅当 type 为 RejectEnum.BizFailed 时存在
 }
 
 // useSafeResponseSolve 适用于安全地处理 Axios 响应错误
+// Axios 的错误对象中包含了 type 字段，这段逻辑会根据 type 的不同进行不同的处理
 export const useSafeResponseSolve = () => {
   /**
    * 处理错误的通用函数
@@ -63,6 +64,16 @@ export const useSafeResponseSolve = () => {
           console.error('内部异常:', error);
           Alert.alert('提示', '网络错误或服务器异常，请稍后再试');
           // 这里可以触发一些额外的错误处理逻辑
+          break;
+
+        case RejectEnum.Timeout:
+          console.error('请求超时:', error);
+          Alert.alert('提示', '请求超时，请稍后再试');
+          break;
+
+        case RejectEnum.NetworkError:
+          console.error('网络异常:', error);
+          Alert.alert('提示', '网络异常，请检查网络连接');
           break;
 
         default:
