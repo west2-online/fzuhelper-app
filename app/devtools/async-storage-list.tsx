@@ -185,7 +185,7 @@ export default function HomePage() {
         <FlatList data={storageItems} keyExtractor={item => item.key} renderItem={renderItem} />
 
         <Dialog open={isModalVisible} onOpenChange={setModalVisible}>
-          <DialogContent>
+          <DialogContent className="w-[90vw]">
             <DialogHeader>
               <DialogTitle>{isAdding ? '新增' : `修改 [${editingKey}]`}</DialogTitle>
             </DialogHeader>
