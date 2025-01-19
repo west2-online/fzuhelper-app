@@ -1,8 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 
 import { RejectEnum } from '@/api/enum';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
 
 interface RejectError {
   type: RejectEnum; // Type 被精简为只有 6 种，具体查看 api/enum.ts
@@ -35,7 +37,10 @@ export const useSafeResponseSolve = () => {
             [
               {
                 text: '确认',
-                onPress: () => redirect('/login'), // 点击确认后跳转
+                onPress: () => {
+                  AsyncStorage.multiRemove([JWCH_ID_KEY, JWCH_COOKIES_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+                  redirect('/login');
+                },
               },
             ],
             { cancelable: false },
@@ -50,7 +55,10 @@ export const useSafeResponseSolve = () => {
             [
               {
                 text: '确认',
-                onPress: () => redirect('/login'), // 点击确认后跳转
+                onPress: () => {
+                  AsyncStorage.multiRemove([JWCH_ID_KEY, JWCH_COOKIES_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+                  redirect('/login');
+                },
               },
             ],
             { cancelable: false },
