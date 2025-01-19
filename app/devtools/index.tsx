@@ -12,7 +12,7 @@ export default function HomePage() {
       <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
 
       <ThemedView>
-        <Link href="/login" asChild>
+        <Link href="/(guest)/academic-login" asChild>
           <Button>
             <Text>Push Login Page</Text>
           </Button>

@@ -19,7 +19,7 @@ export default function RootLayout() {
   const checkLoginStatus = useCallback(async () => {
     try {
       if (!(await isAccountExist())) {
-        router.replace('/login');
+        router.replace('/(guest)/academic-login');
         return;
       }
       await getApiV1JwchPing(); // 检查当前 App 和服务端的连接状态

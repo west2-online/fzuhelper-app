@@ -39,7 +39,7 @@ export const useSafeResponseSolve = () => {
                 text: '确认',
                 onPress: async () => {
                   await clearUserStorage();
-                  redirect('/login');
+                  redirect('/(guest)/academic-login');
                 },
               },
             ],
@@ -57,7 +57,7 @@ export const useSafeResponseSolve = () => {
                 text: '确认',
                 onPress: async () => {
                   await clearUserStorage();
-                  redirect('/login');
+                  redirect('/(guest)/academic-login');
                 },
               },
             ],
