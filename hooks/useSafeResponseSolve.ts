@@ -1,7 +1,8 @@
-import { RejectEnum } from '@/api/enum';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
-import { useSafePush } from './useSafePush';
+
+import { RejectEnum } from '@/api/enum';
+import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 
 interface RejectError {
   type: RejectEnum; // Type 被精简为只有 6 种，具体查看 api/enum.ts
@@ -11,12 +12,12 @@ interface RejectError {
 // useSafeResponseSolve 适用于安全地处理 Axios 响应错误
 // Axios 的错误对象中包含了 type 字段，这段逻辑会根据 type 的不同进行不同的处理
 export const useSafeResponseSolve = () => {
+  const redirect = useRedirectWithoutHistory();
+
   /**
    * 处理错误的通用函数
    * @param error Axios reject 抛出的错误对象
    */
-  const safePush = useSafePush();
-
   const handleError = useCallback(
     (error: RejectError) => {
       if (!error || !error.type) {
@@ -34,7 +35,7 @@ export const useSafeResponseSolve = () => {
             [
               {
                 text: '确认',
-                onPress: () => safePush('/login'), // 点击确认后跳转
+                onPress: () => redirect('/login'), // 点击确认后跳转
               },
             ],
             { cancelable: false },
@@ -49,7 +50,7 @@ export const useSafeResponseSolve = () => {
             [
               {
                 text: '确认',
-                onPress: () => safePush('/login'), // 点击确认后跳转
+                onPress: () => redirect('/login'), // 点击确认后跳转
               },
             ],
             { cancelable: false },
@@ -82,7 +83,7 @@ export const useSafeResponseSolve = () => {
           break;
       }
     },
-    [safePush],
+    [redirect],
   );
 
   return { handleError };
