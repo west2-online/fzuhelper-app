@@ -52,3 +52,12 @@ export enum ResultEnum {
   // SuccessCodePaper paper在旧版Android中的SuccessCode是2000，用作兼容
   SuccessCodePaper = '2000',
 }
+
+export enum RejectEnum {
+  AuthFailed = '10001', // 鉴权异常
+  ReLoginFailed = '10002', // 重新登录异常
+  BizFailed = '10003', // 业务异常
+  InternalFailed = '10004', // Axios 内部异常
+  Timeout = '10005', // 请求超时
+  NetworkError = '10006', // 网络异常
+}

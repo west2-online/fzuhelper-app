@@ -1,19 +1,15 @@
-import { Link } from 'expo-router';
-
+import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-
-import { ThemedView } from '@/components/ThemedView';
+import { Link } from 'expo-router';
 
 export default function HomePage() {
   return (
     <>
       <ThemedView>
-        <Text>User</Text>
-        <Text>111</Text>
-        <Link href="/login" asChild>
+        <Link href="/devtools" asChild>
           <Button>
-            <Text>登录</Text>
+            <Text>开发者选项</Text>
           </Button>
         </Link>
       </ThemedView>
