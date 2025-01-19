@@ -1,19 +1,25 @@
-import { Buffer } from 'buffer';
-
+import { RejectEnum } from '@/api/enum';
 import { get, post } from '@/modules/native-request';
 import md5 from '@/utils/md5';
+import { Buffer } from 'buffer';
 
+// const 只会使变量的引用不可变，但不代表变量的内容（如对象或数组）也是不可变的，因此需要补一个 as const
 const JWCH_URLS = {
   LOGIN_CHECK: 'https://jwcjwxt1.fzu.edu.cn/logincheck.asp',
   VERIFY_CODE: 'https://jwcjwxt1.fzu.edu.cn/plus/verifycode.asp',
   SSO_LOGIN: 'https://jwcjwxt2.fzu.edu.cn/Sfrz/SSOLogin',
   LOGIN_CHECK_XS: 'https://jwcjwxt2.fzu.edu.cn:81/loginchk_xs.aspx',
-};
+} as const;
 
-const defaultHeaders = {
+const DEFAULT_HEADERS: Record<string, string> = {
   REFERER: 'https://jwch.fzu.edu.cn',
   ORIGIN: 'https://jwch.fzu.edu.cn',
   'X-Requested-With': 'XMLHttpRequest',
+};
+
+const ERROR_MESSAGES: Record<string, string> = {
+  用户名或密码错误: '用户名或密码错误',
+  验证码验证失败: '验证码验证失败',
 };
 
 class UserLogin {
@@ -41,6 +47,15 @@ class UserLogin {
     return Buffer.from(response).toString('utf-8').replace(/\s+/g, '');
   }
 
+  #checkErrors(data: string): string | null {
+    for (const [key, message] of Object.entries(ERROR_MESSAGES)) {
+      if (data.includes(key)) {
+        return message;
+      }
+    }
+    return null;
+  }
+
   async #get(url: string, headers: Record<string, string>) {
     const { data, headers: resHeaders } = await get(url, headers);
 
@@ -62,12 +77,12 @@ class UserLogin {
   }
 
   getCaptcha() {
-    return this.#get(JWCH_URLS.VERIFY_CODE, defaultHeaders);
+    return this.#get(JWCH_URLS.VERIFY_CODE, DEFAULT_HEADERS);
   }
 
   async #loginCheck(username: string, password: string, captcha: string) {
     const headers = {
-      ...defaultHeaders,
+      ...DEFAULT_HEADERS,
       Cookie: this.#getCookies(),
     };
     const formData = {
@@ -78,12 +93,23 @@ class UserLogin {
 
     const _data = await this.#post(JWCH_URLS.LOGIN_CHECK, headers, formData);
     const data = this.#responseToString(_data);
+    const result = this.#checkErrors(data);
+    if (result) {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: result,
+      };
+    }
+
     const token = /token=(.*?)&/.exec(data)?.[1];
     const id = /id=(.*?)&/.exec(data)?.[1];
     const num = /num=(.*?)&/.exec(data)?.[1];
 
     if (!token || !id || !num) {
-      throw new Error('登录失败: 教务处未返回有效 Token');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '教务处未返回有效 Token\n 可能原因: 验证码输入失败，教务处正在进行维护',
+      };
     }
 
     return { token, id, num };
@@ -91,7 +117,7 @@ class UserLogin {
 
   async #ssoLogin(token: string) {
     const headers = {
-      ...defaultHeaders,
+      ...DEFAULT_HEADERS,
       // Cookie: this.#getCookies(),
     };
     const formData = { token };
@@ -101,7 +127,10 @@ class UserLogin {
 
     // {"code":200,"info":"登录成功","data":{}}
     if (data.code !== 200) {
-      throw new Error('登录失败: SSOLogin failed');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '教务处服务器 SSOLogin 失败',
+      };
     }
 
     return true;
@@ -110,7 +139,7 @@ class UserLogin {
   async #finishLogin(id: string, num: string) {
     const reqUrl = `${JWCH_URLS.LOGIN_CHECK_XS}?id=${id}&num=${num}&ssourl=https://jwcjwxt2.fzu.edu.cn&hosturl=https://jwcjwxt2.fzu.edu.cn:81&ssologin=`;
     const headers = {
-      ...defaultHeaders,
+      ...DEFAULT_HEADERS,
       Cookie: this.#getCookies(),
     };
 
@@ -119,14 +148,20 @@ class UserLogin {
     const resId = /id=(.*?)&/.exec(data)?.[1];
 
     if (!resId) {
-      throw new Error('登录失败: 教务系统用户 ID 获取失败');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '教务系统用户 ID 获取失败',
+      };
     }
 
     return { id: resId };
   }
 
   #autoVerifyCaptcha(data: Uint8Array) {
-    throw new Error('尚未实现。');
+    throw {
+      type: RejectEnum.NativeLoginFailed,
+      data: '验证码自动识别尚未实现',
+    };
     return '';
   }
 
@@ -144,7 +179,7 @@ class UserLogin {
     const { id } = await this.#finishLogin(id0, num);
 
     return {
-      id,
+      id: id,
       cookies: this.#getCookies(),
     };
   }

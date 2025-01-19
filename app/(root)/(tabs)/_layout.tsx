@@ -1,8 +1,16 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useNavigation } from 'expo-router';
+import { useLayoutEffect } from 'react';
 
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 
+const NAVIGATION_TITLE = '主页';
+
 export default function TabLayout() {
+  const navigation = useNavigation();
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: NAVIGATION_TITLE });
+  }, [navigation]);
+
   return (
     <Tabs>
       <Tabs.Screen
