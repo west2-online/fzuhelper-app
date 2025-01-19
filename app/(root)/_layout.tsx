@@ -1,48 +1,44 @@
-import { Slot, Stack, useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { Tabs, useNavigation } from 'expo-router';
+import { useLayoutEffect } from 'react';
 
-import { getApiV1JwchPing } from '@/api/generate';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { isAccountExist } from '@/utils/is-account-exist';
+import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 
-export default function RootLayout() {
-  const router = useRouter();
-  const { handleError } = useSafeResponseSolve();
+const NAVIGATION_TITLE = '主页';
 
-  const checkLoginStatus = useCallback(async () => {
-    console.log('checkLoginStatus: Trigger Once');
-
-    try {
-      if (!(await isAccountExist())) {
-        router.replace('/login');
-
-        return;
-      }
-
-      const result = await getApiV1JwchPing();
-      console.log('请求成功:' + result.data.message);
-    } catch (error: any) {
-      const data = handleError(error);
-      if (data) {
-        console.log('业务错误', data);
-      }
-
-      // 该如何在这里判断是属于异常及过期？
-    }
-  }, [handleError, router]);
-
-  // 使用 useFocusEffect 在组件获得焦点时检查登录状态
-  useFocusEffect(
-    useCallback(() => {
-      checkLoginStatus();
-    }, [checkLoginStatus]),
-  );
+export default function TabLayout() {
+  const navigation = useNavigation();
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: NAVIGATION_TITLE });
+  }, [navigation]);
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-
-      <Slot />
-    </>
+    <Tabs>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: '主页',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="tools"
+        options={{
+          title: '工具箱',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="user"
+        options={{
+          title: '我的',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />,
+        }}
+      />
+    </Tabs>
   );
 }

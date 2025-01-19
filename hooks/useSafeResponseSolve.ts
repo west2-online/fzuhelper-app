@@ -1,14 +1,13 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { RejectEnum } from '@/api/enum';
+import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import { clearUserStorage } from '@/utils/user';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 
-import { RejectEnum } from '@/api/enum';
-import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
-
 interface RejectError {
   type: RejectEnum; // Type 被精简为只有 6 种，具体查看 api/enum.ts
-  data?: any; // 仅当 type 为 RejectEnum.BizFailed 时存在
+  data?: any; // 仅当 type 为 RejectEnum.BizFailed 和 RejectEnum.NativeLoginFailed 时存在
+  // 其中 RejectEnum.NativeLoginFailed 返回的是一个字符串，表示错误信息
 }
 
 // useSafeResponseSolve 适用于安全地处理 Axios 响应错误
@@ -22,6 +21,7 @@ export const useSafeResponseSolve = () => {
    */
   const handleError = useCallback(
     (error: RejectError) => {
+      console.log('错误信息:', error);
       if (!error || !error.type) {
         console.error('未知错误:', error);
         Alert.alert('错误', '发生未知错误，请稍后再试');
@@ -37,8 +37,8 @@ export const useSafeResponseSolve = () => {
             [
               {
                 text: '确认',
-                onPress: () => {
-                  AsyncStorage.multiRemove([JWCH_ID_KEY, JWCH_COOKIES_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+                onPress: async () => {
+                  await clearUserStorage();
                   redirect('/login');
                 },
               },
@@ -55,8 +55,8 @@ export const useSafeResponseSolve = () => {
             [
               {
                 text: '确认',
-                onPress: () => {
-                  AsyncStorage.multiRemove([JWCH_ID_KEY, JWCH_COOKIES_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+                onPress: async () => {
+                  await clearUserStorage();
                   redirect('/login');
                 },
               },
@@ -71,23 +71,28 @@ export const useSafeResponseSolve = () => {
 
         case RejectEnum.InternalFailed:
           console.error('内部异常:', error);
-          Alert.alert('提示', '网络错误或服务器异常，请稍后再试');
+          Alert.alert('提示', RejectEnum.InternalFailed + ': 网络错误或服务器异常，请稍后再试');
           // 这里可以触发一些额外的错误处理逻辑
           break;
 
         case RejectEnum.Timeout:
           console.error('请求超时:', error);
-          Alert.alert('提示', '请求超时，请稍后再试');
+          Alert.alert('提示', RejectEnum.Timeout + ': 请求超时，请稍后再试');
           break;
 
         case RejectEnum.NetworkError:
           console.error('网络异常:', error);
-          Alert.alert('提示', '网络异常，请检查网络连接');
+          Alert.alert('提示', RejectEnum.NetworkError + ': 网络异常，程序目前无法连接教务处与服务器，请检查网络连接');
+          break;
+
+        case RejectEnum.NativeLoginFailed:
+          console.error('本地登录异常:', error);
+          Alert.alert('教务处响应错误', error.data);
           break;
 
         default:
           console.error('未知错误类型:', error);
-          Alert.alert('错误', '发生未知错误，请稍后再试');
+          Alert.alert('错误', '发生未知错误，请稍后再试，或反馈至交流群');
           break;
       }
     },

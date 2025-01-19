@@ -1,9 +1,20 @@
+import { getApiV1LoginAccessToken, postApiV1UserValidateCode } from '@/api/generate';
+import {
+  ACCESS_TOKEN_KEY,
+  JWCH_COOKIES_KEY,
+  JWCH_ID_KEY,
+  JWCH_USER_INFO_KEY,
+  REFRESH_TOKEN_KEY,
+} from '@/lib/constants';
+import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { getApiV1LoginAccessToken, postApiV1UserValidateCode } from '@/api/generate';
-import { JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
-import UserLogin from '@/lib/user-login';
+// 清空 AsyncStorage 中的所有用户信息
+export async function clearUserStorage() {
+  AsyncStorage.multiRemove([JWCH_ID_KEY, JWCH_COOKIES_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, JWCH_USER_INFO_KEY]);
+}
 
+// 进行用户登录操作
 export async function userLogin(data: { id: string; password: string }) {
   try {
     const login = new UserLogin();
