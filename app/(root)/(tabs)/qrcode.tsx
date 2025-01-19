@@ -5,18 +5,33 @@ import { Text } from '@/components/ui/text';
 import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 export default function YiMaTongPage() {
   const ymtLogin = useMemo(() => new YMTLogin(), []);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [Name, setName] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null); // 访问令牌
+  const [currentTime, setCurrentTime] = useState(new Date()); // 当前时间
+  const [Name, setName] = useState<string | null>(null); // 用户名
+  const [PayCodes, setPayCodes] = useState<PayCodeRespData[]>(); // 支付码
+  const [IdentifyCode, setIdentifyCode] = useState<IdentifyRespData>(); // 身份码
+  const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
 
-  const [PayCodes, setPayCodes] = useState<PayCodeRespData[]>();
-  const [IdentifyCode, setIdentifyCode] = useState<IdentifyRespData>();
-  const [currentTab, setCurrentTab] = useState('消费码');
+  // 刷新支付码和身份码
+  const refresh = useCallback(async () => {
+    if (accessToken) {
+      try {
+        const payCodes = await ymtLogin.getPayCode(accessToken);
+        setPayCodes(payCodes);
+
+        const identifyCode = await ymtLogin.getIdentifyCode(accessToken);
+        setIdentifyCode(identifyCode);
+      } catch (error: any) {
+        console.error('刷新失败:', error);
+        Alert.alert('刷新失败', error.message);
+      }
+    }
+  }, [accessToken, ymtLogin]);
 
   // 初始化时读取本地数据
   useEffect(() => {
@@ -49,27 +64,21 @@ export default function YiMaTongPage() {
       clearInterval(refreshInterval);
       clearInterval(timeInterval);
     };
-  }, []);
+  }, [accessToken, refresh]);
 
   // accessToken 变化时自动刷新
   useEffect(() => {
-    refresh();
-  }, [accessToken]);
-
-  async function refresh() {
-    if (accessToken) {
-      try {
-        const payCodes = await ymtLogin.getPayCode(accessToken);
-        setPayCodes(payCodes);
-
-        const identifyCode = await ymtLogin.getIdentifyCode(accessToken);
-        setIdentifyCode(identifyCode);
-      } catch (error: any) {
-        console.error('刷新失败:', error);
-        Alert.alert('刷新失败', error.message);
+    const checkLoginStatus = async () => {
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) {
+        // 未登录，跳转到登录页面
+        router.replace('/(guest)/unified-auth-login');
       }
-    }
-  }
+    };
+    checkLoginStatus();
+    refresh();
+  }, [refresh, accessToken]);
+
   async function logout() {
     Alert.alert(
       '确认登出',
@@ -118,36 +127,26 @@ export default function YiMaTongPage() {
       </Card>
     );
   }
-  if (!accessToken) {
-    // 未登录
-    return (
-      <Button onPress={() => router.push('/qrcode-login-page')}>
-        <Text>Login</Text>
-      </Button>
-    );
-  } else {
-    // 已登录
-    return (
-      <View className="flex-1">
-        <Tabs value={currentTab} onValueChange={setCurrentTab} className="mx-auto max-w-[400px] gap-1.5">
-          <TabsContent value="消费码">
-            {PayCodes && renderQRCodeCard('消费码', PayCodes[0].prePayId, '#000000')}
-          </TabsContent>
+  return (
+    <View className="flex-1">
+      <Tabs value={currentTab} onValueChange={setCurrentTab} className="mx-auto max-w-[400px] gap-1.5">
+        <TabsContent value="消费码">
+          {PayCodes && renderQRCodeCard('消费码', PayCodes[0].prePayId, '#000000')}
+        </TabsContent>
 
-          <TabsContent value="认证码">
-            {IdentifyCode && renderQRCodeCard('认证码', IdentifyCode.content, IdentifyCode.color)}
-          </TabsContent>
+        <TabsContent value="认证码">
+          {IdentifyCode && renderQRCodeCard('认证码', IdentifyCode.content, IdentifyCode.color)}
+        </TabsContent>
 
-          <TabsList className="w-full flex-row">
-            <TabsTrigger value="消费码" className="flex-1">
-              <Text>消费码</Text>
-            </TabsTrigger>
-            <TabsTrigger value="认证码" className="flex-1">
-              <Text>认证码</Text>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </View>
-    );
-  }
+        <TabsList className="w-full flex-row">
+          <TabsTrigger value="消费码" className="flex-1">
+            <Text>消费码</Text>
+          </TabsTrigger>
+          <TabsTrigger value="认证码" className="flex-1">
+            <Text>认证码</Text>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </View>
+  );
 }
