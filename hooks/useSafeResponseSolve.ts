@@ -21,7 +21,7 @@ export const useSafeResponseSolve = () => {
     (error: RejectError) => {
       if (!error || !error.type) {
         console.error('未知错误:', error);
-        Alert.alert('错误', '发生了未知错误，请稍后再试');
+        Alert.alert('错误', '发生未知错误，请稍后再试');
         return;
       }
 
@@ -30,7 +30,7 @@ export const useSafeResponseSolve = () => {
           console.error('鉴权出现异常');
           Alert.alert(
             '提示',
-            '鉴权失败，请重新登录',
+            '登录过期，请重新登录',
             [
               {
                 text: '确认',
@@ -45,7 +45,7 @@ export const useSafeResponseSolve = () => {
           console.error('重新登录时遇到问题');
           Alert.alert(
             '提示',
-            '重新登录失败，请检查账号信息，点击确认跳转登录页面',
+            '自动登录失败，请检查账号信息，并重新登录',
             [
               {
                 text: '确认',
@@ -78,7 +78,7 @@ export const useSafeResponseSolve = () => {
 
         default:
           console.error('未知错误类型:', error);
-          Alert.alert('错误', '发生了未知错误，请稍后再试');
+          Alert.alert('错误', '发生未知错误，请稍后再试');
           break;
       }
     },
