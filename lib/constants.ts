@@ -1,3 +1,11 @@
+export const JWCH_ID_KEY = 'id';
+export const JWCH_COOKIES_KEY = 'cookies';
+export const JWCH_USER_ID_KEY = 'user_id';
+export const JWCH_USER_PASSWORD_KEY = 'user_password';
+export const JWCH_USER_INFO_KEY = 'user_info';
+export const ACCESS_TOKEN_KEY = 'access_token';
+export const REFRESH_TOKEN_KEY = 'refresh_token';
+
 export const NAV_THEME = {
   light: {
     background: 'hsl(0 0% 100%)', // background

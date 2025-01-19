@@ -1,13 +1,13 @@
 /* eslint-disable */
 // @ts-ignore
-import request from '../axios';
 import * as API from './types';
+import request from '../axios';
 
 /** 获取课程 数据源：我的选课 GET /api/v1/jwch/course/list https://apifox.com/web/project/3275694/apis/api-109631154-run */
 export async function getApiV1JwchCourseList(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1JwchCourseListParams,
-  options?: { [key: string]: unknown },
+  options?: { [key: string]: unknown }
 ) {
   return request<{
     code: string;

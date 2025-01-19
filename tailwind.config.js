@@ -42,6 +42,9 @@ module.exports = {
           foreground: 'hsl(var(--card-foreground))',
         },
       },
+      borderRadius: {
+        '4xl': '2.5rem',
+      },
       borderWidth: {
         hairline: hairlineWidth(),
       },
