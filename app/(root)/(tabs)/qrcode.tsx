@@ -129,21 +129,36 @@ export default function YiMaTongPage() {
   }
   return (
     <View className="flex-1">
-      <Tabs value={currentTab} onValueChange={setCurrentTab} className="mx-auto max-w-[400px] gap-1.5">
-        <TabsContent value="消费码">
-          {PayCodes && renderQRCodeCard('消费码', PayCodes[0].prePayId, '#000000')}
-        </TabsContent>
+      {/* Tabs 组件 */}
+      <Tabs
+        value={currentTab}
+        onValueChange={setCurrentTab}
+        className="flex-1" // 让 Tabs 占满父容器
+      >
+        {/* Tabs 内容区域 */}
+        <View className="flex-1">
+          <TabsContent
+            value="消费码"
+            className="flex-1 items-center justify-center" // 让内容居中并占满空间
+          >
+            {PayCodes && renderQRCodeCard('消费码', PayCodes[0].prePayId, '#000000')}
+          </TabsContent>
 
-        <TabsContent value="认证码">
-          {IdentifyCode && renderQRCodeCard('认证码', IdentifyCode.content, IdentifyCode.color)}
-        </TabsContent>
+          <TabsContent
+            value="认证码"
+            className="flex-1 items-center justify-center" // 让内容居中并占满空间
+          >
+            {IdentifyCode && renderQRCodeCard('认证码', IdentifyCode.content, IdentifyCode.color)}
+          </TabsContent>
+        </View>
 
+        {/* Tabs 切换按钮 */}
         <TabsList className="w-full flex-row">
           <TabsTrigger value="消费码" className="flex-1">
-            <Text>消费码</Text>
+            <Text className="text-center">消费码</Text>
           </TabsTrigger>
           <TabsTrigger value="认证码" className="flex-1">
-            <Text>认证码</Text>
+            <Text className="text-center">认证码</Text>
           </TabsTrigger>
         </TabsList>
       </Tabs>
