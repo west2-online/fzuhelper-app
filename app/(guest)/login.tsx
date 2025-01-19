@@ -1,17 +1,22 @@
+import { getApiV1JwchUserInfo, getApiV1LoginAccessToken } from '@/api/generate';
+import { ThemedView } from '@/components/ThemedView';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import {
+  JWCH_COOKIES_KEY,
+  JWCH_ID_KEY,
+  JWCH_USER_ID_KEY,
+  JWCH_USER_INFO_KEY,
+  JWCH_USER_PASSWORD_KEY,
+} from '@/lib/constants';
+import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { ThemedView } from '@/components/ThemedView';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Text } from '@/components/ui/text';
-
-import { getApiV1LoginAccessToken } from '@/api/generate';
-import { JWCH_COOKIES_KEY, JWCH_ID_KEY, JWCH_USER_ID_KEY, JWCH_USER_PASSWORD_KEY } from '@/lib/constants';
-import UserLogin from '@/lib/user-login';
 
 const NAVIGATION_TITLE = '登录';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
@@ -30,6 +35,7 @@ const LoginPage: React.FC = () => {
   const [captcha, setCaptcha] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
+  const { handleError } = useSafeResponseSolve();
 
   useEffect(() => {
     try {
@@ -101,8 +107,9 @@ const LoginPage: React.FC = () => {
     setIsLoggingIn(true); // 禁用按钮
 
     try {
+      // 尝试进行登录
       const { id, cookies } = await loginRef.current!.login(username, password, captcha);
-
+      // 存储所需的信息，这里存储了学号、密码、ID 和 Cookies（后两位负责请求时发送）
       await AsyncStorage.multiSet([
         [JWCH_USER_ID_KEY, username],
         [JWCH_USER_PASSWORD_KEY, password],
@@ -110,16 +117,27 @@ const LoginPage: React.FC = () => {
         [JWCH_COOKIES_KEY, cookies],
       ]);
 
+      // 通过提供 id和 cookies 获取访问令牌
       await getApiV1LoginAccessToken();
 
-      router.push('/'); // 跳转到首页
+      // 获取个人信息
+      const result = await getApiV1JwchUserInfo();
+      // 存储个人信息到本地
+      AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
+
+      // 跳转到首页
+      router.push('/');
     } catch (error: any) {
-      Alert.alert('错误', '登录失败: ' + (error.data?.message || error.message));
+      const data = handleError(error);
+      if (data) {
+        Alert.alert('请求失败', data.code + ': ' + data.message);
+      }
       await refreshCaptcha();
     } finally {
-      setIsLoggingIn(false); // 恢复按钮状态
+      // 恢复按钮状态
+      setIsLoggingIn(false);
     }
-  }, [isAgree, username, password, captcha, refreshCaptcha]);
+  }, [isAgree, username, password, captcha, refreshCaptcha, handleError]);
 
   return (
     <>

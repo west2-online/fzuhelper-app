@@ -60,4 +60,5 @@ export enum RejectEnum {
   InternalFailed = '10004', // Axios 内部异常
   Timeout = '10005', // 请求超时
   NetworkError = '10006', // 网络异常
+  NativeLoginFailed = '10007', // 本地登录异常
 }

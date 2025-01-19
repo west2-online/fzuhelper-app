@@ -1,33 +1,36 @@
-import { Slot, Stack, useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
-
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { isAccountExist } from '@/utils/is-account-exist';
+import { Slot, Stack, Tabs, useFocusEffect, useNavigation, useRouter } from 'expo-router';
+import { useCallback, useLayoutEffect } from 'react';
+import { Alert } from 'react-native';
+
+const NAVIGATION_TITLE = '主页';
 
 export default function RootLayout() {
   const router = useRouter();
   const { handleError } = useSafeResponseSolve();
+  const navigation = useNavigation();
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: NAVIGATION_TITLE });
+  }, [navigation]);
 
+  // 检查登录状态
   const checkLoginStatus = useCallback(async () => {
-    console.log('checkLoginStatus: Trigger Once');
-
     try {
       if (!(await isAccountExist())) {
         router.replace('/login');
-
         return;
       }
-
-      const result = await getApiV1JwchPing();
-      console.log('请求成功:' + result.data.message);
+      await getApiV1JwchPing(); // 检查当前 App 和服务端的连接状态
+      // 此处只会检查 Token 是否有效，不会检查账号是否过期
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
-        console.log('业务错误', data);
+        Alert.alert('请求失败', data.code + ': ' + data.message);
       }
-
-      // 该如何在这里判断是属于异常及过期？
+      // 如果出现异常，例如网络错误或超时，会在 hooks/useSafeResponseSolve.ts 中处理
+      // 这里不必做额外的处理
     }
   }, [handleError, router]);
 

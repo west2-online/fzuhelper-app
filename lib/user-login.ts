@@ -1,3 +1,4 @@
+import { RejectEnum } from '@/api/enum';
 import { get, post } from '@/modules/native-request';
 import md5 from '@/utils/md5';
 import { Buffer } from 'buffer';
@@ -94,7 +95,10 @@ class UserLogin {
     const data = this.#responseToString(_data);
     const result = this.#checkErrors(data);
     if (result) {
-      throw new Error(result);
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: result,
+      };
     }
 
     const token = /token=(.*?)&/.exec(data)?.[1];
@@ -102,7 +106,10 @@ class UserLogin {
     const num = /num=(.*?)&/.exec(data)?.[1];
 
     if (!token || !id || !num) {
-      throw new Error('教务处未返回有效 Token\n 可能原因: 验证码输入失败，教务处正在进行维护');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '教务处未返回有效 Token\n 可能原因: 验证码输入失败，教务处正在进行维护',
+      };
     }
 
     return { token, id, num };
@@ -120,7 +127,10 @@ class UserLogin {
 
     // {"code":200,"info":"登录成功","data":{}}
     if (data.code !== 200) {
-      throw new Error('SSOLogin failed');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '教务处服务器 SSOLogin 失败',
+      };
     }
 
     return true;
@@ -138,14 +148,20 @@ class UserLogin {
     const resId = /id=(.*?)&/.exec(data)?.[1];
 
     if (!resId) {
-      throw new Error('教务系统用户 ID 获取失败');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '教务系统用户 ID 获取失败',
+      };
     }
 
     return { id: resId };
   }
 
   #autoVerifyCaptcha(data: Uint8Array) {
-    throw new Error('尚未实现。');
+    throw {
+      type: RejectEnum.NativeLoginFailed,
+      data: '验证码自动识别尚未实现',
+    };
     return '';
   }
 
