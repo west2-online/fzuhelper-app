@@ -9,8 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
-import { SafeAreaView } from '@/components/SafeAreaView';
 import UserLogin from '@/lib/user-login';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { StyleSheet } from 'react-native';
 
 const NAVIGATION_TITLE = '登录';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
@@ -124,9 +126,13 @@ const LoginPage: React.FC = () => {
     <>
       <Stack.Screen options={{ title: NAVIGATION_TITLE, headerShown: false }} />
 
-      <SafeAreaView>
-        <ScrollView className="h-screen-safe bg-background" keyboardShouldPersistTaps="handled">
-          <ThemedView className="justify-between px-6 py-3">
+      <SafeAreaView className="bg-background">
+        <ScrollView
+          className="h-full"
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <ThemedView className="flex-1 justify-between px-6 py-3">
             {/* 左上角标题 */}
             <View className="ml-1 mt-14">
               <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
@@ -208,5 +214,11 @@ const LoginPage: React.FC = () => {
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+});
 
 export default LoginPage;
