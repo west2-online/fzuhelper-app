@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedView } from '@/components/ThemedView';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,10 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
+import { JWCH_COOKIES_KEY, JWCH_ID_KEY, JWCH_USER_ID_KEY, JWCH_USER_PASSWORD_KEY } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { StyleSheet } from 'react-native';
 
 const NAVIGATION_TITLE = '登录';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
@@ -105,10 +104,10 @@ const LoginPage: React.FC = () => {
       const { id, cookies } = await loginRef.current!.login(username, password, captcha);
 
       await AsyncStorage.multiSet([
-        ['user_id', username],
-        ['user_password', password],
-        ['id', id],
-        ['cookies', cookies],
+        [JWCH_USER_ID_KEY, username],
+        [JWCH_USER_PASSWORD_KEY, password],
+        [JWCH_ID_KEY, id],
+        [JWCH_COOKIES_KEY, cookies],
       ]);
 
       await getApiV1LoginAccessToken();

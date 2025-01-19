@@ -1,7 +1,16 @@
-import { RejectEnum, ResultEnum } from '@/api/enum';
-import { userLogin } from '@/utils/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosRequestConfig } from 'axios';
+
+import { RejectEnum, ResultEnum } from '@/api/enum';
+import {
+  ACCESS_TOKEN_KEY,
+  JWCH_COOKIES_KEY,
+  JWCH_ID_KEY,
+  JWCH_USER_ID_KEY,
+  JWCH_USER_PASSWORD_KEY,
+  REFRESH_TOKEN_KEY,
+} from '@/lib/constants';
+import { userLogin } from '@/utils/user';
 
 const baseURL = 'https://fzuhelper.west2.online/';
 
@@ -51,7 +60,7 @@ request.interceptors.response.use(
           baseURL,
           timeout: 5000,
           headers: {
-            Authorization: await AsyncStorage.getItem('refresh_token'),
+            Authorization: await AsyncStorage.getItem(REFRESH_TOKEN_KEY),
           },
         });
         if (res.data.code !== ResultEnum.SuccessCode) {
@@ -59,8 +68,8 @@ request.interceptors.response.use(
         }
 
         const { 'access-token': accessToken, 'refresh-token': refreshToken } = res.headers;
-        accessToken && (await AsyncStorage.setItem('access_token', accessToken));
-        refreshToken && (await AsyncStorage.setItem('refresh_token', refreshToken));
+        accessToken && (await AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken));
+        refreshToken && (await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken));
 
         queue.forEach(({ config, resolve }) => {
           resolve(request(config));
@@ -87,8 +96,8 @@ request.interceptors.response.use(
     // 处理jwch cookie异常
     if (data.code === ResultEnum.BizJwchCookieExceptionCode) {
       // 尝试重新登录并获取cookies和id
-      const id = await AsyncStorage.getItem('user_id');
-      const password = await AsyncStorage.getItem('user_password');
+      const id = await AsyncStorage.getItem(JWCH_USER_ID_KEY);
+      const password = await AsyncStorage.getItem(JWCH_USER_PASSWORD_KEY);
       if (id && password) {
         refreshing = true;
         try {
@@ -126,8 +135,8 @@ request.interceptors.response.use(
 
     // 更新AccessToken和refreshToken
     const { 'access-token': accessToken, 'refresh-token': refreshToken } = response.headers;
-    accessToken && (await AsyncStorage.setItem('access_token', accessToken));
-    refreshToken && (await AsyncStorage.setItem('refresh_token', refreshToken));
+    accessToken && (await AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken));
+    refreshToken && (await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken));
 
     return response;
   },
@@ -146,9 +155,10 @@ request.interceptors.response.use(
 );
 
 request.interceptors.request.use(async function (config) {
-  const accessToken = await AsyncStorage.getItem('access_token');
-  const id = await AsyncStorage.getItem('id');
-  const cookies = await AsyncStorage.getItem('cookies');
+  const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+  const id = await AsyncStorage.getItem(JWCH_ID_KEY);
+  const cookies = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+
   if (accessToken) {
     config.headers.Authorization = accessToken;
     config.headers['Access-Token'] = accessToken;

@@ -1,6 +1,8 @@
-import { getApiV1LoginAccessToken, postApiV1UserValidateCode } from '@/api/generate';
-import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { getApiV1LoginAccessToken, postApiV1UserValidateCode } from '@/api/generate';
+import { JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
+import UserLogin from '@/lib/user-login';
 
 export async function userLogin(data: { id: string; password: string }) {
   try {
@@ -14,8 +16,8 @@ export async function userLogin(data: { id: string; password: string }) {
     const { id, cookies } = await login.login(data.id, data.password, captcha);
 
     await AsyncStorage.multiSet([
-      ['id', id],
-      ['cookies', cookies],
+      [JWCH_ID_KEY, id],
+      [JWCH_COOKIES_KEY, cookies],
     ]);
 
     try {
