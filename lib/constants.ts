@@ -1,10 +1,17 @@
-export const JWCH_ID_KEY = 'id';
-export const JWCH_COOKIES_KEY = 'cookies';
-export const JWCH_USER_ID_KEY = 'user_id';
-export const JWCH_USER_PASSWORD_KEY = 'user_password';
-export const JWCH_USER_INFO_KEY = 'user_info';
+// 服务端Token
 export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
+
+// 本科生教务系统
+export const JWCH_ID_KEY = 'jwch_id';
+export const JWCH_COOKIES_KEY = 'jwch_cookies';
+export const JWCH_USER_ID_KEY = 'jwch_user_id';
+export const JWCH_USER_PASSWORD_KEY = 'jwch_user_password';
+export const JWCH_USER_INFO_KEY = 'jwch_user_info';
+
+// 一码通
+export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
+export const YMT_USERNAME = 'ymt_username'; // 姓名
 
 export const NAV_THEME = {
   light: {

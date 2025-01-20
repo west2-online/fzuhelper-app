@@ -1,5 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 const YMT_URLS = {
   LOGIN: 'https://oss.fzu.edu.cn/api/qr/login/getAccessToken',
   PAY_CODE: 'https://oss.fzu.edu.cn/api/qr/deal/getQrCode',
@@ -123,10 +121,6 @@ class YMTLogin {
     });
 
     return identifyCodeData.data;
-  }
-  // 退出登录
-  async logout() {
-    await AsyncStorage.removeItem('accessToken');
   }
 }
 

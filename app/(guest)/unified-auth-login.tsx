@@ -2,6 +2,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME } from '@/lib/constants';
 import YMTLogin from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
@@ -58,12 +59,13 @@ const UnifiedLoginPage: React.FC = () => {
 
     try {
       // 调用统一身份认证登录逻辑
+      // !! 注意：此处调用的是一码通登录。后续如有其他需求再进行改进 !!
       const { name, accessToken } = await ymtLogin.current!.login(account, accountPassword);
 
       // 存储所需的信息
       await AsyncStorage.multiSet([
-        ['accessToken', accessToken],
-        ['name', name],
+        [YMT_ACCESS_TOKEN_KEY, accessToken],
+        [YMT_USERNAME, name],
       ]);
 
       console.log('登录成功:', name, accessToken);

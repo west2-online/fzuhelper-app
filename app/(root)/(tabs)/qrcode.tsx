@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
+import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME } from '@/lib/constants';
 import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
@@ -39,8 +40,8 @@ export default function YiMaTongPage() {
       // 读取本地数据
       async function getLocalData() {
         try {
-          const storedAccessToken = await AsyncStorage.getItem('accessToken');
-          const storedName = await AsyncStorage.getItem('name');
+          const storedAccessToken = await AsyncStorage.getItem(YMT_ACCESS_TOKEN_KEY);
+          const storedName = await AsyncStorage.getItem(YMT_USERNAME);
 
           setAccessToken(storedAccessToken);
           setName(storedName);
@@ -49,7 +50,8 @@ export default function YiMaTongPage() {
           refresh();
         } catch (error) {
           console.error('读取本地数据失败:', error);
-          await AsyncStorage.removeItem('accessToken');
+          await AsyncStorage.removeItem(YMT_ACCESS_TOKEN_KEY);
+          await AsyncStorage.removeItem(YMT_USERNAME);
         }
       }
       getLocalData();
@@ -70,8 +72,8 @@ export default function YiMaTongPage() {
 
   async function logout() {
     Alert.alert(
-      '确认登出',
-      '您确定要登出吗？',
+      '确认退出',
+      '您确定要退出吗？',
       [
         {
           text: '取消',
@@ -80,7 +82,7 @@ export default function YiMaTongPage() {
         {
           text: '确定',
           onPress: async () => {
-            ymtLogin.logout();
+            await AsyncStorage.removeItem(YMT_ACCESS_TOKEN_KEY);
             setAccessToken(null);
           },
         },
@@ -107,7 +109,7 @@ export default function YiMaTongPage() {
 
         <CardFooter className="flex-row gap-4">
           <Button onPress={logout} className="width-full flex-5">
-            <Text>登出</Text>
+            <Text>退出</Text>
           </Button>
           <Button onPress={refresh} className="width-full flex-1">
             <Text>刷新</Text>
