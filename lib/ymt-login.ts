@@ -2,6 +2,7 @@ const YMT_URLS = {
   LOGIN: 'https://oss.fzu.edu.cn/api/qr/login/getAccessToken',
   PAY_CODE: 'https://oss.fzu.edu.cn/api/qr/deal/getQrCode',
   IDENTIFY: 'https://oss.fzu.edu.cn/api/qr/device/getQrCode',
+  RENEW: 'https://oss.fzu.edu.cn/api/qr/login/tokenRenew',
 };
 
 interface LoginRespData {
@@ -121,6 +122,22 @@ class YMTLogin {
     });
 
     return identifyCodeData.data;
+  }
+
+  // Token 续期，每成功获取一次码就续期一次
+  async getRenewToken(accessToken: string): Promise<string> {
+    if (accessToken === '') {
+      throw Error('accessToken 不能为空');
+    }
+
+    const tokenRenewRespData = await this.#get({
+      url: YMT_URLS.RENEW,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    return tokenRenewRespData.data.access_token;
   }
 }
 

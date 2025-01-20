@@ -28,6 +28,10 @@ export default function YiMaTongPage() {
 
         const identifyCode = await ymtLogin.getIdentifyCode(accessToken);
         setIdentifyCode(identifyCode);
+
+        // 如果获取成功，续期 Token，在下次切换到该页面时使用
+        const newToken = await ymtLogin.getRenewToken(accessToken);
+        await AsyncStorage.setItem(YMT_ACCESS_TOKEN_KEY, newToken);
       } catch (error: any) {
         console.error('刷新失败:', error.message);
         const resp = JSON.parse(error.message);
