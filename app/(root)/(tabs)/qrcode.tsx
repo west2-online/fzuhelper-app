@@ -72,7 +72,7 @@ export default function YiMaTongPage() {
       const token = await AsyncStorage.getItem('accessToken');
       if (!token) {
         // 未登录，跳转到登录页面
-        router.replace('/(guest)/unified-auth-login');
+        router.push('/(guest)/unified-auth-login');
       }
     };
     checkLoginStatus();

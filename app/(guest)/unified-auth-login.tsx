@@ -9,16 +9,16 @@ import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const NAVIGATION_TITLE = '统一身份认证登录';
+const NAVIGATION_TITLE = '统一身份认证';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
 const URL_PRIVACY_POLICY = 'https://fzuhelper.west2.online/onekey/FZUHelper.html';
 const URL_FORGET_PASSWORD = 'https://sso.fzu.edu.cn/public/client/forget-password/qr';
 
-const YiMaTongLoginPage: React.FC = () => {
+const UnifiedLoginPage: React.FC = () => {
   const [account, setAccount] = useState('');
   const [accountPassword, setAccountPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isAgree, setIsAgree] = useState(true);
+  const [isAgree, setIsAgree] = useState(false);
   const ymtLogin = useRef<YMTLogin | null>(null);
   if (!ymtLogin.current) {
     ymtLogin.current = new YMTLogin();
@@ -81,9 +81,9 @@ const YiMaTongLoginPage: React.FC = () => {
 
   return (
     <>
-      <Stack.Screen options={{ title: NAVIGATION_TITLE, headerShown: false }} />
+      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
 
-      <SafeAreaView className="bg-background">
+      <SafeAreaView className="bg-background" edges={['bottom', 'left', 'right']}>
         <ScrollView
           className="h-full"
           contentContainerStyle={styles.scrollViewContent}
@@ -92,8 +92,7 @@ const YiMaTongLoginPage: React.FC = () => {
           <ThemedView className="flex-1 justify-between px-6 py-3">
             {/* 左上角标题 */}
             <View className="ml-1 mt-14">
-              <Text className="mb-2 text-4xl font-bold">统一身份认证</Text>
-              <Text className="text-lg text-muted-foreground">智汇福大，一码通登录</Text>
+              <Text className="mb-2 text-3xl font-bold">统一身份认证平台登录</Text>
             </View>
 
             {/* 页面内容 */}
@@ -102,7 +101,7 @@ const YiMaTongLoginPage: React.FC = () => {
               <Input
                 value={account}
                 onChangeText={setAccount}
-                placeholder="请输入用户名"
+                placeholder="请输入学号"
                 className="my-4 w-full px-1 py-3"
               />
 
@@ -112,7 +111,7 @@ const YiMaTongLoginPage: React.FC = () => {
                 onChangeText={setAccountPassword}
                 placeholder="请输入密码"
                 secureTextEntry
-                className="mb-4 w-full px-1 py-3"
+                className="mb-12 w-full px-1 py-3"
               />
 
               {/* 登录按钮 */}
@@ -126,33 +125,24 @@ const YiMaTongLoginPage: React.FC = () => {
                 <Text className="text-lg font-bold text-white">{isLoggingIn ? '登录中...' : '登 录'}</Text>
               </TouchableOpacity>
 
-              <View className="w-full flex-row justify-between px-2">
-                {/* 提示内容 */}
-                <Text className="mb-4 text-sm text-muted-foreground">新生可使用身份证号作为登录账号</Text>
-
+              <View className="w-full flex-row justify-end px-2">
                 {/* 忘记密码按钮 */}
-                <TouchableOpacity onPress={openForgetPassword}>
-                  <Text className="text-sm font-bold text-primary">忘记密码？</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* 公告栏 */}
-            <View className="mb-6 w-full rounded-lg bg-gray-100 p-4">
-              <Text className="text-base text-muted-foreground">
-                Q: <Text style={styles.redText}>统一身份认证</Text> 和 <Text style={styles.blueText}>教务处登录</Text>{' '}
-                有什么区别？
-              </Text>
-              <Text className="text-base text-muted-foreground">
-                A: <Text style={styles.redText}>统一身份认证</Text> 是福州大学的统一登录系统，可用于登录{' '}
-                <Text style={styles.redText}>图书馆</Text>、<Text style={styles.redText}>一码通</Text> 等多个系统。而{' '}
-                <Text style={styles.blueText}>教务处登录</Text> 仅限于教务处系统。前者使用的是{' '}
-                <Text style={styles.redText}>统一身份认证账号</Text>，后者使用的是{' '}
-                <Text style={styles.blueText}>教务处账号</Text>。
-                <Text>
-                  区别这两者的原因是，福州大学采用了两套登录系统，因此密码可能不一致，如果您忘记了密码，可以在前面链接找到找回密码的入口
+                <Text className="text-primary" onPress={openForgetPassword}>
+                  重置密码
                 </Text>
-              </Text>
+              </View>
+
+              {/* 公告栏 */}
+              <View className="mt-10 w-full px-1">
+                <Text className="my-2 text-lg font-bold text-muted-foreground">友情提示</Text>
+                <Text className="text-base text-muted-foreground">
+                  1. 统一身份认证平台为福州大学统一登录系统，可用于登录图书馆、一码通、智汇福大等平台。
+                </Text>
+                <Text className="text-base text-muted-foreground">2. 新生可使用身份证号作为登录账号。</Text>
+                <Text className="text-base text-muted-foreground">
+                  3. 福州大学教务处系统独立于统一身份认证平台，需使用专有密码登录。
+                </Text>
+              </View>
             </View>
 
             {/* 底部协议 */}
@@ -181,14 +171,6 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
   },
-  redText: {
-    fontWeight: 'bold',
-    color: 'red', // 红色文字
-  },
-  blueText: {
-    fontWeight: 'bold',
-    color: 'blue', // 蓝色文字
-  },
 });
 
-export default YiMaTongLoginPage;
+export default UnifiedLoginPage;
