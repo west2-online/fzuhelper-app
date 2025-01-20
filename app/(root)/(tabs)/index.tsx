@@ -1,6 +1,6 @@
-import { Tabs as ExpoTabs } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
+import { toast } from 'sonner-native';
 
 import { getApiV1JwchCourseList } from '@/api/generate';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@ export default function HomePage() {
         <View>
           <Text>{isLoading}</Text>
           <Input value={term} onChangeText={text => setTerm(text)} />
-          <Text>{JSON.stringify(data, null, 2)}</Text>
+          {/* <Text>{JSON.stringify(data, null, 2)}</Text> */}
 
           <Button
             onPress={() => {
@@ -48,6 +48,13 @@ export default function HomePage() {
 
           <Button variant="link">
             <Text>link</Text>
+          </Button>
+
+          <Button onPress={() => toast('Hello world!')}>
+            <Text>show toast</Text>
+          </Button>
+          <Button onPress={() => toast.success('success')}>
+            <Text>show toast (success)</Text>
           </Button>
         </View>
 
