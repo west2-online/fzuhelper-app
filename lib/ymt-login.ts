@@ -51,7 +51,9 @@ class YMTLogin {
     const respData = await resp.json();
     console.log(respData);
     if (respData.code !== 0) {
-      throw new Error(JSON.stringify(respData));
+      const error = new Error(respData.msg);
+      (error as any).code = respData.code;
+      throw error;
     }
 
     return respData;

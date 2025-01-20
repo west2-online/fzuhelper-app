@@ -34,13 +34,12 @@ export default function YiMaTongPage() {
         await AsyncStorage.setItem(YMT_ACCESS_TOKEN_KEY, newToken);
       } catch (error: any) {
         console.error('刷新失败:', error.message);
-        const resp = JSON.parse(error.message);
-        if (resp.code === 401) {
+        if (error.code === 401) {
           logoutCleanData();
           toast.info('一码通登录过期，请重新登录');
           return;
         }
-        Alert.alert('刷新失败', resp.msg);
+        Alert.alert('刷新失败', error.msg);
       }
     }
   }, [accessToken, ymtLogin]);

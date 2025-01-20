@@ -74,8 +74,7 @@ const UnifiedLoginPage: React.FC = () => {
       router.back();
     } catch (error: any) {
       console.error(error);
-      const resp = JSON.parse(error.message);
-      Alert.alert('登录失败', resp.msg);
+      Alert.alert('登录失败', error.message);
     } finally {
       // 恢复按钮状态
       setIsLoggingIn(false);
