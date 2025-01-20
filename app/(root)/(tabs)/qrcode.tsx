@@ -39,7 +39,7 @@ export default function YiMaTongPage() {
           toast.info('一码通登录过期，请重新登录');
           return;
         }
-        Alert.alert('刷新失败', error.msg);
+        toast.error('刷新失败：' + error.msg);
       }
     }
   }, [accessToken, ymtLogin]);
@@ -106,7 +106,7 @@ export default function YiMaTongPage() {
   function renderQRCodeCard(title: string, codeContent: string | null, codeColor: string) {
     return (
       <Card>
-        <CardHeader className="">
+        <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>
             {currentTime.toLocaleDateString() + ' '}
