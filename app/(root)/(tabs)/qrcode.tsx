@@ -2,13 +2,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
-import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME } from '@/lib/constants';
+import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { toast } from 'sonner-native';
 export default function YiMaTongPage() {
   const ymtLogin = useMemo(() => new YMTLogin(), []);
   const [accessToken, setAccessToken] = useState<string | null>(null); // 访问令牌
@@ -28,8 +29,14 @@ export default function YiMaTongPage() {
         const identifyCode = await ymtLogin.getIdentifyCode(accessToken);
         setIdentifyCode(identifyCode);
       } catch (error: any) {
-        console.error('刷新失败:', error);
-        Alert.alert('刷新失败', error.message);
+        console.error('刷新失败:', error.message);
+        const resp = JSON.parse(error.message);
+        if (resp.code === 401) {
+          logoutCleanData();
+          toast.info('一码通登录过期，请重新登录');
+          return;
+        }
+        Alert.alert('刷新失败', resp.msg);
       }
     }
   }, [accessToken, ymtLogin]);
@@ -41,7 +48,7 @@ export default function YiMaTongPage() {
       async function getLocalData() {
         try {
           const storedAccessToken = await AsyncStorage.getItem(YMT_ACCESS_TOKEN_KEY);
-          const storedName = await AsyncStorage.getItem(YMT_USERNAME);
+          const storedName = await AsyncStorage.getItem(YMT_USERNAME_KEY);
 
           setAccessToken(storedAccessToken);
           setName(storedName);
@@ -50,8 +57,7 @@ export default function YiMaTongPage() {
           refresh();
         } catch (error) {
           console.error('读取本地数据失败:', error);
-          await AsyncStorage.removeItem(YMT_ACCESS_TOKEN_KEY);
-          await AsyncStorage.removeItem(YMT_USERNAME);
+          logoutCleanData();
         }
       }
       getLocalData();
@@ -81,14 +87,17 @@ export default function YiMaTongPage() {
         },
         {
           text: '确定',
-          onPress: async () => {
-            await AsyncStorage.removeItem(YMT_ACCESS_TOKEN_KEY);
-            setAccessToken(null);
-          },
+          onPress: logoutCleanData,
         },
       ],
       { cancelable: false },
     );
+  }
+
+  async function logoutCleanData() {
+    await AsyncStorage.removeItem(YMT_ACCESS_TOKEN_KEY);
+    await AsyncStorage.removeItem(YMT_USERNAME_KEY);
+    setAccessToken(null);
   }
 
   function renderQRCodeCard(title: string, codeContent: string | null, codeColor: string) {

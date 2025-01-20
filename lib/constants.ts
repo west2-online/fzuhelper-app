@@ -11,7 +11,7 @@ export const JWCH_USER_INFO_KEY = 'jwch_user_info';
 
 // 一码通
 export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
-export const YMT_USERNAME = 'ymt_username'; // 姓名
+export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 
 export const NAV_THEME = {
   light: {

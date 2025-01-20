@@ -2,7 +2,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
-import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME } from '@/lib/constants';
+import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
@@ -65,7 +65,7 @@ const UnifiedLoginPage: React.FC = () => {
       // 存储所需的信息
       await AsyncStorage.multiSet([
         [YMT_ACCESS_TOKEN_KEY, accessToken],
-        [YMT_USERNAME, name],
+        [YMT_USERNAME_KEY, name],
       ]);
 
       console.log('登录成功:', name, accessToken);

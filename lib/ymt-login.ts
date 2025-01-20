@@ -44,13 +44,13 @@ class YMTLogin {
     const resp = await fetch(url, options);
 
     if (!resp.ok) {
-      throw new Error('远端服务异常');
+      throw new Error('服务器异常');
     }
 
     const respData = await resp.json();
     console.log(respData);
     if (respData.code !== 0) {
-      throw new Error(respData.msg);
+      throw new Error(JSON.stringify(respData));
     }
 
     return respData;
