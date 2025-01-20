@@ -42,6 +42,16 @@ const config: ExpoConfig = {
       },
     ],
     './inject-android-config',
+    [
+      'react-native-edge-to-edge',
+      {
+        android: {
+          parentTheme: 'Material2',
+          enforceNavigationBarContrast: false,
+        },
+      },
+    ],
+    './with-android-theme',
   ],
   experiments: {
     typedRoutes: true,

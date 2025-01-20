@@ -15,7 +15,17 @@ import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const NAVIGATION_TITLE = '登录';
@@ -144,89 +154,91 @@ const LoginPage: React.FC = () => {
       <Stack.Screen options={{ title: NAVIGATION_TITLE, headerShown: false }} />
 
       <SafeAreaView className="bg-background">
-        <ScrollView
-          className="h-full"
-          contentContainerStyle={styles.scrollViewContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          <ThemedView className="flex-1 justify-between px-6 py-3">
-            {/* 左上角标题 */}
-            <View className="ml-1 mt-14">
-              <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
-              <Text className="text-lg text-muted-foreground">综合性最强的福大校内APP</Text>
-            </View>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <ScrollView
+            className="h-full"
+            contentContainerStyle={styles.scrollViewContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <ThemedView className="flex-1 justify-between px-6 py-3">
+              {/* 左上角标题 */}
+              <View className="ml-1 mt-14">
+                <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
+                <Text className="text-lg text-muted-foreground">综合性最强的福大校内APP</Text>
+              </View>
 
-            {/* 页面内容 */}
-            <View className="items-center justify-center">
-              {/* 用户名输入框 */}
-              <Input
-                value={username}
-                onChangeText={setUsername}
-                placeholder="请输入学号"
-                className="my-4 w-full px-1 py-3"
-              />
-
-              {/* 密码输入框 */}
-              <Input
-                value={password}
-                onChangeText={setPassword}
-                placeholder="请输入密码"
-                secureTextEntry
-                className="mb-4 w-full px-1 py-3"
-              />
-
-              {/* 验证码输入框和图片 */}
-              <View className="mb-12 w-full flex-row items-center justify-between">
+              {/* 页面内容 */}
+              <View className="items-center justify-center">
+                {/* 用户名输入框 */}
                 <Input
-                  value={captcha}
-                  onChangeText={setCaptcha}
-                  placeholder="请输入验证码"
-                  className="mr-4 flex-1 px-1 py-3"
+                  value={username}
+                  onChangeText={setUsername}
+                  placeholder="请输入学号"
+                  className="my-4 w-full px-1 py-3"
                 />
-                {captchaImage && (
-                  <TouchableOpacity onPress={refreshCaptcha}>
-                    <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
-                  </TouchableOpacity>
-                )}
+
+                {/* 密码输入框 */}
+                <Input
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="请输入密码"
+                  secureTextEntry
+                  className="mb-4 w-full px-1 py-3"
+                />
+
+                {/* 验证码输入框和图片 */}
+                <View className="mb-12 w-full flex-row items-center justify-between">
+                  <Input
+                    value={captcha}
+                    onChangeText={setCaptcha}
+                    placeholder="请输入验证码"
+                    className="mr-4 flex-1 px-1 py-3"
+                  />
+                  {captchaImage && (
+                    <TouchableOpacity onPress={refreshCaptcha}>
+                      <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* 登录按钮 */}
+                <TouchableOpacity
+                  onPress={isLoggingIn ? undefined : handleLogin}
+                  disabled={isLoggingIn}
+                  className={`mb-6 w-full items-center justify-center rounded-4xl py-3 ${
+                    isLoggingIn ? 'bg-gray-400' : 'bg-primary'
+                  }`}
+                >
+                  <Text className="text-lg font-bold text-white">{isLoggingIn ? '登录中...' : '登 录'}</Text>
+                </TouchableOpacity>
+
+                {/* 其他操作 */}
+                <View className="w-full flex-row justify-between px-2">
+                  <Text className="text-muted-foreground">研究生登录</Text>
+                  <Text className="text-primary" onPress={openResetPassword}>
+                    忘记密码
+                  </Text>
+                </View>
               </View>
 
-              {/* 登录按钮 */}
-              <TouchableOpacity
-                onPress={isLoggingIn ? undefined : handleLogin}
-                disabled={isLoggingIn}
-                className={`mb-6 w-full items-center justify-center rounded-4xl py-3 ${
-                  isLoggingIn ? 'bg-gray-400' : 'bg-primary'
-                }`}
-              >
-                <Text className="text-lg font-bold text-white">{isLoggingIn ? '登录中...' : '登 录'}</Text>
-              </TouchableOpacity>
-
-              {/* 其他操作 */}
-              <View className="w-full flex-row justify-between px-2">
-                <Text className="text-muted-foreground">研究生登录</Text>
-                <Text className="text-primary" onPress={openResetPassword}>
-                  忘记密码
+              {/* 底部协议 */}
+              <View className="mb-6 mt-12 w-full flex-row justify-center">
+                <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
+                <Text className="text-center text-muted-foreground">
+                  {'  '}
+                  阅读并同意{' '}
+                  <Text className="text-primary" onPress={openUserAgreement}>
+                    用户协议
+                  </Text>{' '}
+                  和{' '}
+                  <Text className="text-primary" onPress={openPrivacyPolicy}>
+                    隐私政策
+                  </Text>
                 </Text>
               </View>
-            </View>
-
-            {/* 底部协议 */}
-            <View className="mb-6 mt-12 w-full flex-row justify-center">
-              <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-              <Text className="text-center text-muted-foreground">
-                {'  '}
-                阅读并同意{' '}
-                <Text className="text-primary" onPress={openUserAgreement}>
-                  用户协议
-                </Text>{' '}
-                和{' '}
-                <Text className="text-primary" onPress={openPrivacyPolicy}>
-                  隐私政策
-                </Text>
-              </Text>
-            </View>
-          </ThemedView>
-        </ScrollView>
+            </ThemedView>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </>
   );
