@@ -39,7 +39,7 @@ export default function YiMaTongPage() {
           toast.info('一码通登录过期，请重新登录');
           return;
         }
-        toast.error('刷新失败：' + error.msg);
+        toast.error('刷新失败：' + error.message);
       }
     }
   }, [accessToken, ymtLogin]);
