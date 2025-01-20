@@ -68,8 +68,8 @@ const UnifiedLoginPage: React.FC = () => {
 
       console.log('登录成功:', name, accessToken);
 
-      // 跳转到一码通页面
-      router.push('/qrcode');
+      // 跳转到上一页
+      router.back();
     } catch (error: any) {
       console.error(error);
       Alert.alert('登录失败', error.message);
