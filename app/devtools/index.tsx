@@ -3,6 +3,7 @@ import { Link, Stack } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '开发者选项';
 
@@ -22,6 +23,12 @@ export default function HomePage() {
             <Text>AsyncStorage List</Text>
           </Button>
         </Link>
+        <Button onPress={() => toast('Hello world!')}>
+          <Text>show toast</Text>
+        </Button>
+        <Button onPress={() => toast.success('success')}>
+          <Text>show toast (success)</Text>
+        </Button>
       </ThemedView>
     </>
   );
