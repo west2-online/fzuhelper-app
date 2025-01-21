@@ -21,6 +21,7 @@ export default function YiMaTongPage() {
   const [payCodes, setPayCodes] = useState<PayCodeRespData[]>(); // 支付码
   const [identifyCode, setIdentifyCode] = useState<IdentifyRespData>(); // 身份码
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
+  const [isRefreshing, setIsRefreshing] = useState(false); // 用于触发重新渲染
 
   const logoutCleanData = useCallback(async () => {
     await AsyncStorage.multiRemove([YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY]);
@@ -29,6 +30,7 @@ export default function YiMaTongPage() {
 
   // 刷新支付码和身份码
   const refresh = useCallback(async () => {
+    setIsRefreshing(true); // 触发重新渲染
     if (accessToken) {
       try {
         const [newPayCodes, newIdentifyCode] = await Promise.all([
@@ -50,6 +52,8 @@ export default function YiMaTongPage() {
           return;
         }
         toast.error('刷新失败：' + error.message);
+      } finally {
+        setIsRefreshing(false); // 恢复按钮状态
       }
     }
   }, [accessToken, ymtLogin, logoutCleanData]);
@@ -69,11 +73,8 @@ export default function YiMaTongPage() {
         try {
           const storedAccessToken = await AsyncStorage.getItem(YMT_ACCESS_TOKEN_KEY);
           const storedName = await AsyncStorage.getItem(YMT_USERNAME_KEY);
-
           setAccessToken(storedAccessToken);
           setName(storedName);
-
-          console.log('读取本地数据成功:', storedAccessToken);
         } catch (error) {
           console.error('读取本地数据失败:', error);
           logoutCleanData();
@@ -119,7 +120,7 @@ export default function YiMaTongPage() {
     (title: string, codeContent: string | null, codeColor: string) => (
       <Card>
         <CardHeader>
-          {/* 安卓端渲染行高不足问题 将在 RN 0.77 合入 到时可移除此 padding 
+          {/* TODO: 安卓端渲染行高不足问题 将在 RN 0.77 合入 到时可移除此 padding
           https://github.com/facebook/react-native/commit/65d8f66b50471d2fb4ddd5e63e17fcc808623110 */}
           <CardTitle className="pt-2">{title}</CardTitle>
           <CardDescription>
@@ -129,21 +130,32 @@ export default function YiMaTongPage() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="flex-row justify-center gap-4">
+        <CardContent className="flex-col justify-center gap-4">
           {codeContent ? <QRCode value={codeContent} size={340} color={codeColor} /> : <Text>Loading...</Text>}
+          <View className="flex-row gap-4">
+            <Button onPress={logout} className="width-full flex-5">
+              <Text>退出</Text>
+            </Button>
+            <Button onPress={refresh} className="width-full flex-1" disabled={isRefreshing}>
+              <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
+            </Button>
+          </View>
         </CardContent>
 
         <CardFooter className="flex-row gap-4">
-          <Button onPress={logout} className="width-full flex-5">
-            <Text>退出</Text>
-          </Button>
-          <Button onPress={refresh} className="width-full flex-1">
-            <Text>刷新</Text>
-          </Button>
+          <View className="w-full px-1">
+            <Text className="my-2 text-lg font-bold text-muted-foreground">友情提示</Text>
+            <Text className="text-base text-muted-foreground">
+              1. 消费码：适用于福大四个方位(东南西北)、生活区门口以及宿舍楼门口门禁(不支持桃李园消费)
+            </Text>
+            <Text className="text-base text-muted-foreground">
+              2. 认证码：目前无实际用途(过往有具体应用场景，暂时保留)
+            </Text>
+          </View>
         </CardFooter>
       </Card>
     ),
-    [name, currentTime, logout, refresh],
+    [name, currentTime, logout, refresh, isRefreshing],
   );
 
   return (

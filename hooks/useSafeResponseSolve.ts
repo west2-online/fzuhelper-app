@@ -87,7 +87,7 @@ export const useSafeResponseSolve = () => {
 
         case RejectEnum.NativeLoginFailed:
           console.error('本地登录异常:', error);
-          Alert.alert('教务处响应错误', error.data);
+          Alert.alert('教务处/统一身份认证响应错误', error.data);
           break;
 
         default:

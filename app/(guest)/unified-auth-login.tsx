@@ -2,6 +2,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,6 +21,7 @@ const UnifiedLoginPage: React.FC = () => {
   const [accountPassword, setAccountPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
+  const { handleError } = useSafeResponseSolve();
   const ymtLogin = useRef<YMTLogin | null>(null);
   if (!ymtLogin.current) {
     ymtLogin.current = new YMTLogin();
@@ -73,13 +75,15 @@ const UnifiedLoginPage: React.FC = () => {
       // 跳转到上一页
       router.back();
     } catch (error: any) {
-      console.error(error);
-      Alert.alert('登录失败', error.message);
+      const data = handleError(error);
+      if (data) {
+        Alert.alert('请求失败', data.code + ': ' + data.message);
+      }
     } finally {
       // 恢复按钮状态
       setIsLoggingIn(false);
     }
-  }, [isAgree, account, accountPassword, ymtLogin]);
+  }, [isAgree, account, accountPassword, ymtLogin, handleError]);
 
   return (
     <>

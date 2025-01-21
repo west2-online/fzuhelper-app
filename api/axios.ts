@@ -45,6 +45,10 @@ request.interceptors.response.use(
       });
     }
 
+    console.log('url:', config.url);
+    console.log('code:', data.code);
+    console.log('data:', data);
+
     // 鉴权出现问题
     if (data.code === ResultEnum.AuthInvalidCode) {
       return Promise.reject({ type: RejectEnum.AuthFailed });
@@ -98,6 +102,7 @@ request.interceptors.response.use(
       // 尝试重新登录并获取cookies和id
       const id = await AsyncStorage.getItem(JWCH_USER_ID_KEY);
       const password = await AsyncStorage.getItem(JWCH_USER_PASSWORD_KEY);
+      console.log('id:', id, 'password:', password);
       if (id && password) {
         refreshing = true;
         try {

@@ -1,9 +1,13 @@
+import { RejectEnum } from '@/api/enum';
+import { get, postJSON } from '@/modules/native-request';
+import { Buffer } from 'buffer';
+
 const YMT_URLS = {
   LOGIN: 'https://oss.fzu.edu.cn/api/qr/login/getAccessToken',
   PAY_CODE: 'https://oss.fzu.edu.cn/api/qr/deal/getQrCode',
   IDENTIFY: 'https://oss.fzu.edu.cn/api/qr/device/getQrCode',
   RENEW: 'https://oss.fzu.edu.cn/api/qr/login/tokenRenew',
-};
+} as const;
 
 interface LoginRespData {
   name: string;
@@ -23,40 +27,57 @@ export interface IdentifyRespData {
   validTime: number; // 有效时间
   content: string; // 内容
 }
+
 class YMTLogin {
+  // 公共请求方法，使用 Native-Request 模块
   async #request(
-    method: string,
+    method: 'GET' | 'POST',
     url: string,
     headers: Record<string, string> = {},
     formData: Record<string, string> = {},
   ) {
-    const options: RequestInit = {
-      method: method,
-      headers: {
+    try {
+      let response;
+
+      headers = {
         'Content-Type': 'application/json',
         ...headers,
-      },
-    };
+      };
 
-    if (method !== 'GET' && method !== 'HEAD') {
-      options.body = JSON.stringify(formData);
+      if (method === 'GET') {
+        response = await get(url, headers);
+      } else if (method === 'POST') {
+        response = await postJSON(url, headers, formData);
+      } else {
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: 'HTTP请求方法错误',
+        };
+      }
+
+      const { data } = response;
+      const jsonData = JSON.parse(Buffer.from(data).toString('utf-8'));
+
+      // 检查响应码是否为成功
+      if (jsonData.code !== 0) {
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: jsonData.msg || '未知错误',
+        };
+      }
+
+      return jsonData;
+    } catch (error: any) {
+      // 捕获错误并统一抛出格式
+      if (error.type && error.data) {
+        throw error; // 如果已经是我们定义的错误格式，直接抛出
+      }
+
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: error.message || '请求失败',
+      };
     }
-
-    const resp = await fetch(url, options);
-
-    if (!resp.ok) {
-      throw new Error('服务器异常');
-    }
-
-    const respData = await resp.json();
-    console.log(respData);
-    if (respData.code !== 0) {
-      const error = new Error(respData.msg);
-      (error as any).code = respData.code;
-      throw error;
-    }
-
-    return respData;
   }
 
   async #post({
@@ -78,7 +99,10 @@ class YMTLogin {
   // 登录
   async login(userId: string, password: string): Promise<LoginRespData> {
     if (userId === '' || password === '') {
-      throw Error('账号密码不能为空');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '账号密码不能为空',
+      };
     }
 
     const loginData = await this.#post({
@@ -95,10 +119,14 @@ class YMTLogin {
       accessToken: loginData.data.access_token,
     };
   }
+
   // 消费码
   async getPayCode(accessToken: string): Promise<PayCodeRespData[]> {
     if (accessToken === '') {
-      throw Error('accessToken 不能为空');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: 'accessToken 不能为空',
+      };
     }
 
     const payCodeData = await this.#post({
@@ -110,10 +138,14 @@ class YMTLogin {
 
     return payCodeData.data;
   }
+
   // 认证码
   async getIdentifyCode(accessToken: string): Promise<IdentifyRespData> {
     if (accessToken === '') {
-      throw Error('accessToken 不能为空');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: 'accessToken 不能为空',
+      };
     }
 
     const identifyCodeData = await this.#get({
@@ -129,7 +161,10 @@ class YMTLogin {
   // Token 续期，每成功获取一次码就续期一次
   async getRenewToken(accessToken: string): Promise<string> {
     if (accessToken === '') {
-      throw Error('accessToken 不能为空');
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: 'accessToken 不能为空',
+      };
     }
 
     const tokenRenewRespData = await this.#get({
