@@ -6,7 +6,7 @@ import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { toast } from 'sonner-native';
@@ -44,6 +44,13 @@ export default function YiMaTongPage() {
     }
   }, [accessToken, ymtLogin]);
 
+  // 当 accessToken 变更时，自动刷新
+  useEffect(() => {
+    if (accessToken) {
+      refresh();
+    }
+  }, [accessToken, refresh]);
+
   // 获取焦点时读取本地数据（初始化时，Tab切换时，登录页返回时）
   useFocusEffect(
     useCallback(() => {
@@ -57,7 +64,6 @@ export default function YiMaTongPage() {
           setName(storedName);
 
           console.log('读取本地数据成功:', storedAccessToken);
-          refresh();
         } catch (error) {
           console.error('读取本地数据失败:', error);
           logoutCleanData();
@@ -76,7 +82,9 @@ export default function YiMaTongPage() {
         clearInterval(refreshInterval);
         clearInterval(timeInterval);
       };
-    }, [accessToken, refresh]),
+      // 解决重复刷新的问题
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
   );
 
   async function logout() {
