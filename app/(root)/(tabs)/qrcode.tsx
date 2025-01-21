@@ -1,33 +1,43 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Text } from '@/components/ui/text';
-import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
-import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router, useFocusEffect } from 'expo-router';
+import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { toast } from 'sonner-native';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Text } from '@/components/ui/text';
+
+import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
+import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
+
 export default function YiMaTongPage() {
   const ymtLogin = useMemo(() => new YMTLogin(), []);
   const [accessToken, setAccessToken] = useState<string | null>(null); // 访问令牌
   const [currentTime, setCurrentTime] = useState(new Date()); // 当前时间
-  const [Name, setName] = useState<string | null>(null); // 用户名
-  const [PayCodes, setPayCodes] = useState<PayCodeRespData[]>(); // 支付码
-  const [IdentifyCode, setIdentifyCode] = useState<IdentifyRespData>(); // 身份码
+  const [name, setName] = useState<string | null>(null); // 用户名
+  const [payCodes, setPayCodes] = useState<PayCodeRespData[]>(); // 支付码
+  const [identifyCode, setIdentifyCode] = useState<IdentifyRespData>(); // 身份码
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
+
+  const logoutCleanData = useCallback(async () => {
+    await AsyncStorage.multiRemove([YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY]);
+    setAccessToken(null);
+  }, []);
 
   // 刷新支付码和身份码
   const refresh = useCallback(async () => {
     if (accessToken) {
       try {
-        const payCodes = await ymtLogin.getPayCode(accessToken);
-        setPayCodes(payCodes);
+        const [newPayCodes, newIdentifyCode] = await Promise.all([
+          ymtLogin.getPayCode(accessToken),
+          ymtLogin.getIdentifyCode(accessToken),
+        ]);
 
-        const identifyCode = await ymtLogin.getIdentifyCode(accessToken);
-        setIdentifyCode(identifyCode);
+        setPayCodes(newPayCodes);
+        setIdentifyCode(newIdentifyCode);
 
         // 如果获取成功，续期 Token，在下次切换到该页面时使用
         const newToken = await ymtLogin.getRenewToken(accessToken);
@@ -42,7 +52,7 @@ export default function YiMaTongPage() {
         toast.error('刷新失败：' + error.message);
       }
     }
-  }, [accessToken, ymtLogin]);
+  }, [accessToken, ymtLogin, logoutCleanData]);
 
   // 当 accessToken 变更时，自动刷新
   useEffect(() => {
@@ -87,7 +97,7 @@ export default function YiMaTongPage() {
     }, []),
   );
 
-  async function logout() {
+  const logout = useCallback(() => {
     Alert.alert(
       '确认退出',
       '您确定要退出吗？',
@@ -103,16 +113,10 @@ export default function YiMaTongPage() {
       ],
       { cancelable: false },
     );
-  }
+  }, [logoutCleanData]);
 
-  async function logoutCleanData() {
-    await AsyncStorage.removeItem(YMT_ACCESS_TOKEN_KEY);
-    await AsyncStorage.removeItem(YMT_USERNAME_KEY);
-    setAccessToken(null);
-  }
-
-  function renderQRCodeCard(title: string, codeContent: string | null, codeColor: string) {
-    return (
+  const renderQRCodeCard = useCallback(
+    (title: string, codeContent: string | null, codeColor: string) => (
       <Card>
         <CardHeader>
           {/* 安卓端渲染行高不足问题 将在 RN 0.77 合入 到时可移除此 padding 
@@ -121,7 +125,7 @@ export default function YiMaTongPage() {
           <CardDescription>
             {currentTime.toLocaleDateString() + ' '}
             {currentTime.toLocaleTimeString()}
-            {Name ? ' - ' + Name : ''}
+            {name ? ' - ' + name : ''}
           </CardDescription>
         </CardHeader>
 
@@ -138,32 +142,14 @@ export default function YiMaTongPage() {
           </Button>
         </CardFooter>
       </Card>
-    );
-  }
+    ),
+    [name, currentTime, logout, refresh],
+  );
+
   return (
-    <View className="flex-1">
-      {/* Tabs 组件 */}
-      {accessToken && (
-        <Tabs
-          value={currentTab}
-          onValueChange={setCurrentTab}
-          className="flex-1" // 让 Tabs 占满父容器
-        >
-          {/* Tabs 内容区域 */}
-          <View className="flex-1">
-            <TabsContent
-              value="消费码"
-              className="flex-1 items-center justify-center" // 让内容居中并占满空间
-            >
-              {PayCodes && renderQRCodeCard('消费码', PayCodes[0].prePayId, '#000000')}
-            </TabsContent>
-
-            <TabsContent value="认证码" className="flex-1 items-center justify-center">
-              {IdentifyCode && renderQRCodeCard('认证码', IdentifyCode.content, IdentifyCode.color)}
-            </TabsContent>
-          </View>
-
-          {/* Tabs 切换按钮 */}
+    <View className="flex flex-1 flex-col items-center justify-center">
+      {accessToken ? (
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="flex-1 items-center">
           <TabsList className="w-full flex-row">
             <TabsTrigger value="消费码" className="flex-1">
               <Text className="text-center">消费码</Text>
@@ -172,16 +158,25 @@ export default function YiMaTongPage() {
               <Text className="text-center">认证码</Text>
             </TabsTrigger>
           </TabsList>
-        </Tabs>
-      )}
 
-      {/* 登录提示 */}
-      {!accessToken && (
+          <View className="flex-1">
+            <TabsContent value="消费码">
+              {payCodes && renderQRCodeCard('消费码', payCodes[0].prePayId, '#000000')}
+            </TabsContent>
+
+            <TabsContent value="认证码">
+              {identifyCode && renderQRCodeCard('认证码', identifyCode.content, identifyCode.color)}
+            </TabsContent>
+          </View>
+        </Tabs>
+      ) : (
         <View className="flex-1 items-center justify-center gap-10">
           <Text className="text-lg">登录统一身份认证平台，享受一码通服务</Text>
-          <Button className="w-1/2" onPress={() => router.push('/(guest)/unified-auth-login')}>
-            <Text>前往登录</Text>
-          </Button>
+          <Link href="/unified-auth-login" asChild>
+            <Button className="w-1/2">
+              <Text>前往登录</Text>
+            </Button>
+          </Link>
         </View>
       )}
     </View>
