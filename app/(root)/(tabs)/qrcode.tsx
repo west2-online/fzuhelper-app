@@ -107,7 +107,9 @@ export default function YiMaTongPage() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          {/* 安卓端渲染行高不足问题 将在 RN 0.77 合入 到时可移除此 padding 
+          https://github.com/facebook/react-native/commit/65d8f66b50471d2fb4ddd5e63e17fcc808623110 */}
+          <CardTitle className="pt-2">{title}</CardTitle>
           <CardDescription>
             {currentTime.toLocaleDateString() + ' '}
             {currentTime.toLocaleTimeString()}
