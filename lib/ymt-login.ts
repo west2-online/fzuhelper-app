@@ -63,6 +63,7 @@ class YMTLogin {
         throw {
           type: RejectEnum.NativeLoginFailed,
           data: jsonData.msg || '未知错误',
+          code: jsonData.code,
         };
       }
 
