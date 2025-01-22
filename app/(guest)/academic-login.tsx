@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '登录';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
@@ -45,7 +46,7 @@ const LoginPage: React.FC = () => {
         .then(res => setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`));
     } catch (error) {
       console.error(error);
-      Alert.alert('错误', '获取验证码失败');
+      toast.error('获取验证码失败');
     }
   }, []);
 
@@ -82,26 +83,26 @@ const LoginPage: React.FC = () => {
       setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`);
     } catch (error) {
       console.error(error);
-      Alert.alert('错误', '获取验证码失败');
+      toast.error('获取验证码失败');
     }
   }, []);
 
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
     if (!isAgree) {
-      Alert.alert('错误', '请先阅读并同意用户协议和隐私政策');
-      return;
-    }
-    if (!username) {
-      Alert.alert('错误', '请输入学号');
-      return;
-    }
-    if (!password) {
-      Alert.alert('错误', '请输入密码');
+      toast.error('请先阅读并同意用户协议和隐私政策');
       return;
     }
     if (!captcha) {
-      Alert.alert('错误', '请输入验证码');
+      toast.error('请输入验证码');
+      return;
+    }
+    if (!username) {
+      toast.error('请输入学号');
+      return;
+    }
+    if (!password) {
+      toast.error('请输入密码');
       return;
     }
 

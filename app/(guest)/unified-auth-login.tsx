@@ -11,6 +11,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '统一身份认证';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
@@ -46,15 +47,15 @@ const UnifiedLoginPage: React.FC = () => {
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
     if (!isAgree) {
-      Alert.alert('错误', '请先阅读并同意用户协议和隐私政策');
+      toast.error('请先阅读并同意用户协议和隐私政策');
       return;
     }
     if (!account) {
-      Alert.alert('错误', '请输入用户名');
+      toast.error('请输入用户名');
       return;
     }
     if (!accountPassword) {
-      Alert.alert('错误', '请输入密码');
+      toast.error('请输入密码');
       return;
     }
 
