@@ -1,14 +1,17 @@
 package com.west2online.nativerequest
 
+import com.google.gson.Gson
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
 import okhttp3.CookieJar
 import okhttp3.FormBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
@@ -103,6 +106,7 @@ class NativeRequestModule : Module() {
             return@AsyncFunction resp
         }
 
+        // 以表单形式传递数据的 post 方法
         AsyncFunction("post") { url: String, headers: StringMapper, formData: StringMapper ->
             val formBodyBuilder = FormBody.Builder()
             formData.data.forEach { (key, value) ->
@@ -132,6 +136,34 @@ class NativeRequestModule : Module() {
             return@AsyncFunction resp
         }
 
+        // 以 JSON 形式传递数据的 post 方法
+        AsyncFunction("postJSON") { url: String, headers: StringMapper, formData: StringMapper ->
+            val gson = Gson()
+            val json = gson.toJson(formData.data) // 将 formData.data 转换为 JSON 字符串
+
+            val jsonBody = json.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+            val requestBuilder = Request.Builder()
+                .url(url)
+                .post(jsonBody) // 使用 JSON 格式的请求体
+
+            headers.data.forEach { (key, value) ->
+                requestBuilder.addHeader(key, value)
+            }
+
+            val request = requestBuilder.build()
+
+            val resp = ResponseMapper()
+            try {
+                val response = client.newCall(request).execute()
+                resp.status = response.code
+                resp.headers = response.headers.toMap()
+                resp.data = response.body.bytes()
+            } catch (e: Exception) {
+                resp.error = "请求失败: ${e.message}"
+            }
+            return@AsyncFunction resp
+        }
     }
 
 }

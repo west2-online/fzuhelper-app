@@ -39,7 +39,7 @@ export const useSafeResponseSolve = () => {
                 text: '确认',
                 onPress: async () => {
                   await clearUserStorage();
-                  redirect('/login');
+                  redirect('/(guest)/academic-login');
                 },
               },
             ],
@@ -49,20 +49,29 @@ export const useSafeResponseSolve = () => {
 
         case RejectEnum.ReLoginFailed:
           console.error('重新登录时遇到问题');
-          Alert.alert(
-            '提示',
-            '自动登录失败，请检查账号信息，并重新登录',
-            [
-              {
-                text: '确认',
-                onPress: async () => {
-                  await clearUserStorage();
-                  redirect('/login');
+          if (error.data === '用户名或密码错误') {
+            Alert.alert(
+              '自动登录失败',
+              '用户名或密码错误，请检查后重新登录',
+              [
+                {
+                  text: '确认',
+                  onPress: async () => {
+                    await clearUserStorage();
+                    redirect('/(guest)/academic-login');
+                  },
                 },
-              },
-            ],
-            { cancelable: false },
-          );
+              ],
+              { cancelable: false },
+            );
+          } else {
+            // 此处登录失败后不能直接清空用户信息，因为可能教务处临时崩溃，只能弹出警告
+            // 同时，我们可能需要有一个醒目的 Banner 来提示用户当前与教务处离线
+            Alert.alert(
+              '自动登录失败',
+              '自动重新登录失败，将使用缓存数据。可能原因：教务处服务器不可用。如需重新登录，请前往“我的”->“退出登录”。',
+            );
+          }
           break;
 
         case RejectEnum.BizFailed:
@@ -87,7 +96,7 @@ export const useSafeResponseSolve = () => {
 
         case RejectEnum.NativeLoginFailed:
           console.error('本地登录异常:', error);
-          Alert.alert('教务处响应错误', error.data);
+          Alert.alert('教务处/统一身份认证响应错误', error.data);
           break;
 
         default:

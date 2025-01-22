@@ -1,19 +1,25 @@
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Toaster } from 'sonner-native';
 
 import { Provider } from '@/components/Provider';
+import { cn } from '@/lib/utils';
 
 import '../global.css';
 
 export default function RootLayout() {
   return (
     <Provider>
-      <Stack>
-        <Stack.Screen name="(root)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <GestureHandlerRootView>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
 
-      <PortalHost />
+        <Toaster cn={cn} position="bottom-center" duration={2500} />
+        <PortalHost />
+      </GestureHandlerRootView>
     </Provider>
   );
 }

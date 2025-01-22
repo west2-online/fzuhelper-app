@@ -35,7 +35,7 @@ export default function HomePage() {
         <View>
           <Text>{isLoading}</Text>
           <Input value={term} onChangeText={text => setTerm(text)} />
-          <Text>{JSON.stringify(data, null, 2)}</Text>
+          {/* <Text>{JSON.stringify(data, null, 2)}</Text> */}
 
           <Button
             onPress={() => {

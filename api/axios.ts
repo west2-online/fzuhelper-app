@@ -45,6 +45,10 @@ request.interceptors.response.use(
       });
     }
 
+    // 不要删除，便于调试使用
+    // console.log('url:', config.url, 'method:', config.method, 'status:', response.status);
+    // console.log('data:', data);
+
     // 鉴权出现问题
     if (data.code === ResultEnum.AuthInvalidCode) {
       return Promise.reject({ type: RejectEnum.AuthFailed });
@@ -71,8 +75,8 @@ request.interceptors.response.use(
         accessToken && (await AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken));
         refreshToken && (await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken));
 
-        queue.forEach(({ config, resolve }) => {
-          resolve(request(config));
+        queue.forEach(({ config: queuedConfig, resolve }) => {
+          resolve(request(queuedConfig));
         });
         refreshing = false;
         queue = [];
@@ -85,8 +89,8 @@ request.interceptors.response.use(
         ) {
           Promise.reject({ type: RejectEnum.AuthFailed }); // 这里颗粒度粗一点，直接表示鉴权失败，统一返回 Login 页
         } else {
-          queue.forEach(({ config, reject }) => {
-            reject(request(config));
+          queue.forEach(({ config: queuedConfig, reject }) => {
+            reject(request(queuedConfig));
           });
           refreshing = false;
           queue = [];
@@ -98,6 +102,7 @@ request.interceptors.response.use(
       // 尝试重新登录并获取cookies和id
       const id = await AsyncStorage.getItem(JWCH_USER_ID_KEY);
       const password = await AsyncStorage.getItem(JWCH_USER_PASSWORD_KEY);
+      // console.log('id:', id, 'password:', password);
       if (id && password) {
         refreshing = true;
         try {
@@ -105,15 +110,15 @@ request.interceptors.response.use(
             id,
             password,
           });
-          queue.forEach(({ config, resolve }) => {
-            resolve(request(config));
+          queue.forEach(({ config: queuedConfig, resolve }) => {
+            resolve(request(queuedConfig));
           });
           refreshing = false;
 
           queue = [];
           return request(config);
-        } catch (error) {
-          // 重新登录失败，我们返回 ReLoginFailed
+        } catch (error: any) {
+          console.log('relogin error:', error); // 此处可以控制台打印一下问题
           queue.forEach(({ reject }) => {
             reject();
           });
