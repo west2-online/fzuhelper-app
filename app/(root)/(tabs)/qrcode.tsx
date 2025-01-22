@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { toast } from 'sonner-native';
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -23,6 +24,8 @@ export default function YiMaTongPage() {
   const [identifyCode, setIdentifyCode] = useState<IdentifyRespData>(); // 身份码
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
   const [isRefreshing, setIsRefreshing] = useState(false); // 用于触发重新渲染
+  const handleErrorRef = useRef(useSafeResponseSolve().handleError);
+  const handleError = handleErrorRef.current;
 
   const logoutCleanData = useCallback(async () => {
     await AsyncStorage.multiRemove([YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY]);
@@ -47,17 +50,20 @@ export default function YiMaTongPage() {
         await AsyncStorage.setItem(YMT_ACCESS_TOKEN_KEY, newToken);
       } catch (error: any) {
         console.error('刷新失败:', error);
-        if (error.code === 401) {
-          logoutCleanData();
-          toast.info('一码通登录过期，请重新登录');
-          return;
+        const data = handleError(error);
+        if (data) {
+          if (data === 'Unauthorized') {
+            logoutCleanData();
+            toast.info('一码通登录过期，请重新登录');
+            return;
+          }
+          toast.error('刷新失败：' + data);
         }
-        toast.error('刷新失败：' + error.data);
       } finally {
         setIsRefreshing(false); // 恢复按钮状态
       }
     }
-  }, [accessToken, ymtLogin, logoutCleanData]);
+  }, [accessToken, ymtLogin, handleError, logoutCleanData]);
 
   // 当 accessToken 变更时，自动刷新
   useEffect(() => {

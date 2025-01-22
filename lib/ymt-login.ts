@@ -61,9 +61,8 @@ class YMTLogin {
       // 检查响应码是否为成功
       if (jsonData.code !== 0) {
         throw {
-          type: RejectEnum.NativeLoginFailed,
+          type: RejectEnum.BizFailed,
           data: jsonData.msg || '未知错误',
-          code: jsonData.code,
         };
       }
 
