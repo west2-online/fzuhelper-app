@@ -17,7 +17,7 @@ export default function RootLayout() {
           <Stack.Screen name="+not-found" />
         </Stack>
 
-        <Toaster cn={cn} position="bottom-center" duration={2500} />
+        <Toaster cn={cn} position="bottom-center" duration={2500} offset={80} />
         <PortalHost />
       </GestureHandlerRootView>
     </Provider>
