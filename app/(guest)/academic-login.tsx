@@ -12,6 +12,7 @@ import {
   JWCH_USER_PASSWORD_KEY,
 } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
+import ExpoUmengModule from '@/modules/umeng-bridge';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -38,14 +39,20 @@ const LoginPage: React.FC = () => {
   const { handleError } = useSafeResponseSolve();
 
   useEffect(() => {
-    try {
-      loginRef
-        .current!.getCaptcha()
-        .then(res => setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`));
-    } catch (error) {
-      console.error(error);
-      Alert.alert('错误', '获取验证码失败');
-    }
+    const fetchData = async () => {
+      try {
+        // 获取验证码
+        const captchaRes = await loginRef.current!.getCaptcha();
+        setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...captchaRes))}`);
+
+        // 检查隐私协议是否被允许
+        const isAllow = await ExpoUmengModule.isAllowPrivacy();
+        setIsAgree(isAllow);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchData(); // 调用异步函数
   }, []);
 
   // 打开用户协议
@@ -125,6 +132,9 @@ const LoginPage: React.FC = () => {
       // 存储个人信息到本地
       AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
 
+      // 设置 app 级别的隐私政策同意状态
+      await ExpoUmengModule.setAllowPrivacy();
+
       // 跳转到首页
       router.push('/');
     } catch (error: any) {
@@ -183,11 +193,17 @@ const LoginPage: React.FC = () => {
                   placeholder="请输入验证码"
                   className="mr-4 flex-1 px-1 py-3"
                 />
-                {captchaImage && (
-                  <TouchableOpacity onPress={refreshCaptcha}>
+                <TouchableOpacity onPress={refreshCaptcha}>
+                  {captchaImage ? (
+                    // 显示验证码图片
                     <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
-                  </TouchableOpacity>
-                )}
+                  ) : (
+                    // 显示灰色占位框
+                    <View className="h-8 w-40 items-center justify-center bg-gray-200">
+                      <Text className="text-xs text-gray-500">加载中...</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
 
               {/* 登录按钮 */}

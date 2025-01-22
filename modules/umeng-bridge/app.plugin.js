@@ -3,51 +3,73 @@
 // 如果需要参考具体逻辑，可以参考友盟 SDK
 // iOS文档：https://developer.umeng.com/docs/67966/detail/66734
 // 安卓文档：https://developer.umeng.com/docs/67966/detail/206987
+import { promises as fs } from 'fs'; // 使用 Node.js 的 fs 模块进行文件操作
+import { join, resolve } from 'path';
 
-const {
-  withAndroidManifest,
+import {
   AndroidConfig,
   createRunOncePlugin,
+  withAndroidManifest,
+  withDangerousMod,
   withEntitlementsPlist,
   withInfoPlist,
   withXcodeProject,
-} = require('@expo/config-plugins');
+} from '@expo/config-plugins';
 
-const withKey = (config, { appkey, channel, msgsec }) => {
+const withKey = (config, { AndroidAppKey, iOSAppKey, channel, msgsec, bridgingSourcePath, bridgingTargetPath }) => {
   // Android 配置
-  config = withAndroidManifest(config, config => {
-    const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(config.modResults);
-    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'UMENG_APPKEY', appkey);
-    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'UMENG_CHANNEL', channel);
-    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'UMENG_MSGSEC', msgsec);
-    return config;
+  config = withAndroidManifest(config, manifestConfig => {
+    const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(manifestConfig.modResults);
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'UMENG_APPKEY', AndroidAppKey); // 写入友盟 AppKey
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'UMENG_CHANNEL', channel); // 写入友盟渠道
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'UMENG_MSGSEC', msgsec); // 写入友盟安全密钥
+    return manifestConfig;
   });
 
   // iOS 配置
-  config = withEntitlementsPlist(config, config => {
+  config = withEntitlementsPlist(config, entitlementPlist => {
     // 自动在 iOS 的 entitlements 文件中添加 aps-environment
-    config.modResults['aps-environment'] = 'development'; // 或 'production'，根据需求调整
-    return config;
+    entitlementPlist.modResults['aps-environment'] = 'production'; // 或 'development'，根据需求调整
+    return entitlementPlist;
   });
 
-  config = withInfoPlist(config, config => {
+  config = withInfoPlist(config, infoPlist => {
     // 如果需要修改 Info.plist，可以在这里添加逻辑
-    // 例如：添加推送通知相关权限描述
-    config.modResults.NSAppTransportSecurity = {
+    infoPlist.modResults.UMENG_APPKEY = iOSAppKey; // 写入友盟 AppKey
+    infoPlist.modResults.UMENG_CHANNEL = channel; // 写入友盟渠道
+    // iOS 不需要写入 UMENG_MESSAGE_SECRET
+
+    // 配置 App Transport Security，允许非 HTTPS 请求（友盟可能需要）
+    infoPlist.modResults.NSAppTransportSecurity = {
       NSAllowsArbitraryLoads: true,
     };
-    config.modResults.UIBackgroundModes = config.modResults.UIBackgroundModes || [];
-    if (!config.modResults.UIBackgroundModes.includes('remote-notification')) {
-      config.modResults.UIBackgroundModes.push('remote-notification');
+
+    // 配置后台模式，支持远程通知
+    infoPlist.modResults.UIBackgroundModes = infoPlist.modResults.UIBackgroundModes || [];
+    if (!infoPlist.modResults.UIBackgroundModes.includes('remote-notification')) {
+      infoPlist.modResults.UIBackgroundModes.push('remote-notification');
     }
-    return config;
+
+    // 添加推送通知权限描述（iOS12 及以上开始内容由 Apple 固定，开发者无权干涉）
+    infoPlist.modResults.NSPushNotificationsUsageDescription =
+      '我们会使用推送通知来推送成绩信息、教务处最新通知，通知发送受福州大学监管，不会泄露您的个人信息';
+
+    // 添加用户追踪权限描述（广告标识符使用）（iOS12 及以上开始内容由 Apple 固定，开发者无权干涉）
+    infoPlist.modResults.NSUserTrackingUsageDescription =
+      '我们会使用设备号来分析软件使用情况，以便提供更好的服务以及修复漏洞';
+    return infoPlist;
   });
 
-  config = withXcodeProject(config, config => {
-    const project = config.modResults;
+  config = withXcodeProject(config, xcodeConfig => {
+    const project = xcodeConfig.modResults;
+
+    // 获取 Target 名称
+    const targetName = project.getFirstTarget().firstTarget.name;
+
+    // 设置 Objective-C Bridging Header
+    project.addBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', bridgingTargetPath);
 
     // 自动启用 Push Notifications Capabilities
-    const targetName = project.getFirstTarget().firstTarget.name;
     const entitlementsFile = `${targetName}.entitlements`;
 
     // 确保 entitlements 文件已添加到代码签名设置中
@@ -59,10 +81,34 @@ const withKey = (config, { appkey, channel, msgsec }) => {
         'com.apple.Push': { enabled: 1 },
       });
     }
-    return config;
+    return xcodeConfig;
   });
+
+  // 使用 withDangerousMod 介入生成过程，复制模块内的桥接文件到 iOS 项目中
+  config = withDangerousMod(config, [
+    'ios',
+    async iosConfig => {
+      const iosProjectPath = join(iosConfig.modRequest.projectRoot, 'ios'); // iOS 项目目录
+      const sourcePath = resolve(iosConfig.modRequest.projectRoot, bridgingSourcePath); // Bridging Header 源文件绝对路径
+      const targetPath = resolve(iosProjectPath, bridgingTargetPath); // Bridging Header 目标文件绝对路径
+
+      try {
+        // 确保目标目录存在
+        await fs.mkdir(join(targetPath, '..'), { recursive: true });
+        // 复制文件
+        await fs.copyFile(sourcePath, targetPath);
+        console.log(`Copied Bridging Header from ${sourcePath} to ${targetPath}`);
+      } catch (error) {
+        console.error(`Failed to copy Bridging Header: ${error.message}`);
+        throw error;
+      }
+
+      return iosConfig;
+    },
+  ]);
 
   return config;
 };
 
-exports.default = createRunOncePlugin(withKey, 'umeng-bridge', '0.1.0');
+const _default = createRunOncePlugin(withKey, 'umeng-bridge', '0.1.0');
+export { _default as default };

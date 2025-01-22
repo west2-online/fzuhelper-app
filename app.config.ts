@@ -1,4 +1,5 @@
 import { type ExpoConfig } from 'expo/config';
+import { AndroidConfig } from 'expo/config-plugins';
 import 'ts-node/register'; // Add this to import TypeScript files
 
 const value = (prodValue: string, devValue: string) => (process.env.NODE_ENV === 'production' ? prodValue : devValue);
@@ -45,9 +46,12 @@ const config: ExpoConfig = {
     [
       './modules/umeng-bridge/app.plugin.js',
       {
-        appkey: '677631911233c160e700af49', // 发布（正式包名）时需更换
-        channel: 'default',
-        msgsec: 'd494151a2eed479371d1e13c0f52b1fa',
+        AndroidAppKey: '', // 发布（正式包名）时需更换
+        iOSAppKey: '', // 发布（正式包名）时需更换
+        channel: 'default', // 渠道号
+        msgsec: '', // 仅供 Android，iOS 是证书鉴权，具体参考 KeeWeb
+        bridgingSourcePath: './modules/umeng-bridge/ios/ExpoUmeng-Bridging-Header.h', // (iOS) 源路径（相对于 app.plugin.js 文件）
+        bridgingTargetPath: 'Bridging/ExpoUmeng-Bridging-Header.h', // (iOS) 目标路径（相对于 ios 文件夹）这个文件可以不更改
       },
     ],
   ],

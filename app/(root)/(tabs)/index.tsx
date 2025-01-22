@@ -56,22 +56,6 @@ export default function HomePage() {
           >
             <Text>已同意协议 初始化友盟</Text>
           </Button>
-
-          <Button
-            onPress={() => {
-              Alert.alert(ExpoUmengModule.hasPermission().toString());
-            }}
-          >
-            <Text>取是否授予通知权限</Text>
-          </Button>
-
-          <Button
-            onPress={() => {
-              ExpoUmengModule.requirePermission();
-            }}
-          >
-            <Text>请求通知权限</Text>
-          </Button>
         </View>
 
         <Tabs
