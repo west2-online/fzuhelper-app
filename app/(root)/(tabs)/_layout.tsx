@@ -21,18 +21,6 @@ export default function TabLayout() {
           title: '课程',
           headerTitleAlign: 'center',
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerLeft: props => (
-            <View className="px-4">
-              <Text>第 X 周</Text>
-            </View>
-          ),
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: props => (
-            <View className="px-4">
-              <HeaderIcon name="settings-outline" />
-            </View>
-          ),
-          // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
           ),
@@ -52,7 +40,6 @@ export default function TabLayout() {
           title: '一码通',
           // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
-          
         }}
       />
       <Tabs.Screen

@@ -13,6 +13,22 @@ export const JWCH_USER_INFO_KEY = 'jwch_user_info';
 export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
 export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 
+// 课程表
+export const CLASS_SCHEDULES = [
+  ['08:20', '09:05'],
+  ['09:15', '10:00'],
+  ['10:20', '11:05'],
+  ['11:15', '12:00'],
+  ['14:00', '14:45'],
+  ['14:55', '15:40'],
+  ['15:50', '16:35'],
+  ['16:45', '17:30'],
+  ['19:00', '19:45'],
+  ['19:55', '20:40'],
+  ['20:50', '21:35'],
+];
+
+// 基建
 export const NAV_THEME = {
   light: {
     background: 'hsl(0 0% 100%)', // background

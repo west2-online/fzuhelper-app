@@ -1,23 +1,11 @@
+import { Tabs } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { getApiV1JwchCourseList } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
+import { CLASS_SCHEDULES } from '@/lib/constants';
 import { parseCourses, type ParsedCourse } from '@/utils/parseCourses';
-
-const classes = [
-  ['08:20', '09:05'],
-  ['09:15', '10:00'],
-  ['10:20', '11:05'],
-  ['11:15', '12:00'],
-  ['14:00', '14:45'],
-  ['14:55', '15:40'],
-  ['15:50', '16:35'],
-  ['16:45', '17:30'],
-  ['19:00', '19:45'],
-  ['19:55', '20:40'],
-  ['20:50', '21:35'],
-];
 
 function Header() {
   return (
@@ -84,10 +72,7 @@ interface CalendarColProps {
 
 function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
   const [height, setHeight] = useState<number>(49 * 11);
-
   const schedulesOnDay = schedules.filter(schedule => schedule.weekday === weekday);
-
-  console.log(schedulesOnDay, weekday);
   const res: React.ReactNode[] = [];
 
   for (let i = 1; i <= 11; i++) {
@@ -146,29 +131,41 @@ export default function HomePage() {
   const schedules = parseCourses(data.data.data);
 
   return (
-    <ScrollView
-      className="flex h-full flex-auto flex-col overflow-auto bg-white"
-      stickyHeaderIndices={[0]}
-      overScrollMode="never"
-      bounces={false}
-    >
-      <Header />
-      <View className="flex flex-none flex-grow flex-row py-1">
-        <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
-          {classes.map((time, index) => (
-            <View key={index} className="flex min-h-14 w-[32px] flex-grow flex-col items-center py-1">
-              <Text className="text-[12px] font-bold text-gray-500">{index + 1}</Text>
-              <Text className="text-[8px] text-gray-500">{time[0]}</Text>
-              <Text className="text-[8px] text-gray-500">{time[1]}</Text>
-            </View>
-          ))}
+    <>
+      <Tabs.Screen
+        options={{
+          headerTitleAlign: 'center',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerLeft: () => <Text>第 {week} 周</Text>,
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: () => <Text>Settings</Text>,
+        }}
+      />
+
+      <ScrollView
+        className="flex h-full flex-auto flex-col overflow-auto bg-white"
+        stickyHeaderIndices={[0]}
+        overScrollMode="never"
+        bounces={false}
+      >
+        <Header />
+        <View className="flex flex-none flex-grow flex-row py-1">
+          <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
+            {CLASS_SCHEDULES.map((time, index) => (
+              <View key={index} className="flex min-h-14 w-[32px] flex-grow flex-col items-center py-1">
+                <Text className="text-[12px] font-bold text-gray-500">{index + 1}</Text>
+                <Text className="text-[8px] text-gray-500">{time[0]}</Text>
+                <Text className="text-[8px] text-gray-500">{time[1]}</Text>
+              </View>
+            ))}
+          </View>
+          <View className="flex flex-shrink flex-grow flex-row">
+            {Array.from({ length: 7 }).map((_, index) => (
+              <CalendarCol key={index} week={week} weekday={index + 1} schedules={schedules} />
+            ))}
+          </View>
         </View>
-        <View className="flex flex-shrink flex-grow flex-row">
-          {Array.from({ length: 7 }).map((_, index) => (
-            <CalendarCol key={index} week={week} weekday={index + 1} schedules={schedules} />
-          ))}
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
