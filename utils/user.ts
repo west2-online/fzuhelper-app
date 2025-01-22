@@ -8,8 +8,6 @@ import {
 } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
-import { toast } from 'sonner-native';
 
 // 清空 AsyncStorage 中的所有用户信息
 export async function clearUserStorage() {
@@ -21,7 +19,6 @@ export async function clearUserStorage() {
 // 此处的 Promise.reject 只会传递给 api/axios.ts，因此不需要做规范化处理
 export async function userLogin(data: { id: string; password: string }) {
   try {
-    toast.info('检测到登录状态异常，正在尝试自动重新登录');
     const login = new UserLogin();
     const captchaImage = await login.getCaptcha();
     const { id, cookies } = await login.login(data.id, data.password, captchaImage);
@@ -33,19 +30,13 @@ export async function userLogin(data: { id: string; password: string }) {
 
     try {
       await getApiV1LoginAccessToken();
-      toast.success('自动重新登录成功');
       return Promise.resolve();
     } catch (e) {
-      toast.error('自动重新登录失败');
+      // accessToken 获取失败
       return Promise.reject(e);
     }
   } catch (e) {
-    // TODO: 此处登录失败后不能直接清空用户信息，因为可能教务处临时崩溃，只能弹出警告
-    // 同时，我们可能需要有一个醒目的 Banner 来提示用户当前与教务处离线
-    Alert.alert(
-      '自动登录失败',
-      '自动重新登录失败，将使用缓存数据。可能原因：密码错误或教务处服务器不可用。如需重新登录，请前往“我的”->“退出登录/切换账户”。如需帮助，请加入交流群反馈问题。',
-    );
+    // 教务处登录失败
     return Promise.reject(e);
   }
 }

@@ -102,7 +102,7 @@ request.interceptors.response.use(
       // 尝试重新登录并获取cookies和id
       const id = await AsyncStorage.getItem(JWCH_USER_ID_KEY);
       const password = await AsyncStorage.getItem(JWCH_USER_PASSWORD_KEY);
-      console.log('id:', id, 'password:', password);
+      // console.log('id:', id, 'password:', password);
       if (id && password) {
         refreshing = true;
         try {
