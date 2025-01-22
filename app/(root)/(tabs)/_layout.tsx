@@ -1,10 +1,18 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useNavigation } from 'expo-router';
+import { useLayoutEffect } from 'react';
 
 import { HeaderIcon } from '@/components/HeaderIcon';
 import { TabBarIcon } from '@/components/TabBarIcon';
 import { Text, View } from 'react-native';
 
+const NAVIGATION_TITLE = '主页';
+
 export default function TabLayout() {
+  const navigation = useNavigation();
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: NAVIGATION_TITLE });
+  }, [navigation]);
+
   return (
     <Tabs>
       <Tabs.Screen
@@ -36,6 +44,15 @@ export default function TabLayout() {
           title: '工具箱',
           // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="qrcode"
+        options={{
+          title: '一码通',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
+          
         }}
       />
       <Tabs.Screen
