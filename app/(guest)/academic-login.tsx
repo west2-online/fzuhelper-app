@@ -213,20 +213,36 @@ const LoginPage: React.FC = () => {
             </View>
 
             {/* 底部协议 */}
-            <View className="mb-6 mt-12 w-full flex-row justify-center">
+            <TouchableOpacity
+              activeOpacity={1}
+              className="mb-4 mt-12 w-full flex-row justify-center py-2"
+              onPress={() => setIsAgree(!isAgree)}
+            >
               <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
               <Text className="text-center text-muted-foreground">
                 {'  '}
                 阅读并同意{' '}
-                <Text className="text-primary" onPress={openUserAgreement}>
+                <Text
+                  className="text-primary"
+                  onPress={event => {
+                    event.stopPropagation();
+                    openUserAgreement();
+                  }}
+                >
                   用户协议
                 </Text>{' '}
                 和{' '}
-                <Text className="text-primary" onPress={openPrivacyPolicy}>
+                <Text
+                  className="text-primary"
+                  onPress={event => {
+                    event.stopPropagation();
+                    openPrivacyPolicy();
+                  }}
+                >
                   隐私政策
                 </Text>
               </Text>
-            </View>
+            </TouchableOpacity>
           </ThemedView>
         </KeyboardAwareScrollView>
       </SafeAreaView>
