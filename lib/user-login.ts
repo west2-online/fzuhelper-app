@@ -1,6 +1,9 @@
 import { RejectEnum } from '@/api/enum';
+import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
 import { get, post } from '@/modules/native-request';
 import md5 from '@/utils/md5';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { Buffer } from 'buffer';
 
 // const 只会使变量的引用不可变，但不代表变量的内容（如对象或数组）也是不可变的，因此需要补一个 as const
@@ -21,6 +24,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   用户名或密码错误: '用户名或密码错误',
   验证码验证失败: '验证码验证失败',
 };
+
+// 自动验证码识别服务地址(本科生教务系统)
+const URL_AUTO_VALIDATE = 'https://fzuhelper.west2.online/api/v1/user/validate-code';
 
 class UserLogin {
   #cookies: Record<string, string> = {};
@@ -157,19 +163,40 @@ class UserLogin {
     return { id: resId };
   }
 
-  #autoVerifyCaptcha(data: Uint8Array) {
-    throw {
-      type: RejectEnum.NativeLoginFailed,
-      data: '验证码自动识别尚未实现',
-    };
-    return '';
+  async autoVerifyCaptcha(data: Uint8Array) {
+    const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+    const localId = await AsyncStorage.getItem(JWCH_ID_KEY);
+    const localCookies = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+    const response = await axios.request({
+      url: URL_AUTO_VALIDATE,
+      method: 'POST',
+      headers: {
+        'Access-Token': accessToken,
+        Authorization: accessToken,
+        Id: localId,
+        Cookies: localCookies,
+      },
+      data: {
+        image: `data:image/png;base64,${btoa(String.fromCharCode(...data))}`,
+      },
+    });
+
+    if (!response.data.data) {
+      console.error('自动验证码识别失败,HTTP JSON:', JSON.stringify(response.data));
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '自动验证码识别失败',
+      };
+    }
+
+    return response.data.data;
   }
 
   async login(username: string, password: string, _captcha: string | Uint8Array) {
     let captcha: string;
 
     if (typeof _captcha !== 'string') {
-      captcha = this.#autoVerifyCaptcha(_captcha);
+      captcha = await this.autoVerifyCaptcha(_captcha);
     } else {
       captcha = _captcha;
     }

@@ -18,16 +18,19 @@ struct ResponseMapper: Record {
   @Field var error: String? = nil // 默认不存在错误
 }
 
+// NativeRequest，负责发起网络请求，使用 Alamofire 库
+// 请注意：对于几个方法，的确可以支持代码复用，但为了更好的可读性，这里分开实现
+// 我们不能确定未来 iOS 开发者的水平，我们以最低要求为准
+// 禁用 302 和 HTTP2.0 是为了教务处老旧接口的适配，这三个函数应该只适用于统一身份认证和教务系统的用户登录
+// 而我们禁用系统共享的 Cookie 存储是为了避免 Cookie 污染，让前端接管 Cookie 管理
 public class NativeRequestModule: Module {
   // Each module class must implement the definition function. The definition consists of components
   // that describes the module's functionality and behavior.
   // See https://docs.expo.dev/modules/module-api for more details about available components.
   public func definition() -> ModuleDefinition {
-    // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-    // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-    // The module will be accessible from `requireNativeModule('NativeRequest')` in JavaScript.
     Name("NativeRequest")
 
+    // get 方法，用于发起 GET 请求
     AsyncFunction("get") { (url: String, headers: StringMapper) -> (ResponseMapper) in
       // 创建 Alamofire 的 Session，启用 HTTPCookieStorage
       let configuration = URLSessionConfiguration.af.default // 配置自定义 configuration，默认禁用了 HTTP2.0
@@ -49,6 +52,7 @@ public class NativeRequestModule: Module {
       }
     }
 
+    // 以表单形式传递数据的 post 方法
     AsyncFunction("post") { (url: String, headers: StringMapper, formData: StringMapper) -> (ResponseMapper) in
       // 创建 Alamofire 的 Session，启用 HTTPCookieStorage
       let configuration = URLSessionConfiguration.af.default // 配置自定义 configuration，默认禁用了 HTTP2.0
@@ -59,6 +63,27 @@ public class NativeRequestModule: Module {
       var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
       do{
         let response = await session.request(url, method: .post, parameters: formData.data, encoder: URLEncodedFormParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
+        resp.status = response.response?.statusCode ?? -1
+        resp.data = response.data
+        resp.headers = response.response?.allHeaderFields ?? [:]
+        return resp
+      } catch {
+        resp.error = "请求失败: \(error)"
+        return resp
+      }
+    }
+
+    // 以 JSON 形式传递数据的 post 方法
+    AsyncFunction("postJSON") { (url: String, headers: StringMapper, formData: StringMapper) -> (ResponseMapper) in
+      // 创建 Alamofire 的 Session，启用 HTTPCookieStorage
+      let configuration = URLSessionConfiguration.af.default // 配置自定义 configuration，默认禁用了 HTTP2.0
+      configuration.httpCookieStorage = nil // 禁用系统共享的 Cookie 存储
+      configuration.timeoutIntervalForRequest = 10 // 设置请求超时为 10 秒
+      configuration.timeoutIntervalForResource = 10 // 设置资源超时为 10 秒
+      let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
+      var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
+      do {
+        let response = await session.request(url, method: .post, parameters: formData.data, encoder: JSONParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
         resp.status = response.response?.statusCode ?? -1
         resp.data = response.data
         resp.headers = response.response?.allHeaderFields ?? [:]

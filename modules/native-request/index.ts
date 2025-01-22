@@ -41,3 +41,23 @@ export async function post(
     headers: response.headers,
   };
 }
+
+// 返回格式为 { status: number, data: Uint8Array, headers: Record<string, string> }
+// iOS 原始响应格式为 { status: Int?, data: Data?, headers: Record<string, string>, error: String? }
+// Android 原始响应格式为 { status: Int, data: ByteArray?, headers: Map<String, List<String>> }
+// 与 POST 方法的区别是，这里的 formData 会被转换为 JSON 格式
+export async function postJSON(
+  url: string,
+  headers: Record<string, string>,
+  formData: Record<string, string>,
+): Promise<NativeRequestResponse> {
+  const response = await NativeRequestModule.postJSON(url, { data: headers }, { data: formData });
+  if (response.error) {
+    throw new Error(response.error);
+  }
+  return {
+    status: response.status,
+    data: response.data,
+    headers: response.headers,
+  };
+}
