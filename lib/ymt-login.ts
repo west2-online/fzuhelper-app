@@ -62,7 +62,7 @@ class YMTLogin {
       if (jsonData.code !== 0) {
         throw {
           type: RejectEnum.BizFailed,
-          data: jsonData.msg || '未知错误',
+          data: jsonData,
         };
       }
 

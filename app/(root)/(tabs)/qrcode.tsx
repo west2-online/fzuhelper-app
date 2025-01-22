@@ -52,12 +52,12 @@ export default function YiMaTongPage() {
         console.error('刷新失败:', error);
         const data = handleError(error);
         if (data) {
-          if (data === 'Unauthorized') {
+          if (data.code === 401) {
             logoutCleanData();
             toast.info('一码通登录过期，请重新登录');
             return;
           }
-          toast.error('刷新失败：' + data);
+          toast.error('刷新失败：' + data.msg);
         }
       } finally {
         setIsRefreshing(false); // 恢复按钮状态
