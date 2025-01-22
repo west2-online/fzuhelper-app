@@ -1,6 +1,15 @@
 import { Tabs } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+
+import {
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListRow,
+  DescriptionListTerm,
+} from '@/components/DescriptionList';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchCourseList } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
@@ -82,17 +91,77 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
       const span = schedule.endClass - schedule.startClass + 1;
 
       res.push(
-        <Pressable
-          key={i}
-          className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center border border-gray-200"
-          style={{
-            flexGrow: span,
-            height: (span / 11) * height,
-          }}
-        >
-          <Text className="truncate text-wrap break-all text-center text-[10px] text-gray-500">{schedule.name}</Text>
-          <Text className="text-wrap break-all text-[8px] text-gray-500">{schedule.location}</Text>
-        </Pressable>,
+        <Dialog key={i}>
+          <DialogTrigger asChild>
+            <Pressable
+              className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center border border-gray-200"
+              style={{
+                flexGrow: span,
+                height: (span / 11) * height,
+              }}
+            >
+              <Text className="truncate text-wrap break-all text-center text-[10px] text-gray-500">
+                {schedule.name}
+              </Text>
+              <Text className="text-wrap break-all text-[8px] text-gray-500">{schedule.location}</Text>
+            </Pressable>
+          </DialogTrigger>
+
+          <DialogContent className="w-[90vw] sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="text-center">{schedule.name}</DialogTitle>
+            </DialogHeader>
+
+            <DescriptionList className="my-4">
+              <DescriptionListRow>
+                <DescriptionListTerm>
+                  <Text>地点</Text>
+                </DescriptionListTerm>
+                <DescriptionListDescription>
+                  <Text>{schedule.location}</Text>
+                </DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>
+                  <Text>授课教师</Text>
+                </DescriptionListTerm>
+                <DescriptionListDescription>
+                  <Text>{schedule.teacher}</Text>
+                </DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>
+                  <Text>节数</Text>
+                </DescriptionListTerm>
+                <DescriptionListDescription>
+                  <Text>
+                    {schedule.startClass}-{schedule.endClass} 节
+                  </Text>
+                </DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>
+                  <Text>周数</Text>
+                </DescriptionListTerm>
+                <DescriptionListDescription>
+                  <Text>
+                    {schedule.startWeek}-{schedule.endWeek} 周
+                  </Text>
+                </DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>
+                  <Text>备注</Text>
+                </DescriptionListTerm>
+                <DescriptionListDescription>
+                  <Text>{schedule.remark}</Text>
+                </DescriptionListDescription>
+              </DescriptionListRow>
+            </DescriptionList>
+
+            <Text>Actions...</Text>
+          </DialogContent>
+        </Dialog>,
       );
 
       i += span - 1;
