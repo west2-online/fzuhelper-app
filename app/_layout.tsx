@@ -5,21 +5,25 @@ import { Toaster } from 'sonner-native';
 
 import { Provider } from '@/components/Provider';
 import { cn } from '@/lib/utils';
-
+import { SystemBars } from 'react-native-edge-to-edge';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import '../global.css';
 
 export default function RootLayout() {
   return (
     <Provider>
-      <GestureHandlerRootView>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
+      <KeyboardProvider>
+        <GestureHandlerRootView>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
 
-        <Toaster cn={cn} position="bottom-center" duration={2500} offset={80} />
-        <PortalHost />
-      </GestureHandlerRootView>
+          <Toaster cn={cn} position="bottom-center" duration={2500} offset={80} />
+          <PortalHost />
+          <SystemBars style="auto" />
+        </GestureHandlerRootView>
+      </KeyboardProvider>
     </Provider>
   );
 }
