@@ -152,7 +152,7 @@ request.interceptors.response.use(
     }
     // 网络故障
     if (error.message.indexOf('Network Error') !== -1) {
-      return Promise.reject({ type: RejectEnum.InternalFailed });
+      return Promise.reject({ type: RejectEnum.NetworkError });
     }
 
     return Promise.reject({ type: RejectEnum.InternalFailed });

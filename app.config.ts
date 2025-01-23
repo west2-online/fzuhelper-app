@@ -1,5 +1,4 @@
 import { type ExpoConfig } from 'expo/config';
-import { AndroidConfig } from 'expo/config-plugins';
 import 'ts-node/register'; // Add this to import TypeScript files
 
 const value = (prodValue: string, devValue: string) => (process.env.NODE_ENV === 'production' ? prodValue : devValue);
@@ -56,6 +55,16 @@ const config: ExpoConfig = {
         bridgingTargetPath: 'Bridging/ExpoUmeng-Bridging-Header.h', // (iOS) 目标路径（相对于 ios 文件夹）这个文件可以不更改
       },
     ],
+    [
+      'react-native-edge-to-edge',
+      {
+        android: {
+          parentTheme: 'Material2',
+          enforceNavigationBarContrast: false,
+        },
+      },
+    ],
+    './with-android-theme',
   ],
   experiments: {
     typedRoutes: true,
