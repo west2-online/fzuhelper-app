@@ -43,6 +43,19 @@ const config: ExpoConfig = {
     ],
     './inject-android-config',
     [
+      './modules/umeng-bridge/app.plugin.js',
+      {
+        // Android
+        AndroidAppKey: '677631911233c160e700af49', // 发布（正式包名）时需更换
+        channel: 'default', // Android渠道号
+        msgsec: 'd494151a2eed479371d1e13c0f52b1fa', // 仅供 Android，iOS 是证书鉴权，具体参考 KeeWeb
+        // iOS
+        iOSAppKey: '679132946d8fdd4ad83ab20e', // 发布（正式包名）时需更换
+        bridgingSourcePath: './modules/umeng-bridge/ios/ExpoUmeng-Bridging-Header.h', // (iOS) 源路径（相对于 app.plugin.js 文件）
+        bridgingTargetPath: 'Bridging/ExpoUmeng-Bridging-Header.h', // (iOS) 目标路径（相对于 ios 文件夹）这个文件可以不更改
+      },
+    ],
+    [
       'react-native-edge-to-edge',
       {
         android: {

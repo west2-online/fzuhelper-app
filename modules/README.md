@@ -85,3 +85,11 @@ native-request
 可以通过编辑`ios/{ModuleName}Module.swift`或`android/{Namespace}/{ModuleName}/{ModuleName}Module.kt`来实现
 
 这里可以具体参考 Expo 提供的 [API Reference](https://docs.expo.dev/modules/module-api)，就不多写了
+
+## (iOS) Objective-C 和 Swift 的混合编译
+
+部分厂商懒得编写 swift 代码，只提供了 Objective-C 的实现，因此我们需要实现一个桥接，这个桥接实际上并不难，具体可以参考这篇文章：[Objective-C 與 Swift 混編教學](https://dnz-think.medium.com/objective-c-%E8%88%87-swift-%E6%B7%B7%E7%B7%A8%E6%95%99%E5%AD%B8-2e23ae62c067)
+
+理解了原理后，我们就知道实际上只需要一个桥接的.h 头文件，之后我们就可以直接调用 Objective-C 的代码了
+
+但是在具体的实践过程中，各大厂商会做一个桥接类，所以可以看到 umeng-bridge/ios 下几个 UM 开头 Swift 结尾的文件，看起来很多，其实只是桥接了 Header 而已
