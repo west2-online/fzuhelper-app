@@ -1,5 +1,6 @@
 package com.west2online.umeng
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -7,6 +8,7 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import com.umeng.analytics.MobclickAgent
@@ -19,6 +21,7 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -85,16 +88,21 @@ class ExpoUmengModule : Module() {
                         arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
                         1
                     )
+                    CoroutineScope(Dispatchers.Main).launch {
+                        // 300ms内弹窗未弹出（App仍在前台），且已拒绝，说明是永久拒绝
+                        delay(300)
+                        if (isForegroundActivityFromMyApp(activity) &&
+                            !NotificationManagerCompat.from(context).areNotificationsEnabled()
+                        ) {
+                            gotoPermissionPage()
+                        }
+                    }
                 } else {
                     Log.e("UMLog", "Activity is null")
+                    gotoPermissionPage()
                 }
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // 跳转权限设置页面
-                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                context.startActivity(intent)
+                gotoPermissionPage()
             } else {
                 // granted by default
             }
@@ -105,4 +113,41 @@ class ExpoUmengModule : Module() {
     private val context
         get() = requireNotNull(appContext.reactContext)
 
+    // 跳转权限设置页面
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun gotoPermissionPage() {
+        val activity = appContext.currentActivity
+        val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+        }
+        if (activity != null) {
+            activity.startActivity(intent)
+        } else {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        }
+    }
+
+    private fun isForegroundActivityFromMyApp(context: Context): Boolean {
+        try {
+            // 获取 ActivityManager 实例
+            val activityManager =
+                context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+
+            @Suppress("DEPRECATION") val tasks = activityManager.getRunningTasks(1)
+
+            if (tasks.isNotEmpty()) {
+                // 获取前台 Activity 的信息
+                val topActivity = tasks[0].topActivity
+
+                // 检查前台 Activity 是否属于本应用
+                if (topActivity != null && topActivity.packageName == context.packageName) {
+                    return true
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
+    }
 }

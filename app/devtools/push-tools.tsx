@@ -21,8 +21,8 @@ export default function PushToolsPage() {
 
   // 请求通知权限
   const requirePermission = async () => {
-    const result = await ExpoUmengModule.requirePermission();
-    toast.success('请求通知权限结果: ' + result);
+    ExpoUmengModule.requirePermission();
+    toast.success('请求通知权限');
   };
 
   // 手动初始化友盟
