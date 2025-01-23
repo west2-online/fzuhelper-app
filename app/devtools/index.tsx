@@ -34,14 +34,19 @@ export default function HomePage() {
             <Text>AsyncStorage List</Text>
           </Button>
         </Link>
+        <Link href="/devtools/push-tools" asChild>
+          <Button>
+            <Text>Push Tools</Text>
+          </Button>
+        </Link>
         <Button onPress={() => toast('Hello world!')}>
-          <Text>show toast</Text>
+          <Text>Show Default Toast</Text>
         </Button>
         <Button onPress={() => toast.success('success')}>
-          <Text>show toast (success)</Text>
+          <Text>Show Success Toast</Text>
         </Button>
         <Button onPress={testValidateCodeVerify}>
-          <Text>test code verify</Text>
+          <Text>Test Code Verify</Text>
         </Button>
       </ThemedView>
     </>

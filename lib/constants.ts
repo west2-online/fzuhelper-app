@@ -13,6 +13,9 @@ export const JWCH_USER_INFO_KEY = 'jwch_user_info';
 export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
 export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 
+// 隐私政策允许情况
+export const IS_PRIVACY_POLICY_AGREED = 'is_privacy_policy_agreed';
+
 export const NAV_THEME = {
   light: {
     background: 'hsl(0 0% 100%)', // background

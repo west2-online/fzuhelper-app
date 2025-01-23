@@ -1,0 +1,59 @@
+import com.android.Version
+
+apply plugin: 'com.android.library'
+
+group = 'com.west2online.umeng'
+version = '0.4.1'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useExpoPublishing()
+
+// If you want to use the managed Android SDK versions from expo-modules-core, set this to true.
+// The Android SDK versions will be bumped from time to time in SDK releases and may introduce breaking changes in your module code.
+// Most of the time, you may like to manage the Android SDK versions yourself.
+def useManagedAndroidSdkVersions = false
+if (useManagedAndroidSdkVersions) {
+    useDefaultAndroidSdkVersions()
+} else {
+    buildscript {
+        // Simple helper that allows the root project to override versions declared by this library.
+        ext.safeExtGet = { prop, fallback ->
+            rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+        }
+    }
+    project.android {
+        compileSdkVersion safeExtGet("compileSdkVersion", 34)
+        defaultConfig {
+            minSdkVersion safeExtGet("minSdkVersion", 21)
+            targetSdkVersion safeExtGet("targetSdkVersion", 34)
+        }
+    }
+}
+
+android {
+    namespace "com.west2online.umeng"
+    defaultConfig {
+        versionCode 1
+        versionName "0.4.1"
+    }
+    lintOptions {
+        abortOnError false
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+}
+dependencies {
+//  implementation project(':expo-modules-core')
+//  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getKotlinVersion()}"
+
+  // 友盟统计SDK
+  api 'com.umeng.umsdk:common:9.7.9'
+  api 'com.umeng.umsdk:asms:1.8.5.1'
+  // 友盟Push相关依赖
+  api 'com.umeng.umsdk:push:6.7.0'
+
+}
