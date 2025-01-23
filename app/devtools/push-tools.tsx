@@ -6,6 +6,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, TextInput } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '推送工具';
@@ -99,49 +100,51 @@ export default function PushToolsPage() {
       <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
 
       <ThemedView>
-        <Text style={styles.sectionTitle}>推送相关功能</Text>
+        <KeyboardAwareScrollView className="h-full" keyboardShouldPersistTaps="handled">
+          <Text style={styles.sectionTitle}>推送相关功能</Text>
 
-        <Button onPress={getPushPermission}>
-          <Text>Check Push Permission</Text>
-        </Button>
-        <Button onPress={requirePermission}>
-          <Text>Require Push Permission</Text>
-        </Button>
-        <Button onPress={setupUmeng}>
-          <Text>Init Umeng</Text>
-        </Button>
-        <Button onPress={getDeviceToken}>
-          <Text>Show And Copy DeviceToken</Text>
-        </Button>
-        <Button onPress={isRegisteredForRemoteNotifications}>
-          <Text>Check Push Register Status</Text>
-        </Button>
-        <Button onPress={getPushRegisterError}>
-          <Text>Get Push Register Error</Text>
-        </Button>
-        <Button onPress={getAppKeyAndChannel}>
-          <Text>Get AppKey And Channel</Text>
-        </Button>
+          <Button onPress={getPushPermission}>
+            <Text>Check Push Permission</Text>
+          </Button>
+          <Button onPress={requirePermission}>
+            <Text>Require Push Permission</Text>
+          </Button>
+          <Button onPress={setupUmeng}>
+            <Text>Init Umeng</Text>
+          </Button>
+          <Button onPress={getDeviceToken}>
+            <Text>Show And Copy DeviceToken</Text>
+          </Button>
+          <Button onPress={isRegisteredForRemoteNotifications}>
+            <Text>Check Push Register Status</Text>
+          </Button>
+          <Button onPress={getPushRegisterError}>
+            <Text>Get Push Register Error</Text>
+          </Button>
+          <Button onPress={getAppKeyAndChannel}>
+            <Text>Get AppKey And Channel</Text>
+          </Button>
 
-        <Text style={styles.sectionTitle}>Tag 管理</Text>
+          <Text style={styles.sectionTitle}>Tag 管理</Text>
 
-        {/* 输入框，用于输入自定义的 Tag */}
-        <TextInput
-          style={styles.input}
-          placeholder="请输入 Tag(多个 tag 之间用空格分割)"
-          value={tagInput}
-          onChangeText={setTagInput}
-        />
+          {/* 输入框，用于输入自定义的 Tag */}
+          <TextInput
+            style={styles.input}
+            placeholder="请输入 Tag(多个 tag 之间用空格分割)"
+            value={tagInput}
+            onChangeText={setTagInput}
+          />
 
-        <Button onPress={addTag}>
-          <Text>Add Tag</Text>
-        </Button>
-        <Button onPress={deleteTag}>
-          <Text>Delete Tag</Text>
-        </Button>
-        <Button onPress={getAllTags}>
-          <Text>Get All Tags</Text>
-        </Button>
+          <Button onPress={addTag}>
+            <Text>Add Tag</Text>
+          </Button>
+          <Button onPress={deleteTag}>
+            <Text>Delete Tag</Text>
+          </Button>
+          <Button onPress={getAllTags}>
+            <Text>Get All Tags</Text>
+          </Button>
+        </KeyboardAwareScrollView>
       </ThemedView>
     </>
   );
