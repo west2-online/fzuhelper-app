@@ -92,7 +92,7 @@ public class ExpoUmengModule: Module {
         }
 
         // 添加 tag
-        Function("addTag") { (tag: String) in
+        Function("addTags") { (tag: [String]) in
             var resp = ResponseMapper(data: [], remain: 0, error: "")
             let semaphore = DispatchSemaphore(value: 0) // 使用 DispatchSemaphore 来同步等待异步操作完成
             UMPushSwift.addTags(tag) { tags, remain, error in
@@ -112,7 +112,7 @@ public class ExpoUmengModule: Module {
         }
 
         // 删除 tag
-        Function("deleteTag") { (tag: String) in
+        Function("deleteTags") { (tag: [String]) in
             var resp = ResponseMapper(data: [], remain: 0, error: "")
             let semaphore = DispatchSemaphore(value: 0) // 使用 DispatchSemaphore 来同步等待异步操作完成
             UMPushSwift.deleteTags(tag) { tags, remain, error in

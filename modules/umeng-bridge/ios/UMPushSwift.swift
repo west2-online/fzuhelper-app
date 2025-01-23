@@ -95,9 +95,11 @@ class UMPushSwift: NSObject {
        - tags: 需要绑定的 tag，可以是单个字符串或字符串集合（`String` 或 `[String]`）
        - completionHandler: 回调函数，返回绑定的 tag 集合、剩余可用的 tag 数以及可能的错误信息
      */
-    static func addTags(_ tags: Any, completionHandler: @escaping (Any?, Int, Error?) -> Void) {
+    static func addTags(_ tags: Any, completionHandler: @escaping (Set<String>?, Int, Error?) -> Void) {
         UMessage.addTags(tags) { responseObject, remain, error in
-            completionHandler(responseObject, remain, error)
+            // 将 Objective-C 类型的 NSSet 转换为 Swift 的 Set<String>
+            let tags = responseObject as? Set<String>
+            completionHandler(tags, remain, error)
         }
     }
 
@@ -107,9 +109,11 @@ class UMPushSwift: NSObject {
        - tags: 需要删除的 tag，可以是单个字符串或字符串集合（`String` 或 `[String]`）
        - completionHandler: 回调函数，返回删除的 tag 集合、剩余可用的 tag 数以及可能的错误信息
      */
-    static func deleteTags(_ tags: Any, completionHandler: @escaping (Any?, Int, Error?) -> Void) {
+    static func deleteTags(_ tags: Any, completionHandler: @escaping (Set<String>?, Int, Error?) -> Void) {
         UMessage.deleteTags(tags) { responseObject, remain, error in
-            completionHandler(responseObject, remain, error)
+            // 将 Objective-C 类型的 NSSet 转换为 Swift 的 Set<String>
+            let tags = responseObject as? Set<String>
+            completionHandler(tags, remain, error)
         }
     }
 

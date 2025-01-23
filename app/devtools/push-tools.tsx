@@ -126,7 +126,12 @@ export default function PushToolsPage() {
         <Text style={styles.sectionTitle}>Tag 管理</Text>
 
         {/* 输入框，用于输入自定义的 Tag */}
-        <TextInput style={styles.input} placeholder="请输入 Tag" value={tagInput} onChangeText={setTagInput} />
+        <TextInput
+          style={styles.input}
+          placeholder="请输入 Tag(多个 tag 之间用空格分割)"
+          value={tagInput}
+          onChangeText={setTagInput}
+        />
 
         <Button onPress={addTag}>
           <Text>Add Tag</Text>
@@ -156,5 +161,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginVertical: 10,
+    margin: 10,
   },
 });
