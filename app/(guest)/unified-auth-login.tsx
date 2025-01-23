@@ -3,11 +3,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { IS_PRIVACY_POLICY_AGREED, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
+import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,21 +26,6 @@ const UnifiedLoginPage: React.FC = () => {
   if (!ymtLogin.current) {
     ymtLogin.current = new YMTLogin();
   }
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // 检查隐私协议是否被允许
-        const isAllow = await AsyncStorage.getItem(IS_PRIVACY_POLICY_AGREED);
-        if (isAllow) {
-          setIsAgree(true);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchData(); // 调用异步函数
-  }, []);
 
   // 打开用户协议
   const openUserAgreement = useCallback(() => {

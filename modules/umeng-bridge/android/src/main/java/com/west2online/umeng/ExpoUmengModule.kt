@@ -30,6 +30,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 class ExpoUmengModule : Module() {
+    private var initialized = false
     private var upushRegistered = false
     private var error = ""
 
@@ -51,6 +52,11 @@ class ExpoUmengModule : Module() {
         Name("ExpoUmeng")
 
         Function("initUmeng") {
+            if (initialized) {
+                // 避免重复调用初始化
+                Log.d("UMLog", "Umeng has been initialized already")
+                return@Function null
+            }
             CoroutineScope(Dispatchers.IO).launch {
                 val metadata = context.packageManager.getApplicationInfo(
                     context.applicationInfo.packageName,
@@ -88,13 +94,8 @@ class ExpoUmengModule : Module() {
                     }
                 PushAgent.getInstance(context).notificationClickHandler = notificationClickHandler
 
-                if (BuildConfig.DEBUG) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Umeng初始化流程已走完", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                initialized = true
             }
-            return@Function null
         }
 
         Function("hasPermission") {
@@ -174,16 +175,10 @@ class ExpoUmengModule : Module() {
 
         Function("addTags") { tags: List<String> ->
             return@Function runBlocking(Dispatchers.IO) {
-                val response = ResponseMapper()
-                val deferred = CompletableDeferred<ResponseMapper>()
+                val deferred = CompletableDeferred<Boolean>()
                 PushAgent.getInstance(context).tagManager.addTags({ isSuccess, result ->
-                    if (isSuccess) {
-                        response.data = listOf("ExpoUmengModule: 友盟安卓SDK添加接口不返回tag列表")
-                        response.remain = result.remain
-                    } else {
-                        response.error = "ExpoUmengModule: Failed to add tags"
-                    }
-                    deferred.complete(response)
+                    Log.d("UMLog", "addTags: $isSuccess, $result")
+                    deferred.complete(isSuccess)
                 }, *tags.toTypedArray())
                 deferred.await()
             }
@@ -191,21 +186,16 @@ class ExpoUmengModule : Module() {
 
         Function("deleteTags") { tags: List<String> ->
             return@Function runBlocking(Dispatchers.IO) {
-                val response = ResponseMapper()
-                val deferred = CompletableDeferred<ResponseMapper>()
+                val deferred = CompletableDeferred<Boolean>()
                 PushAgent.getInstance(context).tagManager.deleteTags({ isSuccess, result ->
-                    if (isSuccess) {
-                        response.data = listOf("ExpoUmengModule: 友盟安卓SDK删除接口不返回tag列表")
-                        response.remain = result.remain
-                    } else {
-                        response.error = "ExpoUmengModule: Failed to delete tags"
-                    }
-                    deferred.complete(response)
+                    Log.d("UMLog", "deleteTags: $isSuccess, $result")
+                    deferred.complete(isSuccess)
                 }, *tags.toTypedArray())
                 deferred.await()
             }
         }
     }
+
 
     private val context
         get() = requireNotNull(appContext.reactContext)

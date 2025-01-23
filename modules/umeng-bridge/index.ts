@@ -10,14 +10,15 @@ interface PushTagResponse {
 }
 
 interface Umeng {
-  // 初始化友盟统计 用户同意协议才能调用 一般开屏页调用
-  // 里面是开了个线程（协程），不会阻塞调用方
+  // 初始化友盟统计 用户同意协议才能调用 一般开屏页调用，不会阻塞调用方
+  // 安卓和 iOS 的实现逻辑略有不同，但调用一致：同意协议弹窗后调用，然后每次打开App调用
   initUmeng(): void;
 
   // 检查是否授予通知权限
   hasPermission(): boolean;
 
-  // 请求通知权限 注意做好用户引导（合规），iOS上是空操作，打开 App 时就会请求通知权限
+  // 请求通知权限 注意做好用户引导（合规）
+  // iOS上是空操作，打开 App 时就会请求通知权限
   requirePermission(): void;
 
   // 获取 DeviceToken

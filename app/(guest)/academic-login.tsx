@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import {
-  IS_PRIVACY_POLICY_AGREED,
   JWCH_COOKIES_KEY,
   JWCH_ID_KEY,
   JWCH_USER_ID_KEY,
@@ -13,7 +12,6 @@ import {
   JWCH_USER_PASSWORD_KEY,
 } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
-import ExpoUmengModule from '@/modules/umeng-bridge';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -38,25 +36,6 @@ const LoginPage: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
   const { handleError } = useSafeResponseSolve();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // 获取验证码
-        const captchaRes = await loginRef.current!.getCaptcha();
-        setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...captchaRes))}`);
-
-        // 检查隐私协议是否被允许
-        const isAllow = await AsyncStorage.getItem(IS_PRIVACY_POLICY_AGREED);
-        if (isAllow) {
-          setIsAgree(true);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchData(); // 调用异步函数
-  }, []);
 
   // 打开用户协议
   const openUserAgreement = useCallback(() => {
@@ -94,6 +73,10 @@ const LoginPage: React.FC = () => {
       Alert.alert('错误', '获取验证码失败');
     }
   }, []);
+
+  useEffect(() => {
+    refreshCaptcha();
+  }, [refreshCaptcha]);
 
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
@@ -134,13 +117,6 @@ const LoginPage: React.FC = () => {
       const result = await getApiV1JwchUserInfo();
       // 存储个人信息到本地
       AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
-
-      // 设置 app 级别的隐私政策同意状态
-      await AsyncStorage.setItem(IS_PRIVACY_POLICY_AGREED, 'true');
-
-      // 发送初始化友盟统计与推送的请求，umeng-bridge 的原生代码会负责重复初始化的问题，不需要担心
-      // 这个不需要等待，因为是异步的，但由于合规性要求，前面那个隐私同意状态必须等待
-      ExpoUmengModule.initUmeng();
 
       // 跳转到首页
       router.push('/');
