@@ -69,7 +69,7 @@ export default function PushToolsPage() {
   // 获取全部 Tag
   const getAllTags = async () => {
     const result = await ExpoUmengModule.getAllTags();
-    toast.success('全部 Tag: ' + result.data.join(', '));
+    toast.success('全部 Tag: ' + result.data.join(', ') + '\n剩余可用：' + result.remain + '\nerror: ' + result.error);
   };
 
   // 添加 Tag
@@ -79,8 +79,8 @@ export default function PushToolsPage() {
       return;
     }
     try {
-      const result = await ExpoUmengModule.addTag(tagInput.trim());
-      toast.success('添加后列表: ' + result.data.join(', '));
+      const result = await ExpoUmengModule.addTags([tagInput.trim()]);
+      toast.success('添加后列表: ' + result.data.join(', ') + '\nerror: ' + result.error);
       setTagInput(''); // 清空输入框
     } catch (error) {
       toast.error('添加 Tag 失败: ' + error);
@@ -94,8 +94,8 @@ export default function PushToolsPage() {
       return;
     }
     try {
-      const result = await ExpoUmengModule.deleteTag(tagInput.trim());
-      toast.success('删除后列表: ' + result.data.join(', '));
+      const result = await ExpoUmengModule.deleteTags([tagInput.trim()]);
+      toast.success('删除后列表: ' + result.data.join(', ') + '\nerror: ' + result.error);
       setTagInput(''); // 清空输入框
     } catch (error) {
       toast.error('删除 Tag 失败: ' + error);

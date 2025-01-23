@@ -42,10 +42,10 @@ interface Umeng {
   getAllTags(): Promise<PushTagResponse>;
 
   // 添加 tag
-  addTag(tag: string): Promise<PushTagResponse>;
+  addTags(tag: string[]): Promise<PushTagResponse>;
 
   // 删除 tag
-  deleteTag(tag: string): Promise<PushTagResponse>;
+  deleteTags(tag: string[]): Promise<PushTagResponse>;
 }
 
 export default ExpoUmengModule as Umeng;

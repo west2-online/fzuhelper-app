@@ -19,13 +19,34 @@ import com.umeng.message.api.UPushRegisterCallback
 import com.umeng.message.entity.UMessage
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.records.Field
+import expo.modules.kotlin.records.Record
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 class ExpoUmengModule : Module() {
+    private var upushRegistered = false
+    private var error = ""
+
+    class ResponseMapper : Record {
+        // tag 集合 是一个字符串数组，默认为空
+        @Field
+        var data: List<String> = emptyList()
+
+        // 剩余可用的 tag 数
+        @Field
+        var remain: Int = 0
+
+        // 错误信息
+        @Field
+        var error: String = ""
+    }
+
     override fun definition() = ModuleDefinition {
         Name("ExpoUmeng")
 
@@ -47,10 +68,13 @@ class ExpoUmengModule : Module() {
                     .register(object : UPushRegisterCallback {
                         override fun onSuccess(deviceToken: String) {
                             Log.d("UMLog", "deviceToken:$deviceToken")
+                            upushRegistered = true
                         }
 
                         override fun onFailure(errCode: String, errDesc: String) {
                             Log.e("UMLog", "注册失败 code:$errCode, desc:$errDesc")
+                            upushRegistered = false
+                            appendError("PushAgent.getInstance(context).register 注册失败 code:$errCode, desc:$errDesc")
                         }
                     })
 
@@ -69,7 +93,7 @@ class ExpoUmengModule : Module() {
                         Toast.makeText(context, "Umeng初始化流程已走完", Toast.LENGTH_SHORT).show()
                     }
                 }
-            }.start()
+            }
             return@Function null
         }
 
@@ -108,6 +132,79 @@ class ExpoUmengModule : Module() {
             }
         }
 
+        Function("getDeviceToken") {
+            return@Function PushAgent.getInstance(context).registrationId
+        }
+
+        Function("isRegisteredForRemoteNotifications") {
+            return@Function upushRegistered
+        }
+
+        Function("getError") {
+            return@Function error
+        }
+
+        Function("getAppKeyAndChannel") {
+            val metadata = context.packageManager.getApplicationInfo(
+                context.applicationInfo.packageName,
+                PackageManager.GET_META_DATA
+            ).metaData
+            return@Function metadata.getString("UMENG_APPKEY") + ", " +
+                    metadata.getString("UMENG_CHANNEL")
+        }
+
+        Function("getAllTags") {
+            return@Function runBlocking(Dispatchers.IO) {
+                val response = ResponseMapper()
+                val deferred = CompletableDeferred<ResponseMapper>()
+                PushAgent.getInstance(context).tagManager.getTags { isSuccess, data ->
+                    if (isSuccess) {
+                        response.data = data
+                        // 目前每个用户tag限制在1024个
+                        // https://developer.umeng.com/docs/67966/detail/98583#h1--tag-alias-4
+                        response.remain = 1024 - data.size
+                    } else {
+                        response.error = "ExpoUmengModule: Failed to get tags"
+                    }
+                    deferred.complete(response)
+                }
+                deferred.await()
+            }
+        }
+
+        Function("addTags") { tags: List<String> ->
+            return@Function runBlocking(Dispatchers.IO) {
+                val response = ResponseMapper()
+                val deferred = CompletableDeferred<ResponseMapper>()
+                PushAgent.getInstance(context).tagManager.addTags({ isSuccess, result ->
+                    if (isSuccess) {
+                        response.data = listOf("ExpoUmengModule: 友盟安卓SDK添加接口不返回tag列表")
+                        response.remain = result.remain
+                    } else {
+                        response.error = "ExpoUmengModule: Failed to add tags"
+                    }
+                    deferred.complete(response)
+                }, *tags.toTypedArray())
+                deferred.await()
+            }
+        }
+
+        Function("deleteTags") { tags: List<String> ->
+            return@Function runBlocking(Dispatchers.IO) {
+                val response = ResponseMapper()
+                val deferred = CompletableDeferred<ResponseMapper>()
+                PushAgent.getInstance(context).tagManager.deleteTags({ isSuccess, result ->
+                    if (isSuccess) {
+                        response.data = listOf("ExpoUmengModule: 友盟安卓SDK删除接口不返回tag列表")
+                        response.remain = result.remain
+                    } else {
+                        response.error = "ExpoUmengModule: Failed to delete tags"
+                    }
+                    deferred.complete(response)
+                }, *tags.toTypedArray())
+                deferred.await()
+            }
+        }
     }
 
     private val context
@@ -149,5 +246,9 @@ class ExpoUmengModule : Module() {
             e.printStackTrace()
         }
         return false
+    }
+
+    private fun appendError(err: String) {
+        error += err + "\n\n"
     }
 }

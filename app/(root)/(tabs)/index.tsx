@@ -6,9 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import ExpoUmengModule from '@/modules/umeng-bridge';
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
 export default function HomePage() {
   const [term, setTerm] = useState('202401');
@@ -47,14 +46,6 @@ export default function HomePage() {
 
           <Button variant="link">
             <Text>link</Text>
-          </Button>
-
-          <Button
-            onPress={() => {
-              ExpoUmengModule.initUmeng();
-            }}
-          >
-            <Text>已同意协议 初始化友盟</Text>
           </Button>
         </View>
 
