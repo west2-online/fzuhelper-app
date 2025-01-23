@@ -19,6 +19,7 @@ const request = axios.create({
   timeout: 5000,
 });
 
+// 请求队列
 interface PendingTask {
   config: AxiosRequestConfig;
   resolve: Function;

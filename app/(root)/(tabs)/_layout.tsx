@@ -17,6 +17,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '主页',
+          href: '/',
           // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
@@ -24,9 +25,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="tools"
+        name="tool-box"
         options={{
           title: '工具箱',
+          href: '/tool-box',
           // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
         }}
@@ -35,6 +37,7 @@ export default function TabLayout() {
         name="qrcode"
         options={{
           title: '一码通',
+          href: '/qrcode',
           // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
         }}
@@ -43,6 +46,7 @@ export default function TabLayout() {
         name="user"
         options={{
           title: '我的',
+          href: '/user',
           // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />,
         }}
