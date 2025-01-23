@@ -26,9 +26,9 @@ export default function ToolsPage() {
 
   const fetchBannerData = () => {
     const banners = [
-      { image: require('assets/images/banner1.webp'), onPress: () => {} },
-      { image: require('assets/images/banner2.webp'), onPress: () => {} },
-      { image: require('assets/images/banner3.webp'), onPress: () => {} },
+      { image: require('assets/images/banner/default_banner1.webp'), onPress: () => {} },
+      { image: require('assets/images/banner/default_banner2.webp'), onPress: () => {} },
+      { image: require('assets/images/banner/default_banner3.webp'), onPress: () => {} },
     ]; // 示例
     setBannerList(banners);
   };
@@ -61,17 +61,17 @@ export default function ToolsPage() {
     const tools = [
       {
         name: '学业状况',
-        icon: require('assets/images/ic_new_grade.png'),
+        icon: require('assets/images/toolkit/ic_grade.png'),
         onPress: () => {
           console.log('使用工具【学业状况】');
         },
       },
-      { name: '历年卷', icon: require('assets/images/ic_new_file.png') },
-      { name: '空教室', icon: require('assets/images/ic_new_exam.png') },
-      { name: '考场查询', icon: require('assets/images/ic_new_room.png') },
-      { name: '一键评议', icon: require('assets/images/ic_new_onekey.png') },
-      { name: '图书馆', icon: require('assets/images/ic_new_lib.png') },
-      { name: '嘉锡讲坛', icon: require('assets/images/ic_new_jiaxi.png') },
+      { name: '历年卷', icon: require('assets/images/toolkit/ic_file.png') },
+      { name: '空教室', icon: require('assets/images/toolkit/ic_examroom.png') },
+      { name: '考场查询', icon: require('assets/images/toolkit/ic_room.png') },
+      { name: '一键评议', icon: require('assets/images/toolkit/ic_onekey.png') },
+      { name: '图书馆', icon: require('assets/images/toolkit/ic_lib.png') },
+      { name: '嘉锡讲坛', icon: require('assets/images/toolkit/ic_jiaxi.png') },
       // 示例数据
     ];
     setTools(processTools(tools));
