@@ -93,7 +93,7 @@ export default function HomePage() {
         onPress: async () => {
           try {
             await clearUserStorage();
-            redirect('/login');
+            redirect('/(guest)/academic-login');
           } catch (error) {
             console.error('Error clearing storage:', error);
             Alert.alert('清理用户数据失败', '无法清理用户数据');

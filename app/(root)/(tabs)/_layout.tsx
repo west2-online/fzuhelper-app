@@ -32,6 +32,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="qrcode"
+        options={{
+          title: '一码通',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
+          
+        }}
+      />
+      <Tabs.Screen
         name="user"
         options={{
           title: '我的',
