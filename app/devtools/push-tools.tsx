@@ -60,12 +60,6 @@ export default function PushToolsPage() {
     toast.success('AppKey 和 Channel: ' + result);
   };
 
-  // 检查隐私政策是否已同意
-  const isAllowPrivacy = async () => {
-    const result = await ExpoUmengModule.isAllowPrivacy();
-    toast.success('隐私政策是否已同意: ' + result);
-  };
-
   // 获取全部 Tag
   const getAllTags = async () => {
     const result = await ExpoUmengModule.getAllTags();
@@ -79,9 +73,8 @@ export default function PushToolsPage() {
       return;
     }
     try {
-      const result = await ExpoUmengModule.addTags([tagInput.trim()]);
-      toast.success('添加后列表: ' + result.data.join(', ') + '\nerror: ' + result.error);
-      setTagInput(''); // 清空输入框
+      await ExpoUmengModule.addTags([tagInput.trim()]);
+      toast.info('已发送添加 Tag 请求');
     } catch (error) {
       toast.error('添加 Tag 失败: ' + error);
     }
@@ -94,9 +87,8 @@ export default function PushToolsPage() {
       return;
     }
     try {
-      const result = await ExpoUmengModule.deleteTags([tagInput.trim()]);
-      toast.success('删除后列表: ' + result.data.join(', ') + '\nerror: ' + result.error);
-      setTagInput(''); // 清空输入框
+      await ExpoUmengModule.deleteTags([tagInput.trim()]);
+      toast.info('已发送删除 Tag 请求');
     } catch (error) {
       toast.error('删除 Tag 失败: ' + error);
     }
@@ -130,9 +122,6 @@ export default function PushToolsPage() {
         <Button onPress={getAppKeyAndChannel}>
           <Text>Get AppKey And Channel</Text>
         </Button>
-        <Button onPress={isAllowPrivacy}>
-          <Text>Check Privacy Policy</Text>
-        </Button>
 
         <Text style={styles.sectionTitle}>Tag 管理</Text>
 
@@ -158,6 +147,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginVertical: 10,
+    marginLeft: 10,
   },
   input: {
     height: 40,

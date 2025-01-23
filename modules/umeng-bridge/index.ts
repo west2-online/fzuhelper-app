@@ -32,20 +32,14 @@ interface Umeng {
   // 获取 AppKey 以及 Channel
   getAppKeyAndChannel(): Promise<string>;
 
-  // 设置允许隐私协议
-  setAllowPrivacy(): Promise<void>;
-
-  // 是否允许隐私协议
-  isAllowPrivacy(): Promise<boolean>;
-
   // 获取全部 tag
   getAllTags(): Promise<PushTagResponse>;
 
   // 添加 tag
-  addTags(tag: string[]): Promise<PushTagResponse>;
+  addTags(tag: string[]): Promise<void>;
 
   // 删除 tag
-  deleteTags(tag: string[]): Promise<PushTagResponse>;
+  deleteTags(tag: string[]): Promise<void>;
 }
 
 export default ExpoUmengModule as Umeng;
