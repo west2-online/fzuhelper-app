@@ -47,7 +47,7 @@ const config: ExpoConfig = {
       './modules/umeng-bridge/app.plugin.js',
       {
         AndroidAppKey: '', // 发布（正式包名）时需更换
-        iOSAppKey: '', // 发布（正式包名）时需更换
+        iOSAppKey: '679132946d8fdd4ad83ab20e', // 发布（正式包名）时需更换
         channel: 'default', // 渠道号
         msgsec: '', // 仅供 Android，iOS 是证书鉴权，具体参考 KeeWeb
         bridgingSourcePath: './modules/umeng-bridge/ios/ExpoUmeng-Bridging-Header.h', // (iOS) 源路径（相对于 app.plugin.js 文件）

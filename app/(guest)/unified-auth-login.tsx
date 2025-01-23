@@ -3,9 +3,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
+import { IS_PRIVACY_POLICY_AGREED, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin from '@/lib/ymt-login';
-import ExpoUmengModule from '@/modules/umeng-bridge';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -32,8 +31,10 @@ const UnifiedLoginPage: React.FC = () => {
     const fetchData = async () => {
       try {
         // 检查隐私协议是否被允许
-        const isAllow = await ExpoUmengModule.isAllowPrivacy();
-        setIsAgree(isAllow);
+        const isAllow = await AsyncStorage.getItem(IS_PRIVACY_POLICY_AGREED);
+        if (isAllow) {
+          setIsAgree(true);
+        }
       } catch (error) {
         console.error(error);
       }

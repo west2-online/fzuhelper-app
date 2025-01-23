@@ -15,7 +15,6 @@ public class ExpoUmengAppDelegate: ExpoAppDelegateSubscriber {
 
     // 检查是否允许隐私协议
     if !PushNotificationManager.shared.isAllowPrivacy() {
-        print("用户尚未同意隐私协议，推送初始化被延迟")
         // 直接返回 true，等待用户同意隐私协议后再初始化
         return true
     }

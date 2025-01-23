@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import {
+  IS_PRIVACY_POLICY_AGREED,
   JWCH_COOKIES_KEY,
   JWCH_ID_KEY,
   JWCH_USER_ID_KEY,
@@ -46,8 +47,10 @@ const LoginPage: React.FC = () => {
         setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...captchaRes))}`);
 
         // 检查隐私协议是否被允许
-        const isAllow = await ExpoUmengModule.isAllowPrivacy();
-        setIsAgree(isAllow);
+        const isAllow = await AsyncStorage.getItem(IS_PRIVACY_POLICY_AGREED);
+        if (isAllow) {
+          setIsAgree(true);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -133,7 +136,11 @@ const LoginPage: React.FC = () => {
       AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
 
       // 设置 app 级别的隐私政策同意状态
-      await ExpoUmengModule.setAllowPrivacy();
+      await AsyncStorage.setItem(IS_PRIVACY_POLICY_AGREED, 'true');
+
+      // 发送初始化友盟统计与推送的请求，umeng-bridge 的原生代码会负责重复初始化的问题，不需要担心
+      // 这个不需要等待，因为是异步的，但由于合规性要求，前面那个隐私同意状态必须等待
+      ExpoUmengModule.initUmeng();
 
       // 跳转到首页
       router.push('/');
