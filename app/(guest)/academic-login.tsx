@@ -15,8 +15,10 @@ import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '登录';
 const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
@@ -44,7 +46,7 @@ const LoginPage: React.FC = () => {
         .then(res => setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`));
     } catch (error) {
       console.error(error);
-      Alert.alert('错误', '获取验证码失败');
+      toast.error('获取验证码失败');
     }
   }, []);
 
@@ -81,26 +83,26 @@ const LoginPage: React.FC = () => {
       setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`);
     } catch (error) {
       console.error(error);
-      Alert.alert('错误', '获取验证码失败');
+      toast.error('获取验证码失败');
     }
   }, []);
 
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
     if (!isAgree) {
-      Alert.alert('错误', '请先阅读并同意用户协议和隐私政策');
-      return;
-    }
-    if (!username) {
-      Alert.alert('错误', '请输入学号');
-      return;
-    }
-    if (!password) {
-      Alert.alert('错误', '请输入密码');
+      toast.error('请先阅读并同意用户协议和隐私政策');
       return;
     }
     if (!captcha) {
-      Alert.alert('错误', '请输入验证码');
+      toast.error('请输入验证码');
+      return;
+    }
+    if (!username) {
+      toast.error('请输入学号');
+      return;
+    }
+    if (!password) {
+      toast.error('请输入密码');
       return;
     }
 
@@ -144,7 +146,7 @@ const LoginPage: React.FC = () => {
       <Stack.Screen options={{ title: NAVIGATION_TITLE, headerShown: false }} />
 
       <SafeAreaView className="bg-background">
-        <ScrollView
+        <KeyboardAwareScrollView
           className="h-full"
           contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
@@ -211,22 +213,38 @@ const LoginPage: React.FC = () => {
             </View>
 
             {/* 底部协议 */}
-            <View className="mb-6 mt-12 w-full flex-row justify-center">
+            <TouchableOpacity
+              activeOpacity={1}
+              className="mb-4 mt-12 w-full flex-row justify-center py-2"
+              onPress={() => setIsAgree(!isAgree)}
+            >
               <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
               <Text className="text-center text-muted-foreground">
                 {'  '}
                 阅读并同意{' '}
-                <Text className="text-primary" onPress={openUserAgreement}>
+                <Text
+                  className="text-primary"
+                  onPress={event => {
+                    event.stopPropagation();
+                    openUserAgreement();
+                  }}
+                >
                   用户协议
                 </Text>{' '}
                 和{' '}
-                <Text className="text-primary" onPress={openPrivacyPolicy}>
+                <Text
+                  className="text-primary"
+                  onPress={event => {
+                    event.stopPropagation();
+                    openPrivacyPolicy();
+                  }}
+                >
                   隐私政策
                 </Text>
               </Text>
-            </View>
+            </TouchableOpacity>
           </ThemedView>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </>
   );
