@@ -39,17 +39,6 @@ const LoginPage: React.FC = () => {
   const [isAgree, setIsAgree] = useState(false);
   const { handleError } = useSafeResponseSolve();
 
-  useEffect(() => {
-    try {
-      loginRef
-        .current!.getCaptcha()
-        .then(res => setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`));
-    } catch (error) {
-      console.error(error);
-      toast.error('获取验证码失败');
-    }
-  }, []);
-
   // 打开用户协议
   const openUserAgreement = useCallback(() => {
     Linking.openURL(URL_USER_AGREEMENT).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
@@ -86,6 +75,10 @@ const LoginPage: React.FC = () => {
       toast.error('获取验证码失败');
     }
   }, []);
+
+  useEffect(() => {
+    refreshCaptcha();
+  }, [refreshCaptcha]);
 
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
@@ -185,11 +178,17 @@ const LoginPage: React.FC = () => {
                   placeholder="请输入验证码"
                   className="mr-4 flex-1 px-1 py-3"
                 />
-                {captchaImage && (
-                  <TouchableOpacity onPress={refreshCaptcha}>
+                <TouchableOpacity onPress={refreshCaptcha}>
+                  {captchaImage ? (
+                    // 显示验证码图片
                     <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
-                  </TouchableOpacity>
-                )}
+                  ) : (
+                    // 显示灰色占位框
+                    <View className="h-8 w-40 items-center justify-center bg-gray-200">
+                      <Text className="text-xs text-gray-500">加载中...</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
 
               {/* 登录按钮 */}

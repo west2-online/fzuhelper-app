@@ -1,6 +1,3 @@
-import { useState } from 'react';
-import { View } from 'react-native';
-
 import { getApiV1JwchCourseList } from '@/api/generate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
+import { useState } from 'react';
+import { View } from 'react-native';
 
 export default function HomePage() {
   const [term, setTerm] = useState('202401');
