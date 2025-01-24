@@ -32,37 +32,37 @@ const DEFAULT_BANNERS: BannerContent[] = [
 const DEFAULT_TOOLS: Tool[] = [
   {
     name: '学业状况',
-    icon: require('assets/images/toolkit/ic_grade.png'),
+    icon: require('assets/images/toolbox/ic_grade.png'),
     type: ToolType.LINK,
     data: '/toolbox/academic',
   },
   {
     name: '历年卷',
-    icon: require('assets/images/toolkit/ic_file.png'),
+    icon: require('assets/images/toolbox/ic_file.png'),
     type: ToolType.LINK,
     data: '/(root)/toolbox/paper',
   },
   {
     name: '空教室',
-    icon: require('assets/images/toolkit/ic_examroom.png'),
+    icon: require('assets/images/toolbox/ic_examroom.png'),
     type: ToolType.LINK,
     data: '/(root)/toolbox/empty-room',
   },
   {
     name: '考场查询',
-    icon: require('assets/images/toolkit/ic_room.png'),
+    icon: require('assets/images/toolbox/ic_room.png'),
     type: ToolType.LINK,
     data: '/(root)/toolbox/exam-room',
   },
   // {
   //   name: '一键评议',
-  //   icon: require('assets/images/toolkit/ic_onekey.png'),
+  //   icon: require('assets/images/toolbox/ic_onekey.png'),
   //   type: ToolType.LINK,
   //   data: '/(root)/toolbox/onekey', // 路由地址
   // },
   {
     name: '嘉锡讲坛',
-    icon: require('assets/images/toolkit/ic_jiaxi.png'),
+    icon: require('assets/images/toolbox/ic_jiaxi.png'),
     type: ToolType.LINK,
     data: '/(root)/toolbox/jiaxi-lecture', // 自定义操作标识
   },

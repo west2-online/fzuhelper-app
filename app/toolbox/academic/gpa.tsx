@@ -19,7 +19,7 @@ interface AcademicData {
   data: AcademicDataItem[];
 }
 
-const NAVIGATION_TITLE = '学业绩点';
+const NAVIGATION_TITLE = '绩点排名';
 
 export default function GPAPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
