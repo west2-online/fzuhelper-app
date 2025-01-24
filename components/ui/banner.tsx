@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, View, Image, ImageSourcePropType } from 'react-native';
 
 export interface BannerContent {
@@ -14,6 +14,7 @@ type BannerProps = React.ComponentPropsWithRef<typeof View> & {
 
 export default function Banner({ contents, imageWidth, imageHeight, ...props }: BannerProps) {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const flatListRef = useRef<FlatList>(null);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
@@ -21,9 +22,22 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
     setCurrentIndex(index);
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex(prevIndex => {
+        const nextIndex = (prevIndex + 1) % contents.length;
+        flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+        return nextIndex;
+      });
+    }, 4000); // 每4秒滚动一次
+
+    return () => clearInterval(interval);
+  }, [contents.length]);
+
   return (
     <View>
       <FlatList
+        ref={flatListRef}
         data={contents}
         keyExtractor={(_, index) => index.toString()}
         horizontal
@@ -34,7 +48,7 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
           <TouchableOpacity 
             onPress={item.onPress} 
             activeOpacity={0.8}
-            className="justify-center items-center"
+            className="justify-center items-center rounded-xl overflow-hidden" // 给FlatList设置圆角无效果，退求其次
             style={{ width: imageWidth, height: imageHeight }}
           >
             <Image
@@ -47,7 +61,7 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
 
       />
       {/* 蠕虫指示器 */}
-      <View className="absolute right-3 bottom-3 flex-row justify-center items-center space-x-2">
+      <View className="absolute right-2 bottom-2 flex-row justify-center items-center space-x-2">
         {contents.map((_, index) => (
           <View
             key={index}

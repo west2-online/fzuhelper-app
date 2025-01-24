@@ -137,11 +137,11 @@ export default function ToolsPage() {
   const router = useRouter();
 
   const { width } = Dimensions.get('window');
-  const bannerWidth = width - 8 * PixelRatio.get();
+  const bannerWidth = width - 12 * PixelRatio.get();
   const bannerHeight = bannerWidth / 2.5;
 
   return (
-    <ThemedView className="m-4">
+    <ThemedView className="m-6">
       {/* 滚动横幅 */}
       <Banner contents={bannerList} imageWidth={bannerWidth} imageHeight={bannerHeight} />
       {/* 工具区域 */}
