@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, View, Image, ImageSourcePropType } from 'react-native';
-
+import { Text } from './text';
+import { LinearGradient } from 'expo-linear-gradient';
 export interface BannerContent {
   image: ImageSourcePropType
   onPress: () => void
@@ -56,6 +57,13 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
               className="size-full"
               resizeMode="cover"
             />
+             <LinearGradient
+              colors={['transparent', 'rgba(0, 0, 0, 0.53)']}
+              locations={[0, 1]}
+              className="absolute bottom-0 w-full"
+            >
+              <Text className="text-white text-base px-2.5 py-1.5">这是一个标题</Text>
+            </LinearGradient>
           </TouchableOpacity>
         )}
 
