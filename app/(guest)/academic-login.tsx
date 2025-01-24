@@ -3,6 +3,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import {
   JWCH_COOKIES_KEY,
@@ -27,6 +28,7 @@ const URL_RESET_PASSWORD = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
 
 const LoginPage: React.FC = () => {
   const loginRef = useRef<UserLogin | null>(null);
+  const redirect = useRedirectWithoutHistory();
   if (!loginRef.current) {
     loginRef.current = new UserLogin();
   }
@@ -121,7 +123,7 @@ const LoginPage: React.FC = () => {
       AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
 
       // 跳转到首页
-      router.push('/');
+      redirect('/(root)/(tabs)');
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
@@ -132,7 +134,7 @@ const LoginPage: React.FC = () => {
       // 恢复按钮状态
       setIsLoggingIn(false);
     }
-  }, [isAgree, username, password, captcha, refreshCaptcha, handleError]);
+  }, [isAgree, captcha, username, password, redirect, handleError, refreshCaptcha]);
 
   return (
     <>
