@@ -11,6 +11,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export default function SplashScreen() {
   const router = useRouter();
+  const [shouldShowPrivacyAgree, setShouldShowPrivacyAgree] = useState(true);
   const [showSplashImage, setShowSplashImage] = useState(false);
   const [hideSystemBars, setHideSystemBars] = useState(true);
   const [img, setImg] = useState('https://screen.launch.w2fzu.com/pictures/4abe6f8166c849ec8f18f71d97ff23f2');
@@ -43,12 +44,17 @@ export default function SplashScreen() {
     getSplash();
   }, [getSplash, router]);
 
+  const onPrivacyAgree = useCallback(async () => {
+    setShouldShowPrivacyAgree(false);
+    initThirdParty();
+    checkLoginStatus();
+  }, [initThirdParty, checkLoginStatus]);
+
   const checkAndShowPrivacyAgree = useCallback(async () => {
     console.log('checkAndShowPrivacyAgree');
     const privacyAgree = await AsyncStorage.getItem(IS_PRIVACY_POLICY_AGREED);
     if (privacyAgree) {
-      initThirdParty();
-      checkLoginStatus();
+      onPrivacyAgree();
       return;
     }
     // TODO：里面两份文件要可点击，Alert实现不了，要换掉
@@ -67,17 +73,21 @@ export default function SplashScreen() {
           text: '同意并继续',
           onPress: async () => {
             await AsyncStorage.setItem(IS_PRIVACY_POLICY_AGREED, 'true');
-            initThirdParty();
-            checkLoginStatus();
+            onPrivacyAgree();
           },
         },
       ],
     );
-  }, [checkLoginStatus, initThirdParty]);
+  }, [onPrivacyAgree]);
 
   useEffect(() => {
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
+        if (!shouldShowPrivacyAgree) {
+          console.log('shouldShowPrivacyAgree false, remove listener');
+          subscription.remove();
+          return;
+        }
         checkAndShowPrivacyAgree();
       }
     };
@@ -88,7 +98,7 @@ export default function SplashScreen() {
     return () => {
       subscription.remove();
     };
-  }, [checkAndShowPrivacyAgree, router]);
+  }, [checkAndShowPrivacyAgree, shouldShowPrivacyAgree]);
 
   const navigateToHome = useCallback(() => {
     setHideSystemBars(false);
