@@ -1,3 +1,4 @@
+import { getApiV1LaunchScreenScreen } from '@/api/generate';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -7,11 +8,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { IS_PRIVACY_POLICY_AGREED, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import {
+  IS_PRIVACY_POLICY_AGREED,
+  JWCH_USER_ID_KEY,
+  SPLASH_DATE,
+  SPLASH_DISPLAY_COUNT,
+  SPLASH_ID,
+  URL_PRIVACY_POLICY,
+  URL_USER_AGREEMENT,
+} from '@/lib/constants';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,7 +34,10 @@ export default function SplashScreen() {
   const [shouldShowPrivacyAgree, setShouldShowPrivacyAgree] = useState(true);
   const [showSplashImage, setShowSplashImage] = useState(false);
   const [hideSystemBars, setHideSystemBars] = useState(true);
-  const [img, setImg] = useState('https://screen.launch.w2fzu.com/pictures/4abe6f8166c849ec8f18f71d97ff23f2');
+  const [splashImage, setSplashImage] = useState('');
+  const [splashTarget, setSplashTarget] = useState('');
+  const [splashText, setSplashText] = useState('');
+  const [splashType, setSplashType] = useState(1);
   const [countdown, setCountdown] = useState(3);
   const [privacyDialogVisible, setPrivacyDialogVisible] = useState(false);
 
@@ -37,15 +47,77 @@ export default function SplashScreen() {
     ExpoUmengModule.initUmeng();
   }, []);
 
-  // 拉取Splash并展示
-  const getSplash = useCallback(() => {
-    console.log('getSplash');
-    // const timer = setTimeout(() => {
-    //   router.replace('/(tabs)');
-    // }, 3000);
-    // router.replace('/(tabs)');
-    setShowSplashImage(true);
+  const navigateToHome = useCallback(() => {
+    setHideSystemBars(false);
+    // 延迟使得系统栏恢复显示
+    setTimeout(() => {
+      router.replace('/(tabs)');
+    }, 1);
   }, [router]);
+
+  // 拉取Splash并展示
+  const getSplash = useCallback(async () => {
+    console.log('getSplash');
+    try {
+      const result = await getApiV1LaunchScreenScreen({
+        type: 1,
+        // TODO: 研究生学号
+        student_id: (await AsyncStorage.getItem(JWCH_USER_ID_KEY)) || '',
+        device: Platform.OS,
+      });
+      if (result.data.data.length === 0) {
+        // 理论上不会触发
+        navigateToHome();
+        return;
+      }
+      const splash = result.data.data[0];
+      if (splash.id?.toString() !== (await AsyncStorage.getItem(SPLASH_ID))) {
+        // ID与上次不同，重置计数
+        await AsyncStorage.setItem(SPLASH_DISPLAY_COUNT, '0');
+        await AsyncStorage.setItem(SPLASH_ID, splash.id?.toString() || '');
+      }
+      const lastDate = await AsyncStorage.getItem(SPLASH_DATE);
+      let displayCount = 0;
+      // 如果上次展示不是今天，重置计数
+      if (lastDate !== new Date().toLocaleDateString()) {
+        await AsyncStorage.setItem(SPLASH_DISPLAY_COUNT, '0');
+      } else {
+        displayCount = Number(await AsyncStorage.getItem(SPLASH_DISPLAY_COUNT));
+      }
+      if ((splash.frequency || 10) < displayCount) {
+        navigateToHome();
+        return;
+      }
+      // 未达到频次，展示
+      setSplashImage(splash.url || '');
+      setSplashTarget(splash.href || '');
+      setCountdown(splash.duration || 3);
+      setSplashText(splash.text || '点击查看详情');
+      setSplashType(splash.type || 1);
+      await AsyncStorage.setItem(
+        SPLASH_DISPLAY_COUNT,
+        (Number(await AsyncStorage.getItem(SPLASH_DISPLAY_COUNT)) + 1).toString(),
+      );
+      await AsyncStorage.setItem(SPLASH_DATE, new Date().toLocaleDateString());
+      setShowSplashImage(true);
+    } catch (error: any) {
+      console.error(error);
+      // 不使用 handleError，静默处理
+      navigateToHome();
+    }
+  }, [navigateToHome]);
+
+  const handleSplashClick = useCallback(() => {
+    // 网址或URI
+    // TODO 类型判断
+    if (splashTarget) {
+      Linking.openURL(splashTarget).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+    }
+    // 计数
+
+    // 跳过倒计时
+    navigateToHome();
+  }, [navigateToHome, splashTarget]);
 
   // 检查登录状态
   const checkLoginStatus = useCallback(async () => {
@@ -75,6 +147,7 @@ export default function SplashScreen() {
   }, [onPrivacyAgree]);
 
   useEffect(() => {
+    if (!shouldShowPrivacyAgree) return;
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
         if (!shouldShowPrivacyAgree) {
@@ -93,14 +166,6 @@ export default function SplashScreen() {
       subscription.remove();
     };
   }, [checkAndShowPrivacyAgree, shouldShowPrivacyAgree]);
-
-  const navigateToHome = useCallback(() => {
-    setHideSystemBars(false);
-    // 延迟使得系统栏恢复显示
-    setTimeout(() => {
-      router.replace('/(tabs)');
-    }, 1);
-  }, [router]);
 
   useEffect(() => {
     if (showSplashImage) {
@@ -134,14 +199,15 @@ export default function SplashScreen() {
             {/* Splash内容 */}
             <View className="mb-10 flex-1">
               {/* Image 占据全部空间 */}
-              <Image className="h-full w-full" src={img} resizeMode="cover" />
-
+              <Image className="h-full w-full" src={splashImage} resizeMode="cover" />
               {/* TouchableOpacity 放置在 Image 的下方 */}
-              <TouchableOpacity>
-                <View className="mx-auto -mt-28 mb-10 h-auto w-1/2 flex-1 items-center justify-center rounded-full bg-black/60">
-                  <Text className="text-white">点击查看相关内容</Text>
-                </View>
-              </TouchableOpacity>
+              {splashType !== 1 && (
+                <TouchableOpacity onPress={handleSplashClick}>
+                  <View className="mx-auto -mt-28 mb-10 h-auto w-1/2 flex-1 items-center justify-center rounded-full bg-black/60">
+                    <Text className="text-white">{splashText}</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* 底部logo和跳过 */}
@@ -152,9 +218,9 @@ export default function SplashScreen() {
               </View>
 
               {/* 跳过按钮靠右 */}
-              <View className="absolute bottom-11 right-8">
+              <View className="absolute bottom-11 right-8 w-24 rounded-full border-gray-400 bg-gray-200 py-2">
                 <TouchableOpacity onPress={navigateToHome}>
-                  <Text className="rounded-full border-gray-400 bg-gray-200 px-6 py-2">跳过 {countdown}</Text>
+                  <Text className="mx-auto">跳过 {countdown}</Text>
                 </TouchableOpacity>
               </View>
             </View>
