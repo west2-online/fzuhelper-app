@@ -1,4 +1,4 @@
-import { getApiV1LaunchScreenScreen } from '@/api/generate';
+import { getApiV1LaunchScreenImagePointTime, getApiV1LaunchScreenScreen } from '@/api/generate';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,15 +31,18 @@ import { toast } from 'sonner-native';
 
 export default function SplashScreen() {
   const router = useRouter();
+
   const [shouldShowPrivacyAgree, setShouldShowPrivacyAgree] = useState(true);
+  const [privacyDialogVisible, setPrivacyDialogVisible] = useState(false);
+
   const [showSplashImage, setShowSplashImage] = useState(false);
-  const [hideSystemBars, setHideSystemBars] = useState(true);
+  const [splashId, setSplashId] = useState(-1);
   const [splashImage, setSplashImage] = useState('');
   const [splashTarget, setSplashTarget] = useState('');
   const [splashText, setSplashText] = useState('');
   const [splashType, setSplashType] = useState(1);
   const [countdown, setCountdown] = useState(3);
-  const [privacyDialogVisible, setPrivacyDialogVisible] = useState(false);
+  const [hideSystemBars, setHideSystemBars] = useState(true);
 
   // 合规初始化第三方库
   const initThirdParty = useCallback(() => {
@@ -89,6 +92,7 @@ export default function SplashScreen() {
         return;
       }
       // 未达到频次，展示
+      setSplashId(splash.id || -1);
       setSplashImage(splash.url || '');
       setSplashTarget(splash.href || '');
       setCountdown(splash.duration || 3);
@@ -107,17 +111,21 @@ export default function SplashScreen() {
     }
   }, [navigateToHome]);
 
-  const handleSplashClick = useCallback(() => {
+  const handleSplashClick = useCallback(async () => {
     // 网址或URI
     // TODO 类型判断
     if (splashTarget) {
       Linking.openURL(splashTarget).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
     }
     // 计数
-
+    try {
+      await getApiV1LaunchScreenImagePointTime({ picture_id: splashId });
+    } catch (error: any) {
+      console.error(error);
+    }
     // 跳过倒计时
     navigateToHome();
-  }, [navigateToHome, splashTarget]);
+  }, [navigateToHome, splashId, splashTarget]);
 
   // 检查登录状态
   const checkLoginStatus = useCallback(async () => {
