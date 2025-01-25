@@ -3,26 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** [测试用] 登录 因为后续传参都是设置为identifier 和 cookies，但正常途径不方便获取这两个参数。这个接口的作用就是帮忙自动登录一次教务处，以获取id 和 cookies本地发送一次这个接口请求后，后续接口都会自动填充 id 和 cookies，不需要手动填写 GET /api/v1/internal/user/login https://apifox.com/web/project/3275694/apis/api-219089646-run */
-export async function getApiV1InternalUserLogin(
-  // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
-  params: API.getApiV1InternalUserLoginParams,
-  options?: { [key: string]: unknown }
-) {
-  return request<{
-    code: string;
-    message: string;
-    data: { id: string; cookies: string[] };
-  }>('/api/v1/internal/user/login', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  });
-}
-
-/** 获取个人信息 后面如果有别的需求的话在返回字段接着添加，目前这些够了 GET /api/v1/jwch/user/info https://apifox.com/web/project/3275694/apis/api-109631149-run */
+/** 个人信息 后面如果有别的需求的话在返回字段接着添加，目前这些够了 GET /api/v1/jwch/user/info https://apifox.com/web/project/3275694/apis/api-109631149-run */
 export async function getApiV1JwchUserInfo(options?: {
   [key: string]: unknown;
 }) {
@@ -31,6 +12,7 @@ export async function getApiV1JwchUserInfo(options?: {
     message: string;
     data: {
       stu_id: string;
+      name: string;
       birthday: string;
       sex: string;
       college: string;
@@ -81,7 +63,7 @@ export async function putApiV1JwchUserInfo(
   });
 }
 
-/** 验证码识别 POST /api/v1/user/validate-code https://apifox.com/web/project/3275694/apis/api-215763225-run */
+/** 验证码自动识别 POST /api/v1/user/validate-code https://apifox.com/web/project/3275694/apis/api-215763225-run */
 export async function postApiV1UserValidateCode(
   body: {
     /** 验证码图片的base64 */
