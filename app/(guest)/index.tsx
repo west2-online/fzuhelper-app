@@ -22,7 +22,7 @@ import {
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, BackHandler, Image, Linking, Platform, View } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
@@ -51,7 +51,7 @@ export default function SplashScreen() {
     setHideSystemBars(false);
     // 延迟使得系统栏恢复显示
     setTimeout(() => {
-      router.replace('/(tabs)');
+      router.replace('/(root)');
     }, 1);
   }, [router]);
 
@@ -185,6 +185,8 @@ export default function SplashScreen() {
 
   return (
     <>
+      <Stack.Screen options={{ headerShown: false }} />
+
       <View>
         {!showSplashImage ? (
           // 默认开屏

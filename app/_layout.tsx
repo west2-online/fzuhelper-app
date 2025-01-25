@@ -15,7 +15,7 @@ export default function RootLayout() {
       <KeyboardProvider>
         <GestureHandlerRootView>
           <Stack>
-            <Stack.Screen name="(splash)/index" options={{ headerShown: false }} />
+            <Stack.Screen name="(guest)/index" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
 
