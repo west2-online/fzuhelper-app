@@ -15,6 +15,8 @@ export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 
 // 隐私政策允许情况
 export const IS_PRIVACY_POLICY_AGREED = 'is_privacy_policy_agreed';
+export const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
+export const URL_PRIVACY_POLICY = 'https://fzuhelper.west2.online/onekey/FZUHelper.html';
 
 export const NAV_THEME = {
   light: {

@@ -1,13 +1,26 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { IS_PRIVACY_POLICY_AGREED } from '@/lib/constants';
+import { IS_PRIVACY_POLICY_AGREED, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, AppState, BackHandler, Image, Platform, View } from 'react-native';
+import { Alert, AppState, BackHandler, Image, Linking, Platform, View } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { toast } from 'sonner-native';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -16,6 +29,7 @@ export default function SplashScreen() {
   const [hideSystemBars, setHideSystemBars] = useState(true);
   const [img, setImg] = useState('https://screen.launch.w2fzu.com/pictures/4abe6f8166c849ec8f18f71d97ff23f2');
   const [countdown, setCountdown] = useState(3);
+  const [privacyDialogVisible, setPrivacyDialogVisible] = useState(false);
 
   // 合规初始化第三方库
   const initThirdParty = useCallback(() => {
@@ -57,27 +71,7 @@ export default function SplashScreen() {
       onPrivacyAgree();
       return;
     }
-    // TODO：里面两份文件要可点击，Alert实现不了，要换掉
-    Alert.alert(
-      '欢迎',
-      '感谢您选择使用福uu！我们非常重视对您的个人信息保护，在使用福uu为您提供的服务之前，请您务必审慎阅读、充分理解以下协议：\n《福uu用户服务协议》\n《福uu隐私政策》\n如您同意，请点击“同意并继续”，开始您的福uu体验之旅。',
-      [
-        {
-          text: Platform.OS === 'ios' ? '不同意' : '不同意并退出',
-          onPress: () => {
-            // 返回到主界面，App实际上还存活，仅适用于安卓
-            BackHandler.exitApp();
-          },
-        },
-        {
-          text: '同意并继续',
-          onPress: async () => {
-            await AsyncStorage.setItem(IS_PRIVACY_POLICY_AGREED, 'true');
-            onPrivacyAgree();
-          },
-        },
-      ],
-    );
+    setPrivacyDialogVisible(true);
   }, [onPrivacyAgree]);
 
   useEffect(() => {
@@ -169,6 +163,61 @@ export default function SplashScreen() {
           </View>
         )}
       </View>
+      <AlertDialog open={privacyDialogVisible}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>欢迎</AlertDialogTitle>
+            <AlertDialogDescription>
+              <Text>
+                感谢您选择使用福uu！我们非常重视对您的个人信息保护，在使用福uu为您提供的服务之前，请您务必审慎阅读、充分理解以下协议：
+              </Text>
+              {'\n'}
+              <Text
+                className="text-primary"
+                onPress={() => {
+                  Linking.openURL(URL_USER_AGREEMENT).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+                }}
+              >
+                《福uu用户服务协议》
+              </Text>
+              {'\n'}
+              <Text
+                className="text-primary"
+                onPress={() => {
+                  Linking.openURL(URL_PRIVACY_POLICY).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+                }}
+              >
+                《福uu隐私政策》
+              </Text>
+              {'\n'}
+              <Text>如您同意，请点击“同意并继续”，开始您的福uu体验之旅。</Text>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onPress={() => {
+                // 退出动作仅适用于安卓
+                BackHandler.exitApp();
+                if (Platform.OS === 'ios') {
+                  setPrivacyDialogVisible(false);
+                  toast.info('很遗憾福uu不能为您提供服务');
+                }
+              }}
+            >
+              <Text>{Platform.OS === 'ios' ? '不同意' : '不同意并退出'}</Text>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onPress={async () => {
+                await AsyncStorage.setItem(IS_PRIVACY_POLICY_AGREED, 'true');
+                setPrivacyDialogVisible(false);
+                onPrivacyAgree();
+              }}
+            >
+              <Text>同意并继续</Text>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
