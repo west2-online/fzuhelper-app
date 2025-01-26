@@ -1,10 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import * as FileSystem from 'expo-file-system';
+import * as Print from 'expo-print';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform } from 'react-native';
+import { BackHandler, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
+import { toast } from 'sonner-native';
 
 export default function Web() {
   const [canGoBack, setCanGoBack] = useState(false);
@@ -20,6 +23,7 @@ export default function Web() {
   }>();
 
   const headers = cookie ? { Cookie: cookie } : [];
+  var htmlData = ``; // 用于存储 HTML 数据
 
   const onAndroidBackPress = useCallback(() => {
     if (canGoBack) {
@@ -49,10 +53,49 @@ export default function Web() {
     }
   };
 
+  // 刷新页面
+  const handleRefresh = useCallback(() => {
+    if (webViewRef.current) {
+      webViewRef.current.reload(); // 重新加载当前页面
+    }
+  }, []);
+
+  // 打印当前页面
+  const handlePrint = useCallback(async () => {
+    try {
+      const { uri } = await Print.printToFileAsync({
+        html: htmlData,
+        margins: {
+          left: 20,
+          top: 50,
+          right: 20,
+          bottom: 100,
+        },
+      }); // 生成 PDF 文件
+      console.log('PDF 文件已生成，路径为:', uri);
+      // 打印生成的 PDF 文件
+      await Print.printAsync({ uri });
+      toast.success('打印请求已发送');
+      // 删除生成的 PDF 文件
+      await FileSystem.deleteAsync(uri, { idempotent: true });
+    } catch (error: any) {
+      toast.error('打印失败，请重试(' + error.message + ')');
+      console.error('打印失败:', error);
+    }
+  }, [htmlData]);
+
   return (
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
       <Stack.Screen options={{ title: title || webpageTitle }} />
+      <View className="flex-row justify-center space-x-4">
+        <Button onPress={handleRefresh}>
+          <Text>刷新页面</Text>
+        </Button>
+        <Button onPress={handlePrint}>
+          <Text>打印该页面</Text>
+        </Button>
+      </View>
       <SafeAreaView className="h-full w-full" edges={['bottom']}>
         <WebView
           source={{ uri: currentUrl || url || '', headers: headers }} // 使用当前 URL 或传递的 URL
@@ -76,18 +119,18 @@ export default function Web() {
               setCurrentUrl(event.url);
 
               // 更新网页标题
-              console.log('event:', event);
               if (event.title && !title) {
                 setWebpageTitle(event.title); // 只有在没有传递 title 参数时才更新标题
               }
             }
           }}
+          injectedJavaScript={`window.ReactNativeWebView.postMessage(document.documentElement.innerHTML)`}
           onOpenWindow={onOpenWindow} // 处理新窗口打开事件
+          onMessage={event => {
+            htmlData = event.nativeEvent.data;
+          }} // 保存 HTML 数据，以便后续打印
         />
       </SafeAreaView>
-      <Button onPress={() => onOpenWindow({ nativeEvent: { targetUrl: url } })}>
-        <Text>Refresh</Text>
-      </Button>
     </>
   );
 }

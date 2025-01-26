@@ -8,16 +8,16 @@ function withIOSInject(config: ExpoConfig): ExpoConfig {
     // 如果需要修改 Info.plist，可以在这里添加逻辑
     // 注：在一些 nativemodule 中，可能也会修改这个内容，例如 umeng-bridge
 
-    // 指定 WKWebView 允许加载的域名
-    infoPlist.modResults.WKAppBoundDomains = [
-      'jwcjwxt2.fzu.edu.cn',
-      'jwcjwxt.fzu.edu.cn',
-      'yjsy.fzu.edu.cn',
-      'jwch.fzu.edu.cn',
-      'fzu.edu.cn',
-      'west2.online',
-      'w2fzu.com',
-    ];
+    // // 指定 WKWebView 允许加载的域名
+    // infoPlist.modResults.WKAppBoundDomains = [
+    //   'jwcjwxt2.fzu.edu.cn',
+    //   'jwcjwxt.fzu.edu.cn',
+    //   'yjsy.fzu.edu.cn',
+    //   'jwch.fzu.edu.cn',
+    //   'fzu.edu.cn',
+    //   'west2.online',
+    //   'w2fzu.com',
+    // ];
 
     // 允许访问非 HTTPS 的内容
     infoPlist.modResults.NSAppTransportSecurity = {
