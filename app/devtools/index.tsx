@@ -1,8 +1,10 @@
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
-import { Link, Stack } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Link, Stack, router } from 'expo-router';
 import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '开发者选项';
@@ -47,6 +49,22 @@ export default function HomePage() {
         </Button>
         <Button onPress={testValidateCodeVerify}>
           <Text>Test Code Verify</Text>
+        </Button>
+        <Button
+          onPress={async () => {
+            const url =
+              'https://jwcjwxt2.fzu.edu.cn:81/pyfa/skjh/TeachingPlan_view.aspx?kkhm=20240102700017102&id=' +
+              (await AsyncStorage.getItem(JWCH_ID_KEY));
+            const cookie = await AsyncStorage.getItem(JWCH_COOKIES_KEY); // 可选的 cookie
+            const title = '自定义标题'; // 可选的 title
+
+            router.push({
+              pathname: '/(guest)/web',
+              params: { url, cookie, title }, // 传递参数
+            });
+          }}
+        >
+          <Text>Web</Text>
         </Button>
       </ThemedView>
     </>
