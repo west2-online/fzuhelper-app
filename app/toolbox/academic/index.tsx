@@ -12,11 +12,31 @@ interface MenuItem {
 
 // 菜单项数据
 const menuItems: MenuItem[] = [
-  { icon: require('assets/images/toolbox/academic/ic_score.png'), name: '成绩查询', link: './grades' as Href },
-  { icon: require('assets/images/toolbox/academic/ic_gpa.png'), name: '绩点排名', link: './gpa' as Href },
-  { icon: require('assets/images/toolbox/academic/ic_credit.png'), name: '学分统计', link: './credits' as Href },
-  { icon: require('assets/images/toolbox/academic/ic_unified.png'), name: '统考成绩', link: './unified-exam' as Href },
-  { icon: require('assets/images/toolbox/academic/ic_plan.png'), name: '培养计划', link: './plan' as Href },
+  {
+    icon: require('assets/images/toolbox/academic/ic_score.png'),
+    name: '成绩查询',
+    link: '/toolbox/academic/grades' as Href,
+  },
+  {
+    icon: require('assets/images/toolbox/academic/ic_gpa.png'),
+    name: '绩点排名',
+    link: '/toolbox/academic/gpa' as Href,
+  },
+  {
+    icon: require('assets/images/toolbox/academic/ic_credit.png'),
+    name: '学分统计',
+    link: '/toolbox/academic/credits' as Href,
+  },
+  {
+    icon: require('assets/images/toolbox/academic/ic_unified.png'),
+    name: '统考成绩',
+    link: '/toolbox/academic/unified-exam' as Href,
+  },
+  {
+    icon: require('assets/images/toolbox/academic/ic_plan.png'),
+    name: '培养计划',
+    link: '/toolbox/academic/plan' as Href,
+  },
 ];
 
 const NAVIGATION_TITLE = '学业状况';
