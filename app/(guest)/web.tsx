@@ -1,6 +1,7 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
 export default function Web() {
@@ -61,27 +62,29 @@ export default function Web() {
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
       <Stack.Screen options={{ title: title || webpageTitle }} />
-      <WebView
-        source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
-        allowsBackForwardNavigationGestures={true} // iOS
-        ref={webViewRef}
-        onLoadProgress={event => {
-          // Android
-          setCanGoBack(event.nativeEvent.canGoBack);
-        }}
-        onNavigationStateChange={event => {
-          if (!event.loading) {
-            // 如果没有传递 title 参数，则更新网页标题
-            if (!title) {
-              setWebpageTitle(event.title);
+      <SafeAreaView className="h-full w-full" edges={['bottom']}>
+        <WebView
+          source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
+          allowsBackForwardNavigationGestures={true} // iOS
+          ref={webViewRef}
+          onLoadProgress={event => {
+            // Android
+            setCanGoBack(event.nativeEvent.canGoBack);
+          }}
+          onNavigationStateChange={event => {
+            if (!event.loading) {
+              // 如果没有传递 title 参数，则更新网页标题
+              if (!title) {
+                setWebpageTitle(event.title);
+              }
+              // 更新当前 URL
+              setCurrentUrl(event.url);
             }
-            // 更新当前 URL
-            setCurrentUrl(event.url);
-          }
-        }}
-        injectedJavaScript={getCookieJavaScript(cookie)} // 注入多个 Cookie
-        onOpenWindow={onOpenWindow} // 处理新窗口打开事件
-      />
+          }}
+          injectedJavaScript={getCookieJavaScript(cookie)} // 注入多个 Cookie
+          onOpenWindow={onOpenWindow} // 处理新窗口打开事件
+        />
+      </SafeAreaView>
     </>
   );
 }
