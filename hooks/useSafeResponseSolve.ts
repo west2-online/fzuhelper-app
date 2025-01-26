@@ -23,7 +23,6 @@ export const useSafeResponseSolve = () => {
     (error: RejectError) => {
       console.log('错误信息:', error);
       if (!error || !error.type) {
-        console.error('未知错误:', error);
         Alert.alert('错误', '发生未知错误，请稍后再试');
         return;
       }

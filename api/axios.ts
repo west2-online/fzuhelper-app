@@ -146,35 +146,66 @@ request.interceptors.response.use(
     return response;
   },
   error => {
-    // 请求超时
-    if (error.message.indexOf('timeout') !== -1) {
-      return Promise.reject({ type: RejectEnum.Timeout });
-    }
-    // 网络故障
-    if (error.message.indexOf('Network Error') !== -1) {
-      return Promise.reject({ type: RejectEnum.InternalFailed });
+    let rejectData = { type: RejectEnum.InternalFailed, message: 'An internal error occurred' };
+
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        // 响应错误
+        rejectData = {
+          type: RejectEnum.BizFailed,
+          message: error.response.data?.message || 'Response error',
+        };
+      } else if (error.request) {
+        // 请求未收到响应
+        rejectData = {
+          type: RejectEnum.Timeout,
+          message: 'No response received from server',
+        };
+      } else {
+        // 其他请求错误
+        rejectData = {
+          type: RejectEnum.InternalFailed,
+          message: error.message || 'Request error',
+        };
+      }
+    } else {
+      // 非 Axios 错误
+      rejectData = {
+        type: RejectEnum.InternalFailed,
+        message: error.message || 'Unknown error',
+      };
     }
 
-    return Promise.reject({ type: RejectEnum.InternalFailed });
+    return Promise.reject(rejectData);
   },
 );
 
-request.interceptors.request.use(async function (config) {
-  const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
-  const id = await AsyncStorage.getItem(JWCH_ID_KEY);
-  const cookies = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+request.interceptors.request.use(
+  async function (config) {
+    const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+    const id = await AsyncStorage.getItem(JWCH_ID_KEY);
+    const cookies = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
 
-  if (accessToken) {
-    config.headers.Authorization = accessToken;
-    config.headers['Access-Token'] = accessToken;
-  }
-  if (id) {
-    config.headers.Id = id;
-  }
-  if (cookies) {
-    config.headers.Cookies = cookies;
-  }
-  return config;
-});
+    if (accessToken) {
+      config.headers.Authorization = accessToken;
+      config.headers['Access-Token'] = accessToken;
+    }
+    if (id) {
+      config.headers.Id = id;
+    }
+    if (cookies) {
+      config.headers.Cookies = cookies;
+    }
+    return config;
+  },
+  error => {
+    // 捕获请求拦截器的错误
+    console.error('Request configuration failed:', error);
+    return Promise.reject({
+      type: RejectEnum.InternalFailed,
+      message: 'Request configuration failed',
+    });
+  },
+);
 
 export default request;
