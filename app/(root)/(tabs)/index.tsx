@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Link, Tabs } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
@@ -188,7 +188,7 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
 }
 
 export default function HomePage() {
-  const term = '202401';
+  const term = '202402';
   const week = 10;
   const { data, isLoading } = usePersistedQuery({
     queryKey: ['getApiV1JwchCourseList', term],
@@ -207,7 +207,11 @@ export default function HomePage() {
           // eslint-disable-next-line react/no-unstable-nested-components
           headerLeft: () => <Text>第 {week} 周</Text>,
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => <Text>Settings</Text>,
+          headerRight: () => (
+            <Link href="/course/course-settings" asChild>
+              <Text>设置</Text>
+            </Link>
+          ),
         }}
       />
 
