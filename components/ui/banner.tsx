@@ -24,11 +24,6 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
     const index = Math.round(contentOffsetX / imageWidth);
     if (index !== currentIndex) {
       setCurrentIndex(index);
-      try {
-        flatListRef.current?.scrollToIndex({ index, animated: true });
-      } catch (error) {
-        console.warn('scrollToIndex error:', error);
-      }
     }
   };
 
@@ -78,7 +73,11 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
         onMomentumScrollEnd={handleMomentumScrollEnd}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={item.onPress}
+            onPress={() => {
+              if (!isAutoScrolling.current) {
+                item.onPress();
+              }
+            }}
             activeOpacity={0.8}
             // eslint-disable-next-line react-native/no-inline-styles
             style={{
@@ -115,7 +114,6 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
             </LinearGradient>
           </TouchableOpacity>
         )}
-
       />
       {/* 蠕虫指示器 */}
       <View className="absolute right-2 bottom-2 flex-row justify-center items-center space-x-2">
