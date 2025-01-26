@@ -6,7 +6,7 @@ echo "Running ci_post_clone.sh"
 cd ../../
 
 # install node and cocoapods
-brew install yarn cocoapods
+brew install node yarn cocoapods
 
 # install node modules
 yarn install
@@ -14,7 +14,7 @@ yarn install
 # xcode cloud sets `CI` env var to 'TRUE':
 # This causes a crash: Error: GetEnv.NoBoolean: TRUE is not a boolean.
 # This is a workaround for that issue.
-CI="true" npx expo prebuild
+CI="true" npx expo prebuild:ios
 
 
 # 脚本来源：https://www.richinfante.com/2024/11/18/running-expo-prebuild-in-xcode-cloud
