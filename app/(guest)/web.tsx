@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
-import { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 
 export default function Web() {
   const [canGoBack, setCanGoBack] = useState(false);
@@ -50,23 +49,6 @@ export default function Web() {
     }
   };
 
-  // 处理新窗口打开事件
-  const onShouldStartLoadWithRequest = (request: ShouldStartLoadRequest) => {
-    // 检查是否是新窗口的请求
-    if (request.navigationType === 'click' && request.url === '_blank') {
-      console.log('Opening new window with URL:', request.url);
-
-      // 在当前 WebView 中加载目标 URL
-      setCurrentUrl(request.url);
-
-      // 阻止默认加载行为
-      return false;
-    }
-
-    // 允许加载其他请求
-    return true;
-  };
-
   return (
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
@@ -74,14 +56,20 @@ export default function Web() {
       <SafeAreaView className="h-full w-full" edges={['bottom']}>
         <WebView
           source={{ uri: currentUrl || url || '', headers: headers }} // 使用当前 URL 或传递的 URL
-          allowsBackForwardNavigationGestures={true} // iOS
+          allowsBackForwardNavigationGestures={true} // 启用手势返回（iOS）
           ref={webViewRef}
-          cacheEnabled={true}
-          cacheMode={'LOAD_DEFAULT'}
+          cacheEnabled={true} // 启用缓存
+          cacheMode={'LOAD_DEFAULT'} // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
           onLoadProgress={event => {
-            // Android
             setCanGoBack(event.nativeEvent.canGoBack);
-          }}
+          }} // 更新是否可以返回（Android）
+          javaScriptEnabled={true} // 确保启用 JavaScript
+          scalesPageToFit={true} // 启用页面缩放（Android）
+          renderToHardwareTextureAndroid={true} // 启用硬件加速（Android）
+          setBuiltInZoomControls={true} // 启用内置缩放控件（Android）
+          setDisplayZoomControls={false} // 隐藏缩放控件图标
+          contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小（iOS）
+          allowsInlineMediaPlayback={true} // 允许内联播放媒体（iOS）
           onNavigationStateChange={event => {
             if (!event.loading) {
               // 更新当前 URL
@@ -95,7 +83,6 @@ export default function Web() {
             }
           }}
           onOpenWindow={onOpenWindow} // 处理新窗口打开事件
-          onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         />
       </SafeAreaView>
       <Button onPress={() => onOpenWindow({ nativeEvent: { targetUrl: url } })}>
