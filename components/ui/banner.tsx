@@ -17,10 +17,18 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const flatListRef = useRef<FlatList>(null);
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffsetX / imageWidth);
-    setCurrentIndex(index);
+    // 如果手动拖拽导致的偏移与 currentIndex 不一致，则同步（iOS 侧必须，否则会出现偏移）
+    if (index !== currentIndex) {
+      setCurrentIndex(index);
+      try {
+        flatListRef.current?.scrollToIndex({ index, animated: true });
+      } catch (error) {
+        console.warn('scrollToIndex error:', error);
+      }
+    }
   };
 
   useEffect(() => {
@@ -36,33 +44,53 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
   }, [contents.length]);
 
   return (
-    <View>
+    // eslint-disable-next-line react-native/no-inline-styles
+    <View style={{ borderRadius: 16, overflow: 'hidden' }}>
       <FlatList
         ref={flatListRef}
         data={contents}
         keyExtractor={(_, index) => index.toString()}
+        initialScrollIndex={currentIndex}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         renderItem={({ item }) => (
-          <TouchableOpacity 
-            onPress={item.onPress} 
+          <TouchableOpacity
+            onPress={item.onPress}
             activeOpacity={0.8}
-            className="justify-center items-center rounded-xl overflow-hidden" // 给FlatList设置圆角无效果，退求其次
-            style={{ width: imageWidth, height: imageHeight }}
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={{
+              width: imageWidth,
+              height: imageHeight,
+              borderRadius: 16,
+              overflow: 'hidden',
+            }}
           >
             <Image
-              source={ item.image }
-              className="size-full"
+              source={item.image}
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: 16,
+              }}
               resizeMode="cover"
             />
-             <LinearGradient
+            <LinearGradient
               colors={['transparent', 'rgba(0, 0, 0, 0.53)']}
               locations={[0, 1]}
-              className="absolute bottom-0 w-full"
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                width: '100%',
+              }}
             >
-              <Text className="text-white text-base px-2.5 py-1.5">这是一个标题</Text>
+              <Text
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{ color: 'white', paddingHorizontal: 10, paddingVertical: 5 }}
+              >这是一个标题</Text>
             </LinearGradient>
           </TouchableOpacity>
         )}
