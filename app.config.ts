@@ -42,6 +42,7 @@ const config: ExpoConfig = {
       },
     ],
     './inject-android-config',
+    './inject-ios-prebuild',
     [
       './modules/umeng-bridge/app.plugin.js',
       {

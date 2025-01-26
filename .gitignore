@@ -24,8 +24,9 @@ expo-env.d.ts
 nativewind-env.d.ts
 
 # Build generated files
-/ios
-/android
+/ios/*
+/android/
+!/ios/ci_scripts/ci_post_clone.sh
 
 # yarn
 yarn-error.log
