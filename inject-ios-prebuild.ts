@@ -1,9 +1,14 @@
 import { ExpoConfig } from 'expo/config';
-import { withDangerousMod } from 'expo/config-plugins';
+import { withDangerousMod, withInfoPlist } from 'expo/config-plugins';
 import { promises as fs } from 'fs';
 import { join, resolve } from 'path';
 
 function withIOSInject(config: ExpoConfig): ExpoConfig {
+  // config = withInfoPlist(config, infoPlist => {
+  //   // 如果需要修改 Info.plist，可以在这里添加逻辑
+  //   infoPlist.modResults.WKAppBoundDomains = ['jwcjwxt2.fzu.edu.cn', 'jwcjwxt.fzu.edu.cn', 'yjsy.fzu.edu.cn'];
+  //   return infoPlist;
+  // });
   // 通过 withDangerousMod 注入 iOS 脚本
   config = withDangerousMod(config, [
     'ios',

@@ -1,8 +1,11 @@
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
+import { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 
 export default function Web() {
   const [canGoBack, setCanGoBack] = useState(false);
@@ -45,6 +48,23 @@ export default function Web() {
     }
   };
 
+  // 处理新窗口打开事件
+  const onShouldStartLoadWithRequest = (request: ShouldStartLoadRequest) => {
+    // 检查是否是新窗口的请求
+    if (request.navigationType === 'click' && request.url === '_blank') {
+      console.log('Opening new window with URL:', request.url);
+
+      // 在当前 WebView 中加载目标 URL
+      setCurrentUrl(request.url);
+
+      // 阻止默认加载行为
+      return false;
+    }
+
+    // 允许加载其他请求
+    return true;
+  };
+
   // 将分号分隔的多个 Cookie 转换为注入的 JavaScript 代码
   const getCookieJavaScript = (cookieString: string | undefined) => {
     if (!cookieString) return undefined;
@@ -54,6 +74,7 @@ export default function Web() {
 
     // 生成设置 Cookie 的 JavaScript 代码
     const cookieScript = cookies.map(c => `document.cookie = '${c.trim()}';`).join('\n');
+    console.log('Inject Cookie:', cookieScript);
 
     return cookieScript;
   };
@@ -62,11 +83,16 @@ export default function Web() {
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
       <Stack.Screen options={{ title: title || webpageTitle }} />
+      <Button onPress={() => onOpenWindow({ nativeEvent: { targetUrl: url } })}>
+        <Text>Refresh</Text>
+      </Button>
       <SafeAreaView className="h-full w-full" edges={['bottom']}>
         <WebView
           source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
           allowsBackForwardNavigationGestures={true} // iOS
           ref={webViewRef}
+          cacheEnabled={true}
+          cacheMode={'LOAD_DEFAULT'}
           onLoadProgress={event => {
             // Android
             setCanGoBack(event.nativeEvent.canGoBack);
@@ -83,6 +109,7 @@ export default function Web() {
           }}
           injectedJavaScript={getCookieJavaScript(cookie)} // 注入多个 Cookie
           onOpenWindow={onOpenWindow} // 处理新窗口打开事件
+          onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         />
       </SafeAreaView>
     </>

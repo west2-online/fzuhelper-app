@@ -31,7 +31,7 @@ export async function getApiV1JwchAcademicGpa(options?: {
   });
 }
 
-/** 获取专业培养计划 GET /api/v1/jwch/academic/plan https://apifox.com/web/project/3275694/apis/api-109631160-run */
+/** 培养计划 GET /api/v1/jwch/academic/plan https://apifox.com/web/project/3275694/apis/api-109631160-run */
 export async function getApiV1JwchAcademicPlan(options?: {
   [key: string]: unknown;
 }) {

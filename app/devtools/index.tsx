@@ -53,7 +53,7 @@ export default function HomePage() {
         <Button
           onPress={async () => {
             const url =
-              'https://jwcjwxt2.fzu.edu.cn:81/pyfa/skjh/TeachingPlan_view.aspx?kkhm=20240102700017102&id=' +
+              'https://jwcjwxt2.fzu.edu.cn:81/pyfa/skjh/TeachingPlan_view.aspx?kkhm=20240102200131001&id=' +
               (await AsyncStorage.getItem(JWCH_ID_KEY));
             const cookie = await AsyncStorage.getItem(JWCH_COOKIES_KEY); // 可选的 cookie
             const title = '自定义标题'; // 可选的 title
@@ -64,7 +64,7 @@ export default function HomePage() {
             });
           }}
         >
-          <Text>Web</Text>
+          <Text>Test Open TeachingPlan</Text>
         </Button>
       </ThemedView>
     </>
