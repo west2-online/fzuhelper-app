@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, View, Image, ImageSourcePropType } from 'react-native';
 import { Text } from './text';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,11 +17,11 @@ type BannerProps = React.ComponentPropsWithRef<typeof View> & {
 export default function Banner({ contents, imageWidth, imageHeight, ...props }: BannerProps) {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const flatListRef = useRef<FlatList>(null);
+  const isAutoScrolling = useRef(false);
 
   const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffsetX / imageWidth);
-    // 如果手动拖拽导致的偏移与 currentIndex 不一致，则同步（iOS 侧必须，否则会出现偏移）
     if (index !== currentIndex) {
       setCurrentIndex(index);
       try {
@@ -32,16 +33,37 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
   };
 
   useEffect(() => {
+    if (contents.length === 0) return; // 如果内容为空，直接返回
     const interval = setInterval(() => {
+      isAutoScrolling.current = true; // 标记为正在自动滚动
       setCurrentIndex(prevIndex => {
         const nextIndex = (prevIndex + 1) % contents.length;
-        flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+        try {
+          flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+          setTimeout(() => {
+            isAutoScrolling.current = false; // 重置标志
+          }, 300); // 延迟重置，确保状态同步
+        } catch (error) {
+          console.warn('scrollToIndex error:', error);
+        }
         return nextIndex;
       });
-    }, 4000); // 每4秒滚动一次
-
+    }, 4000);
     return () => clearInterval(interval);
-  }, [contents.length]);
+  }, [contents.length, currentIndex]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if(isAutoScrolling.current) return; // 如果正在自动滚动，直接返回
+      if (flatListRef.current) {
+        try {
+          flatListRef.current.scrollToIndex({ index: currentIndex, animated: true });
+        } catch (error) {
+          console.warn('scrollToIndex error on focus:', error);
+        }
+      }
+    }, [currentIndex])
+  );
 
   return (
     // eslint-disable-next-line react-native/no-inline-styles
@@ -50,7 +72,6 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
         ref={flatListRef}
         data={contents}
         keyExtractor={(_, index) => index.toString()}
-        initialScrollIndex={currentIndex}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
