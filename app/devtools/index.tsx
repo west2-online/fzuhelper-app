@@ -56,11 +56,11 @@ export default function HomePage() {
               'https://jwcjwxt2.fzu.edu.cn:81/pyfa/skjh/TeachingPlan_view.aspx?kkhm=20240102200131001&id=' +
               (await AsyncStorage.getItem(JWCH_ID_KEY));
             const cookie = await AsyncStorage.getItem(JWCH_COOKIES_KEY); // 可选的 cookie
-            const title = '自定义标题'; // 可选的 title
+            const title = '授课计划'; // 可选的 title，如果提供则不会使用网页标题
 
             router.push({
               pathname: '/(guest)/web',
-              params: { url, cookie, title }, // 传递参数
+              params: { url, cookie }, // 传递参数
             });
           }}
         >

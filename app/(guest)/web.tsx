@@ -15,10 +15,12 @@ export default function Web() {
 
   // 读取传递的参数
   const { url, cookie, title } = useLocalSearchParams<{
-    url: string;
-    cookie?: string; // 可选的 cookie 参数
-    title?: string; // 可选的 title 参数
+    url: string; // URL 地址
+    cookie?: string; // （可选）Cookie
+    title?: string; // （可选）未 Loading 结束时的标题
   }>();
+
+  const headers = cookie ? { Cookie: cookie } : [];
 
   const onAndroidBackPress = useCallback(() => {
     if (canGoBack) {
@@ -65,30 +67,13 @@ export default function Web() {
     return true;
   };
 
-  // 将分号分隔的多个 Cookie 转换为注入的 JavaScript 代码
-  const getCookieJavaScript = (cookieString: string | undefined) => {
-    if (!cookieString) return undefined;
-
-    // 将分号分隔的 Cookie 拆分为数组
-    const cookies = cookieString.split(';');
-
-    // 生成设置 Cookie 的 JavaScript 代码
-    const cookieScript = cookies.map(c => `document.cookie = '${c.trim()}';`).join('\n');
-    console.log('Inject Cookie:', cookieScript);
-
-    return cookieScript;
-  };
-
   return (
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
       <Stack.Screen options={{ title: title || webpageTitle }} />
-      <Button onPress={() => onOpenWindow({ nativeEvent: { targetUrl: url } })}>
-        <Text>Refresh</Text>
-      </Button>
       <SafeAreaView className="h-full w-full" edges={['bottom']}>
         <WebView
-          source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
+          source={{ uri: currentUrl || url || '', headers: headers }} // 使用当前 URL 或传递的 URL
           allowsBackForwardNavigationGestures={true} // iOS
           ref={webViewRef}
           cacheEnabled={true}
@@ -99,19 +84,23 @@ export default function Web() {
           }}
           onNavigationStateChange={event => {
             if (!event.loading) {
-              // 如果没有传递 title 参数，则更新网页标题
-              if (!title) {
-                setWebpageTitle(event.title);
-              }
               // 更新当前 URL
               setCurrentUrl(event.url);
+
+              // 更新网页标题
+              console.log('event:', event);
+              if (event.title && !title) {
+                setWebpageTitle(event.title); // 只有在没有传递 title 参数时才更新标题
+              }
             }
           }}
-          injectedJavaScript={getCookieJavaScript(cookie)} // 注入多个 Cookie
           onOpenWindow={onOpenWindow} // 处理新窗口打开事件
           onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         />
       </SafeAreaView>
+      <Button onPress={() => onOpenWindow({ nativeEvent: { targetUrl: url } })}>
+        <Text>Refresh</Text>
+      </Button>
     </>
   );
 }
