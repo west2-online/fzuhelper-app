@@ -39,7 +39,9 @@ export default function TabLayout() {
           title: '一码通',
           href: '/qrcode',
           // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'qr-code' : 'qr-code-outline'} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
