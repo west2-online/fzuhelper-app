@@ -66,7 +66,7 @@ export default function HomePage() {
             });
           }}
         >
-          <Text>Test Open TeachingPlan</Text>
+          <Text>Open Choose Course</Text>
         </Button>
       </ThemedView>
     </>

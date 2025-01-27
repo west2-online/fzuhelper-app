@@ -7,8 +7,8 @@ import { WebView } from 'react-native-webview';
 
 export type WebParams = {
   url: string; // URL 地址
-  jwchCookie?: string; // （可选）本科教务系统Cookie
-  title?: string; // （可选）未 Loading 结束时的标题
+  jwchCookie?: string; // （可选）本科教务系统 Cookie
+  title?: string; // （可选）固定标题
 };
 
 export default function Web() {
@@ -23,7 +23,7 @@ export default function Web() {
   const onAndroidBackPress = useCallback(() => {
     if (canGoBack) {
       webViewRef.current?.goBack();
-      return true; // 阻止默认行为（退出应用）
+      return true; // 阻止默认行为（退出页面）
     }
     return false;
   }, [canGoBack]);
@@ -31,7 +31,7 @@ export default function Web() {
   useEffect(() => {
     const setCookies = async () => {
       if (jwchCookie) {
-        const clearCookie = CookieManager.clearAll();
+        const clearCookie = CookieManager.clearAll(); // 应该只清除教务处 Cookie，但没有这种方法
         const setCookie = jwchCookie
           .split(';')
           .map(c => CookieManager.setFromResponse('https://jwcjwxt2.fzu.edu.cn:81', c)); // 设置 Cookie
