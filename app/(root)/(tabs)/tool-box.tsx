@@ -126,7 +126,7 @@ const renderToolButton = ({ item }: { item: Tool }, router: ReturnType<typeof us
     onPress={() => toolOnPress(item, router)}
   >
     {item.icon ? <Image source={item.icon} className="h-12 w-12" resizeMode="contain" /> : null}
-    <Text className="align-middle text-sm text-gray-700" numberOfLines={1} ellipsizeMode="tail">
+    <Text className="align-middle text-sm text-foreground" numberOfLines={1} ellipsizeMode="tail">
       {item.name}
     </Text>
   </Button>
