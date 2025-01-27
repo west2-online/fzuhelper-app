@@ -6,6 +6,7 @@ import {
   ImageSourcePropType,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -75,7 +76,8 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
             }}
             activeOpacity={0.8}
             style={{
-              width: imageWidth,
+              // 在 ios 下需要修正宽度
+              width: Platform.OS === 'ios' ? imageWidth - 6 : imageWidth,
               height: imageHeight,
             }}
           >
