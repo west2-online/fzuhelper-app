@@ -1,7 +1,7 @@
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { isAccountExist } from '@/utils/is-account-exist';
-import { Slot, Stack, useFocusEffect, useNavigation, useRouter } from 'expo-router';
+import { Slot, useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import { useCallback, useLayoutEffect } from 'react';
 import { Alert } from 'react-native';
 
@@ -41,10 +41,5 @@ export default function RootLayout() {
     }, [checkLoginStatus]),
   );
 
-  return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <Slot />
-    </>
-  );
+  return <Slot />;
 }

@@ -8,7 +8,11 @@ const NAVIGATION_TITLE = '主页';
 export default function TabLayout() {
   const navigation = useNavigation();
   useLayoutEffect(() => {
-    navigation.setOptions({ title: NAVIGATION_TITLE });
+    navigation.setOptions({ title: NAVIGATION_TITLE, headerShown: false });
+
+    return () => {
+      navigation.setOptions({ headerShown: true });
+    };
   }, [navigation]);
 
   return (
@@ -25,10 +29,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="tool-box"
+        name="toolbox"
         options={{
           title: '工具箱',
-          href: '/tool-box',
+          href: '/toolbox',
           // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
         }}

@@ -1,17 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FlatList, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, View, Image, ImageSourcePropType } from 'react-native';
-import { Text } from './text';
 import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  FlatList,
+  Image,
+  ImageSourcePropType,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+import { Text } from '@/components/ui/text';
+
 export interface BannerContent {
-  image: ImageSourcePropType
-  onPress: () => void
+  image: ImageSourcePropType;
+  onPress: () => void;
 }
 
 type BannerProps = React.ComponentPropsWithRef<typeof View> & {
-  contents: BannerContent[]
-  imageWidth: number
-  imageHeight: number
-}
+  contents: BannerContent[];
+  imageWidth: number;
+  imageHeight: number;
+};
 
 export default function Banner({ contents, imageWidth, imageHeight, ...props }: BannerProps) {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -47,7 +57,7 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
   }, [contents.length, currentIndex]);
 
   return (
-    <View className='rounded-[16px] overflow-hidden'>
+    <View className="overflow-hidden rounded-[16px]">
       <FlatList
         ref={flatListRef}
         data={contents}
@@ -63,37 +73,30 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
                 item.onPress();
               }
             }}
-            activeOpacity={0.8}   
+            activeOpacity={0.8}
             style={{
               width: imageWidth,
               height: imageHeight,
             }}
           >
-            <Image
-              source={item.image}
-              className='w-full h-full'
-              resizeMode="cover"
-            />
+            <Image source={item.image} className="h-full w-full" resizeMode="cover" />
             <LinearGradient
               colors={['transparent', 'rgba(0, 0, 0, 0.53)']}
               locations={[0, 1]}
-              className='absolute bottom-0 w-full'
+              className="absolute bottom-0 w-full"
             >
-              <Text
-                className='text-white px-[10px] py-[5px]'
-              >这是一个标题</Text>
+              <Text className="px-[10px] py-[5px] text-white">这是一个标题</Text>
             </LinearGradient>
           </TouchableOpacity>
         )}
       />
+
       {/* 蠕虫指示器 */}
-      <View className="absolute right-2 bottom-2 flex-row justify-center items-center space-x-2">
+      <View className="absolute bottom-2 right-2 flex-row items-center justify-center space-x-2">
         {contents.map((_, index) => (
           <View
             key={index}
-            className={`w-1.5 h-1.5 m-1 rounded-full ${
-              currentIndex === index ? "bg-white" : "bg-white/50"
-            }`}
+            className={`m-1 h-1.5 w-1.5 rounded-full ${currentIndex === index ? 'bg-white' : 'bg-white/50'}`}
           />
         ))}
       </View>

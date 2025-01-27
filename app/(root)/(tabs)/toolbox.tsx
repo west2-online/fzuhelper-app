@@ -1,5 +1,5 @@
 import { ThemedView } from '@/components/ThemedView';
-import Banner, { type BannerContent } from '@/components/ui/banner';
+import Banner, { type BannerContent } from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Href, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -40,31 +40,31 @@ const DEFAULT_TOOLS: Tool[] = [
     name: '历年卷',
     icon: require('assets/images/toolbox/ic_file.png'),
     type: ToolType.LINK,
-    data: '/(root)/toolbox/paper',
+    data: '/toolbox/paper',
   },
   {
     name: '空教室',
     icon: require('assets/images/toolbox/ic_examroom.png'),
     type: ToolType.LINK,
-    data: '/(root)/toolbox/empty-room',
+    data: '/toolbox/empty-room',
   },
   {
     name: '考场查询',
     icon: require('assets/images/toolbox/ic_room.png'),
     type: ToolType.LINK,
-    data: '/(root)/toolbox/exam-room',
+    data: '/toolbox/exam-room',
   },
   // {
   //   name: '一键评议',
   //   icon: require('assets/images/toolbox/ic_onekey.png'),
   //   type: ToolType.LINK,
-  //   data: '/(root)/toolbox/onekey', // 路由地址
+  //   data: '/toolbox/onekey', // 路由地址
   // },
   {
     name: '嘉锡讲坛',
     icon: require('assets/images/toolbox/ic_jiaxi.png'),
     type: ToolType.LINK,
-    data: '/(root)/toolbox/jiaxi-lecture', // 自定义操作标识
+    data: '/toolbox/jiaxi-lecture', // 自定义操作标识
   },
 ];
 
@@ -144,6 +144,7 @@ export default function ToolsPage() {
     <ThemedView className="m-6">
       {/* 滚动横幅 */}
       <Banner contents={bannerList} imageWidth={bannerWidth} imageHeight={bannerHeight} />
+
       {/* 工具区域 */}
       <FlatList
         data={toolList}
