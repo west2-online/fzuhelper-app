@@ -6,6 +6,7 @@ import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Stack, router } from 'expo-router';
 import { toast } from 'sonner-native';
+import { WebParams } from '../(guest)/web';
 
 const NAVIGATION_TITLE = '开发者选项';
 
@@ -52,15 +53,16 @@ export default function HomePage() {
         </Button>
         <Button
           onPress={async () => {
-            const url =
-              'https://jwcjwxt2.fzu.edu.cn:81/pyfa/skjh/TeachingPlan_view.aspx?kkhm=20240102200131001&id=' +
-              (await AsyncStorage.getItem(JWCH_ID_KEY));
-            const cookie = await AsyncStorage.getItem(JWCH_COOKIES_KEY); // 可选的 cookie
-            const title = '授课计划'; // 可选的 title，如果提供则不会使用网页标题
+            const params: WebParams = {
+              url:
+                'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx?id=' +
+                (await AsyncStorage.getItem(JWCH_ID_KEY)),
+              jwchCookie: (await AsyncStorage.getItem(JWCH_COOKIES_KEY)) ?? undefined, // 可选的 cookie
+            };
 
             router.push({
               pathname: '/(guest)/web',
-              params: { url, cookie }, // 传递参数
+              params, // 传递参数
             });
           }}
         >

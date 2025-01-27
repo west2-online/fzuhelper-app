@@ -5,6 +5,12 @@ import { BackHandler, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
+export type WebParams = {
+  url: string; // URL 地址
+  jwchCookie?: string; // （可选）本科教务系统Cookie
+  title?: string; // （可选）未 Loading 结束时的标题
+};
+
 export default function Web() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [webpageTitle, setWebpageTitle] = useState('');
@@ -12,11 +18,7 @@ export default function Web() {
   const webViewRef = useRef<WebView>(null);
 
   // 读取传递的参数
-  const { url, cookie, title } = useLocalSearchParams<{
-    url: string; // URL 地址
-    cookie?: string; // （可选）Cookie
-    title?: string; // （可选）未 Loading 结束时的标题
-  }>();
+  const { url, jwchCookie, title } = useLocalSearchParams<WebParams>();
 
   const onAndroidBackPress = useCallback(() => {
     if (canGoBack) {
@@ -28,13 +30,17 @@ export default function Web() {
 
   useEffect(() => {
     const setCookies = async () => {
-      if (cookie) {
-        const cookiePromises = cookie.split(';').map(c => CookieManager.setFromResponse(url, c)); // 设置 Cookie
-        await Promise.all(cookiePromises);
+      if (jwchCookie) {
+        const clearCookie = CookieManager.clearAll();
+        const setCookie = jwchCookie
+          .split(';')
+          .map(c => CookieManager.setFromResponse('https://jwcjwxt2.fzu.edu.cn:81', c)); // 设置 Cookie
+        await Promise.all([clearCookie, setCookie]);
       }
+      // TODO 添加研究生Cookie
     };
     setCookies();
-  }, [cookie, url]);
+  }, [jwchCookie, url]);
 
   useEffect(() => {
     if (Platform.OS === 'android') {
