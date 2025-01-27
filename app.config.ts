@@ -31,7 +31,6 @@ const config: ExpoConfig = {
     favicon: './assets/images/icon.png',
   },
   plugins: [
-    'expo-font',
     'expo-router',
     [
       'expo-build-properties',
