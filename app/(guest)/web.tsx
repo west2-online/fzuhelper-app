@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import CookieManager from '@react-native-cookies/cookies';
 import * as FileSystem from 'expo-file-system';
 import * as Print from 'expo-print';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -22,7 +23,6 @@ export default function Web() {
     title?: string; // （可选）未 Loading 结束时的标题
   }>();
 
-  const headers = cookie ? { Cookie: cookie } : [];
   var htmlData = ``; // 用于存储 HTML 数据
 
   const onAndroidBackPress = useCallback(() => {
@@ -32,6 +32,16 @@ export default function Web() {
     }
     return false;
   }, [canGoBack]);
+
+  useEffect(() => {
+    const setCookies = async () => {
+      if (cookie) {
+        const cookiePromises = cookie.split(';').map(c => CookieManager.setFromResponse(url, c)); // 设置 Cookie
+        await Promise.all(cookiePromises);
+      }
+    };
+    setCookies();
+  }, [cookie, url]);
 
   useEffect(() => {
     if (Platform.OS === 'android') {
@@ -98,7 +108,8 @@ export default function Web() {
       </View>
       <SafeAreaView className="h-full w-full" edges={['bottom']}>
         <WebView
-          source={{ uri: currentUrl || url || '', headers: headers }} // 使用当前 URL 或传递的 URL
+          source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
+          sharedCookiesEnabled={true}
           allowsBackForwardNavigationGestures={true} // 启用手势返回（iOS）
           ref={webViewRef}
           cacheEnabled={true} // 启用缓存
