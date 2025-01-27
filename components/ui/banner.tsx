@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, View, Image, ImageSourcePropType } from 'react-native';
 import { Text } from './text';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -47,22 +46,8 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
     return () => clearInterval(interval);
   }, [contents.length, currentIndex]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      if(isAutoScrolling.current) return; // 如果正在自动滚动，直接返回
-      if (flatListRef.current) {
-        try {
-          flatListRef.current.scrollToIndex({ index: currentIndex, animated: true });
-        } catch (error) {
-          console.warn('scrollToIndex error on focus:', error);
-        }
-      }
-    }, [currentIndex])
-  );
-
   return (
-    // eslint-disable-next-line react-native/no-inline-styles
-    <View style={{ borderRadius: 16, overflow: 'hidden' }}>
+    <View className='rounded-[16px] overflow-hidden'>
       <FlatList
         ref={flatListRef}
         data={contents}
@@ -78,38 +63,24 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
                 item.onPress();
               }
             }}
-            activeOpacity={0.8}
-            // eslint-disable-next-line react-native/no-inline-styles
+            activeOpacity={0.8}   
             style={{
               width: imageWidth,
               height: imageHeight,
-              borderRadius: 16,
-              overflow: 'hidden',
             }}
           >
             <Image
               source={item.image}
-              // eslint-disable-next-line react-native/no-inline-styles
-              style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: 16,
-              }}
+              className='w-full h-full'
               resizeMode="cover"
             />
             <LinearGradient
               colors={['transparent', 'rgba(0, 0, 0, 0.53)']}
               locations={[0, 1]}
-              // eslint-disable-next-line react-native/no-inline-styles
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                width: '100%',
-              }}
+              className='absolute bottom-0 w-full'
             >
               <Text
-                // eslint-disable-next-line react-native/no-inline-styles
-                style={{ color: 'white', paddingHorizontal: 10, paddingVertical: 5 }}
+                className='text-white px-[10px] py-[5px]'
               >这是一个标题</Text>
             </LinearGradient>
           </TouchableOpacity>
