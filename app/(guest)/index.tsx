@@ -203,8 +203,6 @@ export default function SplashScreen() {
     ExpoSplashScreen.hideAsync();
   }, []);
 
-  useEffect(() => {}, []);
-
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
