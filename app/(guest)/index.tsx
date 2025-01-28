@@ -46,7 +46,7 @@ export default function SplashScreen() {
 
   // 合规初始化第三方库
   const initThirdParty = useCallback(() => {
-    console.log('initThirdParty');
+    console.log('initUMPush and UMAnalysis');
     ExpoUmengModule.initUmeng();
   }, []);
 
@@ -276,7 +276,10 @@ export default function SplashScreen() {
                 BackHandler.exitApp();
                 if (Platform.OS === 'ios') {
                   setPrivacyDialogVisible(false);
-                  toast.info('很遗憾福uu不能为您提供服务');
+                  Alert.alert(
+                    '很遗憾',
+                    '我们的隐私政策协议是福uu服务的必要条件，如您不同意，我们将无法为您提供服务。您可以重新打开应用并同意协议。',
+                  );
                 }
               }}
             >
