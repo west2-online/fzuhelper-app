@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
+import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, BackHandler, Image, Linking, Platform, View } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
@@ -30,6 +31,8 @@ import {
 } from '@/lib/constants';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
+
+ExpoSplashScreen.preventAutoHideAsync();
 
 export default function SplashScreen() {
   const redirect = useRedirectWithoutHistory();
@@ -196,11 +199,17 @@ export default function SplashScreen() {
     }
   }, [showSplashImage, navigateToHome]);
 
+  const onLayoutRootView = useCallback(() => {
+    ExpoSplashScreen.hideAsync();
+  }, []);
+
+  useEffect(() => {}, []);
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View>
+      <View onLayout={onLayoutRootView}>
         {!showSplashImage ? (
           // 默认开屏
           <Image
