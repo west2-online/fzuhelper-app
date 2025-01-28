@@ -1,4 +1,10 @@
-import { getApiV1LaunchScreenImagePointTime, getApiV1LaunchScreenScreen } from '@/api/generate';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Stack } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, AppState, BackHandler, Image, Linking, Platform, View } from 'react-native';
+import { SystemBars } from 'react-native-edge-to-edge';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,6 +16,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Text } from '@/components/ui/text';
+
+import { getApiV1LaunchScreenImagePointTime, getApiV1LaunchScreenScreen } from '@/api/generate';
+import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import {
   IS_PRIVACY_POLICY_AGREED,
   JWCH_USER_ID_KEY,
@@ -21,16 +30,9 @@ import {
 } from '@/lib/constants';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, AppState, BackHandler, Image, Linking, Platform, View } from 'react-native';
-import { SystemBars } from 'react-native-edge-to-edge';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { toast } from 'sonner-native';
 
 export default function SplashScreen() {
-  const router = useRouter();
+  const redirect = useRedirectWithoutHistory();
 
   const [shouldShowPrivacyAgree, setShouldShowPrivacyAgree] = useState(true);
   const [privacyDialogVisible, setPrivacyDialogVisible] = useState(false);
@@ -54,9 +56,9 @@ export default function SplashScreen() {
     setHideSystemBars(false);
     // 延迟使得系统栏恢复显示
     setTimeout(() => {
-      router.replace('/(root)');
+      redirect('/(root)/(tabs)');
     }, 1);
-  }, [router]);
+  }, [redirect]);
 
   // 拉取Splash并展示
   const getSplash = useCallback(async () => {
@@ -76,13 +78,15 @@ export default function SplashScreen() {
       const splash = result.data.data[0];
       if (splash.id?.toString() !== (await AsyncStorage.getItem(SPLASH_ID))) {
         // ID与上次不同，重置计数
-        await AsyncStorage.setItem(SPLASH_DISPLAY_COUNT, '0');
-        await AsyncStorage.setItem(SPLASH_ID, splash.id?.toString() || '');
+        await AsyncStorage.multiSet([
+          [SPLASH_DISPLAY_COUNT, '0'],
+          [SPLASH_ID, splash.id?.toString() || ''],
+        ]);
       }
       const lastDate = await AsyncStorage.getItem(SPLASH_DATE);
       let displayCount = 0;
       // 如果上次展示不是今天，重置计数
-      if (lastDate !== new Date().toLocaleDateString()) {
+      if (lastDate !== new Date().toDateString()) {
         await AsyncStorage.setItem(SPLASH_DISPLAY_COUNT, '0');
       } else {
         displayCount = Number(await AsyncStorage.getItem(SPLASH_DISPLAY_COUNT));
@@ -98,12 +102,11 @@ export default function SplashScreen() {
       setCountdown(splash.duration || 3);
       setSplashText(splash.text || '点击查看详情');
       setSplashType(splash.type || 1);
-      await AsyncStorage.setItem(
-        SPLASH_DISPLAY_COUNT,
-        (Number(await AsyncStorage.getItem(SPLASH_DISPLAY_COUNT)) + 1).toString(),
-      );
-      await AsyncStorage.setItem(SPLASH_DATE, new Date().toLocaleDateString());
       setShowSplashImage(true);
+      await AsyncStorage.multiSet([
+        [SPLASH_DISPLAY_COUNT, (displayCount + 1).toString()],
+        [SPLASH_DATE, new Date().toDateString()],
+      ]);
     } catch (error: any) {
       console.error(error);
       // 不使用 handleError，静默处理
@@ -132,11 +135,11 @@ export default function SplashScreen() {
     console.log('checkLoginStatus');
     if (!(await isAccountExist())) {
       // 未登录，跳转登录页
-      router.replace('/(guest)/academic-login');
+      redirect('/(guest)/academic-login');
       return;
     }
     getSplash();
-  }, [getSplash, router]);
+  }, [getSplash, redirect]);
 
   const onPrivacyAgree = useCallback(async () => {
     setShouldShowPrivacyAgree(false);
@@ -163,11 +166,13 @@ export default function SplashScreen() {
           subscription.remove();
           return;
         }
+
         checkAndShowPrivacyAgree();
       }
     };
 
     checkAndShowPrivacyAgree();
+
     const subscription = AppState.addEventListener('change', handleAppStateChange);
 
     return () => {
