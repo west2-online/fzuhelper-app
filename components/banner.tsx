@@ -4,6 +4,7 @@ import {
   FlatList,
   Image,
   ImageSourcePropType,
+  LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
@@ -20,18 +21,23 @@ export interface BannerContent {
 
 type BannerProps = React.ComponentPropsWithRef<typeof View> & {
   contents: BannerContent[];
-  imageWidth: number;
-  imageHeight: number;
 };
 
-export default function Banner({ contents, imageWidth, imageHeight, ...props }: BannerProps) {
+export default function Banner({ contents, ...props }: BannerProps) {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [flatListWidth, setFlatListWidth] = useState<number>(0); // 存储 FlatList 的宽度
   const flatListRef = useRef<FlatList>(null);
   const isAutoScrolling = useRef(false);
 
+  // 获取 FlatList 的宽度
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout;
+    setFlatListWidth(width);
+  };
+
   const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(contentOffsetX / imageWidth);
+    const index = Math.round(contentOffsetX / flatListWidth);
     if (index !== currentIndex) {
       setCurrentIndex(index);
     }
@@ -67,6 +73,7 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleMomentumScrollEnd}
+        onLayout={handleLayout}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => {
@@ -76,9 +83,8 @@ export default function Banner({ contents, imageWidth, imageHeight, ...props }: 
             }}
             activeOpacity={0.8}
             style={{
-              // 在 ios 下需要修正宽度
-              width: Platform.OS === 'ios' ? imageWidth - 6 : imageWidth,
-              height: imageHeight,
+              width: flatListWidth,
+              height: flatListWidth / 2.5,
             }}
           >
             <Image source={item.image} className="h-full w-full" resizeMode="cover" />

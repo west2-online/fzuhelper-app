@@ -136,14 +136,10 @@ export default function ToolsPage() {
   const { bannerList, toolList } = useToolsPageData();
   const router = useRouter();
 
-  const { width } = Dimensions.get('window');
-  const bannerWidth = width - 12 * PixelRatio.get();
-  const bannerHeight = bannerWidth / 2.5;
-
   return (
     <ThemedView className="m-6">
       {/* 滚动横幅 */}
-      <Banner contents={bannerList} imageWidth={bannerWidth} imageHeight={bannerHeight} />
+      <Banner contents={bannerList} />
 
       {/* 工具区域 */}
       <FlatList
