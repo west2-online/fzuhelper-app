@@ -3,7 +3,7 @@ import Banner, { type BannerContent } from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Href, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Dimensions, FlatList, Image, Linking, PixelRatio, Text } from 'react-native';
+import { Alert, FlatList, Image, Linking, Text } from 'react-native';
 import { toast } from 'sonner-native';
 
 // 工具类型的枚举

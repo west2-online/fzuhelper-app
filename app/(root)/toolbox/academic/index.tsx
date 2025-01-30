@@ -4,8 +4,10 @@ import { useLayoutEffect } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 // 定义菜单项的类型
+import { ImageSourcePropType } from 'react-native';
+
 interface MenuItem {
-  icon: string;
+  icon: ImageSourcePropType;
   name: string; // 菜单项名称
   link: Href; // 跳转链接
 }
