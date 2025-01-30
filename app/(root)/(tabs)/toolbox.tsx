@@ -44,22 +44,22 @@ const DEFAULT_TOOLS: Tool[] = [
   },
   {
     name: '空教室',
-    icon: require('assets/images/toolbox/ic_examroom.png'),
+    icon: require('assets/images/toolbox/ic_room.png'),
     type: ToolType.LINK,
     data: '/toolbox/empty-room',
   },
   {
     name: '考场查询',
-    icon: require('assets/images/toolbox/ic_room.png'),
+    icon: require('assets/images/toolbox/ic_examroom.png'),
     type: ToolType.LINK,
     data: '/toolbox/exam-room',
   },
-  // {
-  //   name: '一键评议',
-  //   icon: require('assets/images/toolbox/ic_onekey.png'),
-  //   type: ToolType.LINK,
-  //   data: '/toolbox/onekey', // 路由地址
-  // },
+  {
+    name: '一键评议',
+    icon: require('assets/images/toolbox/ic_onekey.png'),
+    type: ToolType.LINK,
+    data: '/toolbox/onekey', // 路由地址
+  },
   {
     name: '嘉锡讲坛',
     icon: require('assets/images/toolbox/ic_jiaxi.png'),
@@ -116,17 +116,12 @@ const toolOnPress = (tool: Tool, router: ReturnType<typeof useRouter>) => {
 // 工具按钮的渲染函数
 const renderToolButton = ({ item }: { item: Tool }, router: ReturnType<typeof useRouter>) => (
   <Button
-    // eslint-disable-next-line react-native/no-inline-styles
-    style={{
-      width: 60, // 固定宽度
-      height: 60, // 固定高度
-    }}
-    className="items-center justify-center bg-transparent"
+    className="mb-3 h-auto w-auto items-center justify-center bg-transparent"
     size="icon"
     onPress={() => toolOnPress(item, router)}
   >
     {item.icon ? <Image source={item.icon} className="h-12 w-12" resizeMode="contain" /> : null}
-    <Text className="align-middle text-sm text-foreground" numberOfLines={1} ellipsizeMode="tail">
+    <Text className="w-[50px] text-center align-middle text-sm text-foreground" numberOfLines={1} ellipsizeMode="tail">
       {item.name}
     </Text>
   </Button>
@@ -146,7 +141,7 @@ export default function ToolsPage() {
         data={toolList}
         keyExtractor={(_, index) => index.toString()}
         numColumns={5}
-        className="my-4"
+        className="mt-4"
         columnWrapperClassName="justify-between"
         renderItem={({ item }) => renderToolButton({ item }, router)}
       />
