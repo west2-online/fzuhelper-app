@@ -11,6 +11,8 @@ export type WebParams = {
   title?: string; // （可选）固定标题
 };
 
+// 内嵌的网页浏览器，用于显示网页
+// 在 iOS 下，当用户在网页浏览器中点击新的跳转时，会模拟创建一个新的页面，返回时只需要左滑即可
 export default function Web() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [webpageTitle, setWebpageTitle] = useState('');
@@ -37,11 +39,12 @@ export default function Web() {
           .map(c => CookieManager.setFromResponse('https://jwcjwxt2.fzu.edu.cn:81', c)); // 设置 Cookie
         await Promise.all([clearCookie, setCookie]);
       }
-      // TODO 添加研究生Cookie
+      // TODO: 添加研究生Cookie
     };
     setCookies();
   }, [jwchCookie, url]);
 
+  // 处理 Android 返回键
   useEffect(() => {
     if (Platform.OS === 'android') {
       BackHandler.addEventListener('hardwareBackPress', onAndroidBackPress);
