@@ -57,6 +57,7 @@ request.interceptors.response.use(
 
     // accessToken过期
     if (data.code === ResultEnum.AuthAccessExpiredCode) {
+      console.log('触发服务端 AccessToken 过期代码，执行自动刷新');
       refreshing = true;
 
       // 尝试刷新token
@@ -100,6 +101,7 @@ request.interceptors.response.use(
     }
     // 处理jwch cookie异常
     if (data.code === ResultEnum.BizJwchCookieExceptionCode) {
+      console.log('触发教务处 Cookie 过期代码，执行自动重登');
       // 尝试重新登录并获取cookies和id
       const id = await AsyncStorage.getItem(JWCH_USER_ID_KEY);
       const password = await AsyncStorage.getItem(JWCH_USER_PASSWORD_KEY);
