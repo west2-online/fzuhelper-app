@@ -59,7 +59,7 @@ export default function SplashScreen() {
     setHideSystemBars(false);
     // 延迟使得系统栏恢复显示
     setTimeout(() => {
-      redirect('/(root)/(tabs)');
+      redirect('/(tabs)');
     }, 1);
   }, [redirect]);
 
@@ -117,6 +117,7 @@ export default function SplashScreen() {
     }
   }, [navigateToHome]);
 
+  // 处理开屏页点击事件
   const handleSplashClick = useCallback(async () => {
     // 网址或URI
     // TODO 类型判断
@@ -133,7 +134,7 @@ export default function SplashScreen() {
     navigateToHome();
   }, [navigateToHome, splashId, splashTarget]);
 
-  // 检查登录状态
+  // 检查登录状态，如果账户存在则会检查和服务器的连接状态
   const checkLoginStatus = useCallback(async () => {
     console.log('checkLoginStatus');
     if (!(await isAccountExist())) {
@@ -141,9 +142,20 @@ export default function SplashScreen() {
       redirect('/(guest)/academic-login');
       return;
     }
-    getSplash();
+    getSplash(); // 获取开屏页
+    // try {
+    //   await getApiV1JwchPing(); // 检查当前 App 和服务端的连接状态
+    // } catch (error: any) {
+    //   const data = handleError(error);
+    //   if (data) {
+    //     Alert.alert('请求失败', data.code + ': ' + data.message);
+    //   }
+    //   // 如果出现异常，例如网络错误或超时，会在 hooks/useSafeResponseSolve.ts 中处理
+    //   // 这里不必做额外的处理，需要注意的是，这个需要经由 handleError 处理
+    // }
   }, [getSplash, redirect]);
 
+  // 当用户同意隐私政策时我们触发安装第三方依赖（友盟）和检查登录状态
   const onPrivacyAgree = useCallback(async () => {
     setShouldShowPrivacyAgree(false);
     initThirdParty();

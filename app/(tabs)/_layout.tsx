@@ -3,7 +3,7 @@ import { useLayoutEffect } from 'react';
 
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 
-const NAVIGATION_TITLE = '主页';
+const NAVIGATION_TITLE = '首页';
 
 export default function TabLayout() {
   const navigation = useNavigation();
