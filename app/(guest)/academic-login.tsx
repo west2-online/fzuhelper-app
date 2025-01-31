@@ -16,7 +16,7 @@ import {
 } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -43,12 +43,24 @@ const LoginPage: React.FC = () => {
 
   // 打开用户协议
   const openUserAgreement = useCallback(() => {
-    Linking.openURL(URL_USER_AGREEMENT).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+    router.push({
+      pathname: '/(guest)/web',
+      params: {
+        url: URL_USER_AGREEMENT,
+        title: '用户协议',
+      },
+    });
   }, []);
 
   // 打开隐私政策
   const openPrivacyPolicy = useCallback(() => {
-    Linking.openURL(URL_PRIVACY_POLICY).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+    router.push({
+      pathname: '/(guest)/web',
+      params: {
+        url: URL_PRIVACY_POLICY,
+        title: '隐私政策',
+      },
+    });
   }, []);
 
   // 打开重置密码

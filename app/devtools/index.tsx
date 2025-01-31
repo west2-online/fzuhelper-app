@@ -1,12 +1,13 @@
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Link, Stack } from 'expo-router';
+import { Link, Stack, router } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { toast } from 'sonner-native';
+import { WebParams } from '../(guest)/web';
 
 const NAVIGATION_TITLE = 'Developer Tools';
 
@@ -77,13 +78,34 @@ export default function HomePage() {
             <Text>Show Success Toast</Text>
           </Button>
 
-          {/* 功能测试 */}
-          <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
+          {/* 页面跳转 */}
+          <Text className="m-3 my-4 text-lg font-bold">Quick Links</Text>
           <Link href="/(guest)/academic-login" asChild>
             <Button>
-              <Text>Push Login Page (No way back)</Text>
+              <Text>Login Page (No way back)</Text>
             </Button>
           </Link>
+          <Button
+            onPress={async () => {
+              const params: WebParams = {
+                url:
+                  'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx?id=' +
+                  (await AsyncStorage.getItem(JWCH_ID_KEY)),
+                jwchCookie: (await AsyncStorage.getItem(JWCH_COOKIES_KEY)) ?? undefined, // Cookie（可选）
+                title: '(Web 测试) 选课', // 页面标题（可选）
+              };
+
+              router.push({
+                pathname: '/(guest)/web',
+                params, // 传递参数
+              });
+            }}
+          >
+            <Text>Choose Course (web test)</Text>
+          </Button>
+
+          {/* 功能测试 */}
+          <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
           <Button onPress={testValidateCodeVerify}>
             <Text>Test Code Verify</Text>
           </Button>
@@ -91,10 +113,10 @@ export default function HomePage() {
             <Text>Set Expired Cookie</Text>
           </Button>
           <Button onPress={setExpiredAccessToken}>
-            <Text>Set Expired AccessToken(west2-online)</Text>
+            <Text>Set Expired AccessToken (west2-online)</Text>
           </Button>
           <Button onPress={setInvalidAccessTokenYmt}>
-            <Text>Set Invalid AccessToken(ymt)</Text>
+            <Text>Set Invalid AccessToken (ymt)</Text>
           </Button>
         </KeyboardAwareScrollView>
       </ThemedView>
