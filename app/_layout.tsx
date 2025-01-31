@@ -9,6 +9,7 @@ import { SystemBars } from 'react-native-edge-to-edge';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import '../global.css';
 
+// 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
 export default function RootLayout() {
   return (
     <Provider>

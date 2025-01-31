@@ -142,17 +142,12 @@ export default function SplashScreen() {
       redirect('/(guest)/academic-login');
       return;
     }
+    // 到这里我们视为至少登录过 1 次，但可能是非活跃状态，即 cookie 可能不可用
+    // 这里的逻辑是，我们默认 cookie 均可用，只需要保障和服务端的通信
+    // 当 cookie 不可用时，我们会 delay 到下一次需要 cookie 的请求（例如获取课表）时
+    // 此时我们按照正常逻辑请求服务端，会获得 cookie 过期的错误，再由我们客户端静态登录
+    // 整个逻辑自动化地实现在了 api/axios.ts 中
     getSplash(); // 获取开屏页
-    // try {
-    //   await getApiV1JwchPing(); // 检查当前 App 和服务端的连接状态
-    // } catch (error: any) {
-    //   const data = handleError(error);
-    //   if (data) {
-    //     Alert.alert('请求失败', data.code + ': ' + data.message);
-    //   }
-    //   // 如果出现异常，例如网络错误或超时，会在 hooks/useSafeResponseSolve.ts 中处理
-    //   // 这里不必做额外的处理，需要注意的是，这个需要经由 handleError 处理
-    // }
   }, [getSplash, redirect]);
 
   // 当用户同意隐私政策时我们触发安装第三方依赖（友盟）和检查登录状态
