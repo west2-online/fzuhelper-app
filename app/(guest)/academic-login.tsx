@@ -135,7 +135,7 @@ const LoginPage: React.FC = () => {
       AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
 
       // 跳转到首页
-      redirect('/(root)');
+      redirect('/(tabs)');
     } catch (error: any) {
       const data = handleError(error);
       if (data) {

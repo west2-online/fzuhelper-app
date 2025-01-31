@@ -59,7 +59,7 @@ export default function SplashScreen() {
     setHideSystemBars(false);
     // 延迟使得系统栏恢复显示
     setTimeout(() => {
-      redirect('/(root)/(tabs)');
+      redirect('/(tabs)');
     }, 1);
   }, [redirect]);
 
@@ -117,6 +117,7 @@ export default function SplashScreen() {
     }
   }, [navigateToHome]);
 
+  // 处理开屏页点击事件
   const handleSplashClick = useCallback(async () => {
     // 网址或URI
     // TODO 类型判断
@@ -133,7 +134,7 @@ export default function SplashScreen() {
     navigateToHome();
   }, [navigateToHome, splashId, splashTarget]);
 
-  // 检查登录状态
+  // 检查登录状态，如果账户存在则会检查和服务器的连接状态
   const checkLoginStatus = useCallback(async () => {
     console.log('checkLoginStatus');
     if (!(await isAccountExist())) {
@@ -141,9 +142,15 @@ export default function SplashScreen() {
       redirect('/(guest)/academic-login');
       return;
     }
-    getSplash();
+    // 到这里我们视为至少登录过 1 次，但可能是非活跃状态，即 cookie 可能不可用
+    // 这里的逻辑是，我们默认 cookie 均可用，只需要保障和服务端的通信
+    // 当 cookie 不可用时，我们会 delay 到下一次需要 cookie 的请求（例如获取课表）时
+    // 此时我们按照正常逻辑请求服务端，会获得 cookie 过期的错误，再由我们客户端静态登录
+    // 整个逻辑自动化地实现在了 api/axios.ts 中
+    getSplash(); // 获取开屏页
   }, [getSplash, redirect]);
 
+  // 当用户同意隐私政策时我们触发安装第三方依赖（友盟）和检查登录状态
   const onPrivacyAgree = useCallback(async () => {
     setShouldShowPrivacyAgree(false);
     initThirdParty();
