@@ -16,7 +16,7 @@ import {
 } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -123,7 +123,7 @@ const LoginPage: React.FC = () => {
       AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
 
       // 跳转到首页
-      redirect('/(root)');
+      redirect('/(tabs)');
     } catch (error: any) {
       const data = handleError(error);
       if (data) {

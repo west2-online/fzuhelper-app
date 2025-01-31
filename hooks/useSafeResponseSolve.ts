@@ -5,6 +5,8 @@ import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import { toast } from 'sonner-native';
 
+// 安全处理网络请求错误，在 api/axios.ts 中遇到错误时会抛出错误，之后会被这个函数捕获（捕获过程由每个页面请求逻辑实现）
+
 interface RejectError {
   type: RejectEnum; // Type 被精简为只有 6 种，具体查看 api/enum.ts
   data?: any; // 仅当 type 为 RejectEnum.BizFailed 和 RejectEnum.NativeLoginFailed 时存在

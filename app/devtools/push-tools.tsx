@@ -69,13 +69,14 @@ export default function PushToolsPage() {
 
   // 添加 Tag
   const addTag = async () => {
-    if (!tagInput.trim()) {
+    const tags = tagInput.trim().split(/\s+/); // 按照空格分割标签
+    if (tags.length === 0 || tags.some(tag => !tag)) {
       toast.error('请输入一个有效的 Tag');
       return;
     }
     try {
-      await ExpoUmengModule.addTags([tagInput.trim()]);
-      toast.info('已发送添加 Tag 请求');
+      await ExpoUmengModule.addTags(tags);
+      toast.info('已发送添加 Tag 请求，待添加 tags: ' + tags.join(', '));
     } catch (error) {
       toast.error('添加 Tag 失败: ' + error);
     }
@@ -83,15 +84,16 @@ export default function PushToolsPage() {
 
   // 删除 Tag
   const deleteTag = async () => {
-    if (!tagInput.trim()) {
+    const tags = tagInput.trim().split(/\s+/); // 按照空格分割标签
+    if (tags.length === 0 || tags.some(tag => !tag)) {
       toast.error('请输入一个有效的 Tag');
       return;
     }
     try {
-      await ExpoUmengModule.deleteTags([tagInput.trim()]);
-      toast.info('已发送删除 Tag 请求');
+      await ExpoUmengModule.deleteTags(tags);
+      toast.info('已发送删除 Tag 请求，待删除 tags: ' + tags.join(', '));
     } catch (error) {
-      toast.error('删除 Tag 失败: ' + error);
+      toast.error('添加 Tag 失败: ' + error);
     }
   };
 
