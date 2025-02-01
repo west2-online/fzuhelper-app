@@ -47,9 +47,9 @@ export default function Web() {
   // 处理 Android 返回键
   useEffect(() => {
     if (Platform.OS === 'android') {
-      BackHandler.addEventListener('hardwareBackPress', onAndroidBackPress);
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onAndroidBackPress);
       return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onAndroidBackPress);
+        subscription.remove();
       };
     }
   }, [onAndroidBackPress]);
