@@ -3,17 +3,17 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
+import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '统一身份认证';
-const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
-const URL_PRIVACY_POLICY = 'https://fzuhelper.west2.online/onekey/FZUHelper.html';
 const URL_FORGET_PASSWORD = 'https://sso.fzu.edu.cn/public/client/forget-password/qr';
 
 const UnifiedLoginPage: React.FC = () => {
@@ -29,12 +29,24 @@ const UnifiedLoginPage: React.FC = () => {
 
   // 打开用户协议
   const openUserAgreement = useCallback(() => {
-    Linking.openURL(URL_USER_AGREEMENT).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+    router.push({
+      pathname: '/(guest)/web',
+      params: {
+        url: URL_USER_AGREEMENT,
+        title: '用户协议',
+      },
+    });
   }, []);
 
   // 打开隐私政策
   const openPrivacyPolicy = useCallback(() => {
-    Linking.openURL(URL_PRIVACY_POLICY).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+    router.push({
+      pathname: '/(guest)/web',
+      params: {
+        url: URL_PRIVACY_POLICY,
+        title: '隐私政策',
+      },
+    });
   }, []);
 
   // 忘记密码
@@ -45,15 +57,15 @@ const UnifiedLoginPage: React.FC = () => {
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
     if (!isAgree) {
-      Alert.alert('错误', '请先阅读并同意用户协议和隐私政策');
+      toast.error('请先阅读并同意用户协议和隐私政策');
       return;
     }
     if (!account) {
-      Alert.alert('错误', '请输入用户名');
+      toast.error('请输入用户名');
       return;
     }
     if (!accountPassword) {
-      Alert.alert('错误', '请输入密码');
+      toast.error('请输入密码');
       return;
     }
 
@@ -90,7 +102,7 @@ const UnifiedLoginPage: React.FC = () => {
       <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
 
       <SafeAreaView className="bg-background" edges={['bottom', 'left', 'right']}>
-        <ScrollView
+        <KeyboardAwareScrollView
           className="h-full"
           contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
@@ -152,22 +164,38 @@ const UnifiedLoginPage: React.FC = () => {
             </View>
 
             {/* 底部协议 */}
-            <View className="mb-6 mt-12 w-full flex-row justify-center">
+            <TouchableOpacity
+              activeOpacity={1}
+              className="mb-4 mt-12 w-full flex-row justify-center py-2"
+              onPress={() => setIsAgree(!isAgree)}
+            >
               <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
               <Text className="text-center text-muted-foreground">
                 {'  '}
                 阅读并同意{' '}
-                <Text className="text-primary" onPress={openUserAgreement}>
+                <Text
+                  className="text-primary"
+                  onPress={event => {
+                    event.stopPropagation();
+                    openUserAgreement();
+                  }}
+                >
                   用户协议
                 </Text>{' '}
                 和{' '}
-                <Text className="text-primary" onPress={openPrivacyPolicy}>
+                <Text
+                  className="text-primary"
+                  onPress={event => {
+                    event.stopPropagation();
+                    openPrivacyPolicy();
+                  }}
+                >
                   隐私政策
                 </Text>
               </Text>
-            </View>
+            </TouchableOpacity>
           </ThemedView>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </>
   );

@@ -1,0 +1,10 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ExpoUmengModule"],
+    "appDelegateSubscribers": ["ExpoUmengAppDelegate"]
+  },
+  "android": {
+    "modules": ["com.west2online.umeng.ExpoUmengModule"]
+  }
+}

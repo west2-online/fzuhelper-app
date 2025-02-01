@@ -18,6 +18,7 @@ export default function HomePage() {
   const [userInfo, setUserInfo] = useState({
     stu_id: '', // 学号
     birthday: '', // 生日
+    name: '', // 姓名
     sex: '', // 性别
     college: '', // 所属学院
     grade: '', // 所属年级
@@ -28,6 +29,7 @@ export default function HomePage() {
     stu_id: '学号',
     birthday: '生日',
     sex: '性别',
+    name: '姓名',
     college: '所属学院',
     grade: '所属年级',
     major: '所属专业',
@@ -60,14 +62,7 @@ export default function HomePage() {
     setIsRefreshing(true); // 禁用按钮
     try {
       const result = await getApiV1JwchUserInfo();
-      const fetchedInfo = {
-        stu_id: result.data.data.stu_id,
-        birthday: result.data.data.birthday,
-        sex: result.data.data.sex,
-        college: result.data.data.college,
-        grade: result.data.data.grade,
-        major: result.data.data.major,
-      };
+      const fetchedInfo = result.data.data;
       setUserInfo(fetchedInfo);
       await saveUserInfoToStorage(fetchedInfo); // 同步到 AsyncStorage
     } catch (error: any) {

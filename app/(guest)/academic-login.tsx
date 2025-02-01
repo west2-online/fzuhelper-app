@@ -3,6 +3,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import {
   JWCH_COOKIES_KEY,
@@ -10,21 +11,24 @@ import {
   JWCH_USER_ID_KEY,
   JWCH_USER_INFO_KEY,
   JWCH_USER_PASSWORD_KEY,
+  URL_PRIVACY_POLICY,
+  URL_USER_AGREEMENT,
 } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '登录';
-const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
-const URL_PRIVACY_POLICY = 'https://fzuhelper.west2.online/onekey/FZUHelper.html';
 const URL_RESET_PASSWORD = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
 
 const LoginPage: React.FC = () => {
   const loginRef = useRef<UserLogin | null>(null);
+  const redirect = useRedirectWithoutHistory();
   if (!loginRef.current) {
     loginRef.current = new UserLogin();
   }
@@ -37,25 +41,26 @@ const LoginPage: React.FC = () => {
   const [isAgree, setIsAgree] = useState(false);
   const { handleError } = useSafeResponseSolve();
 
-  useEffect(() => {
-    try {
-      loginRef
-        .current!.getCaptcha()
-        .then(res => setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`));
-    } catch (error) {
-      console.error(error);
-      Alert.alert('错误', '获取验证码失败');
-    }
-  }, []);
-
   // 打开用户协议
   const openUserAgreement = useCallback(() => {
-    Linking.openURL(URL_USER_AGREEMENT).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+    router.push({
+      pathname: '/(guest)/web',
+      params: {
+        url: URL_USER_AGREEMENT,
+        title: '用户协议',
+      },
+    });
   }, []);
 
   // 打开隐私政策
   const openPrivacyPolicy = useCallback(() => {
-    Linking.openURL(URL_PRIVACY_POLICY).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+    router.push({
+      pathname: '/(guest)/web',
+      params: {
+        url: URL_PRIVACY_POLICY,
+        title: '隐私政策',
+      },
+    });
   }, []);
 
   // 打开重置密码
@@ -81,26 +86,30 @@ const LoginPage: React.FC = () => {
       setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`);
     } catch (error) {
       console.error(error);
-      Alert.alert('错误', '获取验证码失败');
+      toast.error('获取验证码失败');
     }
   }, []);
+
+  useEffect(() => {
+    refreshCaptcha();
+  }, [refreshCaptcha]);
 
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
     if (!isAgree) {
-      Alert.alert('错误', '请先阅读并同意用户协议和隐私政策');
-      return;
-    }
-    if (!username) {
-      Alert.alert('错误', '请输入学号');
-      return;
-    }
-    if (!password) {
-      Alert.alert('错误', '请输入密码');
+      toast.error('请先阅读并同意用户协议和隐私政策');
       return;
     }
     if (!captcha) {
-      Alert.alert('错误', '请输入验证码');
+      toast.error('请输入验证码');
+      return;
+    }
+    if (!username) {
+      toast.error('请输入学号');
+      return;
+    }
+    if (!password) {
+      toast.error('请输入密码');
       return;
     }
 
@@ -126,7 +135,7 @@ const LoginPage: React.FC = () => {
       AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
 
       // 跳转到首页
-      router.push('/');
+      redirect('/(tabs)');
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
@@ -137,14 +146,14 @@ const LoginPage: React.FC = () => {
       // 恢复按钮状态
       setIsLoggingIn(false);
     }
-  }, [isAgree, username, password, captcha, refreshCaptcha, handleError]);
+  }, [isAgree, captcha, username, password, redirect, handleError, refreshCaptcha]);
 
   return (
     <>
       <Stack.Screen options={{ title: NAVIGATION_TITLE, headerShown: false }} />
 
       <SafeAreaView className="bg-background">
-        <ScrollView
+        <KeyboardAwareScrollView
           className="h-full"
           contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
@@ -183,11 +192,17 @@ const LoginPage: React.FC = () => {
                   placeholder="请输入验证码"
                   className="mr-4 flex-1 px-1 py-3"
                 />
-                {captchaImage && (
-                  <TouchableOpacity onPress={refreshCaptcha}>
+                <TouchableOpacity onPress={refreshCaptcha}>
+                  {captchaImage ? (
+                    // 显示验证码图片
                     <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
-                  </TouchableOpacity>
-                )}
+                  ) : (
+                    // 显示灰色占位框
+                    <View className="h-8 w-40 items-center justify-center bg-gray-200">
+                      <Text className="text-xs text-gray-500">加载中...</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
 
               {/* 登录按钮 */}
@@ -211,22 +226,38 @@ const LoginPage: React.FC = () => {
             </View>
 
             {/* 底部协议 */}
-            <View className="mb-6 mt-12 w-full flex-row justify-center">
+            <TouchableOpacity
+              activeOpacity={1}
+              className="mb-4 mt-12 w-full flex-row justify-center py-2"
+              onPress={() => setIsAgree(!isAgree)}
+            >
               <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
               <Text className="text-center text-muted-foreground">
                 {'  '}
                 阅读并同意{' '}
-                <Text className="text-primary" onPress={openUserAgreement}>
+                <Text
+                  className="text-primary"
+                  onPress={event => {
+                    event.stopPropagation();
+                    openUserAgreement();
+                  }}
+                >
                   用户协议
                 </Text>{' '}
                 和{' '}
-                <Text className="text-primary" onPress={openPrivacyPolicy}>
+                <Text
+                  className="text-primary"
+                  onPress={event => {
+                    event.stopPropagation();
+                    openPrivacyPolicy();
+                  }}
+                >
                   隐私政策
                 </Text>
               </Text>
-            </View>
+            </TouchableOpacity>
           </ThemedView>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </>
   );
