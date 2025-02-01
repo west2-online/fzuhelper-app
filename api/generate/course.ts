@@ -45,8 +45,11 @@ export async function getApiV1JwchCourseList(
 export async function getApiV1JwchTermList(options?: {
   [key: string]: unknown;
 }) {
-  return request<Record<string, unknown>>('/api/v1/jwch/term/list', {
-    method: 'GET',
-    ...(options || {}),
-  });
+  return request<{ code: string; message: string; data: string[] }>(
+    '/api/v1/jwch/term/list',
+    {
+      method: 'GET',
+      ...(options || {}),
+    }
+  );
 }
