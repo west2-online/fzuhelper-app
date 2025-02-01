@@ -12,17 +12,27 @@ export async function getApiV1JwchPing(options?: { [key: string]: unknown }) {
 }
 
 /** 获取 Token 通过在header中提供id和cookies来获取token GET /api/v1/login/access-token https://apifox.com/web/project/3275694/apis/api-239019172-run */
-export async function getApiV1LoginAccessToken(options?: { [key: string]: unknown }) {
-  return request<{ code: string; message: string }>('/api/v1/login/access-token', {
-    method: 'GET',
-    ...(options || {}),
-  });
+export async function getApiV1LoginAccessToken(options?: {
+  [key: string]: unknown;
+}) {
+  return request<{ code: string; message: string }>(
+    '/api/v1/login/access-token',
+    {
+      method: 'GET',
+      ...(options || {}),
+    }
+  );
 }
 
 /** 刷新 Token 通过在 header 中提供 refreshtoken（长期）  来刷新 accesstoken（短期） GET /api/v1/login/refresh-token https://apifox.com/web/project/3275694/apis/api-239019200-run */
-export async function getApiV1LoginRefreshToken(options?: { [key: string]: unknown }) {
-  return request<{ code: string; message: string }>('/api/v1/login/refresh-token', {
-    method: 'GET',
-    ...(options || {}),
-  });
+export async function getApiV1LoginRefreshToken(options?: {
+  [key: string]: unknown;
+}) {
+  return request<{ code: string; message: string }>(
+    '/api/v1/login/refresh-token',
+    {
+      method: 'GET',
+      ...(options || {}),
+    }
+  );
 }

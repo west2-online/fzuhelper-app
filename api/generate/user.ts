@@ -4,7 +4,9 @@ import * as API from './types';
 import request from '../axios';
 
 /** 个人信息 后面如果有别的需求的话在返回字段接着添加，目前这些够了 GET /api/v1/jwch/user/info https://apifox.com/web/project/3275694/apis/api-109631149-run */
-export async function getApiV1JwchUserInfo(options?: { [key: string]: unknown }) {
+export async function getApiV1JwchUserInfo(options?: {
+  [key: string]: unknown;
+}) {
   return request<{
     code: string;
     message: string;
@@ -31,17 +33,17 @@ export async function putApiV1JwchUserInfo(
     /** 新密码 */
     new: string;
   },
-  options?: { [key: string]: unknown },
+  options?: { [key: string]: unknown }
 ) {
   const formData = new FormData();
 
-  Object.keys(body).forEach(ele => {
+  Object.keys(body).forEach((ele) => {
     const item = (body as { [key: string]: any })[ele];
 
     if (item !== undefined && item !== null) {
       if (typeof item === 'object' && !(item instanceof File)) {
         if (item instanceof Array) {
-          item.forEach(f => formData.append(ele, f || ''));
+          item.forEach((f) => formData.append(ele, f || ''));
         } else {
           formData.append(ele, JSON.stringify(item));
         }
@@ -67,17 +69,17 @@ export async function postApiV1UserValidateCode(
     /** 验证码图片的base64 */
     image: string;
   },
-  options?: { [key: string]: unknown },
+  options?: { [key: string]: unknown }
 ) {
   const formData = new FormData();
 
-  Object.keys(body).forEach(ele => {
+  Object.keys(body).forEach((ele) => {
     const item = (body as { [key: string]: any })[ele];
 
     if (item !== undefined && item !== null) {
       if (typeof item === 'object' && !(item instanceof File)) {
         if (item instanceof Array) {
-          item.forEach(f => formData.append(ele, f || ''));
+          item.forEach((f) => formData.append(ele, f || ''));
         } else {
           formData.append(ele, JSON.stringify(item));
         }
@@ -87,12 +89,15 @@ export async function postApiV1UserValidateCode(
     }
   });
 
-  return request<{ code: string; message: string; data: string }>('/api/v1/user/validate-code', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-    data: formData,
-    ...(options || {}),
-  });
+  return request<{ code: string; message: string; data: string }>(
+    '/api/v1/user/validate-code',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      data: formData,
+      ...(options || {}),
+    }
+  );
 }

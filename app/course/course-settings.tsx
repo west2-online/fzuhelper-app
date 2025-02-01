@@ -11,13 +11,27 @@ export default function AcademicPage() {
   const [isCalendarExportEnabled, setCalendarExportEnabled] = useState(false); // 是否导出到日历
   const [isShowNonCurrentWeekCourses, setShowNonCurrentWeekCourses] = useState(false); // 是否显示非本周课程
   const [isAutoImportAdjustmentEnabled, setAutoImportAdjustmentEnabled] = useState(false); // 是否自动导入调课
-  const [selectedSemester, setSelectedSemester] = useState();
+
+  // 定义学期数据源（此处使用临时数据）
+  const semesters = [
+    { label: '2023年春季学期', value: 'spring_2023' },
+    { label: '2023年秋季学期', value: 'fall_2023' },
+    { label: '2024年春季学期', value: 'spring_2024' },
+  ];
+
+  const [selectedSemester, setSelectedSemester] = useState(semesters[0].value); // 默认使用第一学期（此处需要修改）
 
   // 设置导航栏标题
   const navigation = useNavigation();
   useLayoutEffect(() => {
     navigation.setOptions({ title: NAVIGATION_TITLE });
   }, [navigation]);
+
+  // const getTermsData = useCallback(async () => {
+  //   try {
+
+  //   }
+  // }
 
   // 选择学期开关
   const toggleSwitchSemester = useCallback(() => {
@@ -115,8 +129,9 @@ export default function AcademicPage() {
         <View style={styles.pickerContainer}>
           <Text style={styles.pickerTitle}>选择学期</Text>
           <Picker selectedValue={selectedSemester} onValueChange={itemValue => setSelectedSemester(itemValue)}>
-            <Picker.Item label="Java" value="java" />
-            <Picker.Item label="JavaScript" value="js" />
+            {semesters.map(semester => (
+              <Picker.Item key={semester.value} label={semester.label} value={semester.value} />
+            ))}
           </Picker>
 
           {/* 确认按钮 */}
