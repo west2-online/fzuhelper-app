@@ -27,11 +27,11 @@ export default function AcademicPage() {
     navigation.setOptions({ title: NAVIGATION_TITLE });
   }, [navigation]);
 
-  // const getTermsData = useCallback(async () => {
-  //   try {
-
-  //   }
-  // }
+  const getTermsData = useCallback(async () => {
+    try {
+      // const result = awa
+    }
+  }
 
   // 选择学期开关
   const toggleSwitchSemester = useCallback(() => {

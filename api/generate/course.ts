@@ -40,3 +40,13 @@ export async function getApiV1JwchCourseList(
     ...(options || {}),
   });
 }
+
+/** 就读学期列表 GET /api/v1/jwch/term/list https://apifox.com/web/project/3275694/apis/api-257606812-run */
+export async function getApiV1JwchTermList(options?: {
+  [key: string]: unknown;
+}) {
+  return request<Record<string, unknown>>('/api/v1/jwch/term/list', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
