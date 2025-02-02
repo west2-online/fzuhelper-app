@@ -1,11 +1,12 @@
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { Modal, StyleSheet, Switch, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getApiV1JwchTermList } from '@/api/generate';
+import SwitchWithLabel from '@/components/Switch';
 import { ThemedView } from '@/components/ThemedView';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
@@ -125,78 +126,48 @@ export default function AcademicPage() {
   }, [selectedSemester, updateSemesterLabel, saveSettingsToStorage]);
 
   return (
-    <ThemedView className="flex-1 bg-white p-4">
+    <ThemedView className="flex-1 bg-white px-8 pt-8">
       {/* 菜单列表 */}
-      <Text style={styles.sectionTitle}>课程数据</Text>
+      <Text className="mb-2 text-sm text-foreground">课程数据</Text>
       <View className="space-y-4">
-        <TouchableOpacity className="flex-row items-center justify-between p-4">
-          <View className="flex-row items-center space-x-4">
-            <Text className="ml-5 text-lg text-foreground">刷新数据</Text>
+        <TouchableOpacity className="flex-row items-center justify-between py-4">
+          <View className="flex-row items-center">
+            <Text className="text-lg text-foreground">刷新数据</Text>
           </View>
         </TouchableOpacity>
       </View>
 
       <View className="space-y-4">
         <TouchableOpacity
-          className="flex-row items-center justify-between p-4"
+          className="flex-row items-center justify-between py-4"
           onPress={toggleSwitchSemester}
           disabled={isLoadingSemester}
         >
-          <View className="flex-row items-center space-x-4">
-            <Text className="ml-5 text-lg text-foreground">{isLoadingSemester ? '加载中...' : semesterLabel}</Text>
+          <View className="flex-row items-center">
+            <Text className="text-lg text-foreground">{isLoadingSemester ? '加载中...' : semesterLabel}</Text>
           </View>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.sectionTitle}>开关设置</Text>
+      <Text className="mb-2 mt-4 text-sm text-foreground">开关设置</Text>
 
-      <View className="space-y-4">
-        <TouchableOpacity
-          className="flex-row items-center justify-between p-4"
-          onPress={() => setCalendarExportEnabled(prev => !prev)} // 切换 Switch 状态
-        >
-          <View className="flex-row items-center space-x-4">
-            <Text className="ml-5 text-lg text-foreground">导出到日历</Text>
-          </View>
-          <Switch
-            value={isCalendarExportEnabled}
-            onValueChange={() => setCalendarExportEnabled(prev => !prev)} // 保持逻辑一致
-            style={styles.switch}
-          />
-        </TouchableOpacity>
-      </View>
+      <SwitchWithLabel
+        label="导出到日历"
+        value={isCalendarExportEnabled}
+        onValueChange={() => setCalendarExportEnabled(prev => !prev)}
+      />
 
-      <View className="space-y-4">
-        <TouchableOpacity
-          className="flex-row items-center justify-between p-4"
-          onPress={() => setShowNonCurrentWeekCourses(prev => !prev)} // 切换 Switch 状态
-        >
-          <View className="flex-row items-center space-x-4">
-            <Text className="ml-5 text-lg text-foreground">显示非本周课程</Text>
-          </View>
-          <Switch
-            value={isShowNonCurrentWeekCourses}
-            onValueChange={() => setShowNonCurrentWeekCourses(prev => !prev)} // 保持逻辑一致
-            style={styles.switch}
-          />
-        </TouchableOpacity>
-      </View>
+      <SwitchWithLabel
+        label="显示非本周课程"
+        value={isShowNonCurrentWeekCourses}
+        onValueChange={() => setShowNonCurrentWeekCourses(prev => !prev)}
+      />
 
-      <View className="space-y-4">
-        <TouchableOpacity
-          className="flex-row items-center justify-between p-4"
-          onPress={() => setAutoImportAdjustmentEnabled(prev => !prev)} // 切换 Switch 状态
-        >
-          <View className="flex-row items-center space-x-4">
-            <Text className="ml-5 text-lg text-foreground">自动导入调课信息</Text>
-          </View>
-          <Switch
-            value={isAutoImportAdjustmentEnabled}
-            onValueChange={() => setAutoImportAdjustmentEnabled(prev => !prev)} // 保持逻辑一致
-            style={styles.switch}
-          />
-        </TouchableOpacity>
-      </View>
+      <SwitchWithLabel
+        label="自动导入调课信息"
+        value={isAutoImportAdjustmentEnabled}
+        onValueChange={() => setAutoImportAdjustmentEnabled(prev => !prev)}
+      />
 
       {/* 底部弹出的 Picker */}
       <Modal
@@ -258,14 +229,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  switch: {
-    marginLeft: 'auto', // 自动将 Switch 推到右侧
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 10,
-    marginLeft: 10,
   },
 });
