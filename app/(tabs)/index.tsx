@@ -99,16 +99,16 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
         <Dialog key={i}>
           <DialogTrigger asChild>
             <Pressable
-              className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center border border-gray-200"
+              className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border border-gray-200 p-[1px]"
               style={{
                 flexGrow: span,
                 height: (span / 11) * height,
               }}
             >
-              <Text className="truncate text-wrap break-all text-center text-[10px] text-gray-500">
+              <Text className="truncate text-wrap break-all text-center text-[11px] text-gray-500">
                 {schedule.name}
               </Text>
-              <Text className="text-wrap break-all text-[8px] text-gray-500">{schedule.location}</Text>
+              <Text className="text-wrap break-all text-[11px] text-gray-500">{schedule.location}</Text>
             </Pressable>
           </DialogTrigger>
 
