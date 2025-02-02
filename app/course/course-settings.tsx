@@ -6,6 +6,7 @@ import { toast } from 'sonner-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getApiV1JwchTermList } from '@/api/generate';
+import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
 import { ThemedView } from '@/components/ThemedView';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
@@ -23,7 +24,7 @@ export default function AcademicPage() {
   const [semesters, setSemesters] = useState<{ label: string; value: string }[]>([]); // 动态加载的数据
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
   const [selectedSemester, setSelectedSemester] = useState(''); // 默认使用第一学期（此处需要修改）
-  const [semesterLabel, setSemesterLabel] = useState('切换学期 (当前学期:未加载)'); // 学期标签
+  const [semesterLabel, setSemesterLabel] = useState(''); // 学期标签
   const [isLoadingSemester, setLoadingSemester] = useState(false); // 是否正在加载学期数据
 
   // 设置导航栏标题
@@ -37,7 +38,7 @@ export default function AcademicPage() {
     (semester: string) => {
       const semesterObject = semesters.find(item => item.value === semester);
       if (semesterObject) {
-        setSemesterLabel(`切换学期 (当前学期:${semesterObject.label})`);
+        setSemesterLabel(semesterObject.label);
       }
     },
     [semesters],
@@ -56,7 +57,7 @@ export default function AcademicPage() {
       const semester = parsedSettings.selectedSemester;
       const year = semester.slice(0, 4);
       const term = semester.slice(4) === '01' ? '春季' : '秋季';
-      setSemesterLabel(`切换学期 (当前学期:${year}年${term}学期)`);
+      setSemesterLabel(`${year}年${term}学期`);
 
       setCalendarExportEnabled(parsedSettings.calendarExportEnabled);
       setShowNonCurrentWeekCourses(parsedSettings.showNonCurrentWeekCourses);
@@ -129,25 +130,15 @@ export default function AcademicPage() {
     <ThemedView className="flex-1 bg-white px-8 pt-8">
       {/* 菜单列表 */}
       <Text className="mb-2 text-sm text-foreground">课程数据</Text>
-      <View className="space-y-4">
-        <TouchableOpacity className="flex-row items-center justify-between py-4">
-          <View className="flex-row items-center">
-            <Text className="text-lg text-foreground">刷新数据</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
 
-      <View className="space-y-4">
-        <TouchableOpacity
-          className="flex-row items-center justify-between py-4"
-          onPress={toggleSwitchSemester}
-          disabled={isLoadingSemester}
-        >
-          <View className="flex-row items-center">
-            <Text className="text-lg text-foreground">{isLoadingSemester ? '加载中...' : semesterLabel}</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      <LabelEntry leftText="刷新数据" />
+
+      <LabelEntry
+        leftText="切换学期"
+        rightText={isLoadingSemester ? '加载中...' : semesterLabel}
+        onPress={toggleSwitchSemester}
+        disabled={isLoadingSemester}
+      />
 
       <Text className="mb-2 mt-4 text-sm text-foreground">开关设置</Text>
 
