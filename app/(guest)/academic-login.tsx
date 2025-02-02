@@ -41,13 +41,13 @@ const LoginPage: React.FC = () => {
   const [isAgree, setIsAgree] = useState(false);
   const { handleError } = useSafeResponseSolve();
 
-  // 打开用户协议
+  // 打开服务协议
   const openUserAgreement = useCallback(() => {
     router.push({
       pathname: '/(guest)/web',
       params: {
         url: URL_USER_AGREEMENT,
-        title: '用户协议',
+        title: '服务协议',
       },
     });
   }, []);
@@ -97,7 +97,7 @@ const LoginPage: React.FC = () => {
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
     if (!isAgree) {
-      toast.error('请先阅读并同意用户协议和隐私政策');
+      toast.error('请先阅读并同意服务协议和隐私政策');
       return;
     }
     if (!captcha) {
@@ -242,7 +242,7 @@ const LoginPage: React.FC = () => {
                     openUserAgreement();
                   }}
                 >
-                  用户协议
+                  服务协议
                 </Text>{' '}
                 和{' '}
                 <Text
