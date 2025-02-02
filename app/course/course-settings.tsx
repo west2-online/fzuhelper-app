@@ -44,26 +44,32 @@ export default function AcademicPage() {
     [semesters],
   );
 
+  // 将 202401 转化为 2024年秋季，202402 转化为 2025年春季这样的格式
+  const transferSemester = useCallback((semester: string) => {
+    // 额外判断一下长度，防止出现异常
+    if (semester.length !== 6) {
+      return '未知学期(' + semester + ')';
+    }
+    const year = parseInt(semester.slice(0, 4), 10);
+    const term = semester.slice(4);
+    return `${year + (term === '01' ? 0 : 1)}年${term === '01' ? '秋季' : '春季'}`;
+  }, []);
+
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
-    // 读取数据
     console.log('读取课程设置');
     const settings = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
     if (settings) {
       const parsedSettings = JSON.parse(settings);
       setSelectedSemester(parsedSettings.selectedSemester);
-
-      // **直接更新标题，不依赖 semesters**
       const semester = parsedSettings.selectedSemester;
-      const year = semester.slice(0, 4);
-      const term = semester.slice(4) === '01' ? '春季' : '秋季';
-      setSemesterLabel(`${year}年${term}学期`);
+      setSemesterLabel(transferSemester(semester));
 
       setCalendarExportEnabled(parsedSettings.calendarExportEnabled);
       setShowNonCurrentWeekCourses(parsedSettings.showNonCurrentWeekCourses);
       setAutoImportAdjustmentEnabled(parsedSettings.autoImportAdjustmentEnabled);
     }
-  }, []);
+  }, [transferSemester]);
 
   // 将当前设置保存至 AsyncStorage，采用 json 形式保存
   const saveSettingsToStorage = useCallback(async () => {
@@ -80,20 +86,16 @@ export default function AcademicPage() {
   // 页面加载时读取设置，页面卸载时保存设置
   useEffect(() => {
     (async () => {
-      await readSettingsFromStorage(); // 再读取设置
+      await readSettingsFromStorage();
     })();
   }, [readSettingsFromStorage]);
 
   // 获取学期数据
   const getTermsData = useCallback(async () => {
     try {
-      const result = await getApiV1JwchTermList(); // 返回的数据格式为 ['202401', '202402'] 这样的
-
-      // 将结果转换为用户友好的格式
+      const result = await getApiV1JwchTermList(); // 数据格式样例： ['202401', '202402']
       const formattedSemesters = result.data.data.map(term => {
-        const year = term.slice(0, 4); // 获取年份
-        const semester = term.slice(4); // 获取学期
-        const label = `${year}年${semester === '01' ? '春季' : '秋季'}学期`; // 格式化标签
+        const label = transferSemester(term); // 转换为用户友好的格式
         return { label, value: term }; // 返回对象
       });
       setSemesters(formattedSemesters); // 更新学期数据源
@@ -108,7 +110,7 @@ export default function AcademicPage() {
         toast.error(data.msg ? data.msg : '未知错误');
       }
     }
-  }, [handleError, updateSemesterLabel]);
+  }, [handleError, updateSemesterLabel, transferSemester]);
 
   // 选择学期开关
   const toggleSwitchSemester = useCallback(async () => {
