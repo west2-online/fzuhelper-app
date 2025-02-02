@@ -99,7 +99,7 @@ export default function AboutPage() {
             <Pressable
               className="flex-row items-center"
               onPress={() => {
-                Linking.openURL('http://www.beian.miit.gov.cn/');
+                Linking.openURL('https://beian.miit.gov.cn/');
               }}
             >
               <Text className="mr-1 text-sm text-muted-foreground">ICP备案号：闽ICP备19020557号-4A</Text>
