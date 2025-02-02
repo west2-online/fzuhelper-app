@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from 'expo-router';
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Modal, TouchableWithoutFeedback, View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -16,17 +16,29 @@ import { COURSE_SETTINGS_KEY } from '@/lib/constants';
 
 const NAVIGATION_TITLE = '课程表设置';
 
+interface SemesterData {
+  label: string;
+  value: string;
+}
+
+interface Config {
+  selectedSemester: string;
+  calendarExportEnabled: boolean;
+  showNonCurrentWeekCourses: boolean;
+  autoImportAdjustmentEnabled: boolean;
+}
+
 export default function AcademicPage() {
   // 下面这些数据会在页面 Loading 时读取 AsyncStorage，如果没有才使用下列默认值
   const [isPickerVisible, setPickerVisible] = useState(false); // 是否显示 Picker
+  const [selectedSemester, setSelectedSemester] = useState(''); // 默认使用第一学期（此处需要修改）
   const [isCalendarExportEnabled, setCalendarExportEnabled] = useState(false); // 是否导出到日历
   const [isShowNonCurrentWeekCourses, setShowNonCurrentWeekCourses] = useState(false); // 是否显示非本周课程
   const [isAutoImportAdjustmentEnabled, setAutoImportAdjustmentEnabled] = useState(false); // 是否自动导入调课
-  const [semesters, setSemesters] = useState<{ label: string; value: string }[]>([]); // 动态加载的数据
+  const [semesters, setSemesters] = useState<SemesterData[]>([]); // 动态加载的数据
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
-  const [selectedSemester, setSelectedSemester] = useState(''); // 默认使用第一学期（此处需要修改）
-  const [semesterLabel, setSemesterLabel] = useState(''); // 学期标签
   const [isLoadingSemester, setLoadingSemester] = useState(false); // 是否正在加载学期数据
+  const [pickerSelectedValue, setPickerSelectedValue] = useState(''); // Picker 选择的值
 
   // 设置导航栏标题
   const navigation = useNavigation();
@@ -34,55 +46,54 @@ export default function AcademicPage() {
     navigation.setOptions({ title: NAVIGATION_TITLE });
   }, [navigation]);
 
-  // 更新学期标签，第一个参数为当前学期（例如 202401）
-  const updateSemesterLabel = useCallback(
-    (semester: string) => {
-      const semesterObject = semesters.find(item => item.value === semester);
-      if (semesterObject) {
-        setSemesterLabel(semesterObject.label);
-      }
-    },
-    [semesters],
-  );
-
-  // 将 202401 转化为 2024年秋季，202402 转化为 2025年春季这样的格式
+  // 处理显示名称，示例：
+  // 202401 -> 2024年秋季
+  // 202402 -> 2025年春季
   const transferSemester = useCallback((semester: string) => {
     // 额外判断一下长度，防止出现异常
     if (semester.length !== 6) {
-      return '未知学期(' + semester + ')';
+      return '未知学期 (' + semester + ')';
     }
+
     const year = parseInt(semester.slice(0, 4), 10);
     const term = semester.slice(4);
+
     return `${year + (term === '01' ? 0 : 1)}年${term === '01' ? '秋季' : '春季'}`;
   }, []);
+
+  const semesterLabel = useMemo(() => transferSemester(selectedSemester), [selectedSemester, transferSemester]);
 
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
     console.log('读取课程设置');
     const settings = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
     if (settings) {
-      const parsedSettings = JSON.parse(settings);
+      const parsedSettings = JSON.parse(settings) as Config;
       setSelectedSemester(parsedSettings.selectedSemester);
-      const semester = parsedSettings.selectedSemester;
-      setSemesterLabel(transferSemester(semester));
-
+      setPickerSelectedValue(parsedSettings.selectedSemester); // 设置 Picker 的默认值
       setCalendarExportEnabled(parsedSettings.calendarExportEnabled);
       setShowNonCurrentWeekCourses(parsedSettings.showNonCurrentWeekCourses);
       setAutoImportAdjustmentEnabled(parsedSettings.autoImportAdjustmentEnabled);
     }
-  }, [transferSemester]);
+  }, []);
 
   // 将当前设置保存至 AsyncStorage，采用 json 形式保存
-  const saveSettingsToStorage = useCallback(async () => {
-    console.log('保存课程设置');
-    const settings = {
-      selectedSemester: selectedSemester,
-      calendarExportEnabled: isCalendarExportEnabled,
-      showNonCurrentWeekCourses: isShowNonCurrentWeekCourses,
-      autoImportAdjustmentEnabled: isAutoImportAdjustmentEnabled,
-    };
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(settings));
-  }, [isCalendarExportEnabled, isShowNonCurrentWeekCourses, isAutoImportAdjustmentEnabled, selectedSemester]);
+  const saveSettingsToStorage = useCallback(
+    async (newConfig: Partial<Config> = {}) => {
+      console.log('保存课程设置');
+      const settings = Object.assign(
+        {
+          selectedSemester: selectedSemester,
+          calendarExportEnabled: isCalendarExportEnabled,
+          showNonCurrentWeekCourses: isShowNonCurrentWeekCourses,
+          autoImportAdjustmentEnabled: isAutoImportAdjustmentEnabled,
+        },
+        newConfig,
+      );
+      await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(settings));
+    },
+    [isCalendarExportEnabled, isShowNonCurrentWeekCourses, isAutoImportAdjustmentEnabled, selectedSemester],
+  );
 
   // 页面加载时读取设置，页面卸载时保存设置
   useEffect(() => {
@@ -100,18 +111,15 @@ export default function AcademicPage() {
         return { label, value: term }; // 返回对象
       });
       setSemesters(formattedSemesters); // 更新学期数据源
-      setSelectedSemester(prevSemester => {
-        const validSemester = prevSemester || formattedSemesters[0]?.value;
-        updateSemesterLabel(validSemester); // 更新学期标签
-        return validSemester;
-      });
+      setSelectedSemester(prevSemester => prevSemester || formattedSemesters[0]?.value);
+      setPickerSelectedValue(prevSemester => prevSemester || formattedSemesters[0]?.value);
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
         toast.error(data.msg ? data.msg : '未知错误');
       }
     }
-  }, [handleError, updateSemesterLabel, transferSemester]);
+  }, [handleError, transferSemester]);
 
   // 选择学期开关
   const toggleSwitchSemester = useCallback(async () => {
@@ -122,12 +130,13 @@ export default function AcademicPage() {
   }, [getTermsData]);
 
   // 关闭 Picker
-  const closePicker = useCallback(() => {
-    console.log(selectedSemester); // 打印选择的学期
-    updateSemesterLabel(selectedSemester); // 更新学期标签
+  const handleCloseTermSelectPicker = useCallback(() => {
     setPickerVisible(false);
-    saveSettingsToStorage(); // 保存设置
-  }, [selectedSemester, updateSemesterLabel, saveSettingsToStorage]);
+    setSelectedSemester(pickerSelectedValue);
+    saveSettingsToStorage({
+      selectedSemester: pickerSelectedValue,
+    }); // 保存设置
+  }, [saveSettingsToStorage, pickerSelectedValue]);
 
   return (
     <ThemedView className="flex-1 bg-white px-8 pt-8">
@@ -168,24 +177,24 @@ export default function AcademicPage() {
         visible={isPickerVisible}
         transparent
         animationType="slide" // 从底部滑入
-        onRequestClose={closePicker} // Android 的返回键关闭
+        onRequestClose={handleCloseTermSelectPicker} // Android 的返回键关闭
       >
         {/* 点击背景关闭 */}
-        <TouchableWithoutFeedback onPress={closePicker}>
+        <TouchableWithoutFeedback onPress={handleCloseTermSelectPicker}>
           <View className="flex-1 bg-black/50" />
         </TouchableWithoutFeedback>
 
         {/* Picker 容器 */}
         <View className="space-y-6 rounded-t-2xl bg-background p-6 pb-10">
           <Text className="text-center text-xl font-bold">选择学期</Text>
-          <Picker selectedValue={selectedSemester} onValueChange={itemValue => setSelectedSemester(itemValue)}>
+          <Picker selectedValue={pickerSelectedValue} onValueChange={value => setPickerSelectedValue(value)}>
             {semesters.map(semester => (
               <Picker.Item key={semester.value} label={semester.label} value={semester.value} />
             ))}
           </Picker>
 
           {/* 确认按钮 */}
-          <Button className="mt-6" onPress={closePicker}>
+          <Button className="mt-6" onPress={handleCloseTermSelectPicker}>
             <Text>确认</Text>
           </Button>
         </View>
