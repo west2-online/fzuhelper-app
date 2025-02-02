@@ -1,6 +1,6 @@
-import { Link, Tabs } from 'expo-router';
+import { Link, router, Tabs } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import {
   DescriptionList,
@@ -8,13 +8,16 @@ import {
   DescriptionListRow,
   DescriptionListTerm,
 } from '@/components/DescriptionList';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchCourseList } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { CLASS_SCHEDULES } from '@/lib/constants';
+import { CLASS_SCHEDULES, JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
 import { parseCourses, type ParsedCourse } from '@/utils/parseCourses';
+import { AntDesign } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { toast } from 'sonner-native';
 
 function Header() {
   return (
@@ -25,46 +28,48 @@ function Header() {
           <Text>月</Text>
         </View>
       </View>
-      <View className="flex flex-shrink flex-grow flex-row">
+      <View className="mt-2 flex flex-shrink flex-grow flex-row">
+        {/* 选中（当天）样式 */}
         <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
-          <Text className="text-sm text-gray-500">周一</Text>
-          <Text className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-center align-middle font-semibold text-white">
+          <Text className="text-sm text-primary">一</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle text-xl font-medium text-primary">
             10
           </Text>
+          <View className="mt-1 h-1 w-9 rounded-sm bg-primary" />
         </Pressable>
         <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
-          <Text className="text-sm text-gray-500">周二</Text>
-          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+          <Text className="text-sm">二</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle text-xl font-medium text-gray-900">
             11
           </Text>
         </Pressable>
         <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
-          <Text className="text-sm text-gray-500">周三</Text>
-          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+          <Text className="text-sm">三</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle text-xl font-medium text-gray-900">
             12
           </Text>
         </Pressable>
         <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
-          <Text className="text-sm text-gray-500">周四</Text>
-          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+          <Text className="text-sm">四</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle text-xl font-medium text-gray-900">
             13
           </Text>
         </Pressable>
         <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
-          <Text className="text-sm text-gray-500">周五</Text>
-          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+          <Text className="text-sm">五</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle text-xl font-medium text-gray-900">
             14
           </Text>
         </Pressable>
         <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
-          <Text className="text-sm text-gray-500">周六</Text>
-          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+          <Text className="text-sm text-muted-foreground">六</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle text-xl font-medium text-gray-900">
             15
           </Text>
         </Pressable>
         <Pressable className="flex flex-grow flex-col items-center pb-3 pt-2">
-          <Text className="text-sm text-gray-500">周日</Text>
-          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle font-semibold text-gray-900">
+          <Text className="text-sm text-muted-foreground">日</Text>
+          <Text className="mt-1 flex h-8 w-8 items-center justify-center text-center align-middle text-xl font-medium text-gray-900">
             16
           </Text>
         </Pressable>
@@ -107,15 +112,15 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
             </Pressable>
           </DialogTrigger>
 
-          <DialogContent className="w-[90vw] sm:max-w-[425px]">
+          <DialogContent className="flex w-[90vw] flex-col justify-center py-10 sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle className="text-center">{schedule.name}</DialogTitle>
+              <DialogTitle className="text-center text-primary">{schedule.name}</DialogTitle>
             </DialogHeader>
 
-            <DescriptionList className="my-4">
+            <DescriptionList className="mx-6 my-4">
               <DescriptionListRow>
                 <DescriptionListTerm>
-                  <Text>地点</Text>
+                  <Text>教室</Text>
                 </DescriptionListTerm>
                 <DescriptionListDescription>
                   <Text>{schedule.location}</Text>
@@ -123,7 +128,7 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
               </DescriptionListRow>
               <DescriptionListRow>
                 <DescriptionListTerm>
-                  <Text>授课教师</Text>
+                  <Text>教师</Text>
                 </DescriptionListTerm>
                 <DescriptionListDescription>
                   <Text>{schedule.teacher}</Text>
@@ -159,7 +164,38 @@ function CalendarCol({ week, weekday, schedules }: CalendarColProps) {
               </DescriptionListRow>
             </DescriptionList>
 
-            <Text>Actions...</Text>
+            <View className="flex flex-row justify-evenly">
+              <DialogClose asChild>
+                <TouchableOpacity
+                  onPress={async () =>
+                    router.push({
+                      pathname: '/(guest)/web',
+                      params: {
+                        url: `${schedule.syllabus}&id=${await AsyncStorage.getItem(JWCH_ID_KEY)}`,
+                        jwchCookie: await AsyncStorage.getItem(JWCH_COOKIES_KEY),
+                      },
+                    })
+                  }
+                >
+                  <Text className="text-primary">教学大纲</Text>
+                </TouchableOpacity>
+              </DialogClose>
+              <DialogClose asChild>
+                <TouchableOpacity
+                  onPress={async () =>
+                    router.push({
+                      pathname: '/(guest)/web',
+                      params: {
+                        url: `${schedule.lessonplan}&id=${await AsyncStorage.getItem(JWCH_ID_KEY)}`,
+                        jwchCookie: await AsyncStorage.getItem(JWCH_COOKIES_KEY),
+                      },
+                    })
+                  }
+                >
+                  <Text className="text-primary">授课计划</Text>
+                </TouchableOpacity>
+              </DialogClose>
+            </View>
           </DialogContent>
         </Dialog>,
       );
@@ -205,11 +241,18 @@ export default function HomePage() {
         options={{
           headerTitleAlign: 'center',
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerLeft: () => <Text>第 {week} 周</Text>,
+          headerLeft: () => <Text className="ml-4 text-2xl font-medium">课程表</Text>,
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerTitle: () => (
+            <Pressable onPress={() => toast.info('周数切换')} className="flex flex-row items-center">
+              <Text className="mr-1 text-lg">第 {week} 周 </Text>
+              <AntDesign name="caretdown" size={10} color="black" />
+            </Pressable>
+          ),
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Link href="/course/course-settings" asChild>
-              <Text>设置</Text>
+              <AntDesign name="setting" size={24} color="black" className="mr-4" />
             </Link>
           ),
         }}

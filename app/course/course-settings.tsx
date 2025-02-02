@@ -11,7 +11,7 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
 import { Picker } from '@react-native-picker/picker';
 
-const NAVIGATION_TITLE = '课表设置';
+const NAVIGATION_TITLE = '课程表设置';
 
 export default function AcademicPage() {
   // 下面这些数据会在页面 Loading 时读取 AsyncStorage，如果没有才使用下列默认值
