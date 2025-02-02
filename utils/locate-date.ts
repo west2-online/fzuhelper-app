@@ -10,6 +10,7 @@ var xq = "01";  //定义当前学期
 const JWCH_LOCATE_DATE_URL = 'https://jwcjwxt2.fzu.edu.cn:82/week.asp';
 // 基于教务处的数据定位今天是第几周，以及今天的日期
 // 返回一个对象，包含 date（当前日期）、week（当前周数）、day（当前星期几）、semester（当前学期，格式样例：202401）、semesterStart（学期开始日期）
+// e.g. { date: '2024-06-01', week: 23, day: 3, semester: '202401', semesterStart: '2024-03-04' }
 export default async function locateDate(): Promise<{
   date: string;
   week: number;

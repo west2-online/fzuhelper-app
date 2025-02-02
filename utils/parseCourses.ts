@@ -1,10 +1,6 @@
 import type { Course, CourseScheduleRule } from '@/backend';
 
-export type ParsedCourse = Omit<
-  Course,
-  'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'
-> &
-  CourseScheduleRule;
+export type ParsedCourse = Omit<Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> & CourseScheduleRule;
 
 export function parseCourses(courses: Course[]): ParsedCourse[] {
   const parsedCourses = courses.flatMap(course =>
