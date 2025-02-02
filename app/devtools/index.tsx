@@ -103,6 +103,11 @@ export default function HomePage() {
           >
             <Text>Choose Course (web test)</Text>
           </Button>
+          <Link href="/+not-found" asChild>
+            <Button>
+              <Text>Not Found Page</Text>
+            </Button>
+          </Link>
 
           {/* 功能测试 */}
           <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
