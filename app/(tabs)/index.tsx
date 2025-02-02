@@ -58,8 +58,11 @@ export default function HomePage() {
   useEffect(() => {
     (async () => {
       const initialData = await locateDate();
-      setCurrentDate(initialData.date); // 初始化当前日期
       setWeek(initialData.week); // 初始化当前周数
+
+      // 使用 getDatesByWeek 获取当前周的日期范围
+      const dates = getDatesByWeek(initialData.semesterStart, initialData.week);
+      setCurrentDate(dates[0]); // 初始化为当前周的第一天（周一）
     })();
   }, []);
 
@@ -72,9 +75,19 @@ export default function HomePage() {
 
   const schedules = parseCourses(data.data.data);
 
+  // semesterStart 是学期开始日期，currentWeek 是当前周数
+  // e.g. semesterStart = '2024-03-04', currentWeek = 10
   const getDatesByWeek = (semesterStart: string, currentWeek: number): string[] => {
     const startDate = new Date(semesterStart);
-    const firstDayOfWeek = new Date(startDate.setDate(startDate.getDate() + (currentWeek - 1) * 7));
+    const startDayOfWeek = (startDate.getDay() + 6) % 7; // 将星期日（0）转换为 6，其他天数减 1 对应星期一到星期六
+    const adjustedStartDate = new Date(startDate);
+
+    // 如果学期开始日期不是星期一，则调整到最近的星期一
+    adjustedStartDate.setDate(startDate.getDate() - startDayOfWeek);
+
+    const firstDayOfWeek = new Date(adjustedStartDate);
+    firstDayOfWeek.setDate(firstDayOfWeek.getDate() + (currentWeek - 1) * 7);
+
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(firstDayOfWeek);
       date.setDate(firstDayOfWeek.getDate() + i);
@@ -142,13 +155,32 @@ export default function HomePage() {
 
           {/* 日期行 */}
           <DaysRow>
-            <DayItem day="一" date={new Date(currentDate).getDate()} isSelected />
-            <DayItem day="二" date={new Date(currentDate).getDate() + 1} />
-            <DayItem day="三" date={new Date(currentDate).getDate() + 2} />
-            <DayItem day="四" date={new Date(currentDate).getDate() + 3} />
-            <DayItem day="五" date={new Date(currentDate).getDate() + 4} />
-            <DayItem day="六" date={new Date(currentDate).getDate() + 5} isMuted />
-            <DayItem day="日" date={new Date(currentDate).getDate() + 6} isMuted />
+            {Array.from({ length: 7 }).map((_, index) => {
+              const date = new Date(currentDate);
+              date.setDate(date.getDate() + index); // 计算每一天的日期
+
+              // 获取东八区当前日期
+              const today = new Date();
+              today.setHours(today.getHours() + 8); // 调整为东八区时间
+
+              // 判断是否为今天（东八区时间）
+              const isValidDate = (d: Date) => !isNaN(d.getTime()); // 检查日期是否有效
+
+              const isToday =
+                isValidDate(date) &&
+                isValidDate(today) &&
+                date.toISOString().split('T')[0] === today.toISOString().split('T')[0];
+
+              return (
+                <DayItem
+                  key={index}
+                  day={['一', '二', '三', '四', '五', '六', '日'][index]}
+                  date={date.getDate()}
+                  isSelected={isToday} // 动态设置高亮
+                  isMuted={index >= 5} // 周六、周日设置为灰色
+                />
+              );
+            })}
           </DaysRow>
         </HeaderContainer>
 
