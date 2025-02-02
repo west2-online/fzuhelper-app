@@ -1,17 +1,18 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Modal, TouchableWithoutFeedback, View } from 'react-native';
 import { toast } from 'sonner-native';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getApiV1JwchTermList } from '@/api/generate';
 import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
 import { ThemedView } from '@/components/ThemedView';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
-import { Picker } from '@react-native-picker/picker';
 
 const NAVIGATION_TITLE = '课程表设置';
 
@@ -171,12 +172,12 @@ export default function AcademicPage() {
       >
         {/* 点击背景关闭 */}
         <TouchableWithoutFeedback onPress={closePicker}>
-          <View style={styles.modalOverlay} />
+          <View className="flex-1 bg-black/50" />
         </TouchableWithoutFeedback>
 
         {/* Picker 容器 */}
-        <View style={styles.pickerContainer}>
-          <Text style={styles.pickerTitle}>选择学期</Text>
+        <View className="space-y-6 rounded-t-2xl bg-background p-6 pb-10">
+          <Text className="text-center text-xl font-bold">选择学期</Text>
           <Picker selectedValue={selectedSemester} onValueChange={itemValue => setSelectedSemester(itemValue)}>
             {semesters.map(semester => (
               <Picker.Item key={semester.value} label={semester.label} value={semester.value} />
@@ -184,43 +185,11 @@ export default function AcademicPage() {
           </Picker>
 
           {/* 确认按钮 */}
-          <TouchableOpacity style={styles.confirmButton} onPress={closePicker}>
-            <Text style={styles.confirmButtonText}>确认</Text>
-          </TouchableOpacity>
+          <Button className="mt-6" onPress={closePicker}>
+            <Text>确认</Text>
+          </Button>
         </View>
       </Modal>
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // 半透明背景
-  },
-  pickerContainer: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 40,
-  },
-  pickerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  confirmButton: {
-    marginTop: 20,
-    backgroundColor: '#007AFF', // iOS 风格的蓝色
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  confirmButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
