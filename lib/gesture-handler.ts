@@ -45,22 +45,50 @@ export function createGestureHandler({
     ),
     onPanResponderRelease: (_, gestureState) => {
       const { dx, dy } = gestureState;
+      const threshold = 50; // 滑动切换的距离阈值
 
       if (direction === 'horizontal') {
-        if (dx > 50 && onSwipeRight) {
+        if (dx > threshold && onSwipeRight) {
           onSwipeRight(); // 向右滑动
-        } else if (dx < -50 && onSwipeLeft) {
+          Animated.spring(translateX, {
+            toValue: 0, // 重置动画值
+            useNativeDriver: false,
+          }).start();
+        } else if (dx < -threshold && onSwipeLeft) {
           onSwipeLeft(); // 向左滑动
+          Animated.spring(translateX, {
+            toValue: 0, // 重置动画值
+            useNativeDriver: false,
+          }).start();
+        } else {
+          // 未达到阈值，归位
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: false,
+          }).start();
         }
       } else {
-        if (dy > 50 && onSwipeDown) {
+        if (dy > threshold && onSwipeDown) {
           onSwipeDown(); // 向下滑动
-        } else if (dy < -50 && onSwipeUp) {
+          Animated.spring(translateY, {
+            toValue: 0, // 重置动画值
+            useNativeDriver: false,
+          }).start();
+        } else if (dy < -threshold && onSwipeUp) {
           onSwipeUp(); // 向上滑动
+          Animated.spring(translateY, {
+            toValue: 0, // 重置动画值
+            useNativeDriver: false,
+          }).start();
+        } else {
+          // 未达到阈值，归位
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: false,
+          }).start();
         }
       }
-
-      // 重置动画值
+      // 重置动画值，无论是否切换页面
       Animated.spring(translateX, {
         toValue: 0,
         useNativeDriver: false,

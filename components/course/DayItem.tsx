@@ -21,7 +21,8 @@ const DayItem: React.FC<DayItemProps> = ({ day, date, isSelected = false, isMute
       >
         {date}
       </Text>
-      {isSelected && <View className="mt-1 h-1 w-9 rounded-sm bg-primary" />}
+      {/* 始终渲染一个固定高度的 View */}
+      <View className={`mt-1 h-1 w-9 rounded-sm ${isSelected ? 'bg-primary' : 'bg-transparent'}`} />
     </Pressable>
   );
 };

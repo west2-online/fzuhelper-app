@@ -41,18 +41,6 @@ export default function HomePage() {
       const dates = getDatesByWeek(initialData.semesterStart, Math.max(week - 1, 1)); // 计算上一周的日期
       setCurrentDate(dates[0]); // 更新当前日期为上一周的第一天
     },
-    onSwipeUp: async () => {
-      setWeek(prev => prev + 1);
-      const initialData = await locateDate();
-      const dates = getDatesByWeek(initialData.semesterStart, week + 1);
-      setCurrentDate(dates[0]);
-    },
-    onSwipeDown: async () => {
-      setWeek(prev => Math.max(prev - 1, 1));
-      const initialData = await locateDate();
-      const dates = getDatesByWeek(initialData.semesterStart, Math.max(week - 1, 1));
-      setCurrentDate(dates[0]);
-    },
   });
 
   useEffect(() => {
