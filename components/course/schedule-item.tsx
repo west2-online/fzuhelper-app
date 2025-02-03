@@ -50,12 +50,12 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedule, height, span, onS
       </DialogTrigger>
 
       {/* 点击课程后弹出的 Dialog 内容 */}
-      <DialogContent className="flex w-[90vw] flex-col justify-center py-10 sm:max-w-[425px]">
+      <DialogContent className="flex w-[90vw] flex-col justify-center pb-6 pt-10 sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-center text-primary">{schedule.name}</DialogTitle>
         </DialogHeader>
 
-        <DescriptionList className="mx-6 my-4">
+        <DescriptionList className="mx-6 mb-1 mt-4">
           <DescriptionListRow>
             <DescriptionListTerm>
               <Text>教室</Text>
