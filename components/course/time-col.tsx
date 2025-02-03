@@ -1,6 +1,8 @@
-import { CLASS_SCHEDULES } from '@/lib/constants'; // 时间段数据
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
+
+import { CLASS_SCHEDULES } from '@/lib/constants';
+import { cn } from '@/lib/utils';
 
 // 判断当前时间是否在指定时间段内
 const isTimeInRange = (currentTime: string, startTime: string, endTime: string): boolean => {
@@ -24,7 +26,7 @@ const getCurrentTime = (): string => {
 };
 
 // 课程表的左侧时间段列
-const TimeColumn: React.FC = () => {
+const TimeCol: React.FC = () => {
   const [currentTime, setCurrentTime] = useState<string>(getCurrentTime());
 
   // 定时更新当前时间
@@ -43,13 +45,16 @@ const TimeColumn: React.FC = () => {
         return (
           <View
             key={index}
-            className={`flex min-h-14 w-[32px] flex-grow flex-col items-center py-1 ${
-              isActive ? 'border border-blue-500' : ''
-            }`}
+            className={cn(
+              'flex min-h-14 w-[32px] flex-grow flex-col items-center py-1',
+              isActive && 'border border-blue-500',
+            )}
           >
-            <Text className={`text-[12px] font-bold ${isActive ? 'text-blue-500' : 'text-gray-500'}`}>{index + 1}</Text>
-            <Text className={`text-[8px] ${isActive ? 'text-blue-500' : 'text-gray-500'}`}>{time[0]}</Text>
-            <Text className={`text-[8px] ${isActive ? 'text-blue-500' : 'text-gray-500'}`}>{time[1]}</Text>
+            <Text className={cn('text-[12px] font-bold', isActive ? 'text-blue-500' : 'text-gray-500')}>
+              {index + 1}
+            </Text>
+            <Text className={cn('text-[8px]', isActive ? 'text-blue-500' : 'text-gray-500')}>{time[0]}</Text>
+            <Text className={cn('text-[8px]', isActive ? 'text-blue-500' : 'text-gray-500')}>{time[1]}</Text>
           </View>
         );
       })}
@@ -57,4 +62,4 @@ const TimeColumn: React.FC = () => {
   );
 };
 
-export default TimeColumn;
+export default TimeCol;

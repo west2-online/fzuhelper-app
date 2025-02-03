@@ -12,20 +12,15 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import WheelPicker from '@/components/wheelPicker';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import type { CourseSetting } from '@/interface';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
+import normalizeCourseSetting from '@/utils/normalize-course-setting';
 
 const NAVIGATION_TITLE = '课程表设置';
 
 interface SemesterData {
   label: string;
   value: string;
-}
-
-interface Config {
-  selectedSemester: string;
-  calendarExportEnabled: boolean;
-  showNonCurrentWeekCourses: boolean;
-  autoImportAdjustmentEnabled: boolean;
 }
 
 export default function AcademicPage() {
@@ -68,7 +63,8 @@ export default function AcademicPage() {
     console.log('读取课程设置');
     const settings = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
     if (settings) {
-      const parsedSettings = JSON.parse(settings) as Config;
+      const parsedSettings = normalizeCourseSetting(JSON.parse(settings));
+
       setSelectedSemester(parsedSettings.selectedSemester);
       setCalendarExportEnabled(parsedSettings.calendarExportEnabled);
       setShowNonCurrentWeekCourses(parsedSettings.showNonCurrentWeekCourses);
@@ -78,7 +74,7 @@ export default function AcademicPage() {
 
   // 将当前设置保存至 AsyncStorage，采用 json 形式保存
   const saveSettingsToStorage = useCallback(
-    async (newConfig: Partial<Config> = {}) => {
+    async (newConfig: Partial<CourseSetting> = {}) => {
       console.log('保存课程设置');
       const settings = Object.assign(
         {

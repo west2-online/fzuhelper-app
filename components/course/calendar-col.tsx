@@ -1,8 +1,10 @@
-import { ParsedCourse } from '@/utils/parseCourses';
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
-import EmptySlot from './EmptySlot';
-import ScheduleItem from './ScheduleItem';
+
+import { ParsedCourse } from '@/utils/parse-courses';
+
+import EmptySlot from './empty-slot';
+import ScheduleItem from './schedule-item';
 
 interface CalendarColProps {
   week: number;
