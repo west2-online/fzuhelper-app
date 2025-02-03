@@ -114,6 +114,11 @@ export default function HomePage() {
           >
             <Text>Choose Course (web test)</Text>
           </Button>
+          <Link href="/+not-found" asChild>
+            <Button>
+              <Text>Not Found Page</Text>
+            </Button>
+          </Link>
           <Link href="/devtools/wheelpicker" asChild>
             <Button>
               <Text>Wheel Picker</Text>

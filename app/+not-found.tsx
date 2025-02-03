@@ -1,8 +1,10 @@
-import { ThemedView } from '@/components/ThemedView';
 import { Ionicons } from '@expo/vector-icons'; // 图标库
 import { Link, useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+
+import { ThemedView } from '@/components/ThemedView';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 
 const NAVIGATION_TITLE = '哎呀，页面不见啦！';
 
@@ -25,10 +27,10 @@ export default function NotFoundScreen() {
         <Text className="mt-2 text-center text-base text-gray-600">不用担心，你可以回到首页重新找路~</Text>
 
         {/* 返回首页按钮 */}
-        <Link href="/" asChild>
-          <TouchableOpacity className="mt-8 rounded-full bg-blue-500 px-6 py-3 shadow-md">
-            <Text className="text-lg font-medium text-white">🏠 回到首页</Text>
-          </TouchableOpacity>
+        <Link href="/" asChild replace>
+          <Button className="mt-8">
+            <Text className="text-lg">🏠 回到首页</Text>
+          </Button>
         </Link>
       </ThemedView>
     </>
