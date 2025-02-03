@@ -3,7 +3,9 @@ import type { DefaultError, QueryClient, QueryKey } from '@tanstack/query-core';
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query/src/types';
 
-// 这个hooks获取error只有在没有缓存数据时会触发
+// 这个 hooks 实现了一个简单的缓存机制，当网络请求失败时，会返回缓存数据
+// 对外只需要正常调用这个逻辑，是否调用缓存数据由内部逻辑决定
+// 这个 hooks 获取 error 只有在没有缓存数据时会触发
 function usePersistedQuery<
   TQueryFnData = unknown,
   TError = DefaultError,
@@ -30,6 +32,7 @@ function usePersistedQuery<
         const persistedData = await AsyncStorage.getItem(queryKey.join('__'));
         try {
           const response = await queryFn(...res);
+          // 此处的 key会根据 queryKey 的内容生成，比如 ['course', '2022-2023-1'] 会生成 'course__2022-2023-1'
           await AsyncStorage.setItem(queryKey.join('__'), JSON.stringify(response));
           return response;
         } catch (error) {

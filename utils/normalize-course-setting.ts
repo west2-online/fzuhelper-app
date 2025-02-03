@@ -1,4 +1,4 @@
-import type { CourseSetting } from '@/interface';
+import type { CourseSetting } from '@/api/interface';
 
 const defaultCourseSetting: CourseSetting = {
   selectedSemester: '',

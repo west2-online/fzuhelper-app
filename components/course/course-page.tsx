@@ -5,20 +5,19 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Animated, Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { Text } from '@/components/ui/text';
-
 import DayItem from '@/components/course/day-item';
 import DaysRow from '@/components/course/days-row';
 import HeaderContainer from '@/components/course/header-container';
 import MonthDisplay from '@/components/course/month-display';
 import TimeCol from '@/components/course/time-col';
+import { Text } from '@/components/ui/text';
 
+import { SemesterList } from '@/api/backend';
 import { getApiV1JwchCourseList } from '@/api/generate';
-import { SemesterList } from '@/backend';
+import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import CalendarCol from '@/components/course/calendar-col';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import type { CourseSetting, LocateDateResult } from '@/interface';
-import { JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
+import { COURSE_DATA_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
 import { createGestureHandler } from '@/lib/gesture-handler';
 import { getDatesByWeek, parseCourses } from '@/utils/course';
 
@@ -36,8 +35,11 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const router = useRouter();
 
   const { selectedSemester: term } = config;
+
+  // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
+  // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
   const { data } = usePersistedQuery({
-    queryKey: ['getApiV1JwchCourseList', term],
+    queryKey: [COURSE_DATA_KEY, term],
     queryFn: () => getApiV1JwchCourseList({ term }),
   });
 

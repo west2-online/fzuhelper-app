@@ -5,6 +5,7 @@ import { Modal, TouchableWithoutFeedback, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { getApiV1JwchTermList } from '@/api/generate';
+import type { CourseSetting } from '@/api/interface';
 import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
 import { ThemedView } from '@/components/ThemedView';
@@ -12,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import WheelPicker from '@/components/wheelPicker';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import type { CourseSetting } from '@/interface';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
 import normalizeCourseSetting from '@/utils/normalize-course-setting';
 

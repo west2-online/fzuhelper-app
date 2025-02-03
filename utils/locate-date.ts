@@ -1,5 +1,5 @@
 import { getApiV1TermsInfo } from '@/api/generate';
-import type { LocateDateResult } from '@/interface';
+import type { LocateDateResult } from '@/api/interface';
 import { get } from '@/modules/native-request';
 
 /*

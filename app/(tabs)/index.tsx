@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 
 import CoursePage from '@/components/course/course-page';
 
+import { SemesterList } from '@/api/backend';
 import { getApiV1TermsList } from '@/api/generate';
-import { SemesterList } from '@/backend';
+import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import Loading from '@/components/loading';
-import type { CourseSetting, LocateDateResult } from '@/interface';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
 import locateDate from '@/utils/locate-date';
 import normalizeCourseSetting from '@/utils/normalize-course-setting';

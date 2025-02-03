@@ -1,4 +1,4 @@
-import type { Course, CourseScheduleRule } from '@/backend';
+import type { Course, CourseScheduleRule } from '@/api/backend';
 
 export type ParsedCourse = Omit<Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> & CourseScheduleRule;
 

@@ -25,6 +25,7 @@ export const SPLASH_ID = 'splash_id';
 
 // 课程表
 export const COURSE_SETTINGS_KEY = 'course_settings';
+export const COURSE_DATA_KEY = 'course_data';
 export const CLASS_SCHEDULES = [
   ['08:20', '09:05'],
   ['09:15', '10:00'],
