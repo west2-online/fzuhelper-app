@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
-import { ParsedCourse } from '@/utils/parse-courses';
+import type { ParsedCourse } from '@/utils/course';
 
 import EmptySlot from './empty-slot';
 import ScheduleItem from './schedule-item';
