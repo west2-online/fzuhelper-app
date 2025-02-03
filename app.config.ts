@@ -11,11 +11,6 @@ const config: ExpoConfig = {
   icon: './assets/images/icon.png',
   scheme: 'fzuhelper',
   userInterfaceStyle: 'automatic',
-  splash: {
-    image: './assets/images/splash.png',
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff',
-  },
   ios: {
     bundleIdentifier: 'FzuHelper.FzuHelper',
     buildNumber: '7.0.0',
@@ -63,6 +58,17 @@ const config: ExpoConfig = {
           parentTheme: 'Material2',
           enforceNavigationBarContrast: false,
         },
+      },
+    ],
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/images/icon_transparent.png',
+        backgroundColor: '#ffffff',
+        dark: {
+          backgroundColor: '#000000',
+        },
+        imageWidth: 100,
       },
     ],
     './with-android-theme',
