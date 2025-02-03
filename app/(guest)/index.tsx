@@ -168,7 +168,7 @@ export default function SplashScreen() {
   }, [onPrivacyAgree]);
 
   useEffect(() => {
-    if (!shouldShowPrivacyAgree) return;
+    ExpoSplashScreen.hideAsync();
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
         if (!shouldShowPrivacyAgree) {
@@ -208,15 +208,11 @@ export default function SplashScreen() {
     }
   }, [showSplashImage, navigateToHome]);
 
-  const onLayoutRootView = useCallback(() => {
-    ExpoSplashScreen.hideAsync();
-  }, []);
-
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View onLayout={onLayoutRootView}>
+      <View>
         {!showSplashImage ? (
           // 默认开屏
           <Image
