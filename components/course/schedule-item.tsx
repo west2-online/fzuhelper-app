@@ -1,12 +1,15 @@
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+
 import {
   DescriptionList,
   DescriptionListDescription,
   DescriptionListRow,
   DescriptionListTerm,
 } from '@/components/DescriptionList';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import React, { useState } from 'react';
-import { Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 
 interface ScheduleItemProps {
   schedule: {
@@ -29,9 +32,10 @@ interface ScheduleItemProps {
 
 const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedule, height, span, onSyllabusPress, onLessonPlanPress }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      {/* 课程表中的一个课程，我们将每个课程抽象成了 Trigger（触发器），这个触发器的样式即为课表上显示的内容 */}
+      {/* 课程表中的一个课程，我们将每个课程作为打开课程详情的按钮 */}
       <DialogTrigger asChild>
         <Pressable
           className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border border-gray-200 p-[1px]"
@@ -99,22 +103,24 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedule, height, span, onS
         </DescriptionList>
 
         <View className="flex flex-row justify-evenly">
-          <TouchableOpacity
+          <Button
+            variant="link"
             onPress={() => {
               setIsDialogOpen(false);
               onSyllabusPress(schedule.syllabus);
             }}
           >
             <Text className="text-primary">教学大纲</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </Button>
+          <Button
+            variant="link"
             onPress={() => {
               setIsDialogOpen(false);
               onLessonPlanPress(schedule.lessonplan);
             }}
           >
             <Text className="text-primary">授课计划</Text>
-          </TouchableOpacity>
+          </Button>
         </View>
       </DialogContent>
     </Dialog>
