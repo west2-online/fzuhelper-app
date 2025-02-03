@@ -12,6 +12,7 @@ import { Provider } from '@/components/Provider';
 import { cn } from '@/lib/utils';
 import '../global.css';
 
+// 此处配置 NativeWind 的颜色方案
 colorScheme.set('system');
 
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
@@ -20,6 +21,7 @@ export default function RootLayout() {
 
   return (
     <Provider>
+      {/* 此处配置 Expo Router 封装的 React Navigation 系列组件的浅色/深色主题 */}
       <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <KeyboardProvider>
           <GestureHandlerRootView>
