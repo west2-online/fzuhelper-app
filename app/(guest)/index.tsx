@@ -188,7 +188,9 @@ export default function SplashScreen() {
     return () => {
       subscription.remove();
     };
-  }, [checkAndShowPrivacyAgree, shouldShowPrivacyAgree]);
+    // 仅在页面首次挂载执行此方法
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (showSplashImage) {
@@ -307,7 +309,6 @@ export default function SplashScreen() {
             <AlertDialogAction
               onPress={async () => {
                 await AsyncStorage.setItem(IS_PRIVACY_POLICY_AGREED, 'true');
-                setPrivacyDialogVisible(false);
                 onPrivacyAgree();
               }}
             >
