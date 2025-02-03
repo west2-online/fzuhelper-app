@@ -64,11 +64,11 @@ const config: ExpoConfig = {
       'expo-splash-screen',
       {
         image: './assets/images/icon_transparent.png',
-        backgroundColor: '#ffffff',
+        // 不设置默认的 backgroundColor，会导致 logo 透明背景被改变
         dark: {
           backgroundColor: '#000000',
         },
-        imageWidth: 100,
+        imageWidth: 200,
       },
     ],
     './with-android-theme',
