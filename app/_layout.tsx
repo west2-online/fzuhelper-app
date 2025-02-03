@@ -16,11 +16,11 @@ colorScheme.set('system');
 
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const currentColorScheme = useColorScheme();
 
   return (
     <Provider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <KeyboardProvider>
           <GestureHandlerRootView>
             <Stack>
