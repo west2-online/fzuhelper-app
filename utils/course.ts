@@ -34,3 +34,12 @@ export function getDatesByWeek(semesterStart: string, currentWeek: number): stri
     return date.toISOString().split('T')[0]; // 返回日期字符串格式 YYYY-MM-DD
   });
 }
+
+export function getWeeksBySemester(semesterStart: string, semesterEnd: string): number {
+  const startDate = new Date(semesterStart);
+  const endDate = new Date(semesterEnd);
+  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return Math.ceil(diffDays / 7);
+}

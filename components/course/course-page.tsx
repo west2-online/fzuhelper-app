@@ -19,7 +19,7 @@ import CalendarCol from '@/components/course/calendar-col';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_DATA_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
 import { createGestureHandler } from '@/lib/gesture-handler';
-import { getDatesByWeek, parseCourses } from '@/utils/course';
+import { getDatesByWeek, getWeeksBySemester, parseCourses } from '@/utils/course';
 
 const DAYS = ['一', '二', '三', '四', '五', '六', '日'] as const;
 
@@ -80,6 +80,11 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     },
   });
 
+  // TODO: 使用 maxWeek 生成一个 FlatList 来展示课表
+  const maxWeek = useMemo(
+    () => getWeeksBySemester(semesterListMap[term].start_date, semesterListMap[term].end_date),
+    [semesterListMap, term],
+  );
   const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
   const daysRowData = useMemo(() => {
     const today = new Date();
