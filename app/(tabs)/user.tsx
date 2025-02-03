@@ -148,7 +148,7 @@ export default function HomePage() {
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Link href="/(guest)/about" asChild>
-              <Ionicons name="settings-outline" size={24} color="black" className="mr-4" />
+              <Ionicons name="settings-outline" size={24} className="mr-4 text-foreground" />
             </Link>
           ),
         }}
