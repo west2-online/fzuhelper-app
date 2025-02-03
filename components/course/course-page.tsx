@@ -47,13 +47,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   );
 
   useEffect(() => {
-    setWeek(config.selectedSemester === locateDateResult.semester ? locateDateResult.week : 1);
-    setDate(
-      config.selectedSemester === locateDateResult.semester
-        ? locateDateResult.date
-        : semesterListMap[config.selectedSemester].start_date,
-    );
-  }, [config, locateDateResult, semesterListMap]);
+    setWeek(term === locateDateResult.semester ? locateDateResult.week : 1);
+    setDate(term === locateDateResult.semester ? locateDateResult.date : semesterListMap[term].start_date);
+  }, [term, locateDateResult, semesterListMap]);
 
   // 基于滑动手势处理器，创建手势处理对象的回调逻辑，用于 ScrollView 组件的滑动事件处理
   const { panResponder, translateX } = createGestureHandler({
