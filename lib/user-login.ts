@@ -93,7 +93,7 @@ class UserLogin {
     };
     const formData = {
       muser: username,
-      passwd: md5(password, 16),
+      passwd: await md5(password, 16),
       Verifycode: captcha,
     };
 
