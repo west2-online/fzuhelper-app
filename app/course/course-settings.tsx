@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Modal, TouchableWithoutFeedback, View } from 'react-native';
@@ -11,6 +10,7 @@ import SwitchWithLabel from '@/components/Switch';
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import WheelPicker from '@/components/wheelPicker';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
 
@@ -38,7 +38,7 @@ export default function AcademicPage() {
   const [semesters, setSemesters] = useState<SemesterData[]>([]); // 动态加载的数据
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
   const [isLoadingSemester, setLoadingSemester] = useState(false); // 是否正在加载学期数据
-  const [pickerSelectedValue, setPickerSelectedValue] = useState(''); // Picker 选择的值
+  const [tempIndex, setTempIndex] = useState(0); // 临时索引
 
   // 设置导航栏标题
   const navigation = useNavigation();
@@ -70,7 +70,6 @@ export default function AcademicPage() {
     if (settings) {
       const parsedSettings = JSON.parse(settings) as Config;
       setSelectedSemester(parsedSettings.selectedSemester);
-      setPickerSelectedValue(parsedSettings.selectedSemester); // 设置 Picker 的默认值
       setCalendarExportEnabled(parsedSettings.calendarExportEnabled);
       setShowNonCurrentWeekCourses(parsedSettings.showNonCurrentWeekCourses);
       setAutoImportAdjustmentEnabled(parsedSettings.autoImportAdjustmentEnabled);
@@ -112,7 +111,6 @@ export default function AcademicPage() {
       });
       setSemesters(formattedSemesters); // 更新学期数据源
       setSelectedSemester(prevSemester => prevSemester || formattedSemesters[0]?.value);
-      setPickerSelectedValue(prevSemester => prevSemester || formattedSemesters[0]?.value);
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
@@ -122,21 +120,33 @@ export default function AcademicPage() {
   }, [handleError, transferSemester]);
 
   // 选择学期开关
-  const toggleSwitchSemester = useCallback(async () => {
-    setLoadingSemester(true); // 设置加载状态
-    await getTermsData(); // 获取学期数据
-    setPickerVisible(prev => !prev);
-    setLoadingSemester(false); // 取消加载状态
+  const handleOpenTermSelectPicker = useCallback(async () => {
+    setLoadingSemester(true);
+    await getTermsData();
+    setPickerVisible(true);
+    setLoadingSemester(false);
   }, [getTermsData]);
 
   // 关闭 Picker
   const handleCloseTermSelectPicker = useCallback(() => {
     setPickerVisible(false);
-    setSelectedSemester(pickerSelectedValue);
+  }, []);
+
+  const handleConfirmTermSelectPicker = useCallback(() => {
+    setPickerVisible(false);
+    const newValue = semesters[tempIndex]?.value ?? '';
+    setSelectedSemester(newValue);
     saveSettingsToStorage({
-      selectedSemester: pickerSelectedValue,
-    }); // 保存设置
-  }, [saveSettingsToStorage, pickerSelectedValue]);
+      selectedSemester: newValue,
+    });
+  }, [tempIndex, semesters, saveSettingsToStorage]);
+
+  useEffect(() => {
+    if (isPickerVisible && semesters.length > 0) {
+      const sIndex = semesters.findIndex(item => item.value === selectedSemester);
+      setTempIndex(sIndex < 0 ? 0 : sIndex);
+    }
+  }, [isPickerVisible, semesters, selectedSemester]);
 
   return (
     <ThemedView className="flex-1 bg-white px-8 pt-8">
@@ -148,7 +158,7 @@ export default function AcademicPage() {
       <LabelEntry
         leftText="切换学期"
         rightText={isLoadingSemester ? '加载中...' : semesterLabel}
-        onPress={toggleSwitchSemester}
+        onPress={handleOpenTermSelectPicker}
         disabled={isLoadingSemester}
       />
 
@@ -187,14 +197,15 @@ export default function AcademicPage() {
         {/* Picker 容器 */}
         <View className="space-y-6 rounded-t-2xl bg-background p-6 pb-10">
           <Text className="text-center text-xl font-bold">选择学期</Text>
-          <Picker selectedValue={pickerSelectedValue} onValueChange={value => setPickerSelectedValue(value)}>
-            {semesters.map(semester => (
-              <Picker.Item key={semester.value} label={semester.label} value={semester.value} />
-            ))}
-          </Picker>
+          <WheelPicker
+            data={semesters.map(s => s.label)}
+            wheelWidth="100%"
+            selectIndex={tempIndex}
+            onChange={idx => setTempIndex(idx)}
+          />
 
           {/* 确认按钮 */}
-          <Button className="mt-6" onPress={handleCloseTermSelectPicker}>
+          <Button className="mt-6" onPress={handleConfirmTermSelectPicker}>
             <Text>确认</Text>
           </Button>
         </View>
