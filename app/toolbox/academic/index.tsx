@@ -1,4 +1,4 @@
-import { ThemedView } from '@/components/ThemedView';
+import PageContainer from '@/components/page-container';
 import { Href, Link, useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
@@ -51,7 +51,7 @@ export default function AcademicPage() {
   }, [navigation]);
 
   return (
-    <ThemedView className="flex-1 bg-white p-4">
+    <PageContainer className="bg-background p-4">
       {/* 菜单列表 */}
       <View className="space-y-4">
         {menuItems.map((item, index) => (
@@ -68,6 +68,6 @@ export default function AcademicPage() {
           </Link>
         ))}
       </View>
-    </ThemedView>
+    </PageContainer>
   );
 }

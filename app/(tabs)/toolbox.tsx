@@ -1,4 +1,4 @@
-import { ThemedView } from '@/components/ThemedView';
+import PageContainer from '@/components/page-container';
 import Banner, { type BannerContent } from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Href, useRouter } from 'expo-router';
@@ -132,7 +132,7 @@ export default function ToolsPage() {
   const router = useRouter();
 
   return (
-    <ThemedView className="m-6">
+    <PageContainer className="p-6">
       {/* 滚动横幅 */}
       <Banner contents={bannerList} />
 
@@ -145,6 +145,6 @@ export default function ToolsPage() {
         columnWrapperClassName="justify-between"
         renderItem={({ item }) => renderToolButton({ item }, router)}
       />
-    </ThemedView>
+    </PageContainer>
   );
 }
