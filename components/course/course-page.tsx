@@ -2,14 +2,14 @@ import { AntDesign } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Tabs, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Animated, Pressable, ScrollView, View } from 'react-native';
-import { toast } from 'sonner-native';
+import { Animated, Modal, Pressable, ScrollView, View } from 'react-native';
 
 import DayItem from '@/components/course/day-item';
 import DaysRow from '@/components/course/days-row';
 import HeaderContainer from '@/components/course/header-container';
 import MonthDisplay from '@/components/course/month-display';
 import TimeCol from '@/components/course/time-col';
+import WeekSelector from '@/components/course/week-selector';
 import { Text } from '@/components/ui/text';
 
 import { SemesterList } from '@/api/backend';
@@ -32,6 +32,7 @@ interface CoursePageProps {
 const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semesterList }) => {
   const [week, setWeek] = useState(1); // 当前周数
   const [date, setDate] = useState('2025-01-01'); // 当前日期
+  const [showWeekSelector, setShowWeekSelector] = useState(false);
   const router = useRouter();
 
   // 课程数据由 config 传入，具体看 index.tsx 中的代码
@@ -82,10 +83,10 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   });
 
   // TODO: 使用 maxWeek 生成一个 FlatList 来展示课表
-  const maxWeek = useMemo(
-    () => getWeeksBySemester(semesterListMap[term].start_date, semesterListMap[term].end_date),
-    [semesterListMap, term],
-  );
+  const maxWeek = useMemo(() => {
+    return getWeeksBySemester(semesterListMap[term].start_date, semesterListMap[term].end_date);
+  }, [semesterListMap, term]);
+
   // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
   const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
   const daysRowData = useMemo(() => {
@@ -150,9 +151,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           headerLeft: () => <Text className="ml-4 text-2xl font-medium">课程表</Text>,
           // eslint-disable-next-line react/no-unstable-nested-components
           headerTitle: () => (
-            <Pressable onPress={() => toast.info('周数切换')} className="flex flex-row items-center">
+            <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
               <Text className="mr-1 text-lg">第 {week} 周 </Text>
-              <AntDesign name="caretdown" size={10} color="black" />
+              <AntDesign name={showWeekSelector ? 'caretup' : 'caretdown'} size={10} color="black" />
             </Pressable>
           ),
           // eslint-disable-next-line react/no-unstable-nested-components
@@ -163,6 +164,32 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           ),
         }}
       />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showWeekSelector}
+        onRequestClose={() => {
+          setShowWeekSelector(!showWeekSelector);
+        }}
+      >
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        >
+          <View style={{ backgroundColor: 'white', width: '80%', maxHeight: '60%', borderRadius: 20, padding: 20 }}>
+            <WeekSelector
+              currentWeek={week}
+              maxWeek={maxWeek}
+              onWeekSelect={selectedWeek => {
+                setWeek(selectedWeek);
+                const newDates = getDatesByWeek(semesterListMap[term].start_date, selectedWeek);
+                setDate(newDates[0]); // 假设 newDates[0] 是周一的日期
+                setShowWeekSelector(false); // 关闭模态框
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <ScrollView
         {...panResponder.panHandlers} // 绑定滑动手势
