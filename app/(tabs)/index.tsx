@@ -11,6 +11,7 @@ import { COURSE_SETTINGS_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
 import EventRegister from '@/lib/event-bus';
 import { normalizeCourseSetting } from '@/utils/course';
 import locateDate from '@/utils/locate-date';
+import { toast } from 'sonner-native';
 
 export default function HomePage() {
   const [config, setConfig] = useState<CourseSetting | null>(null);
@@ -23,7 +24,9 @@ export default function HomePage() {
     setLocateDateResult(res);
 
     const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-    const parsedSettings = normalizeCourseSetting(setting ? JSON.parse(setting) : { selectedSemester: res.semester });
+    const parsedSettings = await normalizeCourseSetting(
+      setting ? JSON.parse(setting) : { selectedSemester: res.semester },
+    );
 
     console.log('parsedSettings', parsedSettings);
     setConfig(parsedSettings);
@@ -37,8 +40,8 @@ export default function HomePage() {
     loadData();
 
     // 监听事件，当课表设置发生变化时重新加载数据
-    const listener = EventRegister.addEventListener(EVENT_COURSE_UPDATE, () => {
-      console.log('由于课表设置更新，重新加载数据');
+    const listener = EventRegister.addEventListener(EVENT_COURSE_UPDATE, (data: string) => {
+      toast.info('课表学期更新为 ' + data);
       // 先清掉 config，这样直接进 Loading 组件
       setConfig(null);
       loadData();

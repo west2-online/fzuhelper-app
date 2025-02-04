@@ -64,7 +64,7 @@ export default function AcademicPage() {
     console.log('读取课程设置');
     const settings = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
     if (settings) {
-      const parsedSettings = normalizeCourseSetting(JSON.parse(settings));
+      const parsedSettings = await normalizeCourseSetting(JSON.parse(settings));
 
       setSelectedSemester(parsedSettings.selectedSemester);
       setCalendarExportEnabled(parsedSettings.calendarExportEnabled);
@@ -137,8 +137,8 @@ export default function AcademicPage() {
     saveSettingsToStorage({
       selectedSemester: newValue,
     });
-    EventRegister.emit(EVENT_COURSE_UPDATE); // 发送事件
-  }, [tempIndex, semesters, saveSettingsToStorage]);
+    EventRegister.emit(EVENT_COURSE_UPDATE, transferSemester(newValue)); // 发送事件，通知课程页面更新为具体的学期
+  }, [tempIndex, semesters, saveSettingsToStorage, transferSemester]);
 
   useEffect(() => {
     if (isPickerVisible && semesters.length > 0) {
