@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import WheelPicker from '@/components/wheelPicker';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_SETTINGS_KEY } from '@/lib/constants';
+import { COURSE_SETTINGS_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
+import EventRegister from '@/lib/event-bus';
 import { normalizeCourseSetting } from '@/utils/course';
 
 const NAVIGATION_TITLE = '课程表设置';
@@ -128,6 +129,7 @@ export default function AcademicPage() {
     setPickerVisible(false);
   }, []);
 
+  // 确认选择学期（这里默认学期发生改变，即使它选择了同一个学期）
   const handleConfirmTermSelectPicker = useCallback(() => {
     setPickerVisible(false);
     const newValue = semesters[tempIndex]?.value ?? '';
@@ -135,6 +137,7 @@ export default function AcademicPage() {
     saveSettingsToStorage({
       selectedSemester: newValue,
     });
+    EventRegister.emit(EVENT_COURSE_UPDATE); // 发送事件
   }, [tempIndex, semesters, saveSettingsToStorage]);
 
   useEffect(() => {

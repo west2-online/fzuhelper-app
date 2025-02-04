@@ -53,6 +53,7 @@
     "react-dom": "18.3.1",
     "react-native": "~0.77.0",
     "react-native-edge-to-edge": "^1.4.2",
+    "react-native-event-listeners": "^1.0.7",
     "react-native-gesture-handler": "~2.22.0",
     "react-native-keyboard-controller": "^1.15.2",
     "react-native-qrcode-svg": "^6.3.12",

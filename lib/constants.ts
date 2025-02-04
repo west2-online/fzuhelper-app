@@ -1,3 +1,6 @@
+// 事件
+export const EVENT_COURSE_UPDATE = 'course_update';
+
 // 服务端Token
 export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
