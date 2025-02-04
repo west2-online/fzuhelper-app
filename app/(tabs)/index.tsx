@@ -32,7 +32,7 @@ export default function HomePage() {
     });
   }, []);
 
-  return config && locateDateResult && semesterList ? (
+  return config && locateDateResult && semesterList.length ? (
     <CoursePage config={config} locateDateResult={locateDateResult} semesterList={semesterList} />
   ) : (
     <Loading />
