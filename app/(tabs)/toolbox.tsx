@@ -1,15 +1,18 @@
 import { ThemedView } from '@/components/ThemedView';
 import Banner, { type BannerContent } from '@/components/banner';
 import { Button } from '@/components/ui/button';
+import { JWCH_ID_KEY } from '@/lib/constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Href, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Image, Linking, Text } from 'react-native';
 import { toast } from 'sonner-native';
-
+import { WebParams } from '../(guest)/web';
 // 工具类型的枚举
 enum ToolType {
   LINK = 'link', // 跳转路由
   URL = 'URL', // 打开网页
+  FUNCTION = 'function', // 执行函数
   NULL = 'null', // 空操作
 }
 
@@ -18,7 +21,7 @@ interface Tool {
   name: string; // 名称
   icon: any; // 图标
   type: ToolType; // 工具类型
-  data: string; // 附加数据（如路由地址或其他信息）
+  data: string | ((router: ReturnType<typeof useRouter>) => void | Promise<void>); // 附加数据（如路由地址或其他信息）
 }
 
 // 常量：横幅数据
@@ -28,7 +31,6 @@ const DEFAULT_BANNERS: BannerContent[] = [
   { image: require('assets/images/banner/default_banner3.webp'), onPress: () => {} },
 ];
 
-// 常量：工具数据
 const DEFAULT_TOOLS: Tool[] = [
   {
     name: '学业状况',
@@ -63,8 +65,20 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '嘉锡讲坛',
     icon: require('assets/images/toolbox/ic_jiaxi.png'),
-    type: ToolType.LINK,
-    data: '/toolbox/jiaxi-lecture', // 自定义操作标识
+    type: ToolType.FUNCTION,
+    data: async (router: ReturnType<typeof useRouter>) => {
+      const params: WebParams = {
+        url:
+          'https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx?id=' +
+          (await AsyncStorage.getItem(JWCH_ID_KEY)),
+        title: '嘉熙讲坛',
+      };
+
+      router.push({
+        pathname: '/(guest)/web',
+        params, // 传递参数
+      });
+    },
   },
 ];
 
@@ -105,7 +119,10 @@ const toolOnPress = (tool: Tool, router: ReturnType<typeof useRouter>) => {
       router.push(tool.data as Href);
       break;
     case ToolType.URL: // 打开网页
-      Linking.openURL(tool.data).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+      Linking.openURL(tool.data as string).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+      break;
+    case ToolType.FUNCTION: // 执行函数，并传入 router 参数
+      (tool.data as Function)(router);
       break;
     default:
       toast.error('未知工具类型: ' + tool.type);
