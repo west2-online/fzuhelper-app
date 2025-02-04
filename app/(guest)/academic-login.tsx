@@ -163,7 +163,7 @@ const LoginPage: React.FC = () => {
             {/* 左上角标题 */}
             <View className="ml-1 mt-14">
               <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
-              <Text className="text-lg text-muted-foreground">综合性最强的福大校内APP</Text>
+              <Text className="text-text-secondary text-lg">综合性最强的福大校内APP</Text>
             </View>
 
             {/* 页面内容 */}
@@ -219,7 +219,7 @@ const LoginPage: React.FC = () => {
 
               {/* 其他操作 */}
               <View className="w-full flex-row justify-between px-2">
-                <Text className="text-muted-foreground">研究生登录</Text>
+                <Text className="text-text-secondary">研究生登录</Text>
                 <Text className="text-primary" onPress={openResetPassword}>
                   忘记密码
                 </Text>
@@ -233,7 +233,7 @@ const LoginPage: React.FC = () => {
               onPress={() => setIsAgree(!isAgree)}
             >
               <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-              <Text className="text-center text-muted-foreground">
+              <Text className="text-text-secondary text-center">
                 {'  '}
                 阅读并同意{' '}
                 <Text

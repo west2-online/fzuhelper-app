@@ -23,21 +23,25 @@ export default function AboutPage() {
         <View className="flex items-center p-12">
           <Image
             source={require('@/assets/images/icon_transparent.png')}
-            className="mb-6 h-20 w-20 rounded-full bg-background"
+            className="mb-6 h-20 w-20 rounded-full bg-card"
           />
           <View>
             <Text className="text-xl text-primary">7.0.0</Text>
           </View>
         </View>
 
-        <View className="flex-1 rounded-tr-4xl bg-background px-4 pt-8">
+        <View className="flex-1 rounded-tr-4xl bg-card px-4 pt-8">
           <DescriptionList className="gap-6">
             <DescriptionListRow>
-              <DescriptionListTerm>版本更新</DescriptionListTerm>
+              <DescriptionListTerm>
+                <Text className="text-text-secondary">版本更新</Text>
+              </DescriptionListTerm>
               <DescriptionListDescription>点我检查更新</DescriptionListDescription>
             </DescriptionListRow>
             <DescriptionListRow>
-              <DescriptionListTerm>研发团队</DescriptionListTerm>
+              <DescriptionListTerm>
+                <Text className="text-text-secondary">研发团队</Text>
+              </DescriptionListTerm>
               <DescriptionListDescription>西二在线福uu项目组</DescriptionListDescription>
             </DescriptionListRow>
             <Pressable
@@ -46,7 +50,9 @@ export default function AboutPage() {
               }}
             >
               <DescriptionListRow>
-                <DescriptionListTerm>官方网站</DescriptionListTerm>
+                <DescriptionListTerm>
+                  <Text className="text-text-secondary">官方网站</Text>
+                </DescriptionListTerm>
                 <DescriptionListDescription>
                   <Ionicons name="chevron-forward" />
                 </DescriptionListDescription>
@@ -87,7 +93,7 @@ export default function AboutPage() {
               </Text>
             </View>
             <View className="flex-row">
-              <Text className="text-sm text-muted-foreground">本APP由</Text>
+              <Text className="text-text-secondary text-sm">本APP由</Text>
               <Text
                 className="text-sm text-primary"
                 onPress={() => {
@@ -96,7 +102,7 @@ export default function AboutPage() {
               >
                 又拍云
               </Text>
-              <Text className="text-sm text-muted-foreground">提供CDN加速/云存储服务</Text>
+              <Text className="text-text-secondary text-sm">提供CDN加速/云存储服务</Text>
             </View>
             <Pressable
               className="flex-row items-center"
@@ -104,10 +110,10 @@ export default function AboutPage() {
                 Linking.openURL('https://beian.miit.gov.cn/');
               }}
             >
-              <Text className="mr-1 text-sm text-muted-foreground">ICP备案号：闽ICP备19020557号-4A</Text>
+              <Text className="text-text-secondary mr-1 text-sm">ICP备案号：闽ICP备19020557号-4A</Text>
               <Ionicons name="chevron-forward" size={10} />
             </Pressable>
-            <Text className="mb-6 text-sm text-muted-foreground">
+            <Text className="text-text-tertiary mb-6 text-sm">
               Copyright © 2017-{new Date().getFullYear()} west2-online. All Rights Reserved
             </Text>
           </SafeAreaView>

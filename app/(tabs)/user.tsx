@@ -148,7 +148,7 @@ export default function HomePage() {
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Link href="/(guest)/about" asChild>
-              <Ionicons name="settings-outline" size={24} className="mr-4 text-foreground" />
+              <Ionicons name="settings-outline" size={24} className="mr-4" />
             </Link>
           ),
         }}
@@ -160,19 +160,19 @@ export default function HomePage() {
             <Image source={require('@/assets/images/my/avatar_default.png')} className="mr-6 h-24 w-24 rounded-full" />
             <View>
               <Text className="text-xl font-bold">{userInfo.name}</Text>
-              <Text className="mt-2 text-sm text-gray-500">这是一条签名</Text>
+              <Text className="text-text-secondary mt-2 text-sm">这是一条签名</Text>
             </View>
           </View>
 
-          <View className="h-full rounded-tr-4xl bg-background px-8">
+          <View className="h-full rounded-tr-4xl bg-card px-8">
             <View className="mt-6">
               <View className="w-full flex-row justify-between">
                 <Text>{userInfo.college}</Text>
                 <Text>{userInfo.stu_id}</Text>
               </View>
               <View className="mt-2 w-full flex-row justify-between">
-                <Text className="text-muted-foreground">2024年1学期</Text>
-                <Text className="text-muted-foreground">第 22 周</Text>
+                <Text className="text-text-secondary">2024年1学期</Text>
+                <Text className="text-text-secondary">第 22 周</Text>
               </View>
             </View>
 
@@ -184,7 +184,7 @@ export default function HomePage() {
                     {/* 图标和名称 */}
                     <View className="flex-row items-center space-x-4">
                       <Image source={item.icon} className="h-7 w-7" />
-                      <Text className="ml-5 text-lg text-foreground">{item.name}</Text>
+                      <Text className="ml-5 text-lg">{item.name}</Text>
                     </View>
                     {/* 右侧箭头 */}
                     <Image source={require('assets/images/misc/ic_arrow_right.png')} className="h-5 w-5" />
@@ -193,17 +193,17 @@ export default function HomePage() {
               ))}
             </View>
 
-            {/* 按钮部分 */}
+            {/* 按钮部分，调试用，后续移除 */}
             <View className="mt-6">
               <Button onPress={getUserInfo} disabled={isRefreshing} className="mb-4">
-                <Text>{isRefreshing ? '刷新中...' : '刷新个人信息'}</Text>
+                <Text className="text-white">{isRefreshing ? '刷新中...' : '刷新个人信息'}</Text>
               </Button>
               <Button onPress={logout} className="mb-4">
-                <Text>退出当前账户</Text>
+                <Text className="text-white">退出当前账户</Text>
               </Button>
               <Link href="/devtools" asChild>
                 <Button>
-                  <Text>开发者选项</Text>
+                  <Text className="text-white">开发者选项</Text>
                 </Button>
               </Link>
             </View>

@@ -218,7 +218,7 @@ export default function SplashScreen() {
         {!showSplashImage ? (
           // 默认开屏
           <Image
-            className="h-full w-full"
+            className="h-full w-full bg-background"
             source={require('@/assets/images/splash.png')}
             fadeDuration={0}
             resizeMode="cover"
@@ -247,7 +247,7 @@ export default function SplashScreen() {
               </View>
 
               {/* 跳过按钮靠右 */}
-              <View className="absolute bottom-11 right-8 w-24 rounded-full border-gray-400 bg-gray-200 py-2">
+              <View className="absolute bottom-11 right-8 w-20 rounded-full border-gray-400 bg-card py-2">
                 <TouchableOpacity onPress={navigateToHome}>
                   <Text className="mx-auto">跳过 {countdown}</Text>
                 </TouchableOpacity>

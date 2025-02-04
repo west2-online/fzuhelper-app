@@ -123,7 +123,13 @@ const renderToolButton = ({ item }: { item: Tool }, router: ReturnType<typeof us
     onPress={() => toolOnPress(item, router)}
   >
     {item.icon ? <Image source={item.icon} className="h-12 w-12" resizeMode="contain" /> : null}
-    <Text className="w-[50px] text-center align-middle text-sm" numberOfLines={1} ellipsizeMode="tail">
+    <Text
+      className="text-text-secondary w-[50px] text-center align-middle"
+      // eslint-disable-next-line react-native/no-inline-styles
+      style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
+      numberOfLines={1}
+      ellipsizeMode="tail"
+    >
       {item.name}
     </Text>
   </Button>
