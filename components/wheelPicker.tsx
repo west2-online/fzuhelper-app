@@ -91,10 +91,11 @@ const WheelPicker: React.FC<WheelPickerProps> = props => {
       <View style={[{ height: itemHeight }]} className="absolute w-full rounded-lg bg-gray-100" />
       <Animated.FlatList
         ref={listRef}
-        contentOffset={{
-          x: 0,
-          y: props.selectIndex * itemHeight,
-        }}
+        // contentOffset={{
+        //   x: 0,
+        //   y: props.selectIndex * itemHeight,
+        // }}
+        keyExtractor={(item, index) => index.toString()}
         overScrollMode="always"
         showsVerticalScrollIndicator={false}
         style={[{ maxHeight: listHeight }]}

@@ -34,6 +34,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [date, setDate] = useState('2025-01-01'); // 当前日期
   const router = useRouter();
 
+  // 课程数据由 config 传入，具体看 index.tsx 中的代码
   const { selectedSemester: term } = config;
 
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据

@@ -194,7 +194,7 @@ export default function AcademicPage() {
         <View className="space-y-6 rounded-t-2xl bg-background p-6 pb-10">
           <Text className="text-center text-xl font-bold">选择学期</Text>
           <WheelPicker
-            data={semesters.map(s => s.label)}
+            data={semesters.map(s => s.label + '(' + s.value + ')')}
             wheelWidth="100%"
             selectIndex={tempIndex}
             onChange={idx => setTempIndex(idx)}
