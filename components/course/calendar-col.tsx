@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
 import type { ParsedCourse } from '@/utils/course';
+import generateRandomColor from '@/utils/random-color';
 
 import EmptySlot from './empty-slot';
 import ScheduleItem from './schedule-item';
@@ -13,6 +14,7 @@ type ScheduleItemData =
       type: 'course';
       schedule: ParsedCourse;
       span: number;
+      color: string; // 课程的颜色
     }
   | {
       type: 'empty';
@@ -30,6 +32,17 @@ interface CalendarColProps {
 const CalendarCol: React.FC<CalendarColProps> = ({ week, weekday, schedules, onSyllabusPress, onLessonPlanPress }) => {
   const [height, setHeight] = useState<number>(MIN_HEIGHT);
 
+  // 创建课程颜色映射
+  const courseColorMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    schedules.forEach(schedule => {
+      if (!map[schedule.syllabus]) {
+        map[schedule.syllabus] = generateRandomColor(schedule.syllabus); // 基于 syllabus 生成颜色
+      }
+    });
+    return map;
+  }, [schedules]);
+
   const scheduleData = useMemo(() => {
     const schedulesOnDay = schedules.filter(schedule => schedule.weekday === weekday);
     const res: ScheduleItemData[] = [];
@@ -43,6 +56,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, weekday, schedules, onS
           type: 'course',
           schedule,
           span,
+          color: courseColorMap[schedule.syllabus], // 从颜色映射中取颜色
         });
         i += span - 1;
       } else {
@@ -51,7 +65,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, weekday, schedules, onS
     }
 
     return res;
-  }, [schedules, weekday, week]);
+  }, [schedules, weekday, week, courseColorMap]);
 
   return (
     <View
@@ -66,6 +80,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, weekday, schedules, onS
             key={index}
             height={height}
             span={item.span}
+            color={item.color}
             schedule={item.schedule}
             onSyllabusPress={onSyllabusPress}
             onLessonPlanPress={onLessonPlanPress}

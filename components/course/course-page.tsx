@@ -86,6 +86,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     () => getWeeksBySemester(semesterListMap[term].start_date, semesterListMap[term].end_date),
     [semesterListMap, term],
   );
+  // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
   const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
   const daysRowData = useMemo(() => {
     const today = new Date();

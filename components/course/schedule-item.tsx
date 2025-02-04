@@ -26,11 +26,19 @@ interface ScheduleItemProps {
   };
   height: number;
   span: number;
+  color: string; // 课程的颜色
   onSyllabusPress: (syllabus: string) => void; // 教学大纲点击事件
   onLessonPlanPress: (lessonPlan: string) => void; // 授课计划点击事件
 }
 
-const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedule, height, span, onSyllabusPress, onLessonPlanPress }) => {
+const ScheduleItem: React.FC<ScheduleItemProps> = ({
+  schedule,
+  height,
+  span,
+  color,
+  onSyllabusPress,
+  onLessonPlanPress,
+}) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
@@ -42,6 +50,7 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedule, height, span, onS
           style={{
             flexGrow: span,
             height: (span / 11) * height,
+            backgroundColor: color,
           }}
         >
           <Text className="truncate text-wrap break-all text-center text-[11px] text-gray-500">{schedule.name}</Text>
