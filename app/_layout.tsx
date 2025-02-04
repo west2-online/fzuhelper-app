@@ -15,7 +15,7 @@ export default function RootLayout() {
     <Provider>
       <KeyboardProvider>
         <GestureHandlerRootView>
-          <Stack>
+          <Stack screenOptions={{ animation: 'slide_from_right' }}>
             <Stack.Screen name="/(guest)" />
             <Stack.Screen name="+not-found" />
           </Stack>
