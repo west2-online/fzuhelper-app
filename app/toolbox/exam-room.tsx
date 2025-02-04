@@ -24,7 +24,7 @@ const NAVIGATION_TITLE = '考场';
 
 export default function ExamRoomPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const [ExamData, setExamData] = useState<ExamData[] | null>(null); // 考试数据
+  const [examData, setExamData] = useState<ExamData[] | null>(null); // 考试数据
 
   const [currentTerm, setCurrentTerm] = useState('202401'); // 当前学期
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
@@ -59,8 +59,8 @@ export default function ExamRoomPage() {
   return (
     <ThemedView className="flex-1">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {ExamData &&
-          ExamData.map((item, index) => (
+        {examData &&
+          examData.map((item, index) => (
             <Card key={index} className="mb-2">
               <Text className="capitalize text-gray-500">
                 {item.name} - {item.teacher}
@@ -71,7 +71,7 @@ export default function ExamRoomPage() {
             </Card>
           ))}
         {/* 刷新按钮 */}
-        <Button onPress={getExamData} disabled={isRefreshing} className="mb-4">
+        <Button onPress={getExamData} disabled={isRefreshing}>
           <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
         </Button>
       </ScrollView>
