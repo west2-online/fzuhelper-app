@@ -8,8 +8,8 @@ import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import Loading from '@/components/loading';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
+import { normalizeCourseSetting } from '@/utils/course';
 import locateDate from '@/utils/locate-date';
-import normalizeCourseSetting from '@/utils/normalize-course-setting';
 
 export default function HomePage() {
   const [config, setConfig] = useState<CourseSetting | null>(null);

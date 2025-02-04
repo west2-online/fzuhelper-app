@@ -14,7 +14,7 @@ import { Text } from '@/components/ui/text';
 import WheelPicker from '@/components/wheelPicker';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
-import normalizeCourseSetting from '@/utils/normalize-course-setting';
+import { normalizeCourseSetting } from '@/utils/course';
 
 const NAVIGATION_TITLE = '课程表设置';
 

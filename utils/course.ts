@@ -1,4 +1,5 @@
 import type { Course, CourseScheduleRule } from '@/api/backend';
+import type { CourseSetting } from '@/api/interface';
 
 export type ParsedCourse = Omit<Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> & CourseScheduleRule;
 
@@ -43,3 +44,14 @@ export function getWeeksBySemester(semesterStart: string, semesterEnd: string): 
 
   return Math.ceil(diffDays / 7);
 }
+
+const defaultCourseSetting: CourseSetting = {
+  selectedSemester: '',
+  calendarExportEnabled: false,
+  showNonCurrentWeekCourses: false,
+  autoImportAdjustmentEnabled: false,
+};
+
+// 本质是将传入的 courseSetting 与 defaultCourseSetting 合并
+export const normalizeCourseSetting = (courseSetting: Partial<CourseSetting>) =>
+  ({ ...defaultCourseSetting, ...courseSetting }) as CourseSetting;
