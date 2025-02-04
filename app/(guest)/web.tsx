@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
 
+import { JWCH_COOKIES_DOMAIN } from '@/lib/constants';
+
 export interface WebParams {
   url: string; // URL 地址
   jwchCookie?: string; // （可选）本科教务系统 Cookie
@@ -25,11 +27,15 @@ export default function Web() {
   useEffect(() => {
     const setCookies = async () => {
       if (jwchCookie) {
-        await CookieManager.clearAll(); // 应该只清除教务处 Cookie，但没有这种方法
-        const setCookiePromises = jwchCookie
-          .split(';')
-          .map(c => CookieManager.setFromResponse('https://jwcjwxt2.fzu.edu.cn:81', c)); // 设置 Cookie
-        await Promise.all(setCookiePromises); // 等待所有设置 Cookie 的操作完成
+        await CookieManager.get(JWCH_COOKIES_DOMAIN).then(cookies =>
+          Promise.all(
+            Object.values(cookies).map(c =>
+              CookieManager.set(JWCH_COOKIES_DOMAIN, { ...c, value: 'deleted', expires: '1970-01-01T00:00:00.000Z' }),
+            ),
+          ),
+        );
+
+        await Promise.all(jwchCookie.split(';').map(c => CookieManager.setFromResponse(JWCH_COOKIES_DOMAIN, c)));
       }
       setCookiesSet(true);
     };
