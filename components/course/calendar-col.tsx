@@ -24,12 +24,20 @@ interface CalendarColProps {
   week: number;
   weekday: number;
   schedules: ParsedCourse[];
+  isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
   onSyllabusPress: (syllabus: string) => void; // 教学大纲点击事件
   onLessonPlanPress: (lessonPlan: string) => void; // 授课计划点击事件
 }
 
 // 课程表的一列，即一天的课程
-const CalendarCol: React.FC<CalendarColProps> = ({ week, weekday, schedules, onSyllabusPress, onLessonPlanPress }) => {
+const CalendarCol: React.FC<CalendarColProps> = ({
+  week,
+  weekday,
+  schedules,
+  isShowNonCurrentWeekCourses,
+  onSyllabusPress,
+  onLessonPlanPress,
+}) => {
   const [height, setHeight] = useState<number>(MIN_HEIGHT);
 
   // 创建课程颜色映射
@@ -48,7 +56,10 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, weekday, schedules, onS
     const res: ScheduleItemData[] = [];
 
     for (let i = 1; i <= 11; i++) {
-      const schedule = schedulesOnDay.find(s => s.startClass === i && s.startWeek <= week && s.endWeek >= week);
+      // 查找当前时间段是否有课程，对于第二个参数，如果 isShowNonCurrentWeekCourses 为 true，则不限制周数
+      const schedule = schedulesOnDay.find(
+        s => s.startClass === i && (isShowNonCurrentWeekCourses || (s.startWeek <= week && s.endWeek >= week)),
+      );
 
       if (schedule) {
         const span = schedule.endClass - schedule.startClass + 1;
@@ -56,7 +67,10 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, weekday, schedules, onS
           type: 'course',
           schedule,
           span,
-          color: courseColorMap[schedule.syllabus], // 从颜色映射中取颜色
+          color:
+            isShowNonCurrentWeekCourses && (schedule.startWeek > week || schedule.endWeek < week)
+              ? '' // 非本周课程不显示颜色，这样展示时是一个边框
+              : courseColorMap[schedule.syllabus], // 从课程颜色映射中获取颜色
         });
         i += span - 1;
       } else {

@@ -41,7 +41,6 @@ export default function HomePage() {
 
     // 监听事件，当课表设置发生变化时重新加载数据
     const listener = EventRegister.addEventListener(EVENT_COURSE_UPDATE, (data: string) => {
-      toast.info('课表学期更新为 ' + data);
       // 先清掉 config，这样直接进 Loading 组件
       setConfig(null);
       loadData();

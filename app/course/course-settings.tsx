@@ -74,6 +74,7 @@ export default function AcademicPage() {
   }, []);
 
   // 将当前设置保存至 AsyncStorage，采用 json 形式保存
+  // 保存后会发送 EVENT_COURSE_UPDATE 事件，通知课程页面更新
   const saveSettingsToStorage = useCallback(
     async (newConfig: Partial<CourseSetting> = {}) => {
       console.log('保存课程设置');
@@ -87,8 +88,15 @@ export default function AcademicPage() {
         newConfig,
       );
       await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(settings));
+      EventRegister.emit(EVENT_COURSE_UPDATE, transferSemester(selectedSemester)); // 发送事件，通知课程页面更新为具体的学期
     },
-    [isCalendarExportEnabled, isShowNonCurrentWeekCourses, isAutoImportAdjustmentEnabled, selectedSemester],
+    [
+      isCalendarExportEnabled,
+      isShowNonCurrentWeekCourses,
+      isAutoImportAdjustmentEnabled,
+      selectedSemester,
+      transferSemester,
+    ],
   );
 
   // 页面加载时读取设置，页面卸载时保存设置
@@ -137,8 +145,16 @@ export default function AcademicPage() {
     saveSettingsToStorage({
       selectedSemester: newValue,
     });
-    EventRegister.emit(EVENT_COURSE_UPDATE, transferSemester(newValue)); // 发送事件，通知课程页面更新为具体的学期
-  }, [tempIndex, semesters, saveSettingsToStorage, transferSemester]);
+  }, [tempIndex, semesters, saveSettingsToStorage]);
+
+  // 设置是否显示非本周课程
+  const handleShowNonCurrentWeekCourses = useCallback(async () => {
+    setShowNonCurrentWeekCourses(prev => !prev);
+    toast.info('已设置为' + (!isShowNonCurrentWeekCourses ? '显示' : '不显示') + '非本周课程');
+    saveSettingsToStorage({
+      showNonCurrentWeekCourses: !isShowNonCurrentWeekCourses,
+    });
+  }, [isShowNonCurrentWeekCourses, saveSettingsToStorage]);
 
   useEffect(() => {
     if (isPickerVisible && semesters.length > 0) {
@@ -172,7 +188,7 @@ export default function AcademicPage() {
       <SwitchWithLabel
         label="显示非本周课程"
         value={isShowNonCurrentWeekCourses}
-        onValueChange={() => setShowNonCurrentWeekCourses(prev => !prev)}
+        onValueChange={handleShowNonCurrentWeekCourses}
       />
 
       <SwitchWithLabel

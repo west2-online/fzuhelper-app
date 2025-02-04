@@ -36,7 +36,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const router = useRouter();
 
   // 课程数据由 config 传入，具体看 index.tsx 中的代码
-  const { selectedSemester: term } = config;
+  const { selectedSemester: term, showNonCurrentWeekCourses: isShowNonCurrentWeekCourses } = config;
 
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
   // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
@@ -223,6 +223,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
                 week={week}
                 weekday={i + 1}
                 schedules={schedules}
+                isShowNonCurrentWeekCourses={isShowNonCurrentWeekCourses}
                 onLessonPlanPress={onLessonPlanPress}
                 onSyllabusPress={onSyllabusPress}
               />
