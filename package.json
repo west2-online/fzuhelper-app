@@ -37,6 +37,7 @@
     "clsx": "^2.1.1",
     "expo": "^52.0.28",
     "expo-build-properties": "~0.13.2",
+    "expo-calendar": "~14.0.6",
     "expo-constants": "~17.0.5",
     "expo-crypto": "~14.0.2",
     "expo-image": "~2.0.4",

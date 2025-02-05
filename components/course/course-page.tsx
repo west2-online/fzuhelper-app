@@ -40,6 +40,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
   // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
+  // 这个组件内才是查询课程数据的地方
   const { data } = usePersistedQuery({
     queryKey: [COURSE_DATA_KEY, term],
     queryFn: () => getApiV1JwchCourseList({ term }),
@@ -88,6 +89,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   }, [semesterListMap, term]);
 
   // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
+  // schedules 是一个数组，每个元素是一个课程数据，包含了课程的详细信息
   const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
   const daysRowData = useMemo(() => {
     const today = new Date();

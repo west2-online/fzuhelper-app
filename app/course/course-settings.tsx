@@ -4,7 +4,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'reac
 import { Modal, TouchableWithoutFeedback, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { getApiV1JwchTermList } from '@/api/generate';
+import { SemesterList } from '@/api/backend';
+import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
@@ -12,8 +13,10 @@ import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import WheelPicker from '@/components/wheelPicker';
+import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_SETTINGS_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
+import { exportCourseToNativeCalendar } from '@/lib/calendar';
+import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
 import EventRegister from '@/lib/event-bus';
 import { normalizeCourseSetting } from '@/utils/course';
 
@@ -28,6 +31,7 @@ export default function AcademicPage() {
   // 下面这些数据会在页面 Loading 时读取 AsyncStorage，如果没有才使用下列默认值
   const [isPickerVisible, setPickerVisible] = useState(false); // 是否显示 Picker
   const [selectedSemester, setSelectedSemester] = useState(''); // 默认使用第一学期（此处需要修改）
+  const [semesterList, setSemesterList] = useState<SemesterList>([]);
   const [isCalendarExportEnabled, setCalendarExportEnabled] = useState(false); // 是否导出到日历
   const [isShowNonCurrentWeekCourses, setShowNonCurrentWeekCourses] = useState(false); // 是否显示非本周课程
   const [isAutoImportAdjustmentEnabled, setAutoImportAdjustmentEnabled] = useState(false); // 是否自动导入调课
@@ -106,6 +110,22 @@ export default function AcademicPage() {
     })();
   }, [readSettingsFromStorage]);
 
+  const { data: courseData } = usePersistedQuery({
+    queryKey: [COURSE_DATA_KEY, selectedSemester],
+    queryFn: () => getApiV1JwchCourseList({ term: selectedSemester }),
+  });
+
+  const { data: termlistData } = usePersistedQuery({
+    queryKey: [COURSE_TERMS_LIST_KEY],
+    queryFn: getApiV1TermsList,
+  });
+
+  useEffect(() => {
+    if (termlistData) {
+      setSemesterList(termlistData.data.data.terms);
+    }
+  }, [termlistData]);
+
   // 获取学期数据
   const getTermsData = useCallback(async () => {
     try {
@@ -156,6 +176,30 @@ export default function AcademicPage() {
     });
   }, [isShowNonCurrentWeekCourses, saveSettingsToStorage]);
 
+  // 控制导出到本地日历
+  const handleExportToCalendar = useCallback(async () => {
+    setCalendarExportEnabled(prev => !prev);
+    saveSettingsToStorage({
+      calendarExportEnabled: !isCalendarExportEnabled,
+    });
+
+    if (!courseData) {
+      toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
+      return;
+    }
+    if (!termlistData) {
+      toast.error('学期数据为空，无法导出到日历'); // 这个理论上也不可能触发
+      return;
+    }
+    const startDate = semesterList.find(item => item.term === selectedSemester)?.start_date;
+    if (!startDate) {
+      toast.error('无法获取学期开始时间，无法导出到日历');
+      return;
+    }
+
+    await exportCourseToNativeCalendar(courseData.data.data, startDate);
+  }, [saveSettingsToStorage, isCalendarExportEnabled, courseData, selectedSemester, termlistData, semesterList]);
+
   useEffect(() => {
     if (isPickerVisible && semesters.length > 0) {
       const sIndex = semesters.findIndex(item => item.value === selectedSemester);
@@ -179,11 +223,7 @@ export default function AcademicPage() {
 
       <Text className="mb-2 mt-4 text-sm text-foreground">开关设置</Text>
 
-      <SwitchWithLabel
-        label="导出到日历"
-        value={isCalendarExportEnabled}
-        onValueChange={() => setCalendarExportEnabled(prev => !prev)}
-      />
+      <SwitchWithLabel label="导出到本地日历" value={isCalendarExportEnabled} onValueChange={handleExportToCalendar} />
 
       <SwitchWithLabel
         label="显示非本周课程"

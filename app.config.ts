@@ -36,11 +36,19 @@ const config: ExpoConfig = {
         },
       },
     ],
+    [
+      'expo-calendar',
+      {
+        calendarPermission: '$(PRODUCT_NAME) 需要访问日历以提供导出课表到日历功能', // iOS only
+        remindersPermission: '$(PRODUCT_NAME) 需要访问提醒事项以提供导出课表到提醒事项功能', // iOS only
+      },
+    ],
     './inject-android-config',
     './inject-ios-prebuild',
     [
       './modules/umeng-bridge/app.plugin.js',
       {
+        // 以下配置可以暴露在公网，不会导致安全问题
         // Android
         AndroidAppKey: '677631911233c160e700af49', // 发布（正式包名）时需更换
         channel: 'default', // Android渠道号
