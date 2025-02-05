@@ -17,6 +17,7 @@ export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 export const IS_PRIVACY_POLICY_AGREED = 'is_privacy_policy_agreed';
 export const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';
 export const URL_PRIVACY_POLICY = 'https://fzuhelper.west2.online/onekey/FZUHelper.html';
+export const URL_CONTRIBUTORS = 'https://fzuhelper.west2.online/onekey/Contributers.html';
 
 // 开屏页
 export const SPLASH_DISPLAY_COUNT = 'splash_display_count';

@@ -6,7 +6,7 @@ import {
 } from '@/components/DescriptionList';
 import { ThemedView } from '@/components/ThemedView';
 import { Text } from '@/components/ui/text';
-import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT, URL_CONTRIBUTORS } from '@/lib/constants';
 import { AntDesign } from '@expo/vector-icons';
 import { Stack, router } from 'expo-router';
 import { Image, Linking, Pressable, View } from 'react-native';
@@ -34,10 +34,24 @@ export default function AboutPage() {
               <DescriptionListTerm>版本更新</DescriptionListTerm>
               <DescriptionListDescription>点我检查更新</DescriptionListDescription>
             </DescriptionListRow>
-            <DescriptionListRow>
-              <DescriptionListTerm>研发团队</DescriptionListTerm>
-              <DescriptionListDescription>西二在线福uu项目组</DescriptionListDescription>
-            </DescriptionListRow>
+
+            <Pressable
+              onPress={() => {
+                router.push({
+                  pathname: '/(guest)/web',
+                  params: {
+                    url: URL_CONTRIBUTORS,
+                    title: '贡献名单',
+                  },
+                });
+              }}
+            >
+              <DescriptionListRow>
+                <DescriptionListTerm>研发团队</DescriptionListTerm>
+                <DescriptionListDescription>西二在线福uu项目组</DescriptionListDescription>
+              </DescriptionListRow>
+            </Pressable>
+
             <Pressable
               onPress={() => {
                 Linking.openURL('https://fzuhelper.w2fzu.com/');
