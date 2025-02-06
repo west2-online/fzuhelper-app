@@ -35,7 +35,7 @@ async function createCalendar(): Promise<string> {
   return newCalendarID;
 }
 
-// 这个导出只能导出已经在 AsyncStora 中的课程数据，这个函数需要在 try-catch 语句中调用
+// 这个导出只能导出已经在 AsyncStorage 中的课程数据，这个函数需要在 try-catch 语句中调用
 export async function exportCourseToNativeCalendar(courses: Course[], startDate: string) {
   try {
     // 请求日历权限

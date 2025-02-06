@@ -4,15 +4,16 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'reac
 import { Modal, TouchableWithoutFeedback, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { SemesterList } from '@/api/backend';
-import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
-import type { CourseSetting } from '@/api/interface';
 import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import WheelPicker from '@/components/wheelPicker';
+
+import type { SemesterList } from '@/api/backend';
+import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
+import type { CourseSetting } from '@/api/interface';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { exportCourseToNativeCalendar } from '@/lib/calendar';
@@ -31,7 +32,6 @@ export default function AcademicPage() {
   // 下面这些数据会在页面 Loading 时读取 AsyncStorage，如果没有才使用下列默认值
   const [isPickerVisible, setPickerVisible] = useState(false); // 是否显示 Picker
   const [selectedSemester, setSelectedSemester] = useState(''); // 默认使用第一学期（此处需要修改）
-  const [semesterList, setSemesterList] = useState<SemesterList>([]);
   const [isCalendarExportEnabled, setCalendarExportEnabled] = useState(false); // 是否导出到日历
   const [isShowNonCurrentWeekCourses, setShowNonCurrentWeekCourses] = useState(false); // 是否显示非本周课程
   const [isAutoImportAdjustmentEnabled, setAutoImportAdjustmentEnabled] = useState(false); // 是否自动导入调课
@@ -113,16 +113,12 @@ export default function AcademicPage() {
     queryFn: () => getApiV1JwchCourseList({ term: selectedSemester }),
   });
 
-  const { data: termlistData } = usePersistedQuery({
+  const { data: termListData } = usePersistedQuery({
     queryKey: [COURSE_TERMS_LIST_KEY],
     queryFn: getApiV1TermsList,
   });
 
-  useEffect(() => {
-    if (termlistData) {
-      setSemesterList(termlistData.data.data.terms);
-    }
-  }, [termlistData]);
+  const semesterList = useMemo<SemesterList>(() => termListData?.data.data.terms ?? [], [termListData]);
 
   // 获取学期数据
   const getTermsData = useCallback(async () => {
@@ -185,7 +181,7 @@ export default function AcademicPage() {
       toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
       return;
     }
-    if (!termlistData) {
+    if (!termListData) {
       toast.error('学期数据为空，无法导出到日历'); // 这个理论上也不可能触发
       return;
     }
@@ -196,7 +192,7 @@ export default function AcademicPage() {
     }
 
     await exportCourseToNativeCalendar(courseData.data.data, startDate);
-  }, [saveSettingsToStorage, isCalendarExportEnabled, courseData, selectedSemester, termlistData, semesterList]);
+  }, [saveSettingsToStorage, isCalendarExportEnabled, courseData, selectedSemester, termListData, semesterList]);
 
   useEffect(() => {
     if (isPickerVisible && semesters.length > 0) {
