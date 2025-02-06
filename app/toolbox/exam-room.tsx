@@ -1,7 +1,7 @@
 import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
 import { ThemedView } from '@/components/ThemedView';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { useNavigation } from 'expo-router';
@@ -9,7 +9,6 @@ import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { View } from 'react-native';
 // 响应 data 结构
 interface ExamData {
   credit: string; // 学分
@@ -22,21 +21,21 @@ interface ExamData {
 
 const NAVIGATION_TITLE = '考场';
 
-// 辅助函数：根据特殊字符映射标签
-const renderCourseName = (name: string): string | undefined => {
-  const mapList: { [key: string]: string } = {
-    '▲': '[补考]',
-    '●': '[重修]',
-    '★': '[二专业]',
-  };
+const SYMBOLS_MAP = {
+  '▲': '[补考]',
+  '●': '[重修]',
+  '★': '[二专业]',
+} as const;
+const SYMBOLS = Object.keys(SYMBOLS_MAP);
+const SYMBOLS_REGEX = new RegExp(`[${SYMBOLS.join('')}]`, 'g');
 
-  let formattedName = name;
-  for (const [key, value] of Object.entries(mapList)) {
-    formattedName = formattedName.replace(new RegExp(`\\${key}`, 'g'), value);
-  }
-
-  return formattedName.trim();
-};
+// 根据特殊字符映射标签
+const getCourseName = (name: string) =>
+  name
+    .replace(SYMBOLS_REGEX, symbol =>
+      symbol in SYMBOLS_MAP ? SYMBOLS_MAP[symbol as keyof typeof SYMBOLS_MAP] : symbol,
+    )
+    .trim();
 
 export default function ExamRoomPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
@@ -98,7 +97,7 @@ export default function ExamRoomPage() {
           examData.map((item, index) => (
             <Card key={index} className="mb-2">
               <Text className="capitalize text-gray-500">
-                {renderCourseName(item.name)} - {item.teacher}
+                {getCourseName(item.name)} - {item.teacher}
               </Text>
               <Text className="font-medium text-black">
                 {item.date} - {item.location}
