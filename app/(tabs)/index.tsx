@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 
 import CoursePage from '@/components/course/course-page';
 
-import { SemesterList } from '@/api/backend';
 import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import Loading from '@/components/loading';
@@ -12,12 +11,10 @@ import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EVENT_COURSE_UPDATE } from 
 import EventRegister from '@/lib/event-bus';
 import { normalizeCourseSetting } from '@/utils/course';
 import locateDate from '@/utils/locate-date';
-import { toast } from 'sonner-native';
 
 export default function HomePage() {
   const [config, setConfig] = useState<CourseSetting | null>(null); // 课程设置
   const [locateDateResult, setLocateDateResult] = useState<LocateDateResult | null>(null); // 日期结果
-  const [semesterList, setSemesterList] = useState<SemesterList>([]);
 
   // 这个学期数据（不是课程数据，是学期的开始结束时间等信息）存本地就可以了，本地做个长时间的缓存，这玩意一学期变一次，保守一点缓 7 天把
   // 使用含 hooks 的自动缓存逻辑
@@ -26,13 +23,6 @@ export default function HomePage() {
     queryFn: () => getApiV1TermsList(),
     cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
   });
-
-  // 添加一个 useEffect 来监听 termsData 的变化
-  useEffect(() => {
-    if (termsData) {
-      setSemesterList(termsData.data.data.terms);
-    }
-  }, [termsData]);
 
   // 加载数据的函数
   const loadData = async () => {
@@ -69,8 +59,8 @@ export default function HomePage() {
   // config 是课表的配置，locateDateResult 是当前时间的定位，semesterList 是学期列表的数据（不包含课程数据）
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置
   // 具体加载课程的逻辑在 CoursePage 组件中
-  return config && locateDateResult && semesterList.length ? (
-    <CoursePage config={config} locateDateResult={locateDateResult} semesterList={semesterList} />
+  return config && locateDateResult && termsData ? (
+    <CoursePage config={config} locateDateResult={locateDateResult} semesterList={termsData.data.data.terms} />
   ) : (
     <Loading />
   );
