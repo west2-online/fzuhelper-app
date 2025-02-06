@@ -1,15 +1,15 @@
-import { getApiV1JwchClassroomExam } from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
 import { ThemedView } from '@/components/ThemedView';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
-
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { useNavigation } from 'expo-router';
-import { useCallback, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { View } from 'react-native';
 // 响应 data 结构
 interface ExamData {
   credit: string; // 学分
@@ -25,7 +25,7 @@ const NAVIGATION_TITLE = '考场';
 export default function ExamRoomPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
   const [examData, setExamData] = useState<ExamData[] | null>(null); // 考试数据
-
+  const [termList, setTermList] = useState<string[] | null>([]); // 学期列表
   const [currentTerm, setCurrentTerm] = useState('202401'); // 当前学期
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
 
@@ -35,17 +35,19 @@ export default function ExamRoomPage() {
     navigation.setOptions({ title: NAVIGATION_TITLE });
   }, [navigation]);
 
-  // 访问 west2-online 服务器
-  const getExamData = useCallback(async () => {
+  // 合并刷新考试数据和学期列表请求
+  const refreshData = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      const result = await getApiV1JwchClassroomExam({ term: currentTerm });
+      const [examResult, termResult] = await Promise.all([
+        getApiV1JwchClassroomExam({ term: currentTerm }),
+        getApiV1JwchTermList(),
+      ]);
 
-      // 按日期排序, 第一个 data 指的是响应 HTTP 的 data 字段，第二个 data 指的是响应数据的 data 字段
-      const sortedData = result.data.data.sort((a, b) => a.date.localeCompare(b.date)).reverse();
-
-      setExamData(sortedData);
+      const sortedExamData = examResult.data.data.sort((a, b) => a.date.localeCompare(b.date)).reverse();
+      setExamData(sortedExamData);
+      setTermList(termResult.data.data);
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
@@ -54,11 +56,27 @@ export default function ExamRoomPage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, handleError]);
+  }, [isRefreshing, currentTerm, handleError]);
+
+  // 自动刷新： tab 变换时刷新
+  useEffect(() => {
+    refreshData();
+  }, [currentTerm]);
 
   return (
     <ThemedView className="flex-1">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <Tabs value={currentTerm} onValueChange={setCurrentTerm} className="my-6 flex-1 items-center">
+          <TabsList className="w-full flex-row">
+            {termList &&
+              termList.map((item, index) => (
+                <TabsTrigger key={index} value={item} className="flex-1">
+                  <Text className="items-center">{item}</Text>
+                </TabsTrigger>
+              ))}
+          </TabsList>
+        </Tabs>
+
         {examData &&
           examData.map((item, index) => (
             <Card key={index} className="mb-2">
@@ -70,10 +88,11 @@ export default function ExamRoomPage() {
               </Text>
             </Card>
           ))}
+
         {/* 刷新按钮 */}
-        <Button onPress={getExamData} disabled={isRefreshing}>
+        {/* <Button onPress={refreshData} disabled={isRefreshing}>
           <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
-        </Button>
+        </Button> */}
       </ScrollView>
     </ThemedView>
   );
