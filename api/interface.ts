@@ -2,7 +2,6 @@ export interface CourseSetting {
   selectedSemester: string;
   calendarExportEnabled: boolean;
   showNonCurrentWeekCourses: boolean;
-  autoImportAdjustmentEnabled: boolean;
 }
 
 export interface LocateDateResult {

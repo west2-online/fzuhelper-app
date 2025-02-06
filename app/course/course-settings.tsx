@@ -203,17 +203,6 @@ export default function AcademicPage() {
           onValueChange={handleShowNonCurrentWeekCourses}
         />
 
-        <SwitchWithLabel
-          label="自动导入调课信息"
-          value={settings.autoImportAdjustmentEnabled}
-          onValueChange={() =>
-            setSettings(prevSettings => ({
-              ...prevSettings,
-              autoImportAdjustmentEnabled: !prevSettings.autoImportAdjustmentEnabled,
-            }))
-          }
-        />
-
         {/* 底部弹出的 Picker */}
         <Modal
           visible={isPickerVisible}
