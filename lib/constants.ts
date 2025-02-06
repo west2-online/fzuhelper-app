@@ -1,4 +1,14 @@
+/**
+ * @description 此文件中包含各种常量的定义。
+ *
+ * - 对于 AsyncStorage 的 key，请以大写字母和下划线分隔，以 _KEY 结尾。
+ * - 对于事件名称，请以 EVENT_ 开头。
+ * - 对于本科生教学管理系统和研究生信息管理系统的 key，请分别以 JWCH_ / YJSY_ 开头。
+ * - 对于单独业务的 key，请以业务名称简写开头，并在同一业务内保持统一。
+ */
+
 // 事件
+// 以 EVENT_ 开头
 export const EVENT_COURSE_UPDATE = 'course_update';
 
 // 服务端Token
@@ -6,6 +16,7 @@ export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
 
 // 本科生教务系统
+// 以 JWCH_ 开头
 export const JWCH_ID_KEY = 'jwch_id';
 export const JWCH_COOKIES_KEY = 'jwch_cookies';
 export const JWCH_USER_ID_KEY = 'jwch_user_id';
@@ -45,6 +56,8 @@ export const CLASS_SCHEDULES = [
   ['20:50', '21:35'],
 ];
 
+// for RNR
+// please sync it with values in `global.css`
 export const NAV_THEME = {
   light: {
     background: 'hsl(0 0% 100%)', // background
