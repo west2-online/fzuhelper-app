@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import CoursePage from '@/components/course/course-page';
 
@@ -25,17 +25,16 @@ export default function HomePage() {
   });
 
   // 加载数据的函数
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const res = await locateDate();
     setLocateDateResult(res);
 
     const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-    const parsedSettings = await normalizeCourseSetting(
-      setting ? JSON.parse(setting) : { selectedSemester: res.semester },
-    );
+    const parsedSettings = normalizeCourseSetting(setting ? JSON.parse(setting) : { selectedSemester: res.semester });
 
     setConfig(parsedSettings);
-  };
+    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(parsedSettings));
+  }, []);
 
   // 当加载的时候会读取 COUSE_SETTINGS，里面有一个字段会存储当前选择的学期（不一定是最新学期）
   useEffect(() => {
@@ -54,7 +53,7 @@ export default function HomePage() {
         EventRegister.removeEventListener(listener);
       }
     };
-  }, []);
+  }, [loadData]);
 
   // config 是课表的配置，locateDateResult 是当前时间的定位，semesterList 是学期列表的数据（不包含课程数据）
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置

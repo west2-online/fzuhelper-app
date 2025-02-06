@@ -18,7 +18,7 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { exportCourseToNativeCalendar } from '@/lib/calendar';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
 import EventRegister from '@/lib/event-bus';
-import { normalizeCourseSetting } from '@/utils/course';
+import { readCourseSetting } from '@/utils/course';
 
 const NAVIGATION_TITLE = '课程表设置';
 
@@ -66,15 +66,13 @@ export default function AcademicPage() {
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
     console.log('读取课程设置');
-    const settings = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-    if (settings) {
-      const parsedSettings = await normalizeCourseSetting(JSON.parse(settings));
 
-      setSelectedSemester(parsedSettings.selectedSemester);
-      setCalendarExportEnabled(parsedSettings.calendarExportEnabled);
-      setShowNonCurrentWeekCourses(parsedSettings.showNonCurrentWeekCourses);
-      setAutoImportAdjustmentEnabled(parsedSettings.autoImportAdjustmentEnabled);
-    }
+    const parsedSettings = await readCourseSetting();
+
+    setSelectedSemester(parsedSettings.selectedSemester);
+    setCalendarExportEnabled(parsedSettings.calendarExportEnabled);
+    setShowNonCurrentWeekCourses(parsedSettings.showNonCurrentWeekCourses);
+    setAutoImportAdjustmentEnabled(parsedSettings.autoImportAdjustmentEnabled);
   }, []);
 
   // 将当前设置保存至 AsyncStorage，采用 json 形式保存

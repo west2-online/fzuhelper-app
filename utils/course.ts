@@ -58,19 +58,26 @@ const defaultCourseSetting: CourseSetting = {
 };
 
 // 本质是将传入的 courseSetting 与 defaultCourseSetting 合并
-// 本质是将传入的 courseSetting 与 defaultCourseSetting 合并
-export const normalizeCourseSetting = async (courseSetting: Partial<CourseSetting> | null): Promise<CourseSetting> => {
-  // 如果传入的 courseSetting 为空，则写入默认设置到 AsyncStorage
+export const normalizeCourseSetting = (courseSetting: Partial<CourseSetting> = {}): CourseSetting => {
+  // 如果传入的 courseSetting 为空，则返回默认设置
   if (!courseSetting) {
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(defaultCourseSetting));
     return defaultCourseSetting;
   }
 
   // 合并默认设置和传入的设置
-  const normalizedSetting = { ...defaultCourseSetting, ...courseSetting } as CourseSetting;
+  return { ...defaultCourseSetting, ...courseSetting } as CourseSetting;
+};
 
-  // 将合并后的设置写入 AsyncStorage
-  await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(normalizedSetting));
+export const readCourseSetting = async (): Promise<CourseSetting> => {
+  const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
 
-  return normalizedSetting;
+  if (!setting) {
+    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(defaultCourseSetting));
+    return defaultCourseSetting;
+  }
+
+  const config = normalizeCourseSetting(JSON.parse(setting));
+  await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(config));
+
+  return config;
 };
