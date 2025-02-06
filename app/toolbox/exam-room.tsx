@@ -22,6 +22,22 @@ interface ExamData {
 
 const NAVIGATION_TITLE = '考场';
 
+// 辅助函数：根据特殊字符映射标签
+const renderCourseName = (name: string): string | undefined => {
+  const mapList: { [key: string]: string } = {
+    '▲': '[补考]',
+    '●': '[重修]',
+    '★': '[二专业]',
+  };
+
+  let formattedName = name;
+  for (const [key, value] of Object.entries(mapList)) {
+    formattedName = formattedName.replace(new RegExp(`\\${key}`, 'g'), value);
+  }
+
+  return formattedName.trim();
+};
+
 export default function ExamRoomPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
   const [examData, setExamData] = useState<ExamData[] | null>(null); // 考试数据
@@ -44,8 +60,9 @@ export default function ExamRoomPage() {
         getApiV1JwchClassroomExam({ term: currentTerm }),
         getApiV1JwchTermList(),
       ]);
-
+      // 按日期排序
       const sortedExamData = examResult.data.data.sort((a, b) => a.date.localeCompare(b.date)).reverse();
+
       setExamData(sortedExamData);
       setTermList(termResult.data.data);
     } catch (error: any) {
@@ -81,7 +98,7 @@ export default function ExamRoomPage() {
           examData.map((item, index) => (
             <Card key={index} className="mb-2">
               <Text className="capitalize text-gray-500">
-                {item.name} - {item.teacher}
+                {renderCourseName(item.name)} - {item.teacher}
               </Text>
               <Text className="font-medium text-black">
                 {item.date} - {item.location}
