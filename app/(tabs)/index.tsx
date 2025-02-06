@@ -41,7 +41,7 @@ export default function HomePage() {
     loadData();
 
     // 监听事件，当课表设置发生变化时重新加载数据
-    const listener = EventRegister.addEventListener(EVENT_COURSE_UPDATE, (data: string) => {
+    const listener = EventRegister.addEventListener(EVENT_COURSE_UPDATE, (selectedSemester: string) => {
       // 先清掉 config，这样直接进 Loading 组件
       setConfig(null);
       loadData();

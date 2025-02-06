@@ -50,7 +50,7 @@ export function getWeeksBySemester(semesterStart: string, semesterEnd: string): 
   return Math.ceil(diffDays / 7);
 }
 
-const defaultCourseSetting: CourseSetting = {
+export const defaultCourseSetting: CourseSetting = {
   selectedSemester: '',
   calendarExportEnabled: false,
   showNonCurrentWeekCourses: false,

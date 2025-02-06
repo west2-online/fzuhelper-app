@@ -19,7 +19,7 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { exportCourseToNativeCalendar } from '@/lib/calendar';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
 import EventRegister from '@/lib/event-bus';
-import { readCourseSetting } from '@/utils/course';
+import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
 
 interface SemesterData {
   label: string;
@@ -29,10 +29,7 @@ interface SemesterData {
 export default function AcademicPage() {
   // 下面这些数据会在页面 Loading 时读取 AsyncStorage，如果没有才使用下列默认值
   const [isPickerVisible, setPickerVisible] = useState(false); // 是否显示 Picker
-  const [selectedSemester, setSelectedSemester] = useState(''); // 默认使用第一学期（此处需要修改）
-  const [isCalendarExportEnabled, setCalendarExportEnabled] = useState(false); // 是否导出到日历
-  const [isShowNonCurrentWeekCourses, setShowNonCurrentWeekCourses] = useState(false); // 是否显示非本周课程
-  const [isAutoImportAdjustmentEnabled, setAutoImportAdjustmentEnabled] = useState(false); // 是否自动导入调课
+  const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting); // 课程设置
   const [semesters, setSemesters] = useState<SemesterData[]>([]); // 动态加载的数据
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
   const [isLoadingSemester, setLoadingSemester] = useState(false); // 是否正在加载学期数据
@@ -41,7 +38,7 @@ export default function AcademicPage() {
   // 处理显示名称，示例：
   // 202401 -> 2024年秋季
   // 202402 -> 2025年春季
-  const transferSemester = useCallback((semester: string) => {
+  const formatSemesterDisplayText = useCallback((semester: string) => {
     // 额外判断一下长度，防止出现异常
     if (semester.length !== 6) {
       return '未知学期 (' + semester + ')';
@@ -53,56 +50,39 @@ export default function AcademicPage() {
     return `${year + (term === '01' ? 0 : 1)}年${term === '01' ? '秋季' : '春季'}`;
   }, []);
 
-  const semesterLabel = useMemo(() => transferSemester(selectedSemester), [selectedSemester, transferSemester]);
+  const semesterLabel = useMemo(
+    () => formatSemesterDisplayText(settings.selectedSemester),
+    [settings, formatSemesterDisplayText],
+  );
 
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
     console.log('读取课程设置');
 
-    const parsedSettings = await readCourseSetting();
-
-    setSelectedSemester(parsedSettings.selectedSemester);
-    setCalendarExportEnabled(parsedSettings.calendarExportEnabled);
-    setShowNonCurrentWeekCourses(parsedSettings.showNonCurrentWeekCourses);
-    setAutoImportAdjustmentEnabled(parsedSettings.autoImportAdjustmentEnabled);
+    setSettings(await readCourseSetting());
   }, []);
 
   // 将当前设置保存至 AsyncStorage，采用 json 形式保存
   // 保存后会发送 EVENT_COURSE_UPDATE 事件，通知课程页面更新
-  const saveSettingsToStorage = useCallback(
-    async (newConfig: Partial<CourseSetting> = {}) => {
-      console.log('保存课程设置');
-      const settings = Object.assign(
-        {
-          selectedSemester: selectedSemester,
-          calendarExportEnabled: isCalendarExportEnabled,
-          showNonCurrentWeekCourses: isShowNonCurrentWeekCourses,
-          autoImportAdjustmentEnabled: isAutoImportAdjustmentEnabled,
-        },
-        newConfig,
-      );
-      await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(settings));
-      EventRegister.emit(EVENT_COURSE_UPDATE, transferSemester(selectedSemester)); // 发送事件，通知课程页面更新为具体的学期
-    },
-    [
-      isCalendarExportEnabled,
-      isShowNonCurrentWeekCourses,
-      isAutoImportAdjustmentEnabled,
-      selectedSemester,
-      transferSemester,
-    ],
-  );
+  const saveSettingsToStorage = useCallback(async (newSettings: CourseSetting) => {
+    console.log('保存课程设置');
+    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(newSettings));
+    EventRegister.emit(EVENT_COURSE_UPDATE, newSettings.selectedSemester); // 发送事件，通知课程页面更新为具体的学期
+  }, []);
 
-  // 页面加载时读取设置，页面卸载时保存设置
+  // 页面加载时读取设置
   useEffect(() => {
-    (async () => {
-      await readSettingsFromStorage();
-    })();
+    readSettingsFromStorage();
   }, [readSettingsFromStorage]);
 
+  // 设置变化时保存设置
+  useEffect(() => {
+    saveSettingsToStorage(settings);
+  }, [settings, saveSettingsToStorage]);
+
   const { data: courseData } = usePersistedQuery({
-    queryKey: [COURSE_DATA_KEY, selectedSemester],
-    queryFn: () => getApiV1JwchCourseList({ term: selectedSemester }),
+    queryKey: [COURSE_DATA_KEY, settings.selectedSemester],
+    queryFn: () => getApiV1JwchCourseList({ term: settings.selectedSemester }),
   });
 
   const { data: termListData } = usePersistedQuery({
@@ -116,19 +96,22 @@ export default function AcademicPage() {
   const getTermsData = useCallback(async () => {
     try {
       const result = await getApiV1JwchTermList(); // 数据格式样例： ['202401', '202402']
-      const formattedSemesters = result.data.data.map(term => {
-        const label = transferSemester(term); // 转换为用户友好的格式
-        return { label, value: term }; // 返回对象
-      });
+      const formattedSemesters = result.data.data.map(term => ({
+        label: formatSemesterDisplayText(term),
+        value: term,
+      }));
       setSemesters(formattedSemesters); // 更新学期数据源
-      setSelectedSemester(prevSemester => prevSemester || formattedSemesters[0]?.value);
+      setSettings(prevSettings => ({
+        ...prevSettings,
+        selectedSemester: prevSettings.selectedSemester || formattedSemesters[0]?.value,
+      }));
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
         toast.error(data.msg ? data.msg : '未知错误');
       }
     }
-  }, [handleError, transferSemester]);
+  }, [handleError, formatSemesterDisplayText]);
 
   // 选择学期开关
   const handleOpenTermSelectPicker = useCallback(async () => {
@@ -143,31 +126,27 @@ export default function AcademicPage() {
     setPickerVisible(false);
   }, []);
 
-  // 确认选择学期（这里默认学期发生改变，即使它选择了同一个学期）
+  // 确认选择学期（这里默认学期发生改变，即使用户选择了同一个学期）
   const handleConfirmTermSelectPicker = useCallback(() => {
     setPickerVisible(false);
     const newValue = semesters[tempIndex]?.value ?? '';
-    setSelectedSemester(newValue);
-    saveSettingsToStorage({
-      selectedSemester: newValue,
-    });
-  }, [tempIndex, semesters, saveSettingsToStorage]);
+    setSettings(prevSettings => ({ ...prevSettings, selectedSemester: newValue }));
+  }, [tempIndex, semesters]);
 
   // 设置是否显示非本周课程
-  const handleShowNonCurrentWeekCourses = useCallback(async () => {
-    setShowNonCurrentWeekCourses(prev => !prev);
-    toast.info('已设置为' + (!isShowNonCurrentWeekCourses ? '显示' : '不显示') + '非本周课程');
-    saveSettingsToStorage({
-      showNonCurrentWeekCourses: !isShowNonCurrentWeekCourses,
-    });
-  }, [isShowNonCurrentWeekCourses, saveSettingsToStorage]);
+  const handleShowNonCurrentWeekCourses = useCallback(() => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      showNonCurrentWeekCourses: !prevSettings.showNonCurrentWeekCourses,
+    }));
+  }, []);
 
   // 控制导出到本地日历
   const handleExportToCalendar = useCallback(async () => {
-    setCalendarExportEnabled(prev => !prev);
-    saveSettingsToStorage({
-      calendarExportEnabled: !isCalendarExportEnabled,
-    });
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      calendarExportEnabled: !prevSettings.calendarExportEnabled,
+    }));
 
     if (!courseData) {
       toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
@@ -177,21 +156,21 @@ export default function AcademicPage() {
       toast.error('学期数据为空，无法导出到日历'); // 这个理论上也不可能触发
       return;
     }
-    const startDate = semesterList.find(item => item.term === selectedSemester)?.start_date;
+    const startDate = semesterList.find(item => item.term === settings.selectedSemester)?.start_date;
     if (!startDate) {
       toast.error('无法获取学期开始时间，无法导出到日历');
       return;
     }
 
     await exportCourseToNativeCalendar(courseData.data.data, startDate);
-  }, [saveSettingsToStorage, isCalendarExportEnabled, courseData, selectedSemester, termListData, semesterList]);
+  }, [courseData, settings, termListData, semesterList]);
 
   useEffect(() => {
     if (isPickerVisible && semesters.length > 0) {
-      const sIndex = semesters.findIndex(item => item.value === selectedSemester);
+      const sIndex = semesters.findIndex(item => item.value === settings.selectedSemester);
       setTempIndex(sIndex < 0 ? 0 : sIndex);
     }
-  }, [isPickerVisible, semesters, selectedSemester]);
+  }, [isPickerVisible, semesters, settings]);
 
   return (
     <>
@@ -214,20 +193,25 @@ export default function AcademicPage() {
 
         <SwitchWithLabel
           label="导出到本地日历"
-          value={isCalendarExportEnabled}
+          value={settings.calendarExportEnabled}
           onValueChange={handleExportToCalendar}
         />
 
         <SwitchWithLabel
           label="显示非本周课程"
-          value={isShowNonCurrentWeekCourses}
+          value={settings.showNonCurrentWeekCourses}
           onValueChange={handleShowNonCurrentWeekCourses}
         />
 
         <SwitchWithLabel
           label="自动导入调课信息"
-          value={isAutoImportAdjustmentEnabled}
-          onValueChange={() => setAutoImportAdjustmentEnabled(prev => !prev)}
+          value={settings.autoImportAdjustmentEnabled}
+          onValueChange={() =>
+            setSettings(prevSettings => ({
+              ...prevSettings,
+              autoImportAdjustmentEnabled: !prevSettings.autoImportAdjustmentEnabled,
+            }))
+          }
         />
 
         {/* 底部弹出的 Picker */}
