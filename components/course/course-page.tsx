@@ -84,9 +84,10 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   });
 
   // TODO: 使用 maxWeek 生成一个 FlatList 来展示课表
-  const maxWeek = useMemo(() => {
-    return getWeeksBySemester(semesterListMap[term].start_date, semesterListMap[term].end_date);
-  }, [semesterListMap, term]);
+  const maxWeek = useMemo(
+    () => getWeeksBySemester(semesterListMap[term].start_date, semesterListMap[term].end_date),
+    [semesterListMap, term],
+  );
 
   // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
   // schedules 是一个数组，每个元素是一个课程数据，包含了课程的详细信息
