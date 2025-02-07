@@ -1,19 +1,27 @@
-import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
-import { ThemedView } from '@/components/ThemedView';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Text } from '@/components/ui/text';
-
-import type { JwchClassroomExamResponse_ClassroomExam } from '@/api/backend';
+import type { JwchCourseListResponse as CourseData, JwchClassroomExamResponse as ExamData } from '@/api/backend';
+import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1JwchTermList } from '@/api/generate';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
+
+// 合并后列表项结构
+interface MergedData {
+  name: string;
+  date: string | null;
+  location: string | null;
+  teacher: string;
+  time: string | null;
+}
 
 const NAVIGATION_TITLE = '考场';
 
+// 特殊字符映射标签
 const SYMBOLS_MAP = {
   '▲': '[补考]',
   '●': '[重修]',
@@ -30,79 +38,153 @@ const getCourseName = (name: string) =>
     )
     .trim();
 
-export default function ExamRoomPage() {
-  const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const [examData, setExamData] = useState<JwchClassroomExamResponse_ClassroomExam[] | null>(null); // 考试数据
-  const [termList, setTermList] = useState<string[] | null>([]); // 学期列表
-  const [currentTerm, setCurrentTerm] = useState('202401'); // 当前学期
-  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
+// 辅助函数：合并考试数据与选课数据
+const mergeData = (examData: ExamData, courseData: CourseData): MergedData[] => {
+  const merged: MergedData[] = [];
 
-  // 设置导航栏标题
+  // 以课程数据为主，若考试数据存在则覆盖相应字段
+  courseData.forEach(course => {
+    const exam = examData.find(e => e.name === course.name);
+    merged.push({
+      name: course.name,
+      date: exam ? exam.date : null,
+      location: exam ? exam.location : null,
+      teacher: exam ? exam.teacher : course.teacher,
+      time: exam ? exam.time : null,
+    });
+  });
+
+  // 补充存在考试数据但课程数据中未出现的项
+  examData.forEach(exam => {
+    if (!merged.some(item => item.name === exam.name)) {
+      merged.push({
+        name: exam.name,
+        date: exam.date,
+        location: exam.location,
+        teacher: exam.teacher,
+        time: exam.time,
+      });
+    }
+  });
+
+  return merged;
+};
+
+export default function ExamRoomPage() {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [termList, setTermList] = useState<string[]>([]);
+  const [currentTerm, setCurrentTerm] = useState<string>('');
+  const [examDataMap, setExamDataMap] = useState<Record<string, MergedData[]>>({});
+
+  const { handleError } = useSafeResponseSolve();
   const navigation = useNavigation();
+
   useLayoutEffect(() => {
     navigation.setOptions({ title: NAVIGATION_TITLE });
   }, [navigation]);
 
-  // 合并刷新考试数据和学期列表请求
-  const refreshData = useCallback(async () => {
-    if (isRefreshing) return;
-    setIsRefreshing(true);
-    try {
-      const [examResult, termResult] = await Promise.all([
-        getApiV1JwchClassroomExam({ term: currentTerm }),
-        getApiV1JwchTermList(),
-      ]);
-      // 按日期排序
-      const sortedExamData = examResult.data.data.sort((a, b) => a.date.localeCompare(b.date)).reverse();
-
-      setExamData(sortedExamData);
-      setTermList(termResult.data.data);
-    } catch (error: any) {
+  // 统一错误处理
+  const handleApiError = useCallback(
+    (error: any) => {
       const data = handleError(error);
       if (data) {
-        toast.error(data.msg ? data.msg : '未知错误');
+        toast.error(data.msg || '未知错误');
       }
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [isRefreshing, currentTerm, handleError]);
+      return [];
+    },
+    [handleError],
+  );
 
-  // 自动刷新： tab 变换时刷新
+  // 获取学期列表，并设置当前学期
+  const fetchTermList = useCallback(async () => {
+    try {
+      const termResult = await getApiV1JwchTermList();
+      const terms = termResult.data.data as string[];
+      setTermList(terms);
+      if (!currentTerm || (terms.length > 0 && !terms.includes(currentTerm))) {
+        setCurrentTerm(terms[0] || '');
+      }
+    } catch (error: any) {
+      handleApiError(error);
+    }
+  }, [currentTerm, handleApiError]);
+
+  // 并行获取考试数据和课程数据，并合并后返回排序结果
+  const fetchExamData = useCallback(
+    async (term: string) => {
+      const [examData, courseData] = await Promise.all([
+        getApiV1JwchClassroomExam({ term })
+          .then(res => res.data.data as ExamData)
+          .catch(handleApiError),
+        getApiV1JwchCourseList({ term })
+          .then(res => res.data.data as CourseData)
+          .catch(handleApiError),
+      ]);
+      const mergedList = mergeData(examData, courseData);
+      // 根据考试日期排序，如果没有日期则置于后面
+      return mergedList.sort((a, b) => {
+        if (a.date && b.date) return a.date.localeCompare(b.date);
+        return a.date ? -1 : 1;
+      });
+    },
+    [handleApiError],
+  );
+
+  // 刷新当前学期数据
+  const refreshCurrentExamData = useCallback(async () => {
+    if (isRefreshing || !currentTerm) return;
+    setIsRefreshing(true);
+    const mergedData = await fetchExamData(currentTerm);
+    setExamDataMap(prev => ({ ...prev, [currentTerm]: mergedData }));
+    setIsRefreshing(false);
+  }, [currentTerm, fetchExamData, isRefreshing]);
+
+  // 初次加载学期列表
   useEffect(() => {
-    refreshData();
-  }, [currentTerm]);
+    fetchTermList();
+  }, [fetchTermList]);
+
+  // 切换学期时若没有缓存则获取数据
+  useEffect(() => {
+    if (currentTerm && !examDataMap[currentTerm]) {
+      refreshCurrentExamData();
+    }
+  }, [currentTerm, examDataMap, refreshCurrentExamData]);
 
   return (
-    <ThemedView className="flex-1">
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Tabs value={currentTerm} onValueChange={setCurrentTerm} className="my-6 flex-1 items-center">
-          <TabsList className="w-full flex-row">
-            {termList &&
-              termList.map((item, index) => (
-                <TabsTrigger key={index} value={item} className="flex-1">
-                  <Text className="items-center">{item}</Text>
-                </TabsTrigger>
-              ))}
-          </TabsList>
-        </Tabs>
-
-        {examData &&
-          examData.map((item, index) => (
-            <Card key={index} className="mb-2">
-              <Text className="capitalize text-gray-500">
-                {getCourseName(item.name)} - {item.teacher}
-              </Text>
-              <Text className="font-medium text-black">
-                {item.date} - {item.location}
-              </Text>
-            </Card>
+    <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
+        <TabsList className="w-full flex-row">
+          {termList.map((term, index) => (
+            <TabsTrigger key={index} value={term} className="items-center">
+              <Text>{term}</Text>
+            </TabsTrigger>
           ))}
-
-        {/* 刷新按钮 */}
-        <Button onPress={refreshData} disabled={isRefreshing}>
-          <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
-        </Button>
-      </ScrollView>
-    </ThemedView>
+        </TabsList>
+        {termList.map((term, index) => (
+          <TabsContent key={index} value={term}>
+            {examDataMap[term] ? (
+              examDataMap[term].map((item, idx) => (
+                <Card key={idx} className="mb-2">
+                  <Text>
+                    {getCourseName(item.name)} - {item.teacher}
+                  </Text>
+                  <Text>
+                    {item.date || '未定'} - {item.location || '未定'}
+                  </Text>
+                </Card>
+              ))
+            ) : (
+              <View style={{ padding: 16 }}>
+                <Text>加载中...</Text>
+              </View>
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
+      <Button onPress={refreshCurrentExamData} disabled={isRefreshing} className="mt-2">
+        <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
+      </Button>
+    </ScrollView>
   );
 }
