@@ -11,12 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import WheelPicker from '@/components/wheelPicker';
 
-import type { SemesterList } from '@/api/backend';
+import { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { exportCourseToNativeCalendar } from '@/lib/calendar';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
 import EventRegister from '@/lib/event-bus';
 import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
@@ -90,7 +89,7 @@ export default function AcademicPage() {
     queryFn: getApiV1TermsList,
   });
 
-  const semesterList = useMemo<SemesterList>(() => termListData?.data.data.terms ?? [], [termListData]);
+  const semesterList = useMemo<TermsListResponse_Terms>(() => termListData?.data.data.terms ?? [], [termListData]);
 
   // 获取学期数据
   const getTermsData = useCallback(async () => {
@@ -156,14 +155,14 @@ export default function AcademicPage() {
       toast.error('学期数据为空，无法导出到日历'); // 这个理论上也不可能触发
       return;
     }
-    const startDate = semesterList.find(item => item.term === settings.selectedSemester)?.start_date;
-    if (!startDate) {
-      toast.error('无法获取学期开始时间，无法导出到日历');
-      return;
-    }
+    // const startDate = semesterList.find(item => item.term === settings.selectedSemester)?.start_date;
+    // if (!startDate) {
+    //   toast.error('无法获取学期开始时间，无法导出到日历');
+    //   return;
+    // }
 
-    await exportCourseToNativeCalendar(courseData.data.data, startDate);
-  }, [courseData, settings, termListData, semesterList]);
+    // await exportCourseToNativeCalendar(courseData.data.data, startDate);
+  }, [termListData, courseData]);
 
   useEffect(() => {
     if (isPickerVisible && semesters.length > 0) {
