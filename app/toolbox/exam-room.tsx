@@ -42,6 +42,11 @@ const getCourseName = (name: string) =>
 const mergeData = (examData: ExamData, courseData: CourseData): MergedData[] => {
   const merged: MergedData[] = [];
 
+  // 对课程数据分别以name字段为基础进行去重 (补考会使课程数据存在重复项)
+  courseData = courseData.filter((course, index, self) => self.findIndex(c => c.name === course.name) === index);
+
+  console.log(examData, courseData);
+
   // 以课程数据为主，若考试数据存在则覆盖相应字段
   courseData.forEach(course => {
     const exam = examData.find(e => e.name === course.name);
@@ -123,7 +128,7 @@ export default function ExamRoomPage() {
       const mergedList = mergeData(examData, courseData);
       // 根据考试日期排序，如果没有日期则置于后面
       return mergedList.sort((a, b) => {
-        if (a.date && b.date) return a.date.localeCompare(b.date);
+        if (a.date && b.date) return b.date.localeCompare(a.date);
         return a.date ? -1 : 1;
       });
     },
