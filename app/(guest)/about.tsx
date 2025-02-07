@@ -1,3 +1,8 @@
+import IonIcons from '@expo/vector-icons/Ionicons';
+import { Link, Stack, router } from 'expo-router';
+import { Image, Linking, Pressable, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import {
   DescriptionList,
   DescriptionListDescription,
@@ -7,10 +12,6 @@ import {
 import { ThemedView } from '@/components/ThemedView';
 import { Text } from '@/components/ui/text';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
-import { AntDesign } from '@expo/vector-icons';
-import { Stack, router } from 'expo-router';
-import { Image, Linking, Pressable, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AboutPage() {
   return (
@@ -34,10 +35,18 @@ export default function AboutPage() {
               <DescriptionListTerm>版本更新</DescriptionListTerm>
               <DescriptionListDescription>点我检查更新</DescriptionListDescription>
             </DescriptionListRow>
-            <DescriptionListRow>
-              <DescriptionListTerm>研发团队</DescriptionListTerm>
-              <DescriptionListDescription>西二在线福uu项目组</DescriptionListDescription>
-            </DescriptionListRow>
+            <Link href="/contributors" asChild>
+              <Pressable>
+                <DescriptionListRow>
+                  <DescriptionListTerm>研发团队</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Text className="text-muted-foreground">
+                      西二在线福uu项目组 <IonIcons name="chevron-forward" />
+                    </Text>
+                  </DescriptionListDescription>
+                </DescriptionListRow>
+              </Pressable>
+            </Link>
             <Pressable
               onPress={() => {
                 Linking.openURL('https://fzuhelper.w2fzu.com/');
@@ -46,7 +55,7 @@ export default function AboutPage() {
               <DescriptionListRow>
                 <DescriptionListTerm>官方网站</DescriptionListTerm>
                 <DescriptionListDescription>
-                  <AntDesign name="right" />
+                  <IonIcons name="chevron-forward" />
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
@@ -68,7 +77,7 @@ export default function AboutPage() {
               >
                 服务协议
               </Text>
-              <Text className="mx-5 text-primary">|</Text>
+              <Text className="mx-5 text-muted-foreground">|</Text>
               <Text
                 className="text-primary"
                 onPress={() => {
@@ -103,7 +112,7 @@ export default function AboutPage() {
               }}
             >
               <Text className="mr-1 text-sm text-muted-foreground">ICP备案号：闽ICP备19020557号-4A</Text>
-              <AntDesign name="right" size={10} />
+              <IonIcons name="chevron-forward" size={10} />
             </Pressable>
             <Text className="mb-6 text-sm text-muted-foreground">
               Copyright © 2017-{new Date().getFullYear()} west2-online. All Rights Reserved
