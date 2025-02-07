@@ -5,11 +5,10 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { useNavigation } from 'expo-router';
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { Stack } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
-
 // 合并后列表项结构
 interface MergedData {
   name: string;
@@ -82,11 +81,6 @@ export default function ExamRoomPage() {
   const [examDataMap, setExamDataMap] = useState<Record<string, MergedData[]>>({});
 
   const { handleError } = useSafeResponseSolve();
-  const navigation = useNavigation();
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: NAVIGATION_TITLE });
-  }, [navigation]);
 
   // 统一错误处理
   const handleApiError = useCallback(
@@ -157,39 +151,43 @@ export default function ExamRoomPage() {
   }, [currentTerm, examDataMap, refreshCurrentExamData]);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16 }}>
-      <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
-        <TabsList className="w-full flex-row">
+    <>
+      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
+      <ScrollView className="px-4">
+        <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
+          <TabsList className="w-full flex-row">
+            {termList.map((term, index) => (
+              <TabsTrigger key={index} value={term} className="items-center">
+                <Text>{term}</Text>
+              </TabsTrigger>
+            ))}
+          </TabsList>
           {termList.map((term, index) => (
-            <TabsTrigger key={index} value={term} className="items-center">
-              <Text>{term}</Text>
-            </TabsTrigger>
+            <TabsContent key={index} value={term}>
+              {examDataMap[term] ? (
+                examDataMap[term].map((item, idx) => (
+                  <Card key={idx} className="mb-2">
+                    <Text>
+                      {getCourseName(item.name)} - {item.teacher}
+                    </Text>
+                    <Text>
+                      {item.date || '未定'} - {item.location || '未定'}
+                    </Text>
+                  </Card>
+                ))
+              ) : (
+                <View className="p-4">
+                  <Text>加载中...</Text>
+                </View>
+              )}
+            </TabsContent>
           ))}
-        </TabsList>
-        {termList.map((term, index) => (
-          <TabsContent key={index} value={term}>
-            {examDataMap[term] ? (
-              examDataMap[term].map((item, idx) => (
-                <Card key={idx} className="mb-2">
-                  <Text>
-                    {getCourseName(item.name)} - {item.teacher}
-                  </Text>
-                  <Text>
-                    {item.date || '未定'} - {item.location || '未定'}
-                  </Text>
-                </Card>
-              ))
-            ) : (
-              <View style={{ padding: 16 }}>
-                <Text>加载中...</Text>
-              </View>
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
-      <Button onPress={refreshCurrentExamData} disabled={isRefreshing} className="mt-2">
-        <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
-      </Button>
-    </ScrollView>
+        </Tabs>
+        <Button onPress={refreshCurrentExamData} disabled={isRefreshing} className="mt-2">
+          <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
+        </Button>
+      </ScrollView>
+      <Stack.Screen />
+    </>
   );
 }
