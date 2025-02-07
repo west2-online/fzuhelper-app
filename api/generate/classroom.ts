@@ -24,10 +24,9 @@ export async function getApiV1CommonClassroomEmpty(
 
 /** 考场查询 GET /api/v1/jwch/classroom/exam https://apifox.com/web/project/3275694/apis/api-109631163-run */
 export async function getApiV1JwchClassroomExam(
-  body: {
-    /** 学期 202401 */
-    term: string;
-  },
+  // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
+  params: API.getApiV1JwchClassroomExamParams,
+  body: {},
   options?: { [key: string]: unknown }
 ) {
   const formData = new FormData();
@@ -63,6 +62,9 @@ export async function getApiV1JwchClassroomExam(
     method: 'GET',
     headers: {
       'Content-Type': 'multipart/form-data',
+    },
+    params: {
+      ...params,
     },
     data: formData,
     ...(options || {}),
