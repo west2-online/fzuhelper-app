@@ -1,55 +1,53 @@
 import { getApiV1PaperList } from '@/api/generate';
+import Breadcrumb from '@/components/Breadcrumb';
+import PaperList, { PaperType, type Paper } from '@/components/PaperList';
 import { ThemedView } from '@/components/ThemedView';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { useNavigation } from 'expo-router';
-import { useCallback, useLayoutEffect, useState } from 'react';
-import { ScrollView } from 'react-native';
-
-interface Paper {
-  // 当前路径下的文件/文件夹名字
-  name: string;
-  type: 'folder' | 'file';
-}
+import { Stack } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type LoadingState = 'pending' | 'finish' | 'failed';
-
-const NAVIGATION_TITLE = '历年卷';
+const noNetworkImage = require('assets/images/toolbox/paper/no_network.png');
 
 export default function PaprerPage() {
+  // 只用于组件渲染
   const [loadingState, setLoadingState] = useState<LoadingState>('pending');
+  // 只用于避免重复请求
+  const isLoading = useRef(false);
   const [currentPath, setCurrentPath] = useState('/');
-  const [currentPapers, setCurrentPapers] = useState<Paper[]>();
+  const [currentPapers, setCurrentPapers] = useState<Paper[]>([]);
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
-
-  // 设置导航栏标题
-  const navigation = useNavigation();
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: NAVIGATION_TITLE });
-  }, [navigation]);
 
   // 访问 west2-online 服务器
   const getPaperData = useCallback(async () => {
-    if (loadingState === 'pending') return;
+    if (isLoading.current) return;
+    isLoading.current = true;
     setLoadingState('pending');
     try {
       const result = (await getApiV1PaperList({ path: currentPath })).data;
-      const folders: Paper[] = result.data.folders.map(name => {
-        return { name: name, type: 'folder' };
-      });
-      const files: Paper[] = result.data.files.map(name => {
-        return { name: name, type: 'file' };
-      });
+      const folders: Paper[] = result.data.folders.map(name => ({ name, type: PaperType.FOLDER }));
+      const files: Paper[] = result.data.files.map(name => ({ name, type: PaperType.FILE }));
       setCurrentPapers([...folders, ...files]);
       setLoadingState('finish');
     } catch (error: any) {
-      const data = handleError(error);
+      handleError(error);
       setLoadingState('failed');
+    } finally {
+      isLoading.current = false;
     }
-  }, [loadingState, currentPath, handleError]);
+  }, [currentPath, handleError]);
+
+  useEffect(() => {
+    getPaperData();
+  }, [getPaperData]);
 
   return (
-    <ThemedView className="flex-1">
-      <ScrollView contentContainerStyle={{ padding: 16 }}></ScrollView>
-    </ThemedView>
+    <>
+      <Stack.Screen options={{ title: '历年卷' }} />
+      <ThemedView className="flex-1">
+        <Breadcrumb currentPath={currentPath} setCurrentPath={setCurrentPath} />
+        <PaperList papers={currentPapers} currentPath={currentPath} setCurrentPath={setCurrentPath} />
+      </ThemedView>
+    </>
   );
 }
