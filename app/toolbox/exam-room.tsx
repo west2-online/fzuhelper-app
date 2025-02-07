@@ -3,21 +3,14 @@ import { ThemedView } from '@/components/ThemedView';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
+
+import type { JwchClassroomExamResponse_ClassroomExam } from '@/api/backend';
+import { Button } from '@/components/ui/button';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { toast } from 'sonner-native';
-
-// 响应 data 结构
-interface ExamData {
-  credit: string; // 学分
-  date: string; // 考试日期
-  location: string; // 考试地点
-  name: string; // 课程名称
-  teacher: string; // 教师
-  time: string; // 考试时间
-}
 
 const NAVIGATION_TITLE = '考场';
 
@@ -39,7 +32,7 @@ const getCourseName = (name: string) =>
 
 export default function ExamRoomPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const [examData, setExamData] = useState<ExamData[] | null>(null); // 考试数据
+  const [examData, setExamData] = useState<JwchClassroomExamResponse_ClassroomExam[] | null>(null); // 考试数据
   const [termList, setTermList] = useState<string[] | null>([]); // 学期列表
   const [currentTerm, setCurrentTerm] = useState('202401'); // 当前学期
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
@@ -106,9 +99,9 @@ export default function ExamRoomPage() {
           ))}
 
         {/* 刷新按钮 */}
-        {/* <Button onPress={refreshData} disabled={isRefreshing}>
+        <Button onPress={refreshData} disabled={isRefreshing}>
           <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
-        </Button> */}
+        </Button>
       </ScrollView>
     </ThemedView>
   );
