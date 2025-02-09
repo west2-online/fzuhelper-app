@@ -1,8 +1,9 @@
-/* eslint-disable react-native/no-inline-styles */
-
 'use dom';
 
 import { useEffect, useState } from 'react';
+
+// 在 DOM Component 中，需要手动再引入一次全局样式才能使用 Tailwind CSS
+import '@/global.css';
 
 interface ContributorData {
   name: string;
@@ -31,57 +32,22 @@ async function fetchData(repo: string): Promise<ContributorData[]> {
 }
 
 function ContributorContainer({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 8, width: '100%' }}>{children}</div>
-  );
+  return <div className="flex w-full flex-row flex-wrap gap-2">{children}</div>;
 }
 
 function Contributor({ contributor }: { contributor: ContributorData }) {
   return (
     <a
       href={contributor.url}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: '#fff',
-        borderRadius: 4,
-        padding: '8px 16px',
-        overflow: 'hidden',
-        textDecoration: 'none',
-        textAlign: 'center',
-        width: 90,
-        color: '#333',
-      }}
+      className="flex w-[108px] flex-col items-center justify-start overflow-hidden break-all rounded bg-card px-2 py-4 text-center text-card-foreground no-underline"
       target="_blank"
       rel="noopener noreferrer"
     >
-      <img
-        src={contributor.avatar}
-        alt={contributor.name}
-        width={64}
-        height={64}
-        style={{
-          borderRadius: '50%',
-        }}
-      />
-      <span
-        style={{
-          marginTop: 12,
-          fontWeight: 'bold',
-        }}
-      >
-        {contributor.name}
-      </span>
+      <img src={contributor.avatar} alt={contributor.name} width={64} height={64} className="rounded-full" />
+      <span className="mt-4 font-bold">{contributor.name}</span>
       {/* 这个还是先不显示了，不能准确反映贡献情况 */}
       {/*
-      <span
-        style={{
-          fontSize: 11,
-          marginTop: 8,
-        }}
-      >
+      <span className="mt-2 text-xs">
         {contributor.contributions} contribution{contributor.contributions > 1 ? 's' : ''}
       </span>
       */}
@@ -103,11 +69,9 @@ export default function Contributors() {
   }, []);
 
   return (
-    <div style={{ padding: 12 }}>
-      <h1>贡献者列表</h1>
-
+    <div className="p-4">
       <section>
-        <h2>客户端</h2>
+        <h2 className="mb-4 mt-6 text-2xl font-bold">客户端</h2>
 
         <ContributorContainer>
           {appContributors.length
@@ -117,7 +81,7 @@ export default function Contributors() {
       </section>
 
       <section>
-        <h2>服务端</h2>
+        <h2 className="mb-4 mt-6 text-2xl font-bold">服务端</h2>
 
         <ContributorContainer>
           {serverContributors.length
@@ -127,7 +91,7 @@ export default function Contributors() {
       </section>
 
       <section>
-        <h2>本科教学管理系统对接</h2>
+        <h2 className="mb-4 mt-6 text-2xl font-bold">本科教学管理系统对接</h2>
 
         <ContributorContainer>
           {jwchLibContributors.length
@@ -137,7 +101,7 @@ export default function Contributors() {
       </section>
 
       <section>
-        <h2>研究生教育管理信息系统对接</h2>
+        <h2 className="mb-4 mt-6 text-2xl font-bold">研究生教育管理信息系统对接</h2>
 
         <ContributorContainer>
           {yjsyLibContributors.length
