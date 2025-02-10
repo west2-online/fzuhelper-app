@@ -11,7 +11,7 @@ _Updated at Oct 24, 2024._
 - Operating system: Windows 11 Pro 23H2 (22631.4317)
 
 | Software or tool name   | Version                                   |
-| ----------------------- | ----------------------------------------- |
+|-------------------------|-------------------------------------------|
 | Node.js                 | 20.14.0                                   |
 | Android Studio          | 2024.1.2 (Koala Feature Drop)             |
 | Android SDK             | 33 (Android 13.0)                         |
@@ -32,6 +32,9 @@ Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/renbaoshuo/fzuhelper-app.git
 cd fzuhelper-app
+```
+
+```bash
 yarn install
 ```
 
