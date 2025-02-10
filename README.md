@@ -3,21 +3,22 @@
 ## Getting started
 
 <details>
-<summary><b>@renbaoshuo's local development environment [click to expand]</b></summary>
+<summary><b>@renbaoshuo's local development environment (Android) [click to expand]</b></summary>
 
-_Updated at Oct 24, 2024._
+_Updated at Feb 11, 2025._
 
 - Develop machine: Intel(R) Core(TM) Ultra 9 185H, 64 GiB RAM
-- Operating system: Windows 11 Pro 23H2 (22631.4317)
+- Operating system: Windows 11 Pro 24H2 (26100.2314)
 
-| Software or tool name   | Version                                   |
-| ----------------------- | ----------------------------------------- |
-| Node.js                 | 20.14.0                                   |
-| Android Studio          | 2024.1.2 (Koala Feature Drop)             |
-| Android SDK             | 33 (Android 13.0)                         |
-| NDK                     | 26.1.10909125                             |
-| OpenJDK                 | 17.0.13+11 (winget Microsoft.OpenJDK.17)  |
-| Android Studio Emulator | Pixel 8 Pro API 33 (Android 13.0, x86_64) |
+| Software or tool name   | Version                                      |
+| ----------------------- | -------------------------------------------- |
+| Node.js                 | 22.12.0                                      |
+| Android Studio          | 2024.2.2                                     |
+| Android SDK             | 35 (Android 15.0)                            |
+| NDK                     | 28.0.12674087                                |
+| OpenJDK                 | 17.0.13+11 (winget, Microsoft.OpenJDK.17)    |
+| Android Studio Emulator | Medium Phone API 35 (Android 15.0, x86_64)   |
+| Real device             | Samsung Galaxy S10+ (Android 12, One UI 4.1) |
 
 </details>
 
