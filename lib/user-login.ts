@@ -23,6 +23,8 @@ const DEFAULT_HEADERS: Record<string, string> = {
 const ERROR_MESSAGES: Record<string, string> = {
   用户名或密码错误: '用户名或密码错误',
   验证码验证失败: '验证码验证失败',
+  处理URL失败: '处理URL失败',
+  重新登录: '重新登录',
 };
 
 // 自动验证码识别服务地址(本科生教务系统)
