@@ -12,7 +12,7 @@ import TimeCol from '@/components/course/time-col';
 import WeekSelector from '@/components/course/week-selector';
 import { Text } from '@/components/ui/text';
 
-import { SemesterList } from '@/api/backend';
+import { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import CalendarCol from '@/components/course/calendar-col';
@@ -20,13 +20,14 @@ import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_DATA_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
 import { createGestureHandler } from '@/lib/gesture-handler';
 import { getDatesByWeek, getWeeksBySemester, parseCourses } from '@/utils/course';
+import generateRandomColor, { clearColorMapping } from '@/utils/random-color';
 
 const DAYS = ['一', '二', '三', '四', '五', '六', '日'] as const;
 
 interface CoursePageProps {
   config: CourseSetting;
   locateDateResult: LocateDateResult;
-  semesterList: SemesterList;
+  semesterList: TermsListResponse_Terms;
 }
 
 const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semesterList }) => {
@@ -35,7 +36,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const router = useRouter();
 
-  // 课程数据由 config 传入，具体看 index.tsx 中的代码
+  // 这部分的内容具体看 index.tsx 中的代码，课表数据由本页中的 usePersistedQuery 获取
   const { selectedSemester: term, showNonCurrentWeekCourses: isShowNonCurrentWeekCourses } = config;
 
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
@@ -91,7 +92,24 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
   // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
   // schedules 是一个数组，每个元素是一个课程数据，包含了课程的详细信息
-  const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
+
+  // 这个 useMemo 用于将课程数据转换为适合展示的格式，在这里我们会先清空显示颜色的索引
+  const schedules = useMemo(() => {
+    return data ? parseCourses(data.data.data) : [];
+  }, [data]);
+
+  // 用于存储课程名称和颜色的对应关系，这里我们移入到 useMemo 中，避免每次渲染都重新生成
+  const courseColorMap = useMemo(() => {
+    clearColorMapping(); // 先清空先前的颜色映射
+    const map: Record<string, string> = {};
+    schedules.forEach(schedule => {
+      if (!map[schedule.syllabus]) {
+        map[schedule.syllabus] = generateRandomColor(schedule.name); // 基于课程名称生成颜色
+      }
+    });
+    return map;
+  }, [schedules]);
+
   const daysRowData = useMemo(() => {
     const today = new Date();
     today.setHours(today.getHours() + 8);
@@ -226,6 +244,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
                 week={week}
                 weekday={i + 1}
                 schedules={schedules}
+                courseColorMap={courseColorMap}
                 isShowNonCurrentWeekCourses={isShowNonCurrentWeekCourses}
                 onLessonPlanPress={onLessonPlanPress}
                 onSyllabusPress={onSyllabusPress}

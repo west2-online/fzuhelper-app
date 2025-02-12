@@ -46,14 +46,17 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({
       {/* 课程表中的一个课程，我们将每个课程作为打开课程详情的按钮 */}
       <DialogTrigger asChild>
         <Pressable
-          className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border border-gray-200 p-[1px]"
+          className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border p-[1px]"
           style={{
             flexGrow: span,
             height: (span / 11) * height,
-            backgroundColor: color,
+            borderColor: color, // 使用传入的颜色作为边框颜色
+            backgroundColor: `${color}33`, // 使用传入颜色的透明版本（33 表示约 20% 不透明度）
           }}
         >
-          <Text className="truncate text-wrap break-all text-center text-[11px] text-gray-500">{schedule.name}</Text>
+          <Text className="truncate text-wrap break-all text-center text-[11px] font-bold text-gray-500">
+            {schedule.name}
+          </Text>
           <Text className="text-wrap break-all text-[11px] text-gray-500">{schedule.location}</Text>
         </Pressable>
       </DialogTrigger>
