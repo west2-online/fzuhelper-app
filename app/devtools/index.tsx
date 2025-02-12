@@ -4,6 +4,7 @@ import { Text } from '@/components/ui/text';
 import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewJWCH } from '@/lib/webview';
+import locateDate from '@/utils/locate-date';
 import { checkCookieJWCH } from '@/utils/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Stack } from 'expo-router';
@@ -21,6 +22,16 @@ export default function HomePage() {
       toast.success('验证码识别成功，结果为：' + captcha);
     } catch (error) {
       toast.error('验证码识别失败：' + error);
+    }
+  };
+
+  // 尝试调用 locate-date.ts 中的获取日期函数
+  const testLocateDate = async () => {
+    try {
+      const result = await locateDate();
+      toast.success('获取到的日期信息：' + JSON.stringify(result));
+    } catch (error) {
+      toast.error('获取日期信息失败：' + error);
     }
   };
 
@@ -104,9 +115,17 @@ export default function HomePage() {
               <Text>Not Found Page</Text>
             </Button>
           </Link>
+          <Link href="/devtools/wheelpicker" asChild>
+            <Button>
+              <Text>Wheel Picker</Text>
+            </Button>
+          </Link>
 
           {/* 功能测试 */}
           <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
+          <Button onPress={testLocateDate}>
+            <Text>Test Locate Date</Text>
+          </Button>
           <Button onPress={testValidateCodeVerify}>
             <Text>Test Code Verify</Text>
           </Button>
