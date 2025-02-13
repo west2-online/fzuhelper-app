@@ -16,7 +16,6 @@ export default async function locateDate(): Promise<LocateDateResult> {
   const response = await get(JWCH_LOCATE_DATE_URL, { responseType: 'text' });
   // 确保 data 是字符串
   const data = typeof response.data === 'string' ? response.data : new TextDecoder('utf-8').decode(response.data);
-  console.log(data);
 
   // 使用 `s` 标志（dotAll 模式）以支持匹配多行内容
   const match = data.match(/var week = "(\d+)";\s*\/\/.*\s*var xn = "(\d{4})";\s*\/\/.*\s*var xq = "(\d{2})";/);
@@ -36,8 +35,6 @@ export default async function locateDate(): Promise<LocateDateResult> {
 
   // 获取学期开始日期，这个需要爬取校历，参数需要有学期信息
   const semesterStartResponse = await getApiV1TermsInfo({ term: semester });
-
-  console.log(semesterStartResponse);
 
   // 检查 API 响应是否正常
   if (!semesterStartResponse || semesterStartResponse.status !== 200) {

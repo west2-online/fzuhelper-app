@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
 import type { ParsedCourse } from '@/utils/course';
-import generateRandomColor from '@/utils/random-color';
+import { nonCurrentWeekCourses } from '@/utils/random-color';
 
 import EmptySlot from './empty-slot';
 import ScheduleItem from './schedule-item';
@@ -25,6 +25,7 @@ interface CalendarColProps {
   weekday: number;
   schedules: ParsedCourse[];
   isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
+  courseColorMap: Record<string, string>; // 课程颜色映射
   onSyllabusPress: (syllabus: string) => void; // 教学大纲点击事件
   onLessonPlanPress: (lessonPlan: string) => void; // 授课计划点击事件
 }
@@ -34,23 +35,15 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   week,
   weekday,
   schedules,
+  courseColorMap,
   isShowNonCurrentWeekCourses,
   onSyllabusPress,
   onLessonPlanPress,
 }) => {
   const [height, setHeight] = useState<number>(MIN_HEIGHT);
 
-  // 创建课程颜色映射
-  const courseColorMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    schedules.forEach(schedule => {
-      if (!map[schedule.syllabus]) {
-        map[schedule.syllabus] = generateRandomColor(schedule.syllabus); // 基于 syllabus 生成颜色
-      }
-    });
-    return map;
-  }, [schedules]);
-
+  // 根据当前周数和星期几，筛选出当天的课程
+  // 并进行整合，生成一个用于渲染的数据结构
   const scheduleData = useMemo(() => {
     const schedulesOnDay = schedules.filter(schedule => schedule.weekday === weekday);
     const res: ScheduleItemData[] = [];
@@ -69,7 +62,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
           span,
           color:
             isShowNonCurrentWeekCourses && (schedule.startWeek > week || schedule.endWeek < week)
-              ? '' // 非本周课程不显示颜色，这样展示时是一个边框
+              ? nonCurrentWeekCourses // 非本周课程不显示颜色，这样展示时是一个边框
               : courseColorMap[schedule.syllabus], // 从课程颜色映射中获取颜色
         });
         i += span - 1;
@@ -79,7 +72,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     }
 
     return res;
-  }, [schedules, weekday, week, courseColorMap]);
+  }, [schedules, weekday, week, courseColorMap, isShowNonCurrentWeekCourses]);
 
   return (
     <View

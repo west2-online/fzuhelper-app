@@ -22,6 +22,7 @@ export const JWCH_COOKIES_KEY = 'jwch_cookies';
 export const JWCH_USER_ID_KEY = 'jwch_user_id';
 export const JWCH_USER_PASSWORD_KEY = 'jwch_user_password';
 export const JWCH_USER_INFO_KEY = 'jwch_user_info';
+export const JWCH_COOKIES_DOMAIN = 'https://jwcjwxt2.fzu.edu.cn:81';
 
 // 一码通
 export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
