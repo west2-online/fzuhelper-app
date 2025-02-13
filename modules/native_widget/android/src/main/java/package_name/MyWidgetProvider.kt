@@ -8,6 +8,18 @@ import java.util.logging.Logger
 import org.json.JSONException
 import org.json.JSONObject
 
+//function sendWidgetData() {
+//    const androidPackage = Constants.expoConfig?.android?.package;
+//
+//    if (Platform.OS === 'ios') {
+//        const json = JSON.stringify({ message: 'Hello from app!' });
+//        ExpoWidgetsModule.setWidgetData(json);
+//    } else if (androidPackage) {
+//        const json = JSON.stringify({ message: 'Hello from app!' });
+//        ExpoWidgetsModule.setWidgetData(json, androidPackage);
+//    }
+//}
+
 val Log: Logger = Logger.getLogger(SampleWidget::class.java.name)
 
 /**
