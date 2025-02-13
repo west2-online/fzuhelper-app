@@ -30,7 +30,9 @@ export default function HomePage() {
     setLocateDateResult(res);
 
     const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-    const parsedSettings = normalizeCourseSetting(setting ? JSON.parse(setting) : { selectedSemester: res.semester });
+    const tryParsedSettings = setting ? JSON.parse(setting) : {};
+    const selectedSemester = tryParsedSettings.selectedSemester || res.semester;
+    const parsedSettings = normalizeCourseSetting({ selectedSemester });
 
     setConfig(parsedSettings);
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(parsedSettings));
