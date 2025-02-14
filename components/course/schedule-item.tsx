@@ -10,33 +10,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
+
 import { CLASS_SCHEDULES } from '@/lib/constants';
+import type { ParsedCourse } from '@/utils/course';
 
 interface ScheduleItemProps {
-  schedule: {
-    name: string;
-    location: string;
-    teacher: string;
-    startClass: number;
-    endClass: number;
-    startWeek: number;
-    endWeek: number;
-    remark?: string;
-    syllabus: string;
-    lessonplan: string;
-  };
-  overlappingSchedules?: {
-    name: string;
-    location: string;
-    teacher: string;
-    startClass: number;
-    endClass: number;
-    startWeek: number;
-    endWeek: number;
-    remark?: string;
-    syllabus: string;
-    lessonplan: string;
-  }[]; // 重叠的课程
+  schedule: ParsedCourse;
+  overlappingSchedules?: ParsedCourse[]; // 重叠的课程
   isPartialOverlap?: boolean; // 是否部分重叠
   height: number;
   span: number;
