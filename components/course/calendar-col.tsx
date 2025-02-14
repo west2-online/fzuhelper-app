@@ -90,10 +90,12 @@ const CalendarCol: React.FC<CalendarColProps> = ({
             isShowNonCurrentWeekCourses && (primarySchedule.startWeek > week || primarySchedule.endWeek < week)
               ? nonCurrentWeekCourses
               : courseColorMap[primarySchedule.syllabus],
-          overlappingSchedules: overlappingSchedules.length > 1 ? overlappingSchedules : undefined, // 如果有重叠课程，存储重叠课程信息
+          // 如果有重叠课程，存储重叠课程信息
+          overlappingSchedules: overlappingSchedules.length > 1 ? overlappingSchedules : undefined,
+          // 是否存在部分重叠
           isPartialOverlap: overlappingSchedules.some(
             s => s.startClass !== primarySchedule.startClass || s.endClass !== primarySchedule.endClass,
-          ), // 是否存在部分重叠
+          ),
         });
 
         i += span - 1; // 跳过当前课程的跨度

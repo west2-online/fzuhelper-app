@@ -79,21 +79,21 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({
               backgroundColor: `${color}33`,
             }}
           >
-            <Text className="truncate text-wrap break-all text-center text-[11px] font-bold text-gray-500">
+            <Text className="truncate text-wrap break-all text-center text-[11px] font-bold text-muted-foreground">
               {schedule.name}
             </Text>
-            <Text className="text-wrap break-all text-[11px] text-gray-500">{schedule.location}</Text>
+            <Text className="text-wrap break-all text-[11px] text-muted-foreground">{schedule.location}</Text>
             {overlappingSchedules && overlappingSchedules.length > 1 && (
               <Pressable
                 onPress={() => setIsOverlapDialogOpen(true)} // 打开重叠课程弹窗
                 className="mt-1 flex flex-row items-center justify-center"
               >
-                <Text className="text-xs font-bold text-blue-500">有重叠</Text>
+                <Text className="text-xs font-bold text-primary">有重叠</Text>
               </Pressable>
             )}
             {isPartialOverlap && (
               <Text
-                className="text-warning mt-1 text-xs"
+                className="mt-1 text-xs text-destructive"
                 onPress={() => setIsPartialOverlapDialogOpen(true)} // 打开遮挡课程弹窗
               >
                 有遮挡
@@ -130,7 +130,7 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({
               </DescriptionListTerm>
               <DescriptionListDescription>
                 <Text>
-                  {schedule.startClass}-{schedule.endClass} 节({getTimeRange(schedule.startClass, schedule.endClass)})
+                  {schedule.startClass}-{schedule.endClass} 节 ({getTimeRange(schedule.startClass, schedule.endClass)})
                 </Text>
               </DescriptionListDescription>
             </DescriptionListRow>
