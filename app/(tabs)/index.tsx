@@ -38,7 +38,7 @@ export default function HomePage() {
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(parsedSettings));
   }, []);
 
-  // 当加载的时候会读取 COUSE_SETTINGS，里面有一个字段会存储当前选择的学期（不一定是最新学期）
+  // 当加载的时候会读取 COURSE_SETTINGS，里面有一个字段会存储当前选择的学期（不一定是最新学期）
   useEffect(() => {
     loadData();
 
