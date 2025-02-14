@@ -20,6 +20,10 @@ import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EVENT_COUR
 import EventRegister from '@/lib/event-bus';
 import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
 
+import * as NativeStorageModule from '@/modules/native-storage';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
 interface SemesterData {
   label: string;
   value: string;
@@ -67,6 +71,15 @@ export default function AcademicPage() {
     console.log('保存课程设置');
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(newSettings));
     EventRegister.emit(EVENT_COURSE_UPDATE, newSettings.selectedSemester); // 发送事件，通知课程页面更新为具体的学期
+
+    const androidPackage = Constants.expoConfig?.android?.package;
+    if (Platform.OS === 'ios') {
+      const json = JSON.stringify({ CourseSetting: newSettings });
+      NativeStorageModule.setWidgetData(json);
+    } else if (androidPackage) {
+      const json = JSON.stringify(newSettings);
+      NativeStorageModule.setWidgetData(json, 'CourseSetting' ,androidPackage);
+    }
   }, []);
 
   // 页面加载时读取设置

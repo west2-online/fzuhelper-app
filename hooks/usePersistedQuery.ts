@@ -33,7 +33,6 @@ function usePersistedQuery<
   queryClient?: QueryClient,
 ) {
   const { enabled, ...otherOptions } = options;
-  const androidPackage = Constants.expoConfig?.android?.package;
 
   return useQuery(
     {
@@ -66,14 +65,14 @@ function usePersistedQuery<
           };
           await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheToStore));
 
+          const androidPackage = Constants.expoConfig?.android?.package;
           if (Platform.OS === 'ios') {
             const json = JSON.stringify({ [cacheKey]: response });
             NativeStorageModule.setWidgetData(json);
           } else if (androidPackage) {
             const json = JSON.stringify(response);
             NativeStorageModule.setWidgetData(json, cacheKey ,androidPackage);
-          } else {
-            }
+          }
 
           return response;
         } catch (error) {
