@@ -3,6 +3,9 @@ import type { DefaultError, QueryClient, QueryKey } from '@tanstack/query-core';
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query/src/types';
 import { toast } from 'sonner-native';
+import * as NativeStorageModule from '@/modules/native-storage';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 interface CachedData<T> {
   data: T;
@@ -30,6 +33,7 @@ function usePersistedQuery<
   queryClient?: QueryClient,
 ) {
   const { enabled, ...otherOptions } = options;
+  const androidPackage = Constants.expoConfig?.android?.package;
 
   return useQuery(
     {
@@ -61,6 +65,15 @@ function usePersistedQuery<
             timestamp: Date.now(),
           };
           await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheToStore));
+
+          if (Platform.OS === 'ios') {
+            const json = JSON.stringify({ [cacheKey]: response });
+            NativeStorageModule.setWidgetData(json);
+          } else if (androidPackage) {
+            const json = JSON.stringify(response);
+            NativeStorageModule.setWidgetData(json, cacheKey ,androidPackage);
+          } else {
+            }
 
           return response;
         } catch (error) {

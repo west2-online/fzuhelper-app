@@ -41,11 +41,11 @@ const config: ExpoConfig = {
 //                 }
 //             },
             android: {
-                src: "./native_widget/android",
+                src: "./modules/native-widget/android",
                 widgets: [
                     {
-                        "name": "MyWidgetProvider",
-                        "resourceName": "@xml/my_widget_info"
+                        "name": "NextClassWidgetProvider",
+                        "resourceName": "@xml/next_class_widget_provider"
                     }
                 ],
                 distPlaceholder: "optional.placeholder"
