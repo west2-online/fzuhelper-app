@@ -6,36 +6,36 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-type LoadingState = 'pending' | 'finish' | 'failed';
+enum LoadingState {
+  UNINIT = 'uninit',
+  PENDING = 'pending',
+  FINISH = 'finish',
+  FAILED = 'failed',
+}
+
 const noNetworkImage = require('assets/images/toolbox/paper/no_network.png');
 
 export default function PaprerPage() {
-  // 只用于组件渲染
-  const [loadingState, setLoadingState] = useState<LoadingState>('pending');
-  // 只用于避免重复请求
-  const isLoading = useRef(false);
+  const loadingState = useRef(LoadingState.UNINIT);
   const [currentPath, setCurrentPath] = useState('/');
   const [currentPapers, setCurrentPapers] = useState<Paper[]>([]);
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
 
   // 访问 west2-online 服务器
   const getPaperData = useCallback(async () => {
-    if (isLoading.current) return;
-    isLoading.current = true;
-    setLoadingState('pending');
+    if (loadingState.current === LoadingState.PENDING) return;
+    loadingState.current = LoadingState.PENDING;
     try {
       const result = (await getApiV1PaperList({ path: currentPath })).data;
       const folders: Paper[] = result.data.folders.map(name => ({ name, type: PaperType.FOLDER }));
       const files: Paper[] = result.data.files.map(name => ({ name, type: PaperType.FILE }));
       setCurrentPapers([...folders, ...files]);
-      setLoadingState('finish');
+      loadingState.current = LoadingState.FINISH;
     } catch (error: any) {
       handleError(error);
-      setLoadingState('failed');
-    } finally {
-      isLoading.current = false;
+      loadingState.current = LoadingState.FAILED;
     }
-  }, [currentPath, handleError]);
+  }, [loadingState, currentPath, handleError]);
 
   useEffect(() => {
     getPaperData();
