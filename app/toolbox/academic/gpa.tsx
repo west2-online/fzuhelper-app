@@ -1,29 +1,20 @@
-import { getApiV1JwchAcademicGpa } from '@/api/generate';
-import { ThemedView } from '@/components/ThemedView';
-import { Text } from '@/components/ui/text';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { useNavigation } from 'expo-router';
 import { useCallback, useLayoutEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-// 学术成绩数据项
-interface AcademicDataItem {
-  type: string;
-  value: string;
-}
+import { ThemedView } from '@/components/ThemedView';
+import { Text } from '@/components/ui/text';
 
-// 响应 data 结构
-interface AcademicData {
-  time: string;
-  data: AcademicDataItem[];
-}
+import type { JwchAcademicGpaResponse } from '@/api/backend';
+import { getApiV1JwchAcademicGpa } from '@/api/generate';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 const NAVIGATION_TITLE = '绩点排名';
 
 export default function GPAPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const [academicData, setAcademicData] = useState<AcademicData | null>(null); // 学术成绩数据
+  const [academicData, setAcademicData] = useState<JwchAcademicGpaResponse | null>(null); // 学术成绩数据
 
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
 

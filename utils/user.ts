@@ -3,11 +3,14 @@ import {
   ACCESS_TOKEN_KEY,
   JWCH_COOKIES_KEY,
   JWCH_ID_KEY,
+  JWCH_USER_ID_KEY,
   JWCH_USER_INFO_KEY,
   REFRESH_TOKEN_KEY,
 } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
+import { get } from '@/modules/native-request';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Buffer } from 'buffer';
 
 // 清空 AsyncStorage 中的所有用户信息
 export async function clearUserStorage() {
@@ -39,4 +42,30 @@ export async function userLogin(data: { id: string; password: string }) {
     // 教务处登录失败
     return Promise.reject(e);
   }
+}
+
+// 检查 JWCH 的 Cookie 是否有效，如果无效，重新自动登录
+export async function checkCookieJWCH() {
+  const COOKIE_CHECK_URL = 'https://jwcjwxt2.fzu.edu.cn:81/jcxx/xsxx/StudentInformation.aspx?id='; // 尝试访问学生个人信息页面
+  const id = await AsyncStorage.getItem(JWCH_ID_KEY);
+  const cookies = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+  if (!id || !cookies) {
+    return false;
+  }
+  const resp = await get(COOKIE_CHECK_URL + id, {
+    Referer: 'https://jwch.fzu.edu.cn',
+    ORIGIN: 'https://jwch.fzu.edu.cn',
+    'X-Requested-With': 'XMLHttpRequest',
+    Cookie: cookies,
+  });
+
+  const str = Buffer.from(resp.data).toString('utf-8').replace(/\s+/g, '');
+  const schoolid = /id="ContentPlaceHolder1_LB_xh">(\d+)/.exec(str)?.[1];
+
+  const userid = await AsyncStorage.getItem(JWCH_USER_ID_KEY);
+  if (!schoolid || !userid) {
+    return false;
+  }
+
+  return (schoolid && userid && schoolid === userid) || false;
 }
