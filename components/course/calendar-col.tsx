@@ -1,13 +1,11 @@
-import React, { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { useMemo } from 'react';
+import { View, type LayoutRectangle } from 'react-native';
 
-import type { ParsedCourse } from '@/utils/course';
+import { SCHEDULE_MIN_HEIGHT, type ParsedCourse } from '@/utils/course';
 import { nonCurrentWeekCourses } from '@/utils/random-color';
 
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
-
-const MIN_HEIGHT = 49 * 11;
 
 type ScheduleItemData =
   | {
@@ -28,6 +26,7 @@ interface CalendarColProps {
   schedules: ParsedCourse[];
   isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
   courseColorMap: Record<string, string>; // 课程颜色映射
+  flatListLayout: LayoutRectangle;
 }
 
 // 移除重复的课程，之所以需要这个，是因为教务处会莫名其妙安排完全一样的课程在教务处的课程表中，导致大量的重复课程显示
@@ -51,9 +50,8 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   schedules,
   courseColorMap,
   isShowNonCurrentWeekCourses,
+  flatListLayout,
 }) => {
-  const [height, setHeight] = useState<number>(MIN_HEIGHT);
-
   // 根据当前周数和星期几，筛选出当天的课程
   // 并进行整合，生成一个用于渲染的数据结构
   const scheduleData = useMemo(() => {
@@ -104,17 +102,12 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   }, [schedules, weekday, week, courseColorMap, isShowNonCurrentWeekCourses]);
 
   return (
-    <View
-      className="flex w-[14.285714%] flex-shrink-0 flex-grow flex-col"
-      onLayout={({ nativeEvent }) => {
-        setHeight(Math.max(MIN_HEIGHT, nativeEvent.layout.height));
-      }}
-    >
+    <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>
       {scheduleData.map((item, index) =>
         item.type === 'course' ? (
           <ScheduleItem
             key={index}
-            height={height}
+            height={Math.max(SCHEDULE_MIN_HEIGHT, flatListLayout.height)}
             span={item.span}
             color={item.color}
             schedule={item.schedule}
@@ -122,7 +115,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
             isPartialOverlap={item.isPartialOverlap}
           />
         ) : (
-          <EmptyScheduleItem key={index} height={height} />
+          <EmptyScheduleItem key={index} height={Math.max(SCHEDULE_MIN_HEIGHT, flatListLayout.height)} />
         ),
       )}
     </View>

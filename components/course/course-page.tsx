@@ -1,12 +1,19 @@
 import { AntDesign } from '@expo/vector-icons';
 import { Link, Tabs } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Animated, Modal, Pressable, ScrollView, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  View,
+  useWindowDimensions,
+  type LayoutRectangle,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 
-import CalendarCol from '@/components/course/calendar-col';
 import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
-import TimeCol from '@/components/course/time-col';
 import WeekSelector from '@/components/course/week-selector';
 import { Text } from '@/components/ui/text';
 
@@ -15,9 +22,10 @@ import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_DATA_KEY } from '@/lib/constants';
-import { createGestureHandler } from '@/lib/gesture-handler';
-import { getDatesByWeek, getWeeksBySemester, parseCourses } from '@/utils/course';
+import { getDatesByWeek, getFirstDateByWeek, getWeeksBySemester, parseCourses } from '@/utils/course';
 import generateRandomColor, { clearColorMapping } from '@/utils/random-color';
+
+import CourseWeek from './course-week';
 
 const DAYS = ['一', '二', '三', '四', '五', '六', '日'] as const;
 
@@ -31,15 +39,17 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [week, setWeek] = useState(1); // 当前周数
   const [date, setDate] = useState('2025-01-01'); // 当前日期
   const [showWeekSelector, setShowWeekSelector] = useState(false);
+  const { width } = useWindowDimensions();
+  const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });
 
   const month = useMemo(() => new Date(date).getMonth() + 1, [date]);
 
-  // 这部分的内容具体看 index.tsx 中的代码，课表数据由本页中的 usePersistedQuery 获取
-  const { selectedSemester: term, showNonCurrentWeekCourses: isShowNonCurrentWeekCourses } = config;
+  // 从设置中读取相关信息，设置项由上级组件传入
+  const { selectedSemester: term, showNonCurrentWeekCourses } = config;
 
+  // 【查询课程数据】
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
   // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
-  // 这个组件内才是查询课程数据的地方
   const { data } = usePersistedQuery({
     queryKey: [COURSE_DATA_KEY, term],
     queryFn: () => getApiV1JwchCourseList({ term }),
@@ -49,43 +59,24 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     () => Object.fromEntries(semesterList.map(semester => [semester.term, semester])),
     [semesterList],
   );
+  const currentSemester = useMemo(() => semesterListMap[term], [semesterListMap, term]);
 
   useEffect(() => {
     setWeek(term === locateDateResult.semester ? locateDateResult.week : 1);
     setDate(term === locateDateResult.semester ? locateDateResult.date : semesterListMap[term].start_date);
   }, [term, locateDateResult, semesterListMap]);
 
-  // 基于滑动手势处理器，创建手势处理对象的回调逻辑，用于 ScrollView 组件的滑动事件处理
-  const { panResponder, translateX } = createGestureHandler({
-    direction: 'horizontal',
-    onSwipeLeft: async () => {
-      setWeek(prev => prev + 1);
-      const dates = getDatesByWeek(semesterListMap[term].start_date, week + 1);
-      setDate(dates[0]);
-
-      // 重置 translateX
-      Animated.spring(translateX, {
-        toValue: 0,
-        useNativeDriver: false,
-      }).start();
-    },
-    onSwipeRight: async () => {
-      setWeek(prev => Math.max(prev - 1, 1));
-      const dates = getDatesByWeek(semesterListMap[term].start_date, Math.max(week - 1, 1));
-      setDate(dates[0]);
-
-      // 重置 translateX
-      Animated.spring(translateX, {
-        toValue: 0,
-        useNativeDriver: false,
-      }).start();
-    },
-  });
-
-  // TODO: 使用 maxWeek 生成一个 FlatList 来展示课表
   const maxWeek = useMemo(
-    () => getWeeksBySemester(semesterListMap[term].start_date, semesterListMap[term].end_date),
-    [semesterListMap, term],
+    () => getWeeksBySemester(currentSemester.start_date, currentSemester.end_date),
+    [currentSemester],
+  );
+  const weekArray = useMemo(
+    () =>
+      Array.from({ length: maxWeek }, (_, i) => ({
+        week: i + 1,
+        firstDate: getFirstDateByWeek(currentSemester.start_date, i + 1),
+      })),
+    [maxWeek, currentSemester],
   );
 
   // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
@@ -99,7 +90,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   // 用于存储课程名称和颜色的对应关系，这里我们移入到 useMemo 中，避免每次渲染都重新生成
   const courseColorMap = useMemo(() => {
     clearColorMapping(); // 先清空先前的颜色映射
+
     const map: Record<string, string> = {};
+
     schedules.forEach(schedule => {
       if (!map[schedule.syllabus]) {
         map[schedule.syllabus] = generateRandomColor(schedule.name); // 基于课程名称生成颜色
@@ -132,6 +125,21 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       };
     });
   }, [date]);
+
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const contentOffsetX = event.nativeEvent.contentOffset.x;
+      const newWeek = Math.round(contentOffsetX / flatListLayout.width) + 1;
+
+      console.log('newWeek', newWeek);
+
+      if (newWeek !== week) {
+        setWeek(newWeek);
+        setDate(weekArray[newWeek - 1].firstDate);
+      }
+    },
+    [flatListLayout.width, week, weekArray],
+  );
 
   return (
     <>
@@ -180,49 +188,45 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         </View>
       </Modal>
 
-      <ScrollView
-        {...panResponder.panHandlers} // 绑定滑动手势
-        stickyHeaderIndices={[0]}
-        overScrollMode="never"
-        bounces={false}
-      >
-        <HeaderContainer>
-          <View className="w-[32px] flex-shrink-0 flex-grow-0">
-            <View className="flex flex-shrink-0 flex-col items-center justify-center px-2 py-3">
-              <Text>{month}</Text>
-              <Text>月</Text>
-            </View>
+      <HeaderContainer>
+        <View className="w-[32px] flex-shrink-0 flex-grow-0">
+          <View className="flex flex-shrink-0 flex-col items-center justify-center px-2 py-3">
+            <Text>{month}</Text>
+            <Text>月</Text>
           </View>
+        </View>
 
-          <View className="mt-2 flex flex-shrink flex-grow flex-row">
-            {daysRowData.map(item => (
-              <DayItem
-                key={item.key}
-                day={item.day}
-                date={item.date}
-                variant={item.isToday ? 'highlight' : item.isWeekend ? 'muted' : 'default'}
-              />
-            ))}
-          </View>
-        </HeaderContainer>
+        <View className="mt-2 flex flex-shrink flex-grow flex-row">
+          {daysRowData.map(item => (
+            <DayItem
+              key={item.key}
+              day={item.day}
+              date={item.date}
+              variant={item.isToday ? 'highlight' : item.isWeekend ? 'muted' : 'default'}
+            />
+          ))}
+        </View>
+      </HeaderContainer>
 
-        <Animated.View className="flex flex-none flex-grow flex-row py-1" style={{ transform: [{ translateX }] }}>
-          <TimeCol />
-
-          <View className="flex flex-shrink flex-grow flex-row">
-            {Array.from({ length: 7 }, (_, i) => (
-              <CalendarCol
-                key={`${date}_${i}`}
-                week={week}
-                weekday={i + 1}
-                schedules={schedules}
-                courseColorMap={courseColorMap}
-                isShowNonCurrentWeekCourses={isShowNonCurrentWeekCourses}
-              />
-            ))}
-          </View>
-        </Animated.View>
-      </ScrollView>
+      <FlatList
+        horizontal
+        pagingEnabled
+        data={weekArray}
+        renderItem={({ item }) => (
+          <CourseWeek
+            key={item.week}
+            week={item.week}
+            startDate={date}
+            schedules={schedules}
+            courseColorMap={courseColorMap}
+            showNonCurrentWeekCourses={showNonCurrentWeekCourses}
+            flatListLayout={flatListLayout}
+          />
+        )}
+        onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        showsHorizontalScrollIndicator={false}
+      />
     </>
   );
 };

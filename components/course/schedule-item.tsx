@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Text } from '@/components/ui/text';
 
 import { CLASS_SCHEDULES, JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
-import type { ParsedCourse } from '@/utils/course';
+import { SCHEDULE_ITEM_MIN_HEIGHT, type ParsedCourse } from '@/utils/course';
 
 interface ScheduleItemProps {
   schedule: ParsedCourse;
@@ -73,12 +73,13 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
           <Pressable
-            className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border p-[1px]"
+            className="flex flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border p-[1px]"
             style={{
               flexGrow: span,
               height: span * (height / 11),
               borderColor: color,
               backgroundColor: `${color}33`,
+              minHeight: SCHEDULE_ITEM_MIN_HEIGHT,
             }}
           >
             <Text className="truncate text-wrap break-all text-center text-[11px] font-bold text-muted-foreground">

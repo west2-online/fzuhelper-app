@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 
 import { CLASS_SCHEDULES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/utils/course';
 
 // 判断当前时间是否在指定时间段内
 const isTimeInRange = (currentTime: string, startTime: string, endTime: string): boolean => {
@@ -48,9 +49,10 @@ const TimeCol: React.FC = () => {
           <View
             key={index}
             className={cn(
-              'flex min-h-14 w-[32px] flex-grow flex-col items-center justify-center py-1',
+              'flex w-[32px] flex-grow flex-col items-center justify-center py-1',
               isActive && 'border border-primary',
             )}
+            style={{ minHeight: SCHEDULE_ITEM_MIN_HEIGHT }}
           >
             <Text className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-muted-foreground')}>
               {index + 1}
