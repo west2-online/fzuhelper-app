@@ -10,7 +10,7 @@ import TimeCol from '@/components/course/time-col';
 import WeekSelector from '@/components/course/week-selector';
 import { Text } from '@/components/ui/text';
 
-import { TermsListResponse_Terms } from '@/api/backend';
+import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import CalendarCol from '@/components/course/calendar-col';

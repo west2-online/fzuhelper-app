@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import WheelPicker from '@/components/wheelPicker';
 
-import { TermsListResponse_Terms } from '@/api/backend';
+import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
