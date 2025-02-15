@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import type { ParsedCourse } from '@/utils/course';
 import { nonCurrentWeekCourses } from '@/utils/random-color';
 
-import EmptySlot from './empty-slot';
+import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
 
 const MIN_HEIGHT = 49 * 11;
@@ -128,7 +128,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
             onLessonPlanPress={onLessonPlanPress}
           />
         ) : (
-          <EmptySlot key={index} />
+          <EmptyScheduleItem key={index} height={height} />
         ),
       )}
     </View>

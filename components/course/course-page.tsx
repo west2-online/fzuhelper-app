@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Animated, Modal, Pressable, ScrollView, View } from 'react-native';
 
 import DayItem from '@/components/course/day-item';
-import DaysRow from '@/components/course/days-row';
 import HeaderContainer from '@/components/course/header-container';
 import MonthDisplay from '@/components/course/month-display';
 import TimeCol from '@/components/course/time-col';
@@ -194,10 +193,8 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           setShowWeekSelector(!showWeekSelector);
         }}
       >
-        <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-        >
-          <View style={{ backgroundColor: 'white', width: '80%', maxHeight: '60%', borderRadius: 20, padding: 20 }}>
+        <View className="flex flex-1 items-center justify-center bg-[#00000050]">
+          <View className="max-h-[60%] w-4/5 rounded-lg bg-card p-6">
             <WeekSelector
               currentWeek={week}
               maxWeek={maxWeek}
@@ -205,7 +202,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
                 setWeek(selectedWeek);
                 const newDates = getDatesByWeek(semesterListMap[term].start_date, selectedWeek);
                 setDate(newDates[0]); // 假设 newDates[0] 是周一的日期
-                setShowWeekSelector(false); // 关闭模态框
+                setShowWeekSelector(false); // 关闭 Modal
               }}
             />
           </View>
@@ -221,17 +218,16 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         <HeaderContainer>
           <MonthDisplay month={new Date(date).getMonth() + 1} />
 
-          <DaysRow>
+          <View className="mt-2 flex flex-shrink flex-grow flex-row">
             {daysRowData.map(item => (
               <DayItem
                 key={item.key}
                 day={item.day}
                 date={item.date}
-                isSelected={item.isToday}
-                isMuted={item.isWeekend}
+                variant={item.isToday ? 'highlight' : item.isWeekend ? 'muted' : 'default'}
               />
             ))}
-          </DaysRow>
+          </View>
         </HeaderContainer>
 
         <Animated.View className="flex flex-none flex-grow flex-row py-1" style={{ transform: [{ translateX }] }}>

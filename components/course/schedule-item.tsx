@@ -54,7 +54,7 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({
             className="flex min-h-14 flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border p-[1px]"
             style={{
               flexGrow: span,
-              height: (span / 11) * height,
+              height: span * (height / 11),
               borderColor: color,
               backgroundColor: `${color}33`,
             }}

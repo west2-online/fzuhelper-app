@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { CLASS_SCHEDULES } from '@/lib/constants';
@@ -18,23 +18,25 @@ const isTimeInRange = (currentTime: string, startTime: string, endTime: string):
 };
 
 // 获取当前时间的字符串格式（HH:mm）
-const getCurrentTime = (): string => {
+const getCurrentTime = () => {
   const now = new Date();
   const hours = now.getHours().toString().padStart(2, '0');
   const minutes = now.getMinutes().toString().padStart(2, '0');
+
   return `${hours}:${minutes}`;
 };
 
 // 课程表的左侧时间段列
 const TimeCol: React.FC = () => {
-  const [currentTime, setCurrentTime] = useState<string>(getCurrentTime());
+  const [currentTime, setCurrentTime] = useState(getCurrentTime());
 
   // 定时更新当前时间
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(getCurrentTime());
-    }, 60000); // 每分钟更新一次
-    return () => clearInterval(interval); // 清除定时器
+    }, 30000); // 每半分钟更新一次
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -47,14 +49,14 @@ const TimeCol: React.FC = () => {
             key={index}
             className={cn(
               'flex min-h-14 w-[32px] flex-grow flex-col items-center py-1',
-              isActive && 'border border-blue-500',
+              isActive && 'border border-primary',
             )}
           >
-            <Text className={cn('text-[12px] font-bold', isActive ? 'text-blue-500' : 'text-gray-500')}>
+            <Text className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-muted-foreground')}>
               {index + 1}
             </Text>
-            <Text className={cn('text-[8px]', isActive ? 'text-blue-500' : 'text-gray-500')}>{time[0]}</Text>
-            <Text className={cn('text-[8px]', isActive ? 'text-blue-500' : 'text-gray-500')}>{time[1]}</Text>
+            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-muted-foreground')}>{time[0]}</Text>
+            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-muted-foreground')}>{time[1]}</Text>
           </View>
         );
       })}
