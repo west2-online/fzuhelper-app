@@ -75,18 +75,27 @@ const mergeData = (examData: ExamData, courseData: CourseData): MergedExamData[]
 };
 
 // 格式化日期，如果没有日期则返回“未定”
-const formatDate = (date?: Date) => (date ? date.toLocaleDateString() : '未定');
+const formatDate = (date?: Date) => (date ? date.toLocaleDateString() : undefined);
 
 // 生成课程卡片
 function generateCourseCard(item: MergedExamData, idx: number) {
   return (
     <Card key={idx} className={`m-1 p-3 ${item.isFinished ? 'opacity-70' : ''}`}>
-      <Text>
-        {getCourseName(item.name)} - {item.teacher}
-      </Text>
-      <Text>
-        {formatDate(item.date)} - {item.location || '未定'}
-      </Text>
+      <View className="m-1 flex-row justify-between">
+        <Text className="font-bold">📕 {getCourseName(item.name)}</Text>
+        <Text>{item.teacher.length > 10 ? item.teacher.slice(0, 10) + '...' : item.teacher}</Text>
+      </View>
+      {(item.date || item.time) && (
+        <View className="m-1 flex-row">
+          {item.date && <Text>📅 {formatDate(item.date)} </Text>}
+          {item.time && <Text>{item.time}</Text>}
+        </View>
+      )}
+      {item.location && (
+        <View className="m-1 flex-row">
+          <Text>🏫 {item.location}</Text>
+        </View>
+      )}
     </Card>
   );
 }
@@ -100,8 +109,8 @@ export default function ExamRoomPage() {
   // 处理 API 错误
   const handleApiError = useCallback(
     (error: any) => {
-      const data = handleError(error);
-      if (data) toast.error(data.msg || '未知错误');
+      const data = handleError(error.type);
+      if (data) toast.error(data.message || '未知错误');
     },
     [handleError],
   );
@@ -133,6 +142,7 @@ export default function ExamRoomPage() {
             handleApiError(error);
             return [] as ExamData;
           }),
+
         getApiV1JwchCourseList({ term })
           .then(res => res.data.data as CourseData)
           .catch(error => {
@@ -145,6 +155,7 @@ export default function ExamRoomPage() {
     [handleApiError],
   );
 
+  // 刷新当前学期数据
   const refreshCurrentExamData = useCallback(async () => {
     if (isRefreshing || !currentTerm) return;
     setIsRefreshing(true);
