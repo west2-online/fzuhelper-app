@@ -212,6 +212,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         horizontal
         pagingEnabled
         data={weekArray}
+        keyExtractor={item => item.week.toString()}
+        initialNumToRender={1}
+        windowSize={3}
         renderItem={({ item }) => (
           <CourseWeek
             key={item.week}

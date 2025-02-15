@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ScrollView, View, type LayoutRectangle } from 'react-native';
 
 import CalendarCol from './calendar-col';
@@ -43,4 +44,4 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
   </ScrollView>
 );
 
-export default CourseWeek;
+export default memo(CourseWeek);

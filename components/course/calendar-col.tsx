@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, type LayoutRectangle } from 'react-native';
 
 import { SCHEDULE_MIN_HEIGHT, type ParsedCourse } from '@/utils/course';
@@ -122,4 +122,4 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   );
 };
 
-export default CalendarCol;
+export default memo(CalendarCol);
