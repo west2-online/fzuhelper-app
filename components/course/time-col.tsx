@@ -48,7 +48,7 @@ const TimeCol: React.FC = () => {
           <View
             key={index}
             className={cn(
-              'flex min-h-14 w-[32px] flex-grow flex-col items-center py-1',
+              'flex min-h-14 w-[32px] flex-grow flex-col items-center justify-center py-1',
               isActive && 'border border-primary',
             )}
           >
