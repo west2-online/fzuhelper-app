@@ -10,8 +10,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-// 合并后列表项结构
-interface MergedData {
+// 合并后列表项结构 由于考试数据和选课数据的字段不同，需要合并后再展示
+interface MergedExamData {
   name: string;
   date?: Date;
   location?: string;
@@ -46,7 +46,7 @@ const parseDate = (dateStr: string): Date | undefined => {
 };
 
 // 辅助函数：合并考试数据与选课数据
-const mergeData = (examData: ExamData, courseData: CourseData): MergedData[] => {
+const mergeData = (examData: ExamData, courseData: CourseData): MergedExamData[] => {
   const courseMap = new Map<string, CourseData[number]>(courseData.map(course => [course.name, course]));
   const examMap = new Map<string, ExamData[number]>(examData.map(exam => [exam.name, exam]));
   const allNames = [...new Set([...courseMap.keys(), ...examMap.keys()])];
@@ -74,13 +74,27 @@ const mergeData = (examData: ExamData, courseData: CourseData): MergedData[] => 
     });
 };
 
+// 格式化日期，如果没有日期则返回“未定”
 const formatDate = (date?: Date) => (date ? date.toLocaleDateString() : '未定');
 
+// 生成课程卡片
+function generateCourseCard(item: MergedExamData, idx: number) {
+  return (
+    <Card key={idx} className={`m-1 p-3 ${item.isFinished ? 'opacity-70' : ''}`}>
+      <Text>
+        {getCourseName(item.name)} - {item.teacher}
+      </Text>
+      <Text>
+        {formatDate(item.date)} - {item.location || '未定'}
+      </Text>
+    </Card>
+  );
+}
 export default function ExamRoomPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
   const [termList, setTermList] = useState<string[]>([]); // 学期列表
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
-  const [examDataMap, setExamDataMap] = useState<Record<string, MergedData[]>>({}); // 考试数据
+  const [examDataMap, setExamDataMap] = useState<Record<string, MergedExamData[]>>({}); // 考试数据
   const { handleError } = useSafeResponseSolve(); // 错误处理函数
 
   // 处理 API 错误
@@ -96,7 +110,9 @@ export default function ExamRoomPage() {
   const fetchTermList = useCallback(async () => {
     try {
       const termResult = await getApiV1JwchTermList();
-      const terms = termResult.data.data as string[];
+      // const terms = termResult.data.data as string[];
+      // debug,当学期列表太多时，查看ui是否正常
+      const terms = ['202402', '202401', '202302', '202301', '202202', '202201', '202102'];
       setTermList(terms);
       if (!currentTerm || (terms.length && !terms.includes(currentTerm))) {
         setCurrentTerm(terms[0] || '');
@@ -106,21 +122,24 @@ export default function ExamRoomPage() {
     }
   }, [currentTerm, handleApiError]);
 
-  // 获取考试数据
+  // 并行获取考试数据和课程数据，并合并后返回排序结果;在api抛出错误时，返回空数组
   const fetchExamData = useCallback(
     async (term: string) => {
-      try {
-        const [examData, courseData] = await Promise.all([
-          // 获取考试数据和选课数据
-          getApiV1JwchClassroomExam({ term }).then(res => res.data.data as ExamData),
-          getApiV1JwchCourseList({ term }).then(res => res.data.data as CourseData),
-        ]);
-        const mergedList = mergeData(examData, courseData);
-        return mergedList;
-      } catch (error: any) {
-        handleApiError(error);
-        return [];
-      }
+      const [examData, courseData] = await Promise.all([
+        getApiV1JwchClassroomExam({ term })
+          .then(res => res.data.data as ExamData)
+          .catch(error => {
+            handleApiError(error);
+            return [] as ExamData;
+          }),
+        getApiV1JwchCourseList({ term })
+          .then(res => res.data.data as CourseData)
+          .catch(error => {
+            handleApiError(error);
+            return [] as CourseData;
+          }),
+      ]);
+      return mergeData(examData, courseData);
     },
     [handleApiError],
   );
@@ -133,9 +152,12 @@ export default function ExamRoomPage() {
     setIsRefreshing(false);
   }, [currentTerm, fetchExamData, isRefreshing]);
 
+  // 初次加载学期列表
   useEffect(() => {
     fetchTermList();
   }, [fetchTermList]);
+
+  // 切换学期时若没有缓存则获取数据
   useEffect(() => {
     if (currentTerm && !examDataMap[currentTerm]) refreshCurrentExamData();
   }, [currentTerm, examDataMap, refreshCurrentExamData]);
@@ -143,37 +165,34 @@ export default function ExamRoomPage() {
   return (
     <>
       <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
-      <ScrollView className="px-4">
+      <ScrollView className="p-4">
         <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
-          <TabsList className="w-full flex-row">
-            {termList.map((term, index) => (
-              <TabsTrigger key={index} value={term} className="items-center">
-                <Text>{term}</Text>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          {/* 列表可以横向滚动 */}
+          <ScrollView horizontal className="flex w-full">
+            {/* 生成tabs */}
+            <TabsList className="flex w-full flex-row overflow-x-auto whitespace-nowrap">
+              {termList.map((term, index) => (
+                <TabsTrigger key={index} value={term} className="flex-none items-center">
+                  <Text>{term}</Text>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </ScrollView>
+
+          {/* 生成内容 */}
           {termList.map((term, index) => (
             <TabsContent key={index} value={term}>
               {examDataMap[term] ? (
-                examDataMap[term].map((item, idx) => (
-                  <Card key={idx} className="mb-2" style={{ opacity: item.isFinished ? 0.5 : 1 }}>
-                    <Text>
-                      {getCourseName(item.name)} - {item.teacher}
-                    </Text>
-                    <Text>
-                      {formatDate(item.date)} - {item.location || '未定'}
-                    </Text>
-                  </Card>
-                ))
+                examDataMap[term].map((item, idx) => generateCourseCard(item, idx))
               ) : (
-                <View className="p-4">
-                  <Text>加载中...</Text>
-                </View>
+                <Text>加载中...</Text>
               )}
             </TabsContent>
           ))}
         </Tabs>
-        <Button onPress={refreshCurrentExamData} disabled={isRefreshing} className="mt-2">
+
+        {/* 底部刷新按钮 (mb-10用来强行把button拉高，很奇怪，他的高度居然是按<Text>算的) */}
+        <Button onPress={refreshCurrentExamData} disabled={isRefreshing} className="mb-10">
           <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
         </Button>
       </ScrollView>
