@@ -21,7 +21,8 @@ class NativeStorageModule : Module() {
     Name("NativeStorage")
 
       Function("setWidgetData") { json: String, cacheKey: String, packageName: String ->
-          getPreferences(packageName).edit().putString("widgetdata"+cacheKey, json).commit()
+          getPreferences(packageName).edit().putString(cacheKey, json).commit()
+          Log.e("widget", "$cacheKey, $packageName, $json")
 
           val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
           val widgetManager = AppWidgetManager.getInstance(context)
