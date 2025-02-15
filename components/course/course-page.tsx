@@ -1,9 +1,9 @@
 import { AntDesign } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Link, Tabs, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, Tabs } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { Animated, Modal, Pressable, ScrollView, View } from 'react-native';
 
+import CalendarCol from '@/components/course/calendar-col';
 import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
 import TimeCol from '@/components/course/time-col';
@@ -13,9 +13,8 @@ import { Text } from '@/components/ui/text';
 import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
-import CalendarCol from '@/components/course/calendar-col';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { COURSE_DATA_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
+import { COURSE_DATA_KEY } from '@/lib/constants';
 import { createGestureHandler } from '@/lib/gesture-handler';
 import { getDatesByWeek, getWeeksBySemester, parseCourses } from '@/utils/course';
 import generateRandomColor, { clearColorMapping } from '@/utils/random-color';
@@ -32,7 +31,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [week, setWeek] = useState(1); // 当前周数
   const [date, setDate] = useState('2025-01-01'); // 当前日期
   const [showWeekSelector, setShowWeekSelector] = useState(false);
-  const router = useRouter();
 
   const month = useMemo(() => new Date(date).getMonth() + 1, [date]);
 
@@ -135,34 +133,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     });
   }, [date]);
 
-  // 教学大纲点击事件，这个入参会在点击时由 ScheduleItem 提供
-  const onSyllabusPress = useCallback(
-    async (syllabus: string) => {
-      router.push({
-        pathname: '/web',
-        params: {
-          url: `${syllabus}&id=${await AsyncStorage.getItem(JWCH_ID_KEY)}`,
-          jwchCookie: await AsyncStorage.getItem(JWCH_COOKIES_KEY),
-        },
-      });
-    },
-    [router],
-  );
-
-  // 授课计划点击事件，这个入参会在点击时由 ScheduleItem 提供
-  const onLessonPlanPress = useCallback(
-    async (lessonPlan: string) => {
-      router.push({
-        pathname: '/web',
-        params: {
-          url: `${lessonPlan}&id=${await AsyncStorage.getItem(JWCH_ID_KEY)}`,
-          jwchCookie: await AsyncStorage.getItem(JWCH_COOKIES_KEY),
-        },
-      });
-    },
-    [router],
-  );
-
   return (
     <>
       <Tabs.Screen
@@ -248,8 +218,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
                 schedules={schedules}
                 courseColorMap={courseColorMap}
                 isShowNonCurrentWeekCourses={isShowNonCurrentWeekCourses}
-                onLessonPlanPress={onLessonPlanPress}
-                onSyllabusPress={onSyllabusPress}
               />
             ))}
           </View>

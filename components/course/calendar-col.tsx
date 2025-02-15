@@ -28,8 +28,6 @@ interface CalendarColProps {
   schedules: ParsedCourse[];
   isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
   courseColorMap: Record<string, string>; // 课程颜色映射
-  onSyllabusPress: (syllabus: string) => void; // 教学大纲点击事件
-  onLessonPlanPress: (lessonPlan: string) => void; // 授课计划点击事件
 }
 
 // 移除重复的课程，之所以需要这个，是因为教务处会莫名其妙安排完全一样的课程在教务处的课程表中，导致大量的重复课程显示
@@ -53,8 +51,6 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   schedules,
   courseColorMap,
   isShowNonCurrentWeekCourses,
-  onSyllabusPress,
-  onLessonPlanPress,
 }) => {
   const [height, setHeight] = useState<number>(MIN_HEIGHT);
 
@@ -124,8 +120,6 @@ const CalendarCol: React.FC<CalendarColProps> = ({
             schedule={item.schedule}
             overlappingSchedules={item.overlappingSchedules}
             isPartialOverlap={item.isPartialOverlap}
-            onSyllabusPress={onSyllabusPress}
-            onLessonPlanPress={onLessonPlanPress}
           />
         ) : (
           <EmptyScheduleItem key={index} height={height} />
