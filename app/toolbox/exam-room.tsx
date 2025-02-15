@@ -110,9 +110,10 @@ export default function ExamRoomPage() {
   const fetchTermList = useCallback(async () => {
     try {
       const termResult = await getApiV1JwchTermList();
-      // const terms = termResult.data.data as string[];
-      // debug,当学期列表太多时，查看ui是否正常
-      const terms = ['202402', '202401', '202302', '202301', '202202', '202201', '202102'];
+      const terms = termResult.data.data as string[];
+      // debug,当学期列表太多/少时，查看ui是否正常
+      // const terms = ['202402', '202401', '202302', '202301', '202202', '202201', '202102'];
+      // const terms = ['202401'];
       setTermList(terms);
       if (!currentTerm || (terms.length && !terms.includes(currentTerm))) {
         setCurrentTerm(terms[0] || '');
@@ -168,12 +169,11 @@ export default function ExamRoomPage() {
       <ScrollView className="p-4">
         <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
           {/* 列表可以横向滚动 */}
-          <ScrollView horizontal className="flex w-full">
-            {/* 生成tabs */}
-            <TabsList className="flex w-full flex-row overflow-x-auto whitespace-nowrap">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TabsList className="flex-row">
               {termList.map((term, index) => (
-                <TabsTrigger key={index} value={term} className="flex-none items-center">
-                  <Text>{term}</Text>
+                <TabsTrigger key={index} value={term} className="items-center">
+                  <Text className="w-24 text-center">{term}</Text>
                 </TabsTrigger>
               ))}
             </TabsList>
