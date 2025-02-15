@@ -6,7 +6,6 @@ import { Animated, Modal, Pressable, ScrollView, View } from 'react-native';
 
 import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
-import MonthDisplay from '@/components/course/month-display';
 import TimeCol from '@/components/course/time-col';
 import WeekSelector from '@/components/course/week-selector';
 import { Text } from '@/components/ui/text';
@@ -34,6 +33,8 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [date, setDate] = useState('2025-01-01'); // 当前日期
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const router = useRouter();
+
+  const month = useMemo(() => new Date(date).getMonth() + 1, [date]);
 
   // 这部分的内容具体看 index.tsx 中的代码，课表数据由本页中的 usePersistedQuery 获取
   const { selectedSemester: term, showNonCurrentWeekCourses: isShowNonCurrentWeekCourses } = config;
@@ -216,7 +217,12 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         bounces={false}
       >
         <HeaderContainer>
-          <MonthDisplay month={new Date(date).getMonth() + 1} />
+          <View className="w-[32px] flex-shrink-0 flex-grow-0">
+            <View className="flex flex-shrink-0 flex-col items-center justify-center px-2 py-3">
+              <Text>{month}</Text>
+              <Text>月</Text>
+            </View>
+          </View>
 
           <View className="mt-2 flex flex-shrink flex-grow flex-row">
             {daysRowData.map(item => (
