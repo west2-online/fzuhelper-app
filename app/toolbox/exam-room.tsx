@@ -9,13 +9,15 @@ import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
+
 // 合并后列表项结构
 interface MergedData {
   name: string;
-  date: string | null;
-  location: string | null;
+  date?: Date;
+  location?: string;
   teacher: string;
-  time: string | null;
+  time?: string;
+  isFinished: boolean;
 }
 
 const NAVIGATION_TITLE = '考场';
@@ -37,70 +39,66 @@ const getCourseName = (name: string) =>
     )
     .trim();
 
-// 辅助函数：合并考试数据与选课数据
-const mergeData = (examData: ExamData, courseData: CourseData): MergedData[] => {
-  const merged: MergedData[] = [];
-
-  // 对课程数据分别以name字段为基础进行去重 (补考会使课程数据存在重复项)
-  courseData = courseData.filter((course, index, self) => self.findIndex(c => c.name === course.name) === index);
-
-  console.log(examData, courseData);
-
-  // 以课程数据为主，若考试数据存在则覆盖相应字段
-  courseData.forEach(course => {
-    const exam = examData.find(e => e.name === course.name);
-    merged.push({
-      name: course.name,
-      date: exam ? exam.date : null,
-      location: exam ? exam.location : null,
-      teacher: exam ? exam.teacher : course.teacher,
-      time: exam ? exam.time : null,
-    });
-  });
-
-  // 补充存在考试数据但课程数据中未出现的项
-  examData.forEach(exam => {
-    if (!merged.some(item => item.name === exam.name)) {
-      merged.push({
-        name: exam.name,
-        date: exam.date,
-        location: exam.location,
-        teacher: exam.teacher,
-        time: exam.time,
-      });
-    }
-  });
-
-  return merged;
+// 将日期字符串转换为 Date 对象，如转换失败返回 undefined
+const parseDate = (dateStr: string): Date | undefined => {
+  const match = dateStr.match(/(\d{4})年(\d{2})月(\d{2})日/);
+  return match ? new Date(`${match[1]}-${match[2]}-${match[3]}`) : undefined;
 };
 
+// 辅助函数：合并考试数据与选课数据
+const mergeData = (examData: ExamData, courseData: CourseData): MergedData[] => {
+  const courseMap = new Map<string, CourseData[number]>(courseData.map(course => [course.name, course]));
+  const examMap = new Map<string, ExamData[number]>(examData.map(exam => [exam.name, exam]));
+  const allNames = [...new Set([...courseMap.keys(), ...examMap.keys()])];
+  const now = new Date();
+
+  return allNames
+    .map(name => {
+      // 从课程数据和考试数据中获取信息
+      const course = courseMap.get(name);
+      const exam = examMap.get(name);
+      return {
+        name,
+        date: exam ? parseDate(exam.date) : undefined,
+        location: exam ? exam.location : undefined,
+        teacher: exam ? exam.teacher : course?.teacher || '',
+        time: exam ? exam.time : undefined,
+        // 判断是否已经结束，如果没有考试数据则默认为已结束，如果有考试数据则判断是否已经过了考试日期
+        isFinished: exam ? (exam.date ? now > parseDate(exam.date)! : false) : true,
+      };
+    })
+    .sort((a, b) => {
+      // 按照日期排序，未知日期的排在最后
+      if (a.date && b.date) return b.date.getTime() - a.date.getTime();
+      return a.date ? -1 : 1;
+    });
+};
+
+const formatDate = (date?: Date) => (date ? date.toLocaleDateString() : '未定');
+
 export default function ExamRoomPage() {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [termList, setTermList] = useState<string[]>([]);
-  const [currentTerm, setCurrentTerm] = useState<string>('');
-  const [examDataMap, setExamDataMap] = useState<Record<string, MergedData[]>>({});
+  const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
+  const [termList, setTermList] = useState<string[]>([]); // 学期列表
+  const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
+  const [examDataMap, setExamDataMap] = useState<Record<string, MergedData[]>>({}); // 考试数据
+  const { handleError } = useSafeResponseSolve(); // 错误处理函数
 
-  const { handleError } = useSafeResponseSolve();
-
-  // 统一错误处理
+  // 处理 API 错误
   const handleApiError = useCallback(
     (error: any) => {
       const data = handleError(error);
-      if (data) {
-        toast.error(data.msg || '未知错误');
-      }
-      return [];
+      if (data) toast.error(data.msg || '未知错误');
     },
     [handleError],
   );
 
-  // 获取学期列表，并设置当前学期
+  // 获取学期列表
   const fetchTermList = useCallback(async () => {
     try {
       const termResult = await getApiV1JwchTermList();
       const terms = termResult.data.data as string[];
       setTermList(terms);
-      if (!currentTerm || (terms.length > 0 && !terms.includes(currentTerm))) {
+      if (!currentTerm || (terms.length && !terms.includes(currentTerm))) {
         setCurrentTerm(terms[0] || '');
       }
     } catch (error: any) {
@@ -108,28 +106,25 @@ export default function ExamRoomPage() {
     }
   }, [currentTerm, handleApiError]);
 
-  // 并行获取考试数据和课程数据，并合并后返回排序结果
+  // 获取考试数据
   const fetchExamData = useCallback(
     async (term: string) => {
-      const [examData, courseData] = await Promise.all([
-        getApiV1JwchClassroomExam({ term })
-          .then(res => res.data.data as ExamData)
-          .catch(handleApiError),
-        getApiV1JwchCourseList({ term })
-          .then(res => res.data.data as CourseData)
-          .catch(handleApiError),
-      ]);
-      const mergedList = mergeData(examData, courseData);
-      // 根据考试日期排序，如果没有日期则置于后面
-      return mergedList.sort((a, b) => {
-        if (a.date && b.date) return b.date.localeCompare(a.date);
-        return a.date ? -1 : 1;
-      });
+      try {
+        const [examData, courseData] = await Promise.all([
+          // 获取考试数据和选课数据
+          getApiV1JwchClassroomExam({ term }).then(res => res.data.data as ExamData),
+          getApiV1JwchCourseList({ term }).then(res => res.data.data as CourseData),
+        ]);
+        const mergedList = mergeData(examData, courseData);
+        return mergedList;
+      } catch (error: any) {
+        handleApiError(error);
+        return [];
+      }
     },
     [handleApiError],
   );
 
-  // 刷新当前学期数据
   const refreshCurrentExamData = useCallback(async () => {
     if (isRefreshing || !currentTerm) return;
     setIsRefreshing(true);
@@ -138,16 +133,11 @@ export default function ExamRoomPage() {
     setIsRefreshing(false);
   }, [currentTerm, fetchExamData, isRefreshing]);
 
-  // 初次加载学期列表
   useEffect(() => {
     fetchTermList();
   }, [fetchTermList]);
-
-  // 切换学期时若没有缓存则获取数据
   useEffect(() => {
-    if (currentTerm && !examDataMap[currentTerm]) {
-      refreshCurrentExamData();
-    }
+    if (currentTerm && !examDataMap[currentTerm]) refreshCurrentExamData();
   }, [currentTerm, examDataMap, refreshCurrentExamData]);
 
   return (
@@ -166,12 +156,12 @@ export default function ExamRoomPage() {
             <TabsContent key={index} value={term}>
               {examDataMap[term] ? (
                 examDataMap[term].map((item, idx) => (
-                  <Card key={idx} className="mb-2">
+                  <Card key={idx} className="mb-2" style={{ opacity: item.isFinished ? 0.5 : 1 }}>
                     <Text>
                       {getCourseName(item.name)} - {item.teacher}
                     </Text>
                     <Text>
-                      {item.date || '未定'} - {item.location || '未定'}
+                      {formatDate(item.date)} - {item.location || '未定'}
                     </Text>
                   </Card>
                 ))

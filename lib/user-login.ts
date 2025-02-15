@@ -8,8 +8,8 @@ import { Buffer } from 'buffer';
 
 // const 只会使变量的引用不可变，但不代表变量的内容（如对象或数组）也是不可变的，因此需要补一个 as const
 const JWCH_URLS = {
-  LOGIN_CHECK: 'https://jwcjwxt1.fzu.edu.cn/logincheck.asp',
-  VERIFY_CODE: 'https://jwcjwxt1.fzu.edu.cn/plus/verifycode.asp',
+  LOGIN_CHECK: 'https://jwcjwxt2.fzu.edu.cn:82/logincheck.asp',
+  VERIFY_CODE: 'https://jwcjwxt2.fzu.edu.cn:82/plus/verifycode.asp',
   SSO_LOGIN: 'https://jwcjwxt2.fzu.edu.cn/Sfrz/SSOLogin',
   LOGIN_CHECK_XS: 'https://jwcjwxt2.fzu.edu.cn:81/loginchk_xs.aspx',
 } as const;
