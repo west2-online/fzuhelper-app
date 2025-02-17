@@ -15,6 +15,7 @@ interface CourseWeekProps {
   flatListLayout: LayoutRectangle;
 }
 
+// CourseWeek 组件，用于渲染一周的课程表
 const CourseWeek: React.FC<CourseWeekProps> = ({
   week,
   startDate,
@@ -28,6 +29,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
       <TimeCol />
 
       <View className="flex flex-1 flex-row">
+        {/* 按列（即每一天）渲染课程表 */}
         {Array.from({ length: 7 }, (_, i) => (
           <CalendarCol
             key={`${startDate}_${i}`}

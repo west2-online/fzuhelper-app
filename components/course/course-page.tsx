@@ -39,10 +39,10 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [week, setWeek] = useState(1); // 当前周数
   const [date, setDate] = useState('2025-01-01'); // 当前日期
   const [showWeekSelector, setShowWeekSelector] = useState(false);
-  const { width } = useWindowDimensions();
-  const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });
+  const { width } = useWindowDimensions(); // 获取屏幕宽度
+  const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
 
-  const month = useMemo(() => new Date(date).getMonth() + 1, [date]);
+  const month = useMemo(() => new Date(date).getMonth() + 1, [date]); // 获取当前月份
 
   // 从设置中读取相关信息，设置项由上级组件传入
   const { selectedSemester: term, showNonCurrentWeekCourses } = config;
@@ -55,6 +55,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     queryFn: () => getApiV1JwchCourseList({ term }),
   });
 
+  // 将学期数据转换为 Map，方便后续使用
   const semesterListMap = useMemo(
     () => Object.fromEntries(semesterList.map(semester => [semester.term, semester])),
     [semesterList],
@@ -101,6 +102,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     return map;
   }, [schedules]);
 
+  // 生成一周的日期数据
   const daysRowData = useMemo(() => {
     const today = new Date();
     today.setHours(today.getHours() + 8);
@@ -126,6 +128,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     });
   }, [date]);
 
+  // 处理滚动结束时的周数
   const handleMomentumScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const contentOffsetX = event.nativeEvent.contentOffset.x;
@@ -143,6 +146,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
   return (
     <>
+      {/* 顶部 Tab 导航栏 */}
       <Tabs.Screen
         options={{
           headerTitleAlign: 'center',
@@ -164,6 +168,52 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         }}
       />
 
+      {/* 顶部日期 */}
+      <HeaderContainer>
+        <View className="w-[32px] flex-shrink-0 flex-grow-0">
+          <View className="flex flex-shrink-0 flex-col items-center justify-center px-2 py-3">
+            <Text>{month}</Text>
+            <Text>月</Text>
+          </View>
+        </View>
+
+        <View className="mt-2 flex flex-shrink flex-grow flex-row">
+          {daysRowData.map(item => (
+            <DayItem
+              key={item.key}
+              day={item.day}
+              date={item.date}
+              variant={item.isToday ? 'highlight' : item.isWeekend ? 'muted' : 'default'}
+            />
+          ))}
+        </View>
+      </HeaderContainer>
+
+      {/* 课程表详情 */}
+      <FlatList
+        horizontal
+        pagingEnabled
+        data={weekArray}
+        keyExtractor={item => item.week.toString()}
+        initialNumToRender={1}
+        windowSize={3}
+        renderItem={({ item }) => (
+          <CourseWeek
+            key={item.week}
+            week={item.week}
+            startDate={date}
+            schedules={schedules}
+            courseColorMap={courseColorMap}
+            showNonCurrentWeekCourses={showNonCurrentWeekCourses}
+            flatListLayout={flatListLayout}
+          />
+        )}
+        onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        showsHorizontalScrollIndicator={false}
+      />
+
+      {/* 周数选择器 */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -192,49 +242,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           </View>
         </Pressable>
       </Modal>
-
-      <HeaderContainer>
-        <View className="w-[32px] flex-shrink-0 flex-grow-0">
-          <View className="flex flex-shrink-0 flex-col items-center justify-center px-2 py-3">
-            <Text>{month}</Text>
-            <Text>月</Text>
-          </View>
-        </View>
-
-        <View className="mt-2 flex flex-shrink flex-grow flex-row">
-          {daysRowData.map(item => (
-            <DayItem
-              key={item.key}
-              day={item.day}
-              date={item.date}
-              variant={item.isToday ? 'highlight' : item.isWeekend ? 'muted' : 'default'}
-            />
-          ))}
-        </View>
-      </HeaderContainer>
-
-      <FlatList
-        horizontal
-        pagingEnabled
-        data={weekArray}
-        keyExtractor={item => item.week.toString()}
-        initialNumToRender={1}
-        windowSize={3}
-        renderItem={({ item }) => (
-          <CourseWeek
-            key={item.week}
-            week={item.week}
-            startDate={date}
-            schedules={schedules}
-            courseColorMap={courseColorMap}
-            showNonCurrentWeekCourses={showNonCurrentWeekCourses}
-            flatListLayout={flatListLayout}
-          />
-        )}
-        onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
-        showsHorizontalScrollIndicator={false}
-      />
     </>
   );
 };

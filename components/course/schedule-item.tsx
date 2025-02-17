@@ -17,6 +17,7 @@ interface ScheduleItemProps {
   color: string; // 课程的颜色
 }
 
+// ScheduleItem 组件，用于显示课程表中的一节课
 const ScheduleItem: React.FC<ScheduleItemProps> = ({
   schedule,
   height,
@@ -78,6 +79,7 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({
         />
       )}
 
+      {/* 如果有部分重叠课程，则显示被遮挡的课程 */}
       {isPartialOverlap && overlappingSchedules && (
         <PartialOverlapDialog
           isOpen={isPartialOverlapDialogOpen}

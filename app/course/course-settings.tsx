@@ -57,14 +57,13 @@ export default function AcademicPage() {
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
     console.log('读取课程设置');
-
     setSettings(await readCourseSetting());
   }, []);
 
   // 将当前设置保存至 AsyncStorage，采用 json 形式保存
   // 保存后会发送 EVENT_COURSE_UPDATE 事件，通知课程页面更新
   const saveSettingsToStorage = useCallback(async (newSettings: CourseSetting) => {
-    console.log('保存课程设置');
+    console.log('保存课程设置, ', newSettings);
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(newSettings));
     EventRegister.emit(EVENT_COURSE_UPDATE, newSettings.selectedSemester); // 发送事件，通知课程页面更新为具体的学期
   }, []);
