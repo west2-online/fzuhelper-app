@@ -14,7 +14,9 @@ const WeekSelector: React.FC<WeekSelectorProps> = ({ currentWeek, maxWeek, onWee
   const renderItem = useCallback(
     ({ item }: { item: number }) => (
       <Button onPress={() => onWeekSelect(item)} variant={item === currentWeek ? 'default' : 'outline'}>
-        <Text>第 {item} 周</Text>
+        <Text>
+          第 {item} 周 {item === currentWeek ? '（当前周）' : ''}
+        </Text>
       </Button>
     ),
     [currentWeek, onWeekSelect],

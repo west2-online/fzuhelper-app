@@ -172,20 +172,25 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           setShowWeekSelector(!showWeekSelector);
         }}
       >
-        <View className="flex flex-1 items-center justify-center bg-[#00000050]">
-          <View className="max-h-[60%] w-4/5 rounded-lg bg-card p-6">
-            <WeekSelector
-              currentWeek={week}
-              maxWeek={maxWeek}
-              onWeekSelect={selectedWeek => {
-                setWeek(selectedWeek);
-                const newDates = getDatesByWeek(semesterListMap[term].start_date, selectedWeek);
-                setDate(newDates[0]); // 假设 newDates[0] 是周一的日期
-                setShowWeekSelector(false); // 关闭 Modal
-              }}
-            />
+        <Pressable
+          className="flex-1"
+          onPress={() => setShowWeekSelector(false)} // 点击外部关闭 Modal
+        >
+          <View className="flex flex-1 items-center justify-center bg-[#00000050]">
+            <View className="max-h-[60%] w-4/5 rounded-lg bg-card p-6">
+              <WeekSelector
+                currentWeek={week}
+                maxWeek={maxWeek}
+                onWeekSelect={selectedWeek => {
+                  setWeek(selectedWeek);
+                  const newDates = getDatesByWeek(semesterListMap[term].start_date, selectedWeek);
+                  setDate(newDates[0]); // 假设 newDates[0] 是周一的日期
+                  setShowWeekSelector(false); // 关闭 Modal
+                }}
+              />
+            </View>
           </View>
-        </View>
+        </Pressable>
       </Modal>
 
       <HeaderContainer>
