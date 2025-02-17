@@ -69,7 +69,10 @@ const CalendarCol: React.FC<CalendarColProps> = ({
         s =>
           s.startClass <= i &&
           s.endClass >= i && // 当前时间段是否在课程时间范围内
-          (isShowNonCurrentWeekCourses || (s.startWeek <= week && s.endWeek >= week)), // 是否符合周数条件
+          (isShowNonCurrentWeekCourses ||
+            (s.startWeek <= week &&
+              s.endWeek >= week &&
+              ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)))), // 是否符合周数条件
       );
 
       if (overlappingSchedules.length > 0) {
