@@ -52,8 +52,8 @@ const TimeCol: React.FC<TimeColProps> = ({ scrollY, flatListLayout }) => {
   }, [scrollY]);
 
   return (
-    <ScrollView ref={scrollViewRef} showsVerticalScrollIndicator={false} scrollEnabled={false}>
-      <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
+    <ScrollView className="w-[32px]" ref={scrollViewRef} showsVerticalScrollIndicator={false} scrollEnabled={false}>
+      <View className="flex flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
         {CLASS_SCHEDULES.map((time, index) => {
           const isActive = isTimeInRange(currentTime, time[0], time[1]);
 
@@ -61,7 +61,7 @@ const TimeCol: React.FC<TimeColProps> = ({ scrollY, flatListLayout }) => {
             <View
               key={index}
               className={cn(
-                'mb-[2px] flex w-[32px] flex-grow flex-col items-center justify-center',
+                'mb-[2px] flex flex-grow flex-col items-center justify-center',
                 isActive && 'border border-primary',
               )}
               style={{ minHeight: Math.max(SCHEDULE_ITEM_MIN_HEIGHT, flatListLayout.height / 11) }}
