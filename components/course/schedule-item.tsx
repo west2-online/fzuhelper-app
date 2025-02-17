@@ -1,20 +1,12 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable } from 'react-native';
 
-import {
-  DescriptionList,
-  DescriptionListDescription,
-  DescriptionListRow,
-  DescriptionListTerm,
-} from '@/components/DescriptionList';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
+import OverlapDetailsDialog from './overlap-details-dialog';
+import PartialOverlapDialog from './partial-overlap-dialog';
+import ScheduleDetailsDialog from './schedule-detail-item';
 
-import { CLASS_SCHEDULES, JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
-import { SCHEDULE_ITEM_MIN_HEIGHT, type ParsedCourse } from '@/utils/course';
+import { type ParsedCourse } from '@/utils/course';
 
 interface ScheduleItemProps {
   schedule: ParsedCourse;
@@ -25,14 +17,6 @@ interface ScheduleItemProps {
   color: string; // 课程的颜色
 }
 
-// 根据节数获取时间范围
-const getTimeRange = (startClass: number, endClass: number): string => {
-  const startTime = CLASS_SCHEDULES[startClass - 1][0];
-  const endTime = CLASS_SCHEDULES[endClass - 1][1];
-
-  return `${startTime} - ${endTime}`;
-};
-
 const ScheduleItem: React.FC<ScheduleItemProps> = ({
   schedule,
   height,
@@ -41,236 +25,65 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({
   overlappingSchedules,
   isPartialOverlap,
 }) => {
-  const [dialogOpen, setDialogOpen] = useState(false); // 控制课程详情弹窗
-  const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false); // 控制重叠课程弹窗
-  const [isPartialOverlapDialogOpen, setIsPartialOverlapDialogOpen] = useState(false); // 控制遮挡课程弹窗
-  const router = useRouter();
-
-  const handleSyllabusPress = useCallback(async () => {
-    setDialogOpen(false);
-    router.push({
-      pathname: '/web',
-      params: {
-        url: `${schedule.syllabus}&id=${await AsyncStorage.getItem(JWCH_ID_KEY)}`,
-        jwchCookie: await AsyncStorage.getItem(JWCH_COOKIES_KEY),
-      },
-    });
-  }, [schedule.syllabus, router]);
-
-  const handleLessonplanPress = useCallback(async () => {
-    setDialogOpen(false);
-    router.push({
-      pathname: '/web',
-      params: {
-        url: `${schedule.lessonplan}&id=${await AsyncStorage.getItem(JWCH_ID_KEY)}`,
-        jwchCookie: await AsyncStorage.getItem(JWCH_COOKIES_KEY),
-      },
-    });
-  }, [schedule.lessonplan, router]);
+  const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [isOverlapDialogOpen, setOverlapDialogOpen] = useState(false);
+  const [isPartialOverlapDialogOpen, setPartialOverlapDialogOpen] = useState(false);
 
   return (
     <>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogTrigger asChild>
+      <Pressable
+        className="flex flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border p-[1px]"
+        style={{
+          flexGrow: span,
+          height: span * (height / 11),
+          borderColor: color,
+          backgroundColor: `${color}33`,
+        }}
+        onPress={() => setDetailsDialogOpen(true)}
+      >
+        <Text className="truncate text-wrap break-all text-center text-[11px] font-bold text-muted-foreground">
+          {schedule.name}
+        </Text>
+        <Text className="text-wrap break-all text-[11px] text-muted-foreground">{schedule.location}</Text>
+
+        {overlappingSchedules && overlappingSchedules.length > 1 && (
           <Pressable
-            className="flex flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border p-[1px]"
-            style={{
-              flexGrow: span,
-              height: span * (height / 11),
-              borderColor: color,
-              backgroundColor: `${color}33`,
-              minHeight: SCHEDULE_ITEM_MIN_HEIGHT,
-            }}
+            onPress={() => setOverlapDialogOpen(true)}
+            className="mt-1 flex flex-row items-center justify-center"
           >
-            <Text className="truncate text-wrap break-all text-center text-[11px] font-bold text-muted-foreground">
-              {schedule.name}
-            </Text>
-            <Text className="text-wrap break-all text-[11px] text-muted-foreground">{schedule.location}</Text>
-
-            {overlappingSchedules && overlappingSchedules.length > 1 && (
-              <Pressable
-                onPress={() => setIsOverlapDialogOpen(true)} // 打开重叠课程弹窗
-                className="mt-1 flex flex-row items-center justify-center"
-              >
-                <Text className="text-xs font-bold text-primary">有重叠</Text>
-              </Pressable>
-            )}
-
-            {isPartialOverlap && (
-              <Text
-                className="mt-1 text-xs text-destructive"
-                onPress={() => setIsPartialOverlapDialogOpen(true)} // 打开遮挡课程弹窗
-              >
-                有遮挡
-              </Text>
-            )}
+            <Text className="text-xs font-bold text-primary">有重叠</Text>
           </Pressable>
-        </DialogTrigger>
+        )}
 
-        <DialogContent className="flex w-[90vw] flex-col justify-center pb-6 pt-10 sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-center text-primary">{schedule.name}</DialogTitle>
-          </DialogHeader>
+        {isPartialOverlap && (
+          <Text className="mt-1 text-xs text-destructive" onPress={() => setPartialOverlapDialogOpen(true)}>
+            有遮挡
+          </Text>
+        )}
+      </Pressable>
 
-          <DescriptionList className="mx-6 mb-1 mt-4">
-            <DescriptionListRow>
-              <DescriptionListTerm>
-                <Text>教室</Text>
-              </DescriptionListTerm>
-              <DescriptionListDescription>
-                <Text>{schedule.location}</Text>
-              </DescriptionListDescription>
-            </DescriptionListRow>
-            <DescriptionListRow>
-              <DescriptionListTerm>
-                <Text>教师</Text>
-              </DescriptionListTerm>
-              <DescriptionListDescription>
-                <Text>{schedule.teacher}</Text>
-              </DescriptionListDescription>
-            </DescriptionListRow>
-            <DescriptionListRow>
-              <DescriptionListTerm>
-                <Text>节数</Text>
-              </DescriptionListTerm>
-              <DescriptionListDescription>
-                <Text>
-                  {schedule.startClass}-{schedule.endClass} 节 ({getTimeRange(schedule.startClass, schedule.endClass)})
-                </Text>
-              </DescriptionListDescription>
-            </DescriptionListRow>
-            <DescriptionListRow>
-              <DescriptionListTerm>
-                <Text>周数</Text>
-              </DescriptionListTerm>
-              <DescriptionListDescription>
-                <Text>
-                  {schedule.startWeek}-{schedule.endWeek} 周
-                </Text>
-              </DescriptionListDescription>
-            </DescriptionListRow>
-            <DescriptionListRow>
-              <DescriptionListTerm>
-                <Text>备注</Text>
-              </DescriptionListTerm>
-              <DescriptionListDescription>
-                <Text>{schedule.remark}</Text>
-              </DescriptionListDescription>
-            </DescriptionListRow>
-          </DescriptionList>
+      {/* 排课详情 */}
+      <ScheduleDetailsDialog
+        isOpen={isDetailsDialogOpen}
+        onClose={() => setDetailsDialogOpen(false)}
+        schedule={schedule}
+      />
 
-          <View className="flex flex-row justify-evenly">
-            <Button variant="link" onPress={handleSyllabusPress}>
-              <Text className="text-primary">教学大纲</Text>
-            </Button>
-            <Button variant="link" onPress={handleLessonplanPress}>
-              <Text className="text-primary">授课计划</Text>
-            </Button>
-          </View>
-        </DialogContent>
-      </Dialog>
-
-      {/* 重叠课程弹窗 */}
+      {/* 如果有重叠课程，则显示 */}
       {overlappingSchedules && overlappingSchedules.length > 1 && (
-        <Dialog open={isOverlapDialogOpen} onOpenChange={setIsOverlapDialogOpen}>
-          <DialogContent className="flex w-[90vw] flex-col justify-center pb-6 pt-10 sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="text-center text-primary">重叠课程</DialogTitle>
-            </DialogHeader>
-
-            {overlappingSchedules.map((overlap, index) => (
-              <DescriptionList key={index} className="mx-6 mb-2">
-                <DescriptionListRow>
-                  <DescriptionListTerm>
-                    <Text>课程名</Text>
-                  </DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Text>{overlap.name}</Text>
-                  </DescriptionListDescription>
-                </DescriptionListRow>
-                <DescriptionListRow>
-                  <DescriptionListTerm>
-                    <Text>教室</Text>
-                  </DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Text>{overlap.location}</Text>
-                  </DescriptionListDescription>
-                </DescriptionListRow>
-                <DescriptionListRow>
-                  <DescriptionListTerm>
-                    <Text>教师</Text>
-                  </DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Text>{overlap.teacher}</Text>
-                  </DescriptionListDescription>
-                </DescriptionListRow>
-                <DescriptionListRow>
-                  <DescriptionListTerm>
-                    <Text>节数</Text>
-                  </DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Text>
-                      {overlap.startClass}-{overlap.endClass} 节 ({getTimeRange(overlap.startClass, overlap.endClass)})
-                    </Text>
-                  </DescriptionListDescription>
-                </DescriptionListRow>
-                <DescriptionListRow>
-                  <DescriptionListTerm>
-                    <Text>周数</Text>
-                  </DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Text>
-                      {overlap.startWeek}-{overlap.endWeek} 周
-                    </Text>
-                  </DescriptionListDescription>
-                </DescriptionListRow>
-              </DescriptionList>
-            ))}
-          </DialogContent>
-        </Dialog>
+        <OverlapDetailsDialog
+          isOpen={isOverlapDialogOpen}
+          onClose={() => setOverlapDialogOpen(false)}
+          overlappingSchedules={overlappingSchedules}
+        />
       )}
 
-      {/* 遮挡课程弹窗 */}
-      {isPartialOverlap && (
-        <Dialog open={isPartialOverlapDialogOpen} onOpenChange={setIsPartialOverlapDialogOpen}>
-          <DialogContent className="flex w-[90vw] flex-col justify-center pb-6 pt-10 sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="text-warning text-center text-primary">遮挡课程详情</DialogTitle>
-            </DialogHeader>
-            {overlappingSchedules &&
-              overlappingSchedules.map((overlap, index) => (
-                <DescriptionList key={index} className="mx-6 mb-2">
-                  <DescriptionListRow>
-                    <DescriptionListTerm>
-                      <Text>课程名</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text>{overlap.name}</Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
-                  <DescriptionListRow>
-                    <DescriptionListTerm>
-                      <Text>时间</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text>
-                        第 {overlap.startClass}-{overlap.endClass} 节 (
-                        {getTimeRange(overlap.startClass, overlap.endClass)})
-                      </Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
-                  <DescriptionListRow>
-                    <DescriptionListTerm>
-                      <Text>教室</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text>{overlap.location}</Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
-                </DescriptionList>
-              ))}
-          </DialogContent>
-        </Dialog>
+      {isPartialOverlap && overlappingSchedules && (
+        <PartialOverlapDialog
+          isOpen={isPartialOverlapDialogOpen}
+          onClose={() => setPartialOverlapDialogOpen(false)}
+          overlappingSchedules={overlappingSchedules}
+        />
       )}
     </>
   );
