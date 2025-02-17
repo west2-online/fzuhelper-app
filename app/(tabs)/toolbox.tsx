@@ -1,3 +1,12 @@
+import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
+import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
+import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
+import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.png';
+import FileIcon from '@/assets/images/toolbox/ic_file.png';
+import GradeIcon from '@/assets/images/toolbox/ic_grade.png';
+import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.png';
+import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.png';
+import RoomIcon from '@/assets/images/toolbox/ic_room.png';
 import { ThemedView } from '@/components/ThemedView';
 import Banner, { type BannerContent } from '@/components/banner';
 import { Button } from '@/components/ui/button';
@@ -39,45 +48,45 @@ type Tool = {
 
 // 常量：横幅数据
 const DEFAULT_BANNERS: BannerContent[] = [
-  { image: require('assets/images/banner/default_banner1.webp'), onPress: () => {} },
-  { image: require('assets/images/banner/default_banner2.webp'), onPress: () => {} },
-  { image: require('assets/images/banner/default_banner3.webp'), onPress: () => {} },
+  { image: BannerImage1, onPress: () => {} },
+  { image: BannerImage2, onPress: () => {} },
+  { image: BannerImage3, onPress: () => {} },
 ];
 
 const DEFAULT_TOOLS: Tool[] = [
   {
     name: '学业状况',
-    icon: require('assets/images/toolbox/ic_grade.png'),
+    icon: GradeIcon,
     type: ToolType.LINK,
     href: '/toolbox/academic',
   },
   {
     name: '历年卷',
-    icon: require('assets/images/toolbox/ic_file.png'),
+    icon: FileIcon,
     type: ToolType.LINK,
     href: '/toolbox/paper',
   },
   {
     name: '空教室',
-    icon: require('assets/images/toolbox/ic_room.png'),
+    icon: RoomIcon,
     type: ToolType.LINK,
     href: '/toolbox/empty-room',
   },
   {
     name: '考场查询',
-    icon: require('assets/images/toolbox/ic_examroom.png'),
+    icon: ExamRoomIcon,
     type: ToolType.LINK,
     href: '/toolbox/exam-room',
   },
   {
     name: '一键评议',
-    icon: require('assets/images/toolbox/ic_onekey.png'),
+    icon: OneKeyIcon,
     type: ToolType.LINK,
     href: '/toolbox/onekey' as any, // 路由地址（不存在）
   },
   {
     name: '嘉锡讲坛',
-    icon: require('assets/images/toolbox/ic_jiaxi.png'),
+    icon: JiaXiIcon,
     type: ToolType.FUNCTION,
     action: async router => {
       router.push({

@@ -1,4 +1,11 @@
 import { getApiV1JwchUserInfo } from '@/api/generate';
+import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
+import AvatarDefault from '@/assets/images/my/avatar_default.png';
+import CalendarIcon from '@/assets/images/my/ic_calendar.png';
+import EcardIcon from '@/assets/images/my/ic_ecard.png';
+import HelpIcon from '@/assets/images/my/ic_help.png';
+import HomeworkIcon from '@/assets/images/my/ic_homework.png';
+import NoteIcon from '@/assets/images/my/ic_note.png';
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -8,6 +15,7 @@ import { JWCH_USER_INFO_KEY } from '@/lib/constants';
 import { clearUserStorage } from '@/utils/user';
 import { AntDesign } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { Href, Link, Tabs } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Image, ImageSourcePropType, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -45,27 +53,27 @@ export default function HomePage() {
   // 菜单项数据
   const menuItems: MenuItem[] = [
     {
-      icon: require('assets/images/my/ic_homework.png'),
+      icon: HomeworkIcon,
       name: '我的作业',
       link: '/my/grades' as Href,
     },
     {
-      icon: require('assets/images/my/ic_note.png'),
+      icon: NoteIcon,
       name: '备忘录',
       link: '/my/gpa' as Href,
     },
     {
-      icon: require('assets/images/my/ic_calendar.png'),
+      icon: CalendarIcon,
       name: '校历',
       link: '/my/credits' as Href,
     },
     {
-      icon: require('assets/images/my/ic_ecard.png'),
+      icon: EcardIcon,
       name: '一卡通',
       link: '/my/unified-exam' as Href,
     },
     {
-      icon: require('assets/images/my/ic_help.png'),
+      icon: HelpIcon,
       name: '帮助与反馈',
       link: '/my/plan' as Href,
     },
@@ -154,7 +162,7 @@ export default function HomePage() {
       <ThemedView className="flex-1">
         <ScrollView>
           <View className="flex-row items-center p-8">
-            <Image source={require('@/assets/images/my/avatar_default.png')} className="mr-6 h-24 w-24 rounded-full" />
+            <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
             <View>
               <Text className="text-xl font-bold">{userInfo.name}</Text>
               <Text className="mt-2 text-sm text-gray-500">这是一条签名</Text>
@@ -184,7 +192,7 @@ export default function HomePage() {
                       <Text className="ml-5 text-lg text-foreground">{item.name}</Text>
                     </View>
                     {/* 右侧箭头 */}
-                    <Image source={require('assets/images/misc/ic_arrow_right.png')} className="h-5 w-5" />
+                    <Image source={ArrowRightIcon} className="h-5 w-5" />
                   </TouchableOpacity>
                 </Link>
               ))}
