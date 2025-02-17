@@ -26,7 +26,6 @@ import { getDatesByWeek, getFirstDateByWeek, getWeeksBySemester, parseCourses } 
 import generateRandomColor, { clearColorMapping } from '@/utils/random-color';
 
 import CourseWeek from './course-week';
-import TimeCol from './time-col';
 
 const DAYS = ['一', '二', '三', '四', '五', '六', '日'] as const;
 
@@ -43,7 +42,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
-  const [scrollY, setScrollY] = useState(0);
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -151,10 +149,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     [flatListLayout.width, week, weekArray],
   );
 
-  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setScrollY(event.nativeEvent.contentOffset.y);
-  }, []);
-
   return (
     <>
       {/* 顶部 Tab 导航栏 */}
@@ -199,41 +193,37 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           ))}
         </View>
       </HeaderContainer>
-      <View className="flex flex-1 flex-row">
-        <TimeCol scrollY={scrollY} />
 
-        {/* 课程表详情 */}
-        <FlatList
-          ref={flatListRef} // 绑定 ref
-          horizontal // 水平滚动
-          pagingEnabled // 分页滚动
-          data={weekArray} // 数据源
-          keyExtractor={item => `${item.week}-${date}`}
-          initialNumToRender={1} // 初始渲染数量
-          windowSize={3} // 窗口大小
-          getItemLayout={(_, index) => ({
-            length: flatListLayout.width, // 每个项的宽度
-            offset: flatListLayout.width * index, // 每个项的起始位置
-            index, // 当前索引
-          })} // 提供固定的布局信息
-          // 渲染项
-          renderItem={({ item }) => (
-            <CourseWeek
-              key={item.week}
-              week={item.week}
-              startDate={item.firstDate}
-              schedules={schedules}
-              courseColorMap={courseColorMap}
-              showNonCurrentWeekCourses={showNonCurrentWeekCourses}
-              flatListLayout={flatListLayout}
-              onScroll={handleScroll}
-            />
-          )}
-          onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)} // 获取 FlatList 的布局信息
-          onMomentumScrollEnd={handleMomentumScrollEnd} // 滚动结束事件
-          showsHorizontalScrollIndicator={false} // 隐藏水平滚动条
-        />
-      </View>
+      {/* 课程表详情 */}
+      <FlatList
+        ref={flatListRef} // 绑定 ref
+        horizontal // 水平滚动
+        pagingEnabled // 分页滚动
+        data={weekArray} // 数据源
+        keyExtractor={item => `${item.week}-${date}`}
+        initialNumToRender={4} // 初始渲染数量
+        windowSize={3} // 窗口大小
+        getItemLayout={(_, index) => ({
+          length: flatListLayout.width, // 每个项的宽度
+          offset: flatListLayout.width * index, // 每个项的起始位置
+          index, // 当前索引
+        })} // 提供固定的布局信息
+        // 渲染项
+        renderItem={({ item }) => (
+          <CourseWeek
+            key={item.week}
+            week={item.week}
+            startDate={item.firstDate}
+            schedules={schedules}
+            courseColorMap={courseColorMap}
+            showNonCurrentWeekCourses={showNonCurrentWeekCourses}
+            flatListLayout={flatListLayout}
+          />
+        )}
+        onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)} // 获取 FlatList 的布局信息
+        onMomentumScrollEnd={handleMomentumScrollEnd} // 滚动结束事件
+        showsHorizontalScrollIndicator={false} // 隐藏水平滚动条
+      />
 
       {/* 周数选择器 */}
       <Modal
