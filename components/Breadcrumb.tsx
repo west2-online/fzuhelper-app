@@ -1,4 +1,4 @@
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 
 interface BreadcrumbProps {
   currentPath: string;
@@ -7,6 +7,7 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbProps) {
   // 处理路径参数
+  // '/a/b' -> ['a', 'a/b']
   const pathSegments = currentPath
     .split('/')
     .filter(p => p !== '')
@@ -16,6 +17,8 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
     }, []);
 
   // 生成面包屑数组
+  // ['a'] => [{ name:'根目录', path: '/'},
+  //           { name:'a', path: '/a'}]
   const breadcrumbs = [
     { name: '根目录', path: '/' },
     ...pathSegments.map(path => ({
@@ -25,8 +28,12 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
   ];
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="h-16">
-      {breadcrumbs.map((item, index) => {
+    <FlatList
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      className="h-16 bg-white px-2"
+      data={breadcrumbs}
+      renderItem={({ item, index }) => {
         const isLast = index === breadcrumbs.length - 1;
         return (
           <View key={item.path} className="h-16 flex-row items-center">
@@ -44,7 +51,7 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
             )}
           </View>
         );
-      })}
-    </ScrollView>
+      }}
+    />
   );
 }

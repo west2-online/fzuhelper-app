@@ -1,4 +1,5 @@
 import { Text } from 'components/ui/text';
+import { router } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, TouchableOpacity, View } from 'react-native';
 
@@ -105,16 +106,18 @@ function renderPaperItem(paper: Paper, currentPath: string, setCurrentPath: (pat
   return (
     <TouchableOpacity
       onPress={() => {
+        const path = currentPath === '/' ? `/${name}` : `${currentPath}/${name}`;
         if (type === 'folder') {
-          setCurrentPath(`${currentPath}/${name}`);
+          setCurrentPath(path);
         } else {
           // 导航到文件预览界面
           console.log(`open file: ${currentPath}/${name}`);
+          router.push({ pathname: '/toolbox/paper/file-preview', params: { filepath: path } });
         }
       }}
       className="h-16 w-full flex-row items-center px-4 py-2"
     >
-      <Image source={icon} className="mr-6 h-6 w-6" resizeMode="contain" />
+      <Image source={icon} className={`mr-6 ${type === 'folder' ? 'h-6 w-6' : 'h-8 w-8'}`} resizeMode="contain" />
       <Text numberOfLines={2} ellipsizeMode="tail" className="flex-1 text-base">
         {name}
       </Text>
