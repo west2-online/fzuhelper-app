@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
   JwchCourseListResponse_CourseScheduleRule;
 
-export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
+export const SCHEDULE_ITEM_MIN_HEIGHT = 51;
 export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
 
 // 解析课程数据，将课程数据中的 scheduleRules 展开，返回一个新的数组

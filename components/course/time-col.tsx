@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 
 import { CLASS_SCHEDULES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -27,9 +27,14 @@ const getCurrentTime = () => {
   return `${hours}:${minutes}`;
 };
 
+interface TimeColProps {
+  scrollY: number;
+}
+
 // 课程表的左侧时间段列
-const TimeCol: React.FC = () => {
+const TimeCol: React.FC<TimeColProps> = ({ scrollY }) => {
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // 定时更新当前时间
   useEffect(() => {
@@ -40,29 +45,36 @@ const TimeCol: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
-      {CLASS_SCHEDULES.map((time, index) => {
-        const isActive = isTimeInRange(currentTime, time[0], time[1]);
+  // 监听 scrollY 变化
+  useEffect(() => {
+    scrollViewRef.current?.scrollTo({ y: scrollY, animated: false });
+  }, [scrollY]);
 
-        return (
-          <View
-            key={index}
-            className={cn(
-              'flex w-[32px] flex-grow flex-col items-center justify-center py-1',
-              isActive && 'border border-primary',
-            )}
-            style={{ minHeight: SCHEDULE_ITEM_MIN_HEIGHT }}
-          >
-            <Text className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-muted-foreground')}>
-              {index + 1}
-            </Text>
-            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-muted-foreground')}>{time[0]}</Text>
-            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-muted-foreground')}>{time[1]}</Text>
-          </View>
-        );
-      })}
-    </View>
+  return (
+    <ScrollView ref={scrollViewRef} showsVerticalScrollIndicator={false} scrollEnabled={false}>
+      <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
+        {CLASS_SCHEDULES.map((time, index) => {
+          const isActive = isTimeInRange(currentTime, time[0], time[1]);
+
+          return (
+            <View
+              key={index}
+              className={cn(
+                'mb-[2px] flex w-[32px] flex-grow flex-col items-center justify-center',
+                isActive && 'border border-primary',
+              )}
+              style={{ minHeight: SCHEDULE_ITEM_MIN_HEIGHT }}
+            >
+              <Text className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-muted-foreground')}>
+                {index + 1}
+              </Text>
+              <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-muted-foreground')}>{time[0]}</Text>
+              <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-muted-foreground')}>{time[1]}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </ScrollView>
   );
 };
 
