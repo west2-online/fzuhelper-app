@@ -200,7 +200,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         </View>
       </HeaderContainer>
       <View className="flex flex-1 flex-row">
-        <TimeCol scrollY={scrollY} flatListLayout={flatListLayout} />
+        <TimeCol scrollY={scrollY} />
 
         {/* 课程表详情 */}
         <FlatList
@@ -261,7 +261,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
                   // 滚动到对应周数的位置
                   flatListRef.current?.scrollToIndex({
                     index: selectedWeek - 1, // FlatList 的索引从 0 开始
-                    animated: false, // 平滑滚动
+                    animated: true, // 平滑滚动
                   });
                   setShowWeekSelector(false); // 关闭 Modal
                 }}
