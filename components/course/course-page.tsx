@@ -1,6 +1,6 @@
 import { AntDesign } from '@expo/vector-icons';
 import { Link, Tabs } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Modal,
@@ -35,6 +35,7 @@ interface CoursePageProps {
   semesterList: TermsListResponse_Terms;
 }
 
+// 课程表页面，
 const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semesterList }) => {
   const [week, setWeek] = useState(1); // 当前周数
   const [date, setDate] = useState('2025-01-01'); // 当前日期
@@ -42,9 +43,11 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
 
+  const flatListRef = useRef<FlatList>(null);
+
   const month = useMemo(() => new Date(date).getMonth() + 1, [date]); // 获取当前月份
 
-  // 从设置中读取相关信息，设置项由上级组件传入
+  // 从设置中读取相关信息（比如当前选择的学期，是否显示非本周课程），设置项由上级组件传入
   const { selectedSemester: term, showNonCurrentWeekCourses } = config;
 
   // 【查询课程数据】
@@ -60,6 +63,8 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     () => Object.fromEntries(semesterList.map(semester => [semester.term, semester])),
     [semesterList],
   );
+
+  // 获取当前学期的开始结束时间（即从 semesterList 中取出当前学期的信息）
   const currentSemester = useMemo(() => semesterListMap[term], [semesterListMap, term]);
 
   useEffect(() => {
@@ -67,10 +72,12 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     setDate(term === locateDateResult.semester ? locateDateResult.date : semesterListMap[term].start_date);
   }, [term, locateDateResult, semesterListMap]);
 
+  // 获取当前学期的最大周数
   const maxWeek = useMemo(
     () => getWeeksBySemester(currentSemester.start_date, currentSemester.end_date),
     [currentSemester],
   );
+  // 生成一周的日期数据
   const weekArray = useMemo(
     () =>
       Array.from({ length: maxWeek }, (_, i) => ({
@@ -134,8 +141,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       const contentOffsetX = event.nativeEvent.contentOffset.x;
       const newWeek = Math.round(contentOffsetX / flatListLayout.width) + 1;
 
-      console.log('newWeek', newWeek);
-
       if (newWeek !== week) {
         setWeek(newWeek);
         setDate(weekArray[newWeek - 1].firstDate);
@@ -191,26 +196,33 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
       {/* 课程表详情 */}
       <FlatList
-        horizontal
-        pagingEnabled
-        data={weekArray}
-        keyExtractor={item => item.week.toString()}
-        initialNumToRender={1}
-        windowSize={3}
+        ref={flatListRef} // 绑定 ref
+        horizontal // 水平滚动
+        pagingEnabled // 分页滚动
+        data={weekArray} // 数据源
+        keyExtractor={item => `${item.week}-${date}`}
+        initialNumToRender={4} // 初始渲染数量
+        windowSize={3} // 窗口大小
+        getItemLayout={(_, index) => ({
+          length: flatListLayout.width, // 每个项的宽度
+          offset: flatListLayout.width * index, // 每个项的起始位置
+          index, // 当前索引
+        })} // 提供固定的布局信息
+        // 渲染项
         renderItem={({ item }) => (
           <CourseWeek
             key={item.week}
             week={item.week}
-            startDate={date}
+            startDate={item.firstDate}
             schedules={schedules}
             courseColorMap={courseColorMap}
             showNonCurrentWeekCourses={showNonCurrentWeekCourses}
             flatListLayout={flatListLayout}
           />
         )}
-        onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
-        showsHorizontalScrollIndicator={false}
+        onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)} // 获取 FlatList 的布局信息
+        onMomentumScrollEnd={handleMomentumScrollEnd} // 滚动结束事件
+        showsHorizontalScrollIndicator={false} // 隐藏水平滚动条
       />
 
       {/* 周数选择器 */}
@@ -235,6 +247,12 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
                   setWeek(selectedWeek);
                   const newDates = getDatesByWeek(semesterListMap[term].start_date, selectedWeek);
                   setDate(newDates[0]); // 假设 newDates[0] 是周一的日期
+
+                  // 滚动到对应周数的位置
+                  flatListRef.current?.scrollToIndex({
+                    index: selectedWeek - 1, // FlatList 的索引从 0 开始
+                    animated: true, // 平滑滚动
+                  });
                   setShowWeekSelector(false); // 关闭 Modal
                 }}
               />

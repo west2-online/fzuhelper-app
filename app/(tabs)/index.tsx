@@ -24,7 +24,7 @@ export default function HomePage() {
     cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
   });
 
-  // 加载数据的函数
+  // laodData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
   const loadData = useCallback(async () => {
     const res = await locateDate();
     setLocateDateResult(res);
@@ -57,7 +57,7 @@ export default function HomePage() {
     };
   }, [loadData]);
 
-  // config 是课表的配置，locateDateResult 是当前时间的定位，semesterList 是学期列表的数据（不包含课程数据）
+  // config 是课表的配置，locateDateResult 是当前时间的定位，termsData 是学期列表的数据（不包含课程数据）
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置
   // 具体加载课程的逻辑在 CoursePage 组件中
   return config && locateDateResult && termsData ? (
