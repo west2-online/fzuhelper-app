@@ -66,9 +66,10 @@ const generateRandomColor = (courseName: string): string => {
   // 从可用颜色数组中移除已选择的颜色
   availableColors.splice(randomIndex, 1);
 
-  // 对颜色进行按位与 0xC0FFFFFF 的处理，使颜色变得更加柔和
+  // TODO: 深色主题下，对颜色进行按位与 0xC0FFFFFF 的处理，使颜色变得更加柔和
   // eslint-disable-next-line no-bitwise
-  const processedColor = `#${(parseInt(color.slice(1), 16) & 0xc0ffffff).toString(16).padStart(6, '0').toUpperCase()}`;
+  // const processedColor = `#${(parseInt(color.slice(1), 16) & 0xc0ffffff).toString(16).padStart(6, '0').toUpperCase()}`;
+  const processedColor = color;
 
   // 将新颜色与 courseName 的关系存储到映射中
   courseColorMap.set(courseName, processedColor);

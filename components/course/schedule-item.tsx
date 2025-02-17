@@ -33,19 +33,18 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({
   return (
     <>
       <Pressable
-        className="flex flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg border p-[1px]"
+        className="m-[1px] flex flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg p-[1px]"
         style={{
           flexGrow: span,
-          height: span * (height / 11),
-          borderColor: color,
-          backgroundColor: `${color}33`,
+          height: span * (height / 11) + (span - 1) * 2, // 补充2px, 使得跨多个的课程的纵向高度包含了原有的margin，达到对齐
+          backgroundColor: color,
         }}
         onPress={() => setDetailsDialogOpen(true)}
       >
-        <Text className="truncate text-wrap break-all text-center text-[11px] font-bold text-muted-foreground">
+        <Text className="line-clamp-3 truncate text-wrap break-all text-center text-[11px] text-white">
           {schedule.name}
         </Text>
-        <Text className="text-wrap break-all text-[11px] text-muted-foreground">{schedule.location}</Text>
+        <Text className="mt-1 text-wrap break-all text-center text-[11px] text-white">{schedule.location}</Text>
 
         {overlappingSchedules && overlappingSchedules.length > 1 && (
           <Pressable
