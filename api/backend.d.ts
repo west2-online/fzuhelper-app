@@ -23,8 +23,8 @@ export type AsyncReturnType<
 
 // getApiV1TermsList
 export type TermsListResponse = AsyncReturnType<typeof getApiV1TermsList>['data']['data'];
-export type TermsListResponse_Terms = TermsListResponse['terms'];
-export type TermsListResponse_Term = TermsListResponse_Terms[0];
+export type TermsListResponse_Terms = TermsListResponse['terms']; // 学期列表
+export type TermsListResponse_Term = TermsListResponse_Terms[0]; // 默认的第一个学期
 
 // === 课表 ===
 

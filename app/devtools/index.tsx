@@ -1,13 +1,15 @@
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
+import { pushToWebViewJWCH } from '@/lib/webview';
+import locateDate from '@/utils/locate-date';
+import { checkCookieJWCH } from '@/utils/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Link, Stack, router } from 'expo-router';
+import { Link, Stack } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { toast } from 'sonner-native';
-import { WebParams } from '../(guest)/web';
 
 const NAVIGATION_TITLE = 'Developer Tools';
 
@@ -20,6 +22,16 @@ export default function HomePage() {
       toast.success('验证码识别成功，结果为：' + captcha);
     } catch (error) {
       toast.error('验证码识别失败：' + error);
+    }
+  };
+
+  // 尝试调用 locate-date.ts 中的获取日期函数
+  const testLocateDate = async () => {
+    try {
+      const result = await locateDate();
+      toast.success('获取到的日期信息：' + JSON.stringify(result));
+    } catch (error) {
+      toast.error('获取日期信息失败：' + error);
     }
   };
 
@@ -48,6 +60,12 @@ export default function HomePage() {
       'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjowLCJleHAiOjE3MDAxMTA5MjksImlhdCI6MTY5OTUwNjEyOSwiaXNzIjoid2VzdDItb25saW5lIn0.wk108E9cho0wb6dOU_jYQQN1_K0Z_XAh4-mrBzJcgn1nCgsSHJHn8D6RW5T6sDhl1jQdSCrkOeXqb7egFHXMCA',
     );
     toast.success('已经为一码通设置无效的 AccessToken');
+  };
+
+  // 判断 Cookie 是否有效
+  const isCookieValid = async () => {
+    const resp = await checkCookieJWCH();
+    toast.info('Cookie 检查结果' + resp);
   };
 
   return (
@@ -87,18 +105,7 @@ export default function HomePage() {
           </Link>
           <Button
             onPress={async () => {
-              const params: WebParams = {
-                url:
-                  'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx?id=' +
-                  (await AsyncStorage.getItem(JWCH_ID_KEY)),
-                jwchCookie: (await AsyncStorage.getItem(JWCH_COOKIES_KEY)) ?? undefined, // Cookie（可选）
-                title: '(Web 测试) 选课', // 页面标题（可选）
-              };
-
-              router.push({
-                pathname: '/(guest)/web',
-                params, // 传递参数
-              });
+              pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '(Web 测试) 选课');
             }}
           >
             <Text>Choose Course (web test)</Text>
@@ -108,11 +115,22 @@ export default function HomePage() {
               <Text>Not Found Page</Text>
             </Button>
           </Link>
+          <Link href="/devtools/wheelpicker" asChild>
+            <Button>
+              <Text>Wheel Picker</Text>
+            </Button>
+          </Link>
 
           {/* 功能测试 */}
           <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
+          <Button onPress={testLocateDate}>
+            <Text>Test Locate Date</Text>
+          </Button>
           <Button onPress={testValidateCodeVerify}>
             <Text>Test Code Verify</Text>
+          </Button>
+          <Button onPress={isCookieValid}>
+            <Text>Check Cookie</Text>
           </Button>
           <Button onPress={setExpiredCookie}>
             <Text>Set Expired Cookie</Text>
