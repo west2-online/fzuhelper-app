@@ -84,7 +84,10 @@ const CalendarCol: React.FC<CalendarColProps> = ({
           schedule: primarySchedule,
           span,
           color:
-            isShowNonCurrentWeekCourses && (primarySchedule.startWeek > week || primarySchedule.endWeek < week)
+            isShowNonCurrentWeekCourses &&
+            (primarySchedule.startWeek > week ||
+              primarySchedule.endWeek < week ||
+              !((primarySchedule.single && week % 2 === 1) || (primarySchedule.double && week % 2 === 0)))
               ? nonCurrentWeekCourses
               : courseColorMap[primarySchedule.syllabus],
           // 如果有重叠课程，存储重叠课程信息
