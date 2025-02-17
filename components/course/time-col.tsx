@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { LayoutRectangle, ScrollView, Text, View } from 'react-native';
 
 import { CLASS_SCHEDULES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -29,10 +29,11 @@ const getCurrentTime = () => {
 
 interface TimeColProps {
   scrollY: number;
+  flatListLayout: LayoutRectangle;
 }
 
 // 课程表的左侧时间段列
-const TimeCol: React.FC<TimeColProps> = ({ scrollY }) => {
+const TimeCol: React.FC<TimeColProps> = ({ scrollY, flatListLayout }) => {
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -63,7 +64,7 @@ const TimeCol: React.FC<TimeColProps> = ({ scrollY }) => {
                 'mb-[2px] flex w-[32px] flex-grow flex-col items-center justify-center',
                 isActive && 'border border-primary',
               )}
-              style={{ minHeight: SCHEDULE_ITEM_MIN_HEIGHT }}
+              style={{ minHeight: Math.max(SCHEDULE_ITEM_MIN_HEIGHT, flatListLayout.height / 11) }}
             >
               <Text className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-muted-foreground')}>
                 {index + 1}
