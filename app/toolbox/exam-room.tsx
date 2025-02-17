@@ -81,7 +81,7 @@ const formatDate = (date?: Date) => (date ? date.toLocaleDateString() : undefine
 // 生成课程卡片
 function generateCourseCard(item: MergedExamData, idx: number) {
   return (
-    <Card key={idx} className={`m-1 p-3 ${item.isFinished ? 'opacity-50' : ''}`}>
+    <Card className={`m-1 p-3 ${item.isFinished ? 'opacity-50' : ''}`}>
       {/* 考试课程 */}
       <View className="m-1 flex flex-row items-center">
         <Ionicons name={item.isFinished ? 'checkmark-circle' : 'alert-circle'} size={16} className="mr-2" />
@@ -111,6 +111,7 @@ function generateCourseCard(item: MergedExamData, idx: number) {
     </Card>
   );
 }
+
 export default function ExamRoomPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
   const [termList, setTermList] = useState<string[]>([]); // 学期列表
@@ -119,13 +120,10 @@ export default function ExamRoomPage() {
   const { handleError } = useSafeResponseSolve(); // 错误处理函数
 
   // 处理 API 错误
-  const handleApiError = useCallback(
-    (error: any) => {
-      const data = handleError(error);
-      if (data) toast.error(data.message || '未知错误');
-    },
-    [handleError],
-  );
+  const handleApiError = useCallback((error: any) => {
+    const data = handleError(error);
+    if (data) toast.error(data.message || '未知错误');
+  }, []);
 
   // 获取学期列表
   const fetchTermList = useCallback(async () => {
@@ -136,13 +134,13 @@ export default function ExamRoomPage() {
       // const terms = ['202402', '202401', '202302', '202301', '202202', '202201', '202102'];
       // const terms = ['202401'];
       setTermList(terms);
-      if (!currentTerm || (terms.length && !terms.includes(currentTerm))) {
-        setCurrentTerm(terms[0] || '');
+      if (!currentTerm && terms.length > 0) {
+        setCurrentTerm(terms[0]);
       }
     } catch (error: any) {
       handleApiError(error);
     }
-  }, [currentTerm, handleApiError]);
+  }, []);
 
   // 并行获取考试数据和课程数据，并合并后返回排序结果;在api抛出错误时，返回空数组
   const fetchExamData = useCallback(
@@ -219,7 +217,6 @@ export default function ExamRoomPage() {
           <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
         </Button>
       </ScrollView>
-      <Stack.Screen />
     </>
   );
 }
