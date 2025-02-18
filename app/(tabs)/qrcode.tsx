@@ -124,6 +124,8 @@ export default function YiMaTongPage() {
     );
   }, [logoutCleanData]);
 
+  const [qrWidth, setQrWidth] = useState(0);
+
   const renderQRCodeCard = useCallback(
     (title: string, codeContent: string | null, codeColor: string) => (
       <Card className="flex-1 rounded-tl-4xl px-1">
@@ -136,10 +138,15 @@ export default function YiMaTongPage() {
               {name ? ' - ' + name : ''}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-col items-center justify-center gap-4">
+          <CardContent
+            className="flex-col items-center justify-center gap-4"
+            onLayout={event => {
+              setQrWidth(event.nativeEvent.layout.width * 0.75);
+            }}
+          >
             {/* 这里使用 bg-white 来强制在各种颜色模式下的二维码背景都是白色 */}
             <View className="mx-auto bg-white p-4">
-              {codeContent ? <QRCode size={320} value={codeContent} color={codeColor} /> : <Text>Loading...</Text>}
+              {codeContent ? <QRCode size={qrWidth} value={codeContent} color={codeColor} /> : <Text>Loading...</Text>}
             </View>
             <View className="flex-row gap-4">
               <Button onPress={logout} className="width-full flex-5">
@@ -153,20 +160,20 @@ export default function YiMaTongPage() {
 
           <CardFooter className="flex-row gap-4">
             <View className="w-full px-1">
-              <Text className="text-text-secondary my-2 text-lg font-bold">友情提示</Text>
+              <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
               {currentTab === '消费码' ? (
-                <Text className="text-text-secondary text-base">
+                <Text className="text-base text-text-secondary">
                   消费码：适用于福州大学大门、生活区入口及宿舍楼门禁，不可用于桃李园消费。
                 </Text>
               ) : (
-                <Text className="text-text-secondary text-base">认证码：适用于福州大学铜盘校区入口门禁。</Text>
+                <Text className="text-base text-text-secondary">认证码：适用于福州大学铜盘校区入口门禁。</Text>
               )}
             </View>
           </CardFooter>
         </ScrollView>
       </Card>
     ),
-    [currentTime, name, logout, refresh, isRefreshing, currentTab],
+    [currentTime, name, qrWidth, logout, refresh, isRefreshing, currentTab],
   );
 
   return (
