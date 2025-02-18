@@ -4,7 +4,8 @@ import * as FileSystem from 'expo-file-system';
 import { Stack, UnknownOutputParams, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
-import { Alert, Image, Share, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Share, Text, TouchableOpacity, View } from 'react-native';
+import { toast } from 'sonner-native';
 
 interface FilePreviewPageParam extends UnknownOutputParams {
   filepath: string;
@@ -34,9 +35,10 @@ export default function FilePreviewPage() {
     try {
       await FileSystem.downloadAsync(downloadUri, localFileUri);
       setIsDownloaded(true);
-      Alert.alert('下载成功', '文件已下载到本地');
+      toast.success('下载成功, 文件已下载到本地');
+      handleShareFile(); // 下载完成后自动分享，符合标准逻辑
     } catch {
-      Alert.alert('下载失败', '请检查网络');
+      toast.error('下载失败, 请检查网络');
     }
   };
 
@@ -44,7 +46,7 @@ export default function FilePreviewPage() {
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(localFileUri);
     } else {
-      Alert.alert('分享失败', '设备不支持分享功能');
+      toast.error('分享失败, 设备不支持分享功能');
     }
   };
 
@@ -52,7 +54,7 @@ export default function FilePreviewPage() {
     try {
       Share.share({ message: downloadUri });
     } catch {
-      Alert.alert('分享失败', '设备不支持分享功能');
+      toast.error('分享失败, 设备不支持分享功能');
     }
   };
 
