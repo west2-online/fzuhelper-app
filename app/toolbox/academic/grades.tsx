@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, TouchableWithoutFeedback, View } from 'react-native';
+import { Modal, RefreshControl, ScrollView, TouchableWithoutFeedback, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { ThemedView } from '@/components/ThemedView';
@@ -184,7 +184,7 @@ export default function GradesPage() {
   // 访问 west2-online 服务器获取成绩数据（由于教务处限制，只能获取全部数据）
   // 由于教务处限制，成绩数据会直接返回所有课程的成绩，我们需要在本地进行区分，因此引入了下一个获取学期列表的函数
   const getAcademicData = useCallback(async () => {
-    setIsRefreshing(true); // 开始刷新
+    console.log('获取学术成绩数据');
     try {
       const result = await getApiV1JwchAcademicScores();
       setAcademicData(result.data.data);
@@ -248,18 +248,32 @@ export default function GradesPage() {
     setPickerVisible(false);
   }, []);
 
-  // 处理刷新按钮点击事件
-  const handleRefreshButtonClick = useCallback(() => {
-    setAcademicData([]); // 清空数据
-    getAcademicData();
-  }, [getAcademicData]);
+  // 处理下拉刷新逻辑
+  const handleRefresh = useCallback(() => {
+    if (!isRefreshing) {
+      setIsRefreshing(true); // 确保不会重复触发刷新
+      setAcademicData([]); // 清空数据
+      getAcademicData();
+    }
+  }, [setAcademicData, getAcademicData, isRefreshing]);
 
   return (
     <>
       <Stack.Screen options={{ title: '学业成绩' }} />
 
       <ThemedView className="flex-1">
-        <ScrollView>
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => {
+                if (!isRefreshing) {
+                  handleRefresh();
+                }
+              }}
+            />
+          }
+        >
           {/* 学期选择 */}
           <View className="mb-4 flex flex-row items-center justify-between space-x-4 rounded-lg bg-gray-100 p-4">
             {/* 左侧部分 */}
@@ -306,7 +320,7 @@ export default function GradesPage() {
                 </View>
               </View>
               <View className="mx-5 flex flex-row items-center justify-between bg-gray-100">
-                <Text className="text-sm text-gray-500"># 单一学期平均学分绩点(GPA) 非学校教务系统数据，仅供参考</Text>
+                <Text className="text-sm text-gray-500"># 单一学期GPA 非学校教务系统数据，可能存在误差，仅供参考</Text>
               </View>
             </View>
           )}
@@ -340,11 +354,6 @@ export default function GradesPage() {
           ) : (
             <Text className="text-center text-gray-500">暂无成绩数据或正在加载中</Text>
           )}
-
-          {/* 刷新按钮 */}
-          <Button onPress={handleRefreshButtonClick} disabled={isRefreshing} className="mx-4 mt-4">
-            <Text className="text-sm font-medium text-white">{isRefreshing ? '刷新中...' : '刷新学业情况'}</Text>
-          </Button>
         </ScrollView>
       </ThemedView>
 
