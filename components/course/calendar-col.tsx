@@ -10,11 +10,9 @@ import ScheduleItem from './schedule-item';
 type ScheduleItemData =
   | {
       type: 'course';
-      schedule: ParsedCourse;
+      schedules: ParsedCourse[];
       span: number;
       color: string; // 课程的颜色
-      overlappingSchedules?: ParsedCourse[]; // 重叠的课程
-      isPartialOverlap?: boolean; // 是否是部分重叠
     }
   | {
       type: 'empty';
@@ -64,24 +62,37 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     const res: ScheduleItemData[] = [];
 
     for (let i = 1; i <= 11; i++) {
-      // 找出当前时间段的所有课程
-      const overlappingSchedules = schedulesOnDay.filter(
+      // 找出当前时间段且为当前周的课程
+      let currentWeekSchedules = schedulesOnDay.filter(
         s =>
-          s.startClass <= i &&
+          s.startClass === i &&
           s.endClass >= i && // 当前时间段是否在课程时间范围内
-          (isShowNonCurrentWeekCourses ||
-            (s.startWeek <= week &&
-              s.endWeek >= week &&
-              ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)))), // 是否符合周数条件
+          s.startWeek <= week &&
+          s.endWeek >= week &&
+          ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)), // 是否符合周数条件
       );
 
-      if (overlappingSchedules.length > 0) {
-        const primarySchedule = overlappingSchedules[0]; // 默认取第一个课程为主课程
+      // 找出当前时间段但不是当前周的课程
+      let nonCurrentWeekSchedules = isShowNonCurrentWeekCourses
+        ? schedulesOnDay.filter(
+            s =>
+              s.startClass === i &&
+              s.endClass >= i && // 当前时间段是否在课程时间范围内
+              (s.startWeek > week ||
+                s.endWeek < week ||
+                !((s.single && week % 2 === 1) || (s.double && week % 2 === 0))), // 是否不符合周数条件
+          )
+        : [];
+
+      let scheduleOnTime = currentWeekSchedules.length > 0 ? currentWeekSchedules : nonCurrentWeekSchedules;
+
+      if (scheduleOnTime.length > 0) {
+        const primarySchedule = scheduleOnTime[0]; // 默认取第一个课程为主课程
         const span = primarySchedule.endClass - primarySchedule.startClass + 1;
 
         res.push({
           type: 'course',
-          schedule: primarySchedule,
+          schedules: scheduleOnTime,
           span,
           color:
             isShowNonCurrentWeekCourses &&
@@ -90,12 +101,6 @@ const CalendarCol: React.FC<CalendarColProps> = ({
               !((primarySchedule.single && week % 2 === 1) || (primarySchedule.double && week % 2 === 0)))
               ? nonCurrentWeekCourses
               : courseColorMap[primarySchedule.syllabus],
-          // 如果有重叠课程，存储重叠课程信息
-          overlappingSchedules: overlappingSchedules.length > 1 ? overlappingSchedules : undefined,
-          // 是否存在部分重叠
-          isPartialOverlap: overlappingSchedules.some(
-            s => s.startClass !== primarySchedule.startClass || s.endClass !== primarySchedule.endClass,
-          ),
         });
 
         i += span - 1; // 跳过当前课程的跨度
@@ -116,9 +121,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
             height={Math.max(SCHEDULE_MIN_HEIGHT, flatListLayout.height)}
             span={item.span}
             color={item.color}
-            schedule={item.schedule}
-            overlappingSchedules={item.overlappingSchedules}
-            isPartialOverlap={item.isPartialOverlap}
+            schedules={item.schedules}
           />
         ) : (
           <EmptyScheduleItem key={index} height={Math.max(SCHEDULE_MIN_HEIGHT, flatListLayout.height)} />

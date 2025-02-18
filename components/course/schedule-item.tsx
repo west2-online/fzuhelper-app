@@ -1,34 +1,23 @@
 import { useState } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
-import OverlapDetailsDialog from './overlap-details-dialog';
-import PartialOverlapDialog from './partial-overlap-dialog';
-import ScheduleDetailsDialog from './schedule-detail-item';
+import ScheduleDetailsDialog from './schedule-detail-dialog';
 
 import { type ParsedCourse } from '@/utils/course';
 
+import OverlapIcon from '@/assets/images/course/overlap.svg';
+
 interface ScheduleItemProps {
-  schedule: ParsedCourse;
-  overlappingSchedules?: ParsedCourse[]; // 重叠的课程
-  isPartialOverlap?: boolean; // 是否部分重叠
+  schedules: ParsedCourse[];
   height: number;
   span: number;
   color: string; // 课程的颜色
 }
 
 // ScheduleItem 组件，用于显示课程表中的一节课
-const ScheduleItem: React.FC<ScheduleItemProps> = ({
-  schedule,
-  height,
-  span,
-  color,
-  overlappingSchedules,
-  isPartialOverlap,
-}) => {
+const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, height, span, color }) => {
   const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [isOverlapDialogOpen, setOverlapDialogOpen] = useState(false);
-  const [isPartialOverlapDialogOpen, setPartialOverlapDialogOpen] = useState(false);
 
   return (
     <>
@@ -42,50 +31,23 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({
         onPress={() => setDetailsDialogOpen(true)}
       >
         <Text className="line-clamp-3 truncate text-wrap break-all text-center text-[11px] text-white">
-          {schedule.name}
+          {schedules[0].name}
         </Text>
-        <Text className="mt-1 text-wrap break-all text-center text-[11px] text-white">{schedule.location}</Text>
+        <Text className="mt-1 text-wrap break-all text-center text-[11px] text-white">{schedules[0].location}</Text>
 
-        {overlappingSchedules && overlappingSchedules.length > 1 && (
-          <Pressable
-            onPress={() => setOverlapDialogOpen(true)}
-            className="mt-1 flex flex-row items-center justify-center"
-          >
-            <Text className="text-xs font-bold text-primary">有重叠</Text>
-          </Pressable>
-        )}
-
-        {isPartialOverlap && (
-          <Text className="mt-1 text-xs text-destructive" onPress={() => setPartialOverlapDialogOpen(true)}>
-            有遮挡
-          </Text>
+        {schedules.length > 1 && (
+          <View className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-[3px] bg-white">
+            <OverlapIcon width={10} height={10} />
+          </View>
         )}
       </Pressable>
 
-      {/* 排课详情 */}
+      {/* 课程详情 */}
       <ScheduleDetailsDialog
         isOpen={isDetailsDialogOpen}
         onClose={() => setDetailsDialogOpen(false)}
-        schedule={schedule}
+        schedules={schedules}
       />
-
-      {/* 如果有重叠课程，则显示 */}
-      {overlappingSchedules && overlappingSchedules.length > 1 && (
-        <OverlapDetailsDialog
-          isOpen={isOverlapDialogOpen}
-          onClose={() => setOverlapDialogOpen(false)}
-          overlappingSchedules={overlappingSchedules}
-        />
-      )}
-
-      {/* 如果有部分重叠课程，则显示被遮挡的课程 */}
-      {isPartialOverlap && overlappingSchedules && (
-        <PartialOverlapDialog
-          isOpen={isPartialOverlapDialogOpen}
-          onClose={() => setPartialOverlapDialogOpen(false)}
-          overlappingSchedules={overlappingSchedules}
-        />
-      )}
     </>
   );
 };
