@@ -16,7 +16,7 @@ export default function FilePreviewPage() {
   const filename = filepath.substring(filepath.lastIndexOf('/') + 1);
   const fileIcon = getFileIcon(guessFileType(filename));
   const downloadDir = FileSystem.cacheDirectory + 'paper';
-  const localFileUri = downloadDir + filename;
+  const localFileUri = downloadDir + filepath;
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -35,6 +35,9 @@ export default function FilePreviewPage() {
     setProgress(0);
 
     try {
+      const parentDir = localFileUri.substring(0, localFileUri.lastIndexOf('/') + 1);
+      const parentDirInfo = await FileSystem.getInfoAsync(parentDir);
+      if (!parentDirInfo.exists) await FileSystem.makeDirectoryAsync(parentDir, { intermediates: true });
       const downloadResumable = FileSystem.createDownloadResumable(downloadUri, localFileUri, {}, downloadProgress => {
         const percentage = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
         setProgress(percentage);
@@ -43,8 +46,8 @@ export default function FilePreviewPage() {
       setIsDownloaded(true);
       toast.success('下载成功, 文件已下载到本地');
       handleShareFile();
-    } catch {
-      toast.error('下载失败, 请检查网络');
+    } catch (error) {
+      toast.error('下载失败, 请检查网络: ' + error);
     } finally {
       setIsDownloading(false);
     }
@@ -54,15 +57,15 @@ export default function FilePreviewPage() {
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(localFileUri);
     } else {
-      toast.error('分享失败, 设备不支持分享功能');
+      toast.error('分享失败, 设备不支持分享功能:');
     }
   };
 
   const handleShareLink = async () => {
     try {
       Share.share({ message: downloadUri });
-    } catch {
-      toast.error('分享失败, 设备不支持分享功能');
+    } catch (error) {
+      toast.error('分享失败, 设备不支持分享功能: ' + error);
     }
   };
 
