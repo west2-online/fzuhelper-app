@@ -14,6 +14,9 @@ export default function FilePreviewPage() {
   const { filepath } = useLocalSearchParams<FilePreviewPageParam>();
   const filename = filepath.substring(filepath.lastIndexOf('/') + 1);
   const fileIcon = getFileIcon(guessFileType(filename));
+  // FIXME: 实现文件管理器
+  // expo 访问不了公共的 download 目录，而且 iOS 上不存在这个目录
+  // 为了避免清理的麻烦，选择存储到缓存目录
   const downloadDir = FileSystem.cacheDirectory + 'paper';
   const localFileUri = downloadDir + filename;
   const [isDownloaded, setIsDownloaded] = useState(false);
@@ -61,6 +64,8 @@ export default function FilePreviewPage() {
         <Text className="mb-4 text-lg font-semibold text-gray-800">{filename}</Text>
         <View className="w-full space-y-3">
           {isDownloaded ? (
+            // 由于 android 上使用 Intent 使用其他应用打开本应用的文件需要配置权限
+            // 并且 iOS 上只有分享功能，因此选择只显示分享按钮
             <TouchableOpacity
               onPress={handleShareFile}
               className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
