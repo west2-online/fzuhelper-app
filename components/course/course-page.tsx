@@ -1,7 +1,15 @@
 import { AntDesign } from '@expo/vector-icons';
 import { Link, Tabs } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Modal, Pressable, View, useWindowDimensions, type LayoutRectangle } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  View,
+  useWindowDimensions,
+  type LayoutRectangle,
+  type ViewToken,
+} from 'react-native';
 
 import WeekSelector from '@/components/course/week-selector';
 import { Text } from '@/components/ui/text';
@@ -106,11 +114,14 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   }, [schedules]);
 
   // 通过 viewability 回调获取当前周
-  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: any[] }) => {
-    if (viewableItems.length > 0) {
-      setWeek(viewableItems[0].item.week);
-    }
-  });
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken<(typeof weekArray)[0]>[] }) => {
+      if (viewableItems.length > 0) {
+        setWeek(viewableItems[0].item.week);
+      }
+    },
+    [],
+  );
 
   return (
     <>
@@ -163,7 +174,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           />
         )}
         onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)} // 获取 FlatList 的布局信息
-        onViewableItemsChanged={onViewableItemsChanged.current}
+        onViewableItemsChanged={handleViewableItemsChanged}
         viewabilityConfig={{
           itemVisiblePercentThreshold: 50,
         }}
