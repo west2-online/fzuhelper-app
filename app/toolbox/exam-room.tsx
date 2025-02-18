@@ -1,24 +1,27 @@
 import type { JwchCourseListResponse as CourseData, JwchClassroomExamResponse as ExamData } from '@/api/backend';
 import { ResultEnum } from '@/api/enum';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1JwchTermList } from '@/api/generate';
+import FAQModal from '@/components/FAQModal';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { FAQ_EXAME_ROOM } from '@/lib/FAQ';
 import { COURSE_DATA_KEY } from '@/lib/constants';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Stack } from 'expo-router';
+import { Tabs as ExpoTabs } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 // 合并后列表项结构 由于考试数据和选课数据的字段不同，需要合并后再展示
 // 存在考试的科目，优先使用考试数据，否则使用选课数据
 interface MergedExamData {
-  name: string;
-  teacher: string;
+  name: string; // 课程名
+  credit: string; // 学分
+  teacher: string; // 授课教师
   date?: Date; // 考试日期
   location?: string; // 考场位置
   time?: string; // 考试时间
@@ -64,6 +67,7 @@ const mergeData = (examData: ExamData, courseData: CourseData): MergedExamData[]
       const exam = examMap.get(name);
       return {
         name,
+        credit: exam ? exam.credit : '0',
         teacher: exam ? exam.teacher : course?.teacher || '',
         date: exam ? parseDate(exam.date) : undefined,
         location: exam ? exam.location : undefined,
@@ -82,13 +86,18 @@ const mergeData = (examData: ExamData, courseData: CourseData): MergedExamData[]
 // 格式化日期
 const formatDate = (date?: Date) => (date ? date.toLocaleDateString() : undefined);
 
-// 生成课程卡片
+// 课程卡片样式
 const generateCourseCard = (item: MergedExamData) => (
   <Card className={`m-1 p-3 ${item.isFinished ? 'opacity-50' : ''}`}>
     {/* 考试课程 */}
     <View className="m-1 flex flex-row items-center">
       <Ionicons name={item.isFinished ? 'checkmark-circle' : 'alert-circle'} size={16} className="mr-2" />
-      <Text className="flex-1 font-bold">{getCourseName(item.name)}</Text>
+      <Text className="flex-1 font-bold">
+        {getCourseName(item.name)}
+        {item.credit !== undefined && item.credit !== '0' && (
+          <Text className="text-sm text-gray-500">{` （${item.credit}学分）`}</Text>
+        )}
+      </Text>
       <Text>{item.teacher.length > 10 ? item.teacher.slice(0, 10) + '...' : item.teacher}</Text>
     </View>
 
@@ -117,8 +126,12 @@ export default function ExamRoomPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
   const [termList, setTermList] = useState<string[]>([]); // 学期列表
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
-  const [mergedDataMap, setMergedDataMap] = useState<Record<string, MergedExamData[]>>({}); // 合并后的数据
+  const [mergedDataMap, setMergedDataMap] = useState<Record<string, { data: MergedExamData[]; lastUpdated?: Date }>>(
+    {},
+  );
+
   const handleErrorRef = useRef(useSafeResponseSolve().handleError);
+  const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ
 
   // 处理API错误
   const handleApiError = useCallback((error: any) => {
@@ -132,7 +145,8 @@ export default function ExamRoomPage() {
     }
   }, []);
 
-  // 获取学期列表
+  // 获取学期列表（当前用户），此处不使用 usePersistedQuery
+  // 这和课表的 getApiV1TermsList 不一致，前者（即 getApiV1JwchTermList）只返回用户就读的学期列表
   const fetchTermList = useCallback(async () => {
     try {
       const result = await getApiV1JwchTermList();
@@ -157,6 +171,13 @@ export default function ExamRoomPage() {
   const refreshData = useCallback(async () => {
     if (isRefreshing || !currentTerm) return;
     setIsRefreshing(true);
+
+    // 清空当前学期的数据，保留对象结构
+    setMergedDataMap(prev => ({
+      ...prev,
+      [currentTerm]: { data: [], lastUpdated: undefined },
+    }));
+
     // 获取最新的考试数据
     const newExamData = await getApiV1JwchClassroomExam({ term: currentTerm })
       .then(res => res.data.data as ExamData)
@@ -165,7 +186,13 @@ export default function ExamRoomPage() {
         return [] as ExamData;
       });
     const mergedData = mergeData(newExamData, courseData?.data?.data || []);
-    setMergedDataMap(prev => ({ ...prev, [currentTerm]: mergedData }));
+    setMergedDataMap(prev => ({
+      ...prev,
+      [currentTerm]: {
+        data: mergedData,
+        lastUpdated: new Date(), // 记录刷新时间
+      },
+    }));
 
     setIsRefreshing(false);
   }, [isRefreshing, currentTerm, courseData?.data?.data, handleApiError]);
@@ -182,10 +209,27 @@ export default function ExamRoomPage() {
     }
   }, [currentTerm, mergedDataMap, refreshData]);
 
+  // 处理 Modal 显示事件
+  const handleModalVisible = useCallback(() => {
+    console.log('FAQ');
+    setShowFAQ(prev => !prev);
+  }, []);
+
   return (
     <>
       {/* 标题 */}
-      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
+      <ExpoTabs.Screen
+        options={{
+          headerTitleAlign: 'center',
+          headerTitle: NAVIGATION_TITLE,
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: () => (
+            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
+              <Ionicons name="help-circle-outline" size={26} className="mr-4" />
+            </Pressable>
+          ),
+        }}
+      />
       <ScrollView className="p-4">
         <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
           {/* 可横向滚动的表头，防止学期过多导致显示问题 */}
@@ -203,16 +247,33 @@ export default function ExamRoomPage() {
           {/* 生成考试卡片 */}
           {termList.map((term, index) => (
             <TabsContent key={index} value={term}>
-              {mergedDataMap[term] ? mergedDataMap[term].map(item => generateCourseCard(item)) : <Text>加载中...</Text>}
+              {/* 显示刷新时间 */}
+              {mergedDataMap[term]?.lastUpdated && (
+                <View className="mb-2 flex flex-row items-center rounded-lg bg-gray-100 p-2">
+                  <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
+                  <Text className="text-sm leading-5 text-gray-600">
+                    数据同步时间：{mergedDataMap[term].lastUpdated.toLocaleString()}
+                  </Text>
+                </View>
+              )}
+              {/* 渲染考试数据 */}
+              {mergedDataMap[term]?.data ? (
+                mergedDataMap[term].data.map(item => generateCourseCard(item))
+              ) : (
+                <Text>加载中...</Text>
+              )}
             </TabsContent>
           ))}
         </Tabs>
 
         {/* 强制刷新按钮 */}
         <Button onPress={refreshData} disabled={isRefreshing} className="mb-10">
-          <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
+          <Text>{isRefreshing ? '刷新中，请稍等...' : '刷新'}</Text>
         </Button>
       </ScrollView>
+
+      {/* FAQ 模态框 */}
+      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_EXAME_ROOM} />
     </>
   );
 }
