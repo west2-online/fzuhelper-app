@@ -11,7 +11,7 @@ import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_DATA_KEY } from '@/lib/constants';
-import { getFirstDateByWeek, getWeeksBySemester, parseCourses } from '@/utils/course';
+import { getFirstDateByWeek, getWeeksBySemester, parseCourses, type ParsedCourse } from '@/utils/course';
 import generateRandomColor, { clearColorMapping } from '@/utils/random-color';
 
 import CourseWeek from './course-week';
@@ -74,9 +74,22 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   // schedules 是一个数组，每个元素是一个课程数据，包含了课程的详细信息
 
   // 这个 useMemo 用于将课程数据转换为适合展示的格式，在这里我们会先清空显示颜色的索引
-  const schedules = useMemo(() => {
-    return data ? parseCourses(data.data.data) : [];
-  }, [data]);
+  const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
+  const schedulesByDays = useMemo(
+    () =>
+      schedules
+        ? schedules.reduce(
+            (result, current) => {
+              const day = current.weekday - 1;
+              if (!result[day]) result[day] = [];
+              result[day].push(current);
+              return result;
+            },
+            {} as Record<number, ParsedCourse[]>,
+          )
+        : {},
+    [schedules],
+  );
 
   // 用于存储课程名称和颜色的对应关系，这里我们移入到 useMemo 中，避免每次渲染都重新生成
   const courseColorMap = useMemo(() => {
@@ -98,9 +111,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       setWeek(viewableItems[0].item.week);
     }
   });
-  const viewabilityConfig = {
-    itemVisiblePercentThreshold: 50,
-  };
 
   return (
     <>
@@ -135,17 +145,18 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         initialNumToRender={4} // 初始渲染数量
         windowSize={3} // 窗口大小
         getItemLayout={(_, index) => ({
+          // 提供固定的布局信息
           length: flatListLayout.width, // 每个项的宽度
           offset: flatListLayout.width * index, // 每个项的起始位置
           index, // 当前索引
-        })} // 提供固定的布局信息
-        // 渲染项
+        })}
+        // 渲染列表项（此处一项为一屏的内容）
         renderItem={({ item }) => (
           <CourseWeek
             key={item.week}
             week={item.week}
             startDate={item.firstDate}
-            schedules={schedules}
+            schedulesByDays={schedulesByDays}
             courseColorMap={courseColorMap}
             showNonCurrentWeekCourses={showNonCurrentWeekCourses}
             flatListLayout={flatListLayout}
@@ -153,7 +164,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         )}
         onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)} // 获取 FlatList 的布局信息
         onViewableItemsChanged={onViewableItemsChanged.current}
-        viewabilityConfig={viewabilityConfig}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+        }}
         showsHorizontalScrollIndicator={false} // 隐藏水平滚动条
       />
 

@@ -20,8 +20,7 @@ type ScheduleItemData =
 
 interface CalendarColProps {
   week: number;
-  weekday: number;
-  schedules: ParsedCourse[];
+  schedulesOnDay: ParsedCourse[];
   isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
   courseColorMap: Record<string, string>; // 课程颜色映射
   flatListLayout: LayoutRectangle;
@@ -44,8 +43,7 @@ const removeDuplicateSchedules = (schedules: ParsedCourse[]): ParsedCourse[] => 
 // 课程表的一列，即一天的课程
 const CalendarCol: React.FC<CalendarColProps> = ({
   week,
-  weekday,
-  schedules,
+  schedulesOnDay,
   courseColorMap,
   isShowNonCurrentWeekCourses,
   flatListLayout,
@@ -53,17 +51,14 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   // 根据当前周数和星期几，筛选出当天的课程
   // 并进行整合，生成一个用于渲染的数据结构
   const scheduleData = useMemo(() => {
-    // 筛选出当前星期几的课程
-    let schedulesOnDay = schedules.filter(schedule => schedule.weekday === weekday);
-
     // 对课程进行去重
-    schedulesOnDay = removeDuplicateSchedules(schedulesOnDay);
+    let schedules = removeDuplicateSchedules(schedulesOnDay);
 
     const res: ScheduleItemData[] = [];
 
     for (let i = 1; i <= 11; i++) {
       // 找出当前时间段且为当前周的课程
-      let currentWeekSchedules = schedulesOnDay.filter(
+      let currentWeekSchedules = schedules.filter(
         s =>
           s.startClass === i &&
           s.endClass >= i && // 当前时间段是否在课程时间范围内
@@ -74,7 +69,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
 
       // 找出当前时间段但不是当前周的课程
       let nonCurrentWeekSchedules = isShowNonCurrentWeekCourses
-        ? schedulesOnDay.filter(
+        ? schedules.filter(
             s =>
               s.startClass === i &&
               s.endClass >= i && // 当前时间段是否在课程时间范围内
@@ -110,7 +105,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     }
 
     return res;
-  }, [schedules, weekday, week, courseColorMap, isShowNonCurrentWeekCourses]);
+  }, [schedulesOnDay, week, courseColorMap, isShowNonCurrentWeekCourses]);
 
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>

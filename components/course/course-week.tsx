@@ -10,7 +10,7 @@ import TimeCol from './time-col';
 interface CourseWeekProps {
   week: number;
   startDate: string;
-  schedules: ParsedCourse[];
+  schedulesByDays: Record<number, ParsedCourse[]>;
   courseColorMap: Record<string, string>;
   showNonCurrentWeekCourses: boolean;
   flatListLayout: LayoutRectangle;
@@ -21,7 +21,7 @@ const DAYS = ['一', '二', '三', '四', '五', '六', '日'];
 const CourseWeek: React.FC<CourseWeekProps> = ({
   week,
   startDate,
-  schedules,
+  schedulesByDays,
   courseColorMap,
   showNonCurrentWeekCourses,
   flatListLayout,
@@ -48,13 +48,14 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
   return (
     <View className="flex flex-1 flex-col">
       <HeaderContainer>
-        {/* 月份 */}
+        {/* （左侧）月份 */}
         <View className="w-[32px] flex-shrink-0 flex-grow-0">
           <View className="flex flex-shrink-0 flex-col items-center justify-center px-2 py-3">
             <Text>{month}</Text>
             <Text>月</Text>
           </View>
         </View>
+
         {/* 日期 */}
         <View className="mt-2 flex flex-shrink flex-grow flex-row">
           {headerDays.map(item => (
@@ -69,7 +70,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
       </HeaderContainer>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} overScrollMode="never">
         <View className="flex flex-row">
-          {/* 时间列 */}
+          {/* （左侧）时间列 */}
           <TimeCol />
 
           {/* 课程内容 */}
@@ -78,8 +79,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
               <CalendarCol
                 key={`${startDate}_${i}`}
                 week={week}
-                weekday={i + 1}
-                schedules={schedules}
+                schedulesOnDay={schedulesByDays[i] || []}
                 courseColorMap={courseColorMap}
                 isShowNonCurrentWeekCourses={showNonCurrentWeekCourses}
                 flatListLayout={{ ...flatListLayout, width: flatListLayout.width - 32 }} // 32px 时间列宽度
