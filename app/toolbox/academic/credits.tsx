@@ -1,69 +1,70 @@
 import { Stack } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { ThemedView } from '@/components/ThemedView';
-import { Button } from '@/components/ui/button';
+import type { JwchAcademicCreditResponse_AcademicCreditData as CreditData } from '@/api/backend';
+import { getApiV1JwchAcademicCredit } from '@/api/generate';
 import { Text } from '@/components/ui/text';
-
-import type { JwchAcademicGpaResponse } from '@/api/backend';
-import { getApiV1JwchAcademicGpa } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { useRef } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-// TODO: 该页面需要更新为学分统计
+// 不展示'学分'二字的学分类型
+const NOT_SHOW_CREDIT_TYPE: string[] = ['CET-4', 'CET-6'] as const;
+
+// 生成学分卡片
+interface CreditCardProps {
+  item: CreditData;
+}
+const CreditCard: React.FC<CreditCardProps> = ({ item }) => (
+  <View className="mb-1 mt-1 flex-row justify-between p-2" key={item.type}>
+    <Text>{item.type}</Text>
+    <Text className="font-bold">
+      {item.gain === '' ? '0' : item.gain}
+      {item.total.trim() === '' ? '' : '/' + item.total}
+      {NOT_SHOW_CREDIT_TYPE.includes(item.type) ? '' : '学分'}
+    </Text>
+  </View>
+);
 
 export default function CreditsPage() {
-  const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const [academicData, setAcademicData] = useState<JwchAcademicGpaResponse | null>(null); // 学术成绩数据
+  const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
+  const [creditData, setCreditData] = useState<CreditData[] | null>(null); // 学分数据
+  const handleErrorRef = useRef(useSafeResponseSolve().handleError); // 错误处理函数
 
-  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
-
-  // 访问 west2-online 服务器
-  const getAcademicData = useCallback(async () => {
+  // 获取学分数据
+  const fetchCreditData = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      const result = await getApiV1JwchAcademicGpa();
-      setAcademicData(result.data.data);
+      const response = await getApiV1JwchAcademicCredit();
+      setCreditData(response.data.data);
+      console.log('fetchCreditData', response.data.data);
     } catch (error: any) {
-      const data = handleError(error);
-      if (data) {
-        toast.error(data.msg ? data.msg : '未知错误');
-      }
+      const data = handleErrorRef.current(error);
+      if (data) toast.error(data.message || '发生未知错误，请稍后再试');
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, handleError]);
+  }, []);
+
+  // 初始化时获取学分数据
+  useEffect(() => {
+    fetchCreditData();
+  }, [fetchCreditData]);
 
   return (
     <>
-      <Stack.Screen options={{ title: '学分统计' }} />
-
-      <ThemedView className="flex-1">
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
-          {/* 学术成绩数据列表 */}
-          {academicData && (
-            <View className="mt-4">
-              <Text className="mb-2 text-lg font-semibold">上次刷新时间: {academicData.time}</Text>
-              <View className="gap-4">
-                {academicData.data.map((item, index) => (
-                  <View
-                    key={index}
-                    className="mb-2 flex-row items-center justify-between border-b border-gray-300 pb-2"
-                  >
-                    <Text className="capitalize text-gray-500">{item.type}:</Text>
-                    <Text className="font-medium text-black">{item.value}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-          <Button onPress={getAcademicData} disabled={isRefreshing} className="mb-4">
-            <Text>{isRefreshing ? '刷新中...' : '刷新学业情况'}</Text>
-          </Button>
+      <Stack.Screen options={{ headerTitle: '学分统计' }} />
+      <SafeAreaView className="flex-1" edges={['bottom']}>
+        <ScrollView
+          className="flex-1 p-4"
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={fetchCreditData} />}
+        >
+          {creditData?.map((credit, index) => <CreditCard key={index} item={credit} />)}
         </ScrollView>
-      </ThemedView>
+      </SafeAreaView>
     </>
   );
 }
