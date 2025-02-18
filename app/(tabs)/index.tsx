@@ -24,7 +24,7 @@ export default function HomePage() {
     cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
   });
 
-  // laodData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
+  // loadData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
   const loadData = useCallback(async () => {
     const res = await locateDate();
     setLocateDateResult(res);
