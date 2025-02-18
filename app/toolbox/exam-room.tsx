@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -242,54 +242,52 @@ export default function ExamRoomPage() {
         }}
       />
 
-      <SafeAreaView className="flex-1" edges={['bottom']}>
-        <ThemedView>
-          <ScrollView className="p-4">
-            <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
-              {/* 可横向滚动的表头，防止学期过多导致显示问题 */}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <TabsList className="flex-row">
-                  {/* 生成学期表头 */}
-                  {termList.map((term, index) => (
-                    <TabsTrigger key={index} value={term} className="items-center">
-                      <Text className="w-24 text-center">{term}</Text>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </ScrollView>
+      <ThemedView>
+        <ScrollView
+          className="px-4"
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refreshData} />}
+        >
+          <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
+            {/* 可横向滚动的表头，防止学期过多导致显示问题 */}
+            <ScrollView className="pt-4" horizontal showsHorizontalScrollIndicator={false}>
+              <TabsList className="flex-row">
+                {/* 生成学期表头 */}
+                {termList.map((term, index) => (
+                  <TabsTrigger key={index} value={term} className="items-center">
+                    <Text className="w-24 text-center">{term}</Text>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </ScrollView>
 
-              {/* 生成考试卡片 */}
-              {termList.map(term => (
-                <TabsContent key={term} value={term}>
-                  {/* 显示刷新时间 */}
-                  {mergedDataMap[term]?.lastUpdated && (
-                    <View className="mb-2 flex flex-row items-center rounded-lg bg-gray-100 p-2">
-                      <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
-                      <Text className="text-sm leading-5 text-gray-600">
-                        数据同步时间：{mergedDataMap[term].lastUpdated.toLocaleString()}
-                      </Text>
-                    </View>
-                  )}
-                  {/* 渲染考试数据 */}
+            {/* 生成考试卡片 */}
+            {termList.map(term => (
+              <TabsContent key={term} value={term}>
+                {/* 显示刷新时间 */}
+                {mergedDataMap[term]?.lastUpdated && (
+                  <View className="mb-2 flex flex-row items-center rounded-lg bg-gray-100 p-2">
+                    <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
+                    <Text className="text-sm leading-5 text-gray-600">
+                      数据同步时间：{mergedDataMap[term].lastUpdated.toLocaleString()}
+                    </Text>
+                  </View>
+                )}
+                {/* 渲染考试数据 */}
+                <SafeAreaView edges={['bottom']}>
                   {mergedDataMap[term]?.data ? (
                     mergedDataMap[term].data.map((item, idx) => <CourseCard key={idx} item={item} />)
                   ) : (
                     <Text>加载中...</Text>
                   )}
-                </TabsContent>
-              ))}
-            </Tabs>
+                </SafeAreaView>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </ScrollView>
 
-            {/* 强制刷新按钮 */}
-            <Button onPress={refreshData} disabled={isRefreshing} variant="outline">
-              <Text>{isRefreshing ? '刷新中，请稍等...' : '刷新'}</Text>
-            </Button>
-          </ScrollView>
-
-          {/* FAQ Modal */}
-          <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_EXAME_ROOM} />
-        </ThemedView>
-      </SafeAreaView>
+        {/* FAQ Modal */}
+        <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_EXAME_ROOM} />
+      </ThemedView>
     </>
   );
 }
