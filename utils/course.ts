@@ -1,12 +1,13 @@
-import type { Course, CourseScheduleRule } from '@/api/backend';
+import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
 import type { CourseSetting } from '@/api/interface';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type ParsedCourse = Omit<Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> & CourseScheduleRule;
+export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
+  JwchCourseListResponse_CourseScheduleRule;
 
 // 解析课程数据，将课程数据中的 scheduleRules 展开，返回一个新的数组
-export function parseCourses(courses: Course[]): ParsedCourse[] {
+export function parseCourses(courses: JwchCourseListResponse_Course[]): ParsedCourse[] {
   const parsedCourses = courses.flatMap(course =>
     course.scheduleRules.map(rule => {
       const { rawAdjust, rawScheduleRules, scheduleRules, ...rest } = course;
