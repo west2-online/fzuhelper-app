@@ -12,7 +12,7 @@ enum LoadingState {
   FINISH = 'finish', // success or fail
 }
 
-export default function PaprerPage() {
+export default function PaperPage() {
   const [loadingState, setLoadingState] = useState(LoadingState.UNINIT);
   const [currentPath, setCurrentPath] = useState('/');
   const [currentPapers, setCurrentPapers] = useState<Paper[]>([]);
