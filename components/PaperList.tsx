@@ -1,4 +1,5 @@
-import { Text } from 'components/ui/text';
+import { Text } from '@/components/ui/text';
+import { FileType, guessFileType } from '@/lib/filetype';
 import { router } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, TouchableOpacity, View } from 'react-native';
@@ -19,49 +20,6 @@ type PaperListProps = React.ComponentPropsWithRef<typeof View> & {
   currentPath: string;
   setCurrentPath: (path: string) => void;
 };
-
-enum FileType {
-  EXCEL = 'excel',
-  IMAGE = 'image',
-  PDF = 'pdf',
-  PPT = 'ppt',
-  WORD = 'word',
-  ZIP = 'zip',
-  UNKNOWN = 'unknown',
-}
-
-function guessFileType(filename: string): FileType {
-  const lowerName = filename.toLowerCase();
-  const parts = lowerName.split('.');
-  if (parts.length < 2) {
-    return FileType.UNKNOWN;
-  }
-  const ext = parts[parts.length - 1];
-  switch (ext) {
-    case 'xls':
-    case 'xlsx':
-      return FileType.EXCEL;
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'gif':
-    case 'bmp':
-    case 'svg':
-      return FileType.IMAGE;
-    case 'pdf':
-      return FileType.PDF;
-    case 'ppt':
-    case 'pptx':
-      return FileType.PPT;
-    case 'doc':
-    case 'docx':
-      return FileType.WORD;
-    case 'zip':
-      return FileType.ZIP;
-    default:
-      return FileType.UNKNOWN;
-  }
-}
 
 const folderIcon = require('assets/images/toolbox/paper/folder.png');
 const excelIcon = require('assets/images/toolbox/paper/file_excel.png');
