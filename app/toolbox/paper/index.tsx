@@ -22,7 +22,6 @@ export default function PaprerPage() {
   const getPaperData = useCallback(async () => {
     setLoadingState(LoadingState.PENDING);
     try {
-      console.log(`request path: ${currentPath}`);
       const result = (await getApiV1PaperList({ path: currentPath })).data;
       const folders: Paper[] = result.data.folders.map(name => ({ name, type: PaperType.FOLDER }));
       const files: Paper[] = result.data.files.map(name => ({ name, type: PaperType.FILE }));

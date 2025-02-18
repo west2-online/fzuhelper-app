@@ -1,6 +1,7 @@
 import { Text } from '@/components/ui/text';
 import { FolderIcon, getFileIcon, guessFileType } from '@/lib/filetype';
 import { router } from 'expo-router';
+import { memo } from 'react';
 import { FlatList, Image, RefreshControl, TouchableOpacity, View } from 'react-native';
 
 export enum PaperType {
@@ -14,6 +15,12 @@ export interface Paper {
   type: PaperType;
 }
 
+interface PaperItemProps {
+  paper: Paper;
+  currentPath: string;
+  setCurrentPath: (path: string) => void;
+}
+
 type PaperListProps = React.ComponentPropsWithRef<typeof View> & {
   papers: Paper[];
   currentPath: string;
@@ -22,7 +29,7 @@ type PaperListProps = React.ComponentPropsWithRef<typeof View> & {
   onRefresh: () => void;
 };
 
-function renderPaperItem(paper: Paper, currentPath: string, setCurrentPath: (path: string) => void) {
+const PaperItem = memo(function PaperItem({ paper, currentPath, setCurrentPath }: PaperItemProps) {
   const { name, type } = paper;
   let icon;
   if (type === PaperType.FOLDER) {
@@ -52,7 +59,7 @@ function renderPaperItem(paper: Paper, currentPath: string, setCurrentPath: (pat
       </Text>
     </TouchableOpacity>
   );
-}
+});
 
 export default function PaperList({
   papers,
@@ -67,9 +74,7 @@ export default function PaperList({
       data={papers}
       className="h-full"
       refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} // 下拉刷新控件
-      renderItem={({ item }) => {
-        return renderPaperItem(item, currentPath, setCurrentPath);
-      }}
+      renderItem={({ item }) => <PaperItem paper={item} currentPath={currentPath} setCurrentPath={setCurrentPath} />}
     />
   );
 }
