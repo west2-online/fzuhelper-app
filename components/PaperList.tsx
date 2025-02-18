@@ -1,5 +1,5 @@
 import { Text } from '@/components/ui/text';
-import { FileType, guessFileType } from '@/lib/filetype';
+import { FolderIcon, getFileIcon, guessFileType } from '@/lib/filetype';
 import { router } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, TouchableOpacity, View } from 'react-native';
@@ -21,44 +21,14 @@ type PaperListProps = React.ComponentPropsWithRef<typeof View> & {
   setCurrentPath: (path: string) => void;
 };
 
-const folderIcon = require('assets/images/toolbox/paper/folder.png');
-const excelIcon = require('assets/images/toolbox/paper/file_excel.png');
-const imageIcon = require('assets/images/toolbox/paper/file_image.png');
-const pdfIcon = require('assets/images/toolbox/paper/file_pdf.png');
-const pptIcon = require('assets/images/toolbox/paper/file_ppt.png');
-const unknownIcon = require('assets/images/toolbox/paper/file_unknown.png');
-const wordIcon = require('assets/images/toolbox/paper/file_word.png');
-const zipIcon = require('assets/images/toolbox/paper/file_zip.png');
-
 function renderPaperItem(paper: Paper, currentPath: string, setCurrentPath: (path: string) => void) {
   const { name, type } = paper;
   let icon;
   if (type === PaperType.FOLDER) {
-    icon = folderIcon;
+    icon = FolderIcon;
   } else {
     const filetype = guessFileType(name);
-    switch (filetype) {
-      case FileType.EXCEL:
-        icon = excelIcon;
-        break;
-      case FileType.IMAGE:
-        icon = imageIcon;
-        break;
-      case FileType.PDF:
-        icon = pdfIcon;
-        break;
-      case FileType.PPT:
-        icon = pptIcon;
-        break;
-      case FileType.WORD:
-        icon = wordIcon;
-        break;
-      case FileType.ZIP:
-        icon = zipIcon;
-        break;
-      default:
-        icon = unknownIcon;
-    }
+    icon = getFileIcon(filetype);
   }
 
   return (
