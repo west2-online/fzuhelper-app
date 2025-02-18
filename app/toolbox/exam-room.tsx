@@ -138,7 +138,7 @@ export default function ExamRoomPage() {
     const data = handleErrorRef.current(error);
     if (data) {
       if (data.code === ResultEnum.BizErrorCode) {
-        toast('当前学期还没有考试');
+        // toast('当前学期还没有考试');
         return;
       }
       toast.error(data.message || '发生未知错误，请稍后再试');
