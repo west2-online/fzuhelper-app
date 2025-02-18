@@ -1,31 +1,45 @@
 import { Stack } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { ThemedView } from '@/components/ThemedView';
-import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 
-import type { JwchAcademicGpaResponse } from '@/api/backend';
-import { getApiV1JwchAcademicGpa } from '@/api/generate';
+import type { JwchAcademicUnifiedExamResponse_UnifiedExamData as UnifiedExamData } from '@/api/backend';
+import { getApiV1JwchAcademicUnifiedExam } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-
-// TODO: 该页面需要更新为统考成绩
+import { SafeAreaView } from 'react-native-safe-area-context';
+// 生成统考成绩卡片
+interface UnifiedExamProps {
+  item: UnifiedExamData;
+}
+const UnifiedExamCard: React.FC<UnifiedExamProps> = ({ item }) => (
+  <Card className="mb-1 mt-1 flex-row justify-between p-2">
+    <View className="flex-1">
+      <Text className="text-lg font-bold">{item.name}</Text>
+      <Text className="text-sm text-gray-500">{item.term}</Text>
+    </View>
+    <View className="flex-row items-center">
+      <Text className="text-3xl">{item.score}</Text>
+    </View>
+  </Card>
+);
 
 export default function UnifiedExamScorePage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const [academicData, setAcademicData] = useState<JwchAcademicGpaResponse | null>(null); // 学术成绩数据
+  const [unifiedExamData, setUnifiedExamData] = useState<UnifiedExamData[] | null>(null); // 学术成绩数据
 
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
 
   // 访问 west2-online 服务器
-  const getAcademicData = useCallback(async () => {
+  const fetchUnifiedExamData = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      const result = await getApiV1JwchAcademicGpa();
-      setAcademicData(result.data.data);
+      const result = await getApiV1JwchAcademicUnifiedExam();
+      setUnifiedExamData(result.data.data);
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
@@ -34,36 +48,28 @@ export default function UnifiedExamScorePage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, handleError]);
+  }, [handleError]);
+
+  // 初次加载数据
+  useEffect(() => {
+    fetchUnifiedExamData();
+  }, [fetchUnifiedExamData]);
+
+  console.log(unifiedExamData);
 
   return (
     <>
       <Stack.Screen options={{ title: '统考成绩' }} />
-
-      <ThemedView className="flex-1">
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
-          {/* 学术成绩数据列表 */}
-          {academicData && (
-            <View className="mt-4">
-              <Text className="mb-2 text-lg font-semibold">上次刷新时间: {academicData.time}</Text>
-              <View className="gap-4">
-                {academicData.data.map((item, index) => (
-                  <View
-                    key={index}
-                    className="mb-2 flex-row items-center justify-between border-b border-gray-300 pb-2"
-                  >
-                    <Text className="capitalize text-gray-500">{item.type}:</Text>
-                    <Text className="font-medium text-black">{item.value}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-          <Button onPress={getAcademicData} disabled={isRefreshing} className="mb-4">
-            <Text>{isRefreshing ? '刷新中...' : '刷新学业情况'}</Text>
-          </Button>
-        </ScrollView>
-      </ThemedView>
+      <SafeAreaView className="flex-1" edges={['bottom']}>
+        <ThemedView className="flex-1">
+          <ScrollView
+            className="p-4"
+            refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={fetchUnifiedExamData} />}
+          >
+            {unifiedExamData?.map((item, index) => <UnifiedExamCard key={index} item={item} />)}
+          </ScrollView>
+        </ThemedView>
+      </SafeAreaView>
     </>
   );
 }
