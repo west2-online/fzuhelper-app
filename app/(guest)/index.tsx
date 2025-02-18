@@ -19,6 +19,9 @@ import {
 import { Text } from '@/components/ui/text';
 
 import { getApiV1LaunchScreenImagePointTime, getApiV1LaunchScreenScreen } from '@/api/generate';
+import SplashImage from '@/assets/images/splash.png';
+import SplashLogoIcon from '@/assets/images/splash_logo.png';
+
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import {
   IS_PRIVACY_POLICY_AGREED,
@@ -215,12 +218,7 @@ export default function SplashScreen() {
       <View>
         {!showSplashImage ? (
           // 默认开屏
-          <Image
-            className="h-full w-full"
-            source={require('@/assets/images/splash.png')}
-            fadeDuration={0}
-            resizeMode="cover"
-          />
+          <Image className="h-full w-full" source={SplashImage} fadeDuration={0} resizeMode="cover" />
         ) : (
           <View className="flex h-full flex-col">
             {/* Splash内容 */}
@@ -241,7 +239,7 @@ export default function SplashScreen() {
             <View className="flex flex-row items-center justify-center pb-11">
               {/* 居中 Image */}
               <View className="flex-1 items-center">
-                <Image className="h-10" source={require('@/assets/images/splash_logo.png')} resizeMode="contain" />
+                <Image className="h-10" source={SplashLogoIcon} resizeMode="contain" />
               </View>
 
               {/* 跳过按钮靠右 */}
