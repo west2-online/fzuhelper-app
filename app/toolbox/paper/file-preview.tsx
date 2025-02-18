@@ -15,12 +15,11 @@ export default function FilePreviewPage() {
   const { filepath } = useLocalSearchParams<FilePreviewPageParam>();
   const filename = filepath.substring(filepath.lastIndexOf('/') + 1);
   const fileIcon = getFileIcon(guessFileType(filename));
-  // FIXME: 实现文件管理器
-  // expo 访问不了公共的 download 目录，而且 iOS 上不存在这个目录
-  // 为了避免清理的麻烦，选择存储到缓存目录
   const downloadDir = FileSystem.cacheDirectory + 'paper';
   const localFileUri = downloadDir + filename;
   const [isDownloaded, setIsDownloaded] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const downloadUri = `http://files.w2fzu.com/${encodeURIComponent(filepath.substring(1))}?_upt=78e7a6691739858884`;
 
   useEffect(() => {
@@ -32,13 +31,22 @@ export default function FilePreviewPage() {
   }, [localFileUri]);
 
   const handleDownload = async () => {
+    setIsDownloading(true);
+    setProgress(0);
+
     try {
-      await FileSystem.downloadAsync(downloadUri, localFileUri);
+      const downloadResumable = FileSystem.createDownloadResumable(downloadUri, localFileUri, {}, downloadProgress => {
+        const percentage = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+        setProgress(percentage);
+      });
+      await downloadResumable.downloadAsync();
       setIsDownloaded(true);
       toast.success('下载成功, 文件已下载到本地');
-      handleShareFile(); // 下载完成后自动分享，符合标准逻辑
+      handleShareFile();
     } catch {
       toast.error('下载失败, 请检查网络');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -66,25 +74,28 @@ export default function FilePreviewPage() {
         <Text className="mb-4 text-lg font-semibold text-gray-800">{filename}</Text>
         <View className="w-full space-y-3">
           {isDownloaded ? (
-            // 由于 android 上使用 Intent 使用其他应用打开本应用的文件需要配置权限
-            // 并且 iOS 上只有分享功能，因此选择只显示分享按钮
             <TouchableOpacity
               onPress={handleShareFile}
               className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
             >
               <Text className="text-base font-medium text-white">分享文件</Text>
             </TouchableOpacity>
+          ) : isDownloading ? (
+            <View className="relative flex h-12 w-full items-center justify-center overflow-hidden rounded-lg bg-gray-300 shadow-md">
+              <View className="absolute left-0 top-0 h-full bg-blue-500" style={{ width: `${progress * 100}%` }} />
+              <Text className="z-10 font-medium text-white">下载中 {Math.round(progress * 100)}%</Text>
+            </View>
           ) : (
             <>
               <TouchableOpacity
                 onPress={handleDownload}
-                className="mb-3 w-full items-center rounded-lg bg-blue-500 py-3 shadow-md"
+                className="mb-3 h-12 w-full items-center rounded-lg bg-blue-500 py-3 shadow-md"
               >
                 <Text className="text-base font-medium text-white">下载到本地</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleShareLink}
-                className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
+                className="h-12 w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
               >
                 <Text className="text-base font-medium text-white">分享下载链接</Text>
               </TouchableOpacity>
