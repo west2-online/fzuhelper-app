@@ -1,12 +1,16 @@
 import { View } from 'react-native';
 import { Circle } from 'react-native-animated-spinkit';
 
-const Loading: React.FC = () => {
-  return (
-    <View className="flex-1 items-center justify-center">
-      <Circle size={72} color="#1089FF" />
-    </View>
-  );
-};
+import { cn } from '@/lib/utils';
+
+interface LoadingProps {
+  className?: string;
+}
+
+const Loading: React.FC<LoadingProps> = ({ className }) => (
+  <View className={cn('flex-1 items-center justify-center', className)}>
+    <Circle size={72} color="#1089FF" />
+  </View>
+);
 
 export default Loading;
