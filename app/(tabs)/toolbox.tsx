@@ -1,3 +1,12 @@
+import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
+import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
+import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
+import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.png';
+import FileIcon from '@/assets/images/toolbox/ic_file.png';
+import GradeIcon from '@/assets/images/toolbox/ic_grade.png';
+import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.png';
+import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.png';
+import RoomIcon from '@/assets/images/toolbox/ic_room.png';
 import { ThemedView } from '@/components/ThemedView';
 import Banner, { type BannerContent } from '@/components/banner';
 import { Button } from '@/components/ui/button';
@@ -23,48 +32,59 @@ interface Tool {
 
 // 常量：横幅数据
 const DEFAULT_BANNERS: BannerContent[] = [
-  { image: require('assets/images/banner/default_banner1.webp'), onPress: () => {} },
-  { image: require('assets/images/banner/default_banner2.webp'), onPress: () => {} },
-  { image: require('assets/images/banner/default_banner3.webp'), onPress: () => {} },
+  { image: BannerImage1, onPress: () => {} },
+  { image: BannerImage2, onPress: () => {} },
+  { image: BannerImage3, onPress: () => {} },
 ];
 
 // 常量：工具数据
 const DEFAULT_TOOLS: Tool[] = [
   {
     name: '学业状况',
-    icon: require('assets/images/toolbox/ic_grade.png'),
+    icon: GradeIcon,
     type: ToolType.LINK,
     data: '/toolbox/academic',
   },
   {
     name: '历年卷',
-    icon: require('assets/images/toolbox/ic_file.png'),
+    icon: FileIcon,
     type: ToolType.LINK,
     data: '/toolbox/paper',
   },
   {
     name: '空教室',
-    icon: require('assets/images/toolbox/ic_room.png'),
+    icon: RoomIcon,
     type: ToolType.LINK,
     data: '/toolbox/empty-room',
   },
   {
     name: '考场查询',
-    icon: require('assets/images/toolbox/ic_examroom.png'),
+    icon: ExamRoomIcon,
     type: ToolType.LINK,
     data: '/toolbox/exam-room',
   },
   {
     name: '一键评议',
-    icon: require('assets/images/toolbox/ic_onekey.png'),
+    icon: OneKeyIcon,
     type: ToolType.LINK,
     data: '/toolbox/onekey', // 路由地址
   },
   {
     name: '嘉锡讲坛',
-    icon: require('assets/images/toolbox/ic_jiaxi.png'),
-    type: ToolType.LINK,
-    data: '/toolbox/jiaxi-lecture', // 自定义操作标识
+    icon: JiaXiIcon,
+    type: ToolType.FUNCTION,
+    action: async router => {
+      router.push({
+        pathname: '/web',
+        params: {
+          title: '嘉熙讲坛',
+          url:
+            'https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx?id=' +
+            (await AsyncStorage.getItem(JWCH_ID_KEY)),
+          jwchCookie: (await AsyncStorage.getItem(JWCH_COOKIES_KEY)) ?? undefined,
+        },
+      });
+    },
   },
 ];
 

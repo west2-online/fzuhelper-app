@@ -1,3 +1,4 @@
+import IconTransparent from '@/assets/images/icon_transparent.png';
 import {
   DescriptionList,
   DescriptionListDescription,
@@ -20,10 +21,7 @@ export default function AboutPage() {
 
       <ThemedView className="flex-1">
         <View className="flex items-center p-12">
-          <Image
-            source={require('@/assets/images/icon_transparent.png')}
-            className="mb-6 h-20 w-20 rounded-full bg-white"
-          />
+          <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-white" />
           <View>
             <Text className="text-xl text-primary">{Constants.expoConfig?.version ?? ''}</Text>
           </View>

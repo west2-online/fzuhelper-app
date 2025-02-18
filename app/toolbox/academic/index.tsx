@@ -1,4 +1,11 @@
+import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
+import CreditIcon from '@/assets/images/toolbox/academic/ic_credit.png';
+import GpaIcon from '@/assets/images/toolbox/academic/ic_gpa.png';
+import PlanIcon from '@/assets/images/toolbox/academic/ic_plan.png';
+import ScoreIcon from '@/assets/images/toolbox/academic/ic_score.png';
+import UnifiedIcon from '@/assets/images/toolbox/academic/ic_unified.png';
 import { ThemedView } from '@/components/ThemedView';
+
 import { Href, Link, useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
@@ -15,27 +22,27 @@ interface MenuItem {
 // 菜单项数据
 const menuItems: MenuItem[] = [
   {
-    icon: require('assets/images/toolbox/academic/ic_score.png'),
+    icon: ScoreIcon,
     name: '成绩查询',
     link: '/toolbox/academic/grades' as Href,
   },
   {
-    icon: require('assets/images/toolbox/academic/ic_gpa.png'),
+    icon: GpaIcon,
     name: '绩点排名',
     link: '/toolbox/academic/gpa' as Href,
   },
   {
-    icon: require('assets/images/toolbox/academic/ic_credit.png'),
+    icon: CreditIcon,
     name: '学分统计',
     link: '/toolbox/academic/credits' as Href,
   },
   {
-    icon: require('assets/images/toolbox/academic/ic_unified.png'),
+    icon: UnifiedIcon,
     name: '统考成绩',
     link: '/toolbox/academic/unified-exam' as Href,
   },
   {
-    icon: require('assets/images/toolbox/academic/ic_plan.png'),
+    icon: PlanIcon,
     name: '培养计划',
     link: '/toolbox/academic/plan' as Href,
   },
@@ -63,7 +70,7 @@ export default function AcademicPage() {
                 <Text className="ml-5 text-lg text-foreground">{item.name}</Text>
               </View>
               {/* 右侧箭头 */}
-              <Image source={require('assets/images/misc/ic_arrow_right.png')} className="h-5 w-5" />
+              <Image source={ArrowRightIcon} className="h-5 w-5" />
             </TouchableOpacity>
           </Link>
         ))}
