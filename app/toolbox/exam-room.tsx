@@ -1,20 +1,25 @@
-import type { JwchCourseListResponse as CourseData, JwchClassroomExamResponse as ExamData } from '@/api/backend';
-import { ResultEnum } from '@/api/enum';
-import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1JwchTermList } from '@/api/generate';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Stack } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { Pressable, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
+
 import FAQModal from '@/components/FAQModal';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
+
+import type { JwchCourseListResponse as CourseData, JwchClassroomExamResponse as ExamData } from '@/api/backend';
+import { ResultEnum } from '@/api/enum';
+import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1JwchTermList } from '@/api/generate';
+import { ThemedView } from '@/components/ThemedView';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FAQ_EXAME_ROOM } from '@/lib/FAQ';
 import { COURSE_DATA_KEY } from '@/lib/constants';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Tabs as ExpoTabs } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
-import { toast } from 'sonner-native';
+import { cn } from '@/lib/utils';
 
 // 合并后列表项结构 由于考试数据和选课数据的字段不同，需要合并后再展示
 // 存在考试的科目，优先使用考试数据，否则使用选课数据
@@ -27,8 +32,6 @@ interface MergedExamData {
   time?: string; // 考试时间
   isFinished: boolean; // 是否已经结束
 }
-
-const NAVIGATION_TITLE = '考场';
 
 // 特殊字符映射标签
 const SYMBOLS_MAP = {
@@ -86,23 +89,27 @@ const mergeData = (examData: ExamData, courseData: CourseData): MergedExamData[]
 // 格式化日期
 const formatDate = (date?: Date) => (date ? date.toLocaleDateString() : undefined);
 
-// 课程卡片样式
-const generateCourseCard = (item: MergedExamData) => (
-  <Card className={`m-1 p-3 ${item.isFinished ? 'opacity-50' : ''}`}>
+interface CourseCardProps {
+  item: MergedExamData;
+}
+
+// 课程卡片
+const CourseCard: React.FC<CourseCardProps> = ({ item }) => (
+  <Card className={cn('m-1 p-3', item.isFinished && 'opacity-50')}>
     {/* 考试课程 */}
     <View className="m-1 flex flex-row items-center">
       <Ionicons name={item.isFinished ? 'checkmark-circle' : 'alert-circle'} size={16} className="mr-2" />
       <Text className="flex-1 font-bold">
         {getCourseName(item.name)}
         {item.credit !== undefined && item.credit !== '0' && (
-          <Text className="text-sm text-gray-500">{` （${item.credit}学分）`}</Text>
+          <Text className="text-sm text-muted-foreground"> （{item.credit} 学分）</Text>
         )}
       </Text>
       <Text>{item.teacher.length > 10 ? item.teacher.slice(0, 10) + '...' : item.teacher}</Text>
     </View>
 
     {/* 分割线 */}
-    {(item.date || item.time || item.location) && <View className="m-1 border-b border-gray-300" />}
+    {(item.date || item.time || item.location) && <View className="m-1 border-b border-border" />}
 
     {/* 日期 */}
     {(item.date || item.time) && (
@@ -112,6 +119,7 @@ const generateCourseCard = (item: MergedExamData) => (
         {item.time && <Text>{item.time}</Text>}
       </View>
     )}
+
     {/* 考场位置 */}
     {item.location && (
       <View className="m-1 flex flex-row items-center">
@@ -130,20 +138,24 @@ export default function ExamRoomPage() {
     {},
   );
 
-  const handleErrorRef = useRef(useSafeResponseSolve().handleError);
+  const { handleError } = useSafeResponseSolve();
   const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ
 
   // 处理API错误
-  const handleApiError = useCallback((error: any) => {
-    const data = handleErrorRef.current(error);
-    if (data) {
-      if (data.code === ResultEnum.BizErrorCode) {
-        // toast('当前学期还没有考试');
-        return;
+  const handleApiError = useCallback(
+    (error: any) => {
+      const data = handleError(error);
+
+      if (data) {
+        if (data.code === ResultEnum.BizErrorCode) {
+          // toast('当前学期还没有考试');
+          return;
+        }
+        toast.error(data.message || '发生未知错误，请稍后再试');
       }
-      toast.error(data.message || '发生未知错误，请稍后再试');
-    }
-  }, []);
+    },
+    [handleError],
+  );
 
   // 获取学期列表（当前用户），此处不使用 usePersistedQuery
   // 这和课表的 getApiV1TermsList 不一致，前者（即 getApiV1JwchTermList）只返回用户就读的学期列表
@@ -217,11 +229,10 @@ export default function ExamRoomPage() {
 
   return (
     <>
-      {/* 标题 */}
-      <ExpoTabs.Screen
+      <Stack.Screen
         options={{
           headerTitleAlign: 'center',
-          headerTitle: NAVIGATION_TITLE,
+          headerTitle: '考场',
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
@@ -230,52 +241,55 @@ export default function ExamRoomPage() {
           ),
         }}
       />
-      <ScrollView className="p-4">
-        <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
-          {/* 可横向滚动的表头，防止学期过多导致显示问题 */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <TabsList className="flex-row">
-              {/* 生成学期表头 */}
-              {termList.map((term, index) => (
-                <TabsTrigger key={index} value={term} className="items-center">
-                  <Text className="w-24 text-center">{term}</Text>
-                </TabsTrigger>
+
+      <SafeAreaView className="flex-1" edges={['bottom']}>
+        <ThemedView>
+          <ScrollView className="p-4">
+            <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
+              {/* 可横向滚动的表头，防止学期过多导致显示问题 */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <TabsList className="flex-row">
+                  {/* 生成学期表头 */}
+                  {termList.map((term, index) => (
+                    <TabsTrigger key={index} value={term} className="items-center">
+                      <Text className="w-24 text-center">{term}</Text>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </ScrollView>
+
+              {/* 生成考试卡片 */}
+              {termList.map(term => (
+                <TabsContent key={term} value={term}>
+                  {/* 显示刷新时间 */}
+                  {mergedDataMap[term]?.lastUpdated && (
+                    <View className="mb-2 flex flex-row items-center rounded-lg bg-gray-100 p-2">
+                      <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
+                      <Text className="text-sm leading-5 text-gray-600">
+                        数据同步时间：{mergedDataMap[term].lastUpdated.toLocaleString()}
+                      </Text>
+                    </View>
+                  )}
+                  {/* 渲染考试数据 */}
+                  {mergedDataMap[term]?.data ? (
+                    mergedDataMap[term].data.map((item, idx) => <CourseCard key={idx} item={item} />)
+                  ) : (
+                    <Text>加载中...</Text>
+                  )}
+                </TabsContent>
               ))}
-            </TabsList>
+            </Tabs>
+
+            {/* 强制刷新按钮 */}
+            <Button onPress={refreshData} disabled={isRefreshing} variant="outline">
+              <Text>{isRefreshing ? '刷新中，请稍等...' : '刷新'}</Text>
+            </Button>
           </ScrollView>
 
-          {/* 生成考试卡片 */}
-          {termList.map(term => (
-            <TabsContent key={term} value={term}>
-              {/* 显示刷新时间 */}
-              {mergedDataMap[term]?.lastUpdated && (
-                <View className="mb-2 flex flex-row items-center rounded-lg bg-gray-100 p-2">
-                  <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
-                  <Text className="text-sm leading-5 text-gray-600">
-                    数据同步时间：{mergedDataMap[term].lastUpdated.toLocaleString()}
-                  </Text>
-                </View>
-              )}
-              {/* 渲染考试数据 */}
-              {mergedDataMap[term]?.data ? (
-                mergedDataMap[term].data.map((item, idx) => (
-                  <View key={`${item.name}-${idx}`}>{generateCourseCard(item)}</View>
-                ))
-              ) : (
-                <Text>加载中...</Text>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
-
-        {/* 强制刷新按钮 */}
-        <Button onPress={refreshData} disabled={isRefreshing} className="mb-10">
-          <Text>{isRefreshing ? '刷新中，请稍等...' : '刷新'}</Text>
-        </Button>
-      </ScrollView>
-
-      {/* FAQ 模态框 */}
-      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_EXAME_ROOM} />
+          {/* FAQ Modal */}
+          <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_EXAME_ROOM} />
+        </ThemedView>
+      </SafeAreaView>
     </>
   );
 }
