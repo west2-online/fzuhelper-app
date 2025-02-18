@@ -14,10 +14,10 @@ import WheelPicker from '@/components/wheelPicker';
 import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
+import { useUpdateEffect } from '@/hooks/use-update-effect';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
-import EventRegister from '@/lib/event-bus';
+import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
 import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
 
 interface SemesterData {
@@ -61,11 +61,9 @@ export default function AcademicPage() {
   }, []);
 
   // 将当前设置保存至 AsyncStorage，采用 json 形式保存
-  // 保存后会发送 EVENT_COURSE_UPDATE 事件，通知课程页面更新
   const saveSettingsToStorage = useCallback(async (newSettings: CourseSetting) => {
     console.log('保存课程设置, ', newSettings);
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(newSettings));
-    EventRegister.emit(EVENT_COURSE_UPDATE, newSettings.selectedSemester); // 发送事件，通知课程页面更新为具体的学期
   }, []);
 
   // 页面加载时读取设置
@@ -74,7 +72,7 @@ export default function AcademicPage() {
   }, [readSettingsFromStorage]);
 
   // 设置变化时保存设置
-  useEffect(() => {
+  useUpdateEffect(() => {
     saveSettingsToStorage(settings);
   }, [settings, saveSettingsToStorage]);
 

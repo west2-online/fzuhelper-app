@@ -1,14 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 
 import CoursePage from '@/components/course/course-page';
+import Loading from '@/components/loading';
 
 import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
-import Loading from '@/components/loading';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
-import EventRegister from '@/lib/event-bus';
+import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
 import { normalizeCourseSetting } from '@/utils/course';
 import locateDate from '@/utils/locate-date';
 
@@ -32,30 +32,19 @@ export default function HomePage() {
     const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
     const tryParsedSettings = setting ? JSON.parse(setting) : {};
     const selectedSemester = tryParsedSettings.selectedSemester || res.semester;
-    const parsedSettings = normalizeCourseSetting({ selectedSemester });
+    const parsedSettings = normalizeCourseSetting({ ...tryParsedSettings, selectedSemester });
 
     setConfig(parsedSettings);
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(parsedSettings));
   }, []);
 
   // 当加载的时候会读取 COURSE_SETTINGS，里面有一个字段会存储当前选择的学期（不一定是最新学期）
-  useEffect(() => {
-    loadData();
-
-    // 监听事件，当课表设置发生变化时重新加载数据
-    const listener = EventRegister.addEventListener(EVENT_COURSE_UPDATE, (selectedSemester: string) => {
-      // 先清掉 config，这样直接进 Loading 组件
+  useFocusEffect(
+    useCallback(() => {
       setConfig(null);
       loadData();
-    });
-
-    // 组件卸载时移除监听器
-    return () => {
-      if (typeof listener === 'string') {
-        EventRegister.removeEventListener(listener);
-      }
-    };
-  }, [loadData]);
+    }, [loadData]),
+  );
 
   // config 是课表的配置，locateDateResult 是当前时间的定位，termsData 是学期列表的数据（不包含课程数据）
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置

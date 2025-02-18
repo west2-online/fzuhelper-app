@@ -7,10 +7,6 @@
  * - 对于单独业务的 key，请以业务名称简写开头，并在同一业务内保持统一。
  */
 
-// 事件
-// 以 EVENT_ 开头
-export const EVENT_COURSE_UPDATE = 'course_update';
-
 // 服务端Token
 export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
