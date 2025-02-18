@@ -54,6 +54,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "~0.77.0",
+    "react-native-animated-spinkit": "^1.5.2",
     "react-native-edge-to-edge": "^1.4.2",
     "react-native-event-listeners": "^1.0.7",
     "react-native-gesture-handler": "~2.22.0",
