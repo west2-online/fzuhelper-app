@@ -97,10 +97,11 @@ const WheelPickerRow: React.FC<WheelPickerRowProps> = props => {
 
   return (
     <Animated.View
+      className={'w-auto'}
       style={[
         styles.row,
         props.rowStyle,
-        { opacity, height: props.itemHeight, width: 'auto' },
+        { opacity, height: props.itemHeight },
         { transform: [{ rotateX }, { translateY }] },
       ]}
     >
