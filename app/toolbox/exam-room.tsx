@@ -245,7 +245,7 @@ export default function ExamRoomPage() {
           </ScrollView>
 
           {/* 生成考试卡片 */}
-          {termList.map((term, index) => (
+          {termList.map(term => (
             <TabsContent key={term} value={term}>
               {/* 显示刷新时间 */}
               {mergedDataMap[term]?.lastUpdated && (
