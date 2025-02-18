@@ -3,9 +3,9 @@ import ImageIcon from '@/assets/images/toolbox/paper/file_image.png';
 import PDFIcon from '@/assets/images/toolbox/paper/file_pdf.png';
 import PPTIcon from '@/assets/images/toolbox/paper/file_ppt.png';
 import UnknownIcon from '@/assets/images/toolbox/paper/file_unknown.png';
+import WordIcon from '@/assets/images/toolbox/paper/file_word.png';
 import ZIPIcon from '@/assets/images/toolbox/paper/file_zip.png';
 import FolderIcon from '@/assets/images/toolbox/paper/folder.png';
-import WordIcon from 'assets/images/toolbox/paper/file_word.png';
 
 export { ExcelIcon, FolderIcon, ImageIcon, PDFIcon, PPTIcon, UnknownIcon, WordIcon, ZIPIcon };
 

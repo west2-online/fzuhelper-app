@@ -1,4 +1,5 @@
-import { FlatList, Text, TouchableOpacity, View } from 'react-native';
+import ArrowRightIcon from '@/assets/images/toolbox/paper/icon_arrow_right.png';
+import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 
 interface BreadcrumbProps {
   currentPath: string;
@@ -31,23 +32,23 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
     <FlatList
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="h-16 bg-white px-2"
+      className="h-16 bg-white pl-3"
       data={breadcrumbs}
       renderItem={({ item, index }) => {
         const isLast = index === breadcrumbs.length - 1;
         return (
           <View key={item.path} className="h-16 flex-row items-center">
-            {index !== 0 && <Text className="mx-1 text-gray-600">&gt;</Text>}
+            {index !== 0 && <Image source={ArrowRightIcon} className="h-3.5 w-3.5" resizeMode="contain" />}
             {!isLast ? (
               <TouchableOpacity
                 className="h-16 justify-center"
                 onPress={() => setCurrentPath(item.path)}
                 activeOpacity={0.7}
               >
-                <Text className="ml-1 text-gray-600">{item.name}</Text>
+                <Text className="mx-1 text-gray-600">{item.name}</Text>
               </TouchableOpacity>
             ) : (
-              <Text className="ml-1 text-blue-500">{item.name}</Text>
+              <Text className="mx-1 text-blue-500">{item.name}</Text>
             )}
           </View>
         );

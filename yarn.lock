@@ -5168,6 +5168,11 @@ expo-image@~2.0.4:
   resolved "https://registry.yarnpkg.com/expo-image/-/expo-image-2.0.4.tgz#52db27a489b2fc652b1dd612748366781913d93b"
   integrity sha512-oIVSlV/BpBJbI9Anf8RjraGJXDWSJxNKxdXkYBJ31XrQaUstOM7OmsVKjOK40ZFZHIz3rx5SBJWK5w52Uz+/bg==
 
+expo-intent-launcher@~12.0.2:
+  version "12.0.2"
+  resolved "https://registry.yarnpkg.com/expo-intent-launcher/-/expo-intent-launcher-12.0.2.tgz#cb576785a6eac3ef3cb6d4a14231aa52b76b2903"
+  integrity sha512-9JYyuuONE9AxoZgRyztcgfAaIIGvrUQAbFnYOPZcrHSBWhbF1203S3ho1Hk67jWhC72Um8+pJ+rXBxAp3ZZlxA==
+
 expo-keep-awake@~14.0.2:
   version "14.0.2"
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-14.0.2.tgz#124a729df43c87994631f51d5b1b5093d58e6c80"
@@ -5233,6 +5238,11 @@ expo-router@~4.0.17:
     schema-utils "^4.0.1"
     semver "~7.6.3"
     server-only "^0.0.1"
+
+expo-sharing@~13.0.1:
+  version "13.0.1"
+  resolved "https://registry.yarnpkg.com/expo-sharing/-/expo-sharing-13.0.1.tgz#f5221ce44190a12649a6639e619d83e318c768a1"
+  integrity sha512-qych3Nw65wlFcnzE/gRrsdtvmdV0uF4U4qVMZBJYPG90vYyWh2QM9rp1gVu0KWOBc7N8CC2dSVYn4/BXqJy6Xw==
 
 expo-splash-screen@~0.29.21:
   version "0.29.21"

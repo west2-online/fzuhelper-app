@@ -13,8 +13,6 @@ enum LoadingState {
   FAILED = 'failed',
 }
 
-const noNetworkImage = require('assets/images/toolbox/paper/no_network.png');
-
 export default function PaprerPage() {
   const loadingState = useRef(LoadingState.UNINIT);
   const [currentPath, setCurrentPath] = useState('/');
