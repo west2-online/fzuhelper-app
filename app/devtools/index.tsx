@@ -7,6 +7,7 @@ import { pushToWebViewJWCH } from '@/lib/webview';
 import locateDate from '@/utils/locate-date';
 import { checkCookieJWCH } from '@/utils/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 import { Link, Stack } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { toast } from 'sonner-native';
@@ -66,6 +67,28 @@ export default function HomePage() {
   const isCookieValid = async () => {
     const resp = await checkCookieJWCH();
     toast.info('Cookie 检查结果' + resp);
+  };
+
+  const cleanAllCache = async () => {
+    const cacheDir = FileSystem.cacheDirectory;
+    if (cacheDir === null) return;
+    try {
+      await FileSystem.deleteAsync(cacheDir);
+      toast.success('清理缓存目录成功');
+    } catch (error) {
+      toast.error(`清理缓存目录失败：${error}`);
+    }
+  };
+
+  const cleanPaperCache = async () => {
+    const cacheDir = FileSystem.cacheDirectory;
+    if (cacheDir === null) return;
+    try {
+      await FileSystem.deleteAsync(cacheDir + 'paper/');
+      toast.success('清理历年卷缓存目录成功');
+    } catch (error) {
+      toast.error(`清理历年卷缓存目录失败：${error}`);
+    }
   };
 
   return (
@@ -140,6 +163,15 @@ export default function HomePage() {
           </Button>
           <Button onPress={setInvalidAccessTokenYmt}>
             <Text>Set Invalid AccessToken (ymt)</Text>
+          </Button>
+
+          {/* 缓存清理 */}
+          <Text className="m-3 my-4 text-lg font-bold">Cache clean</Text>
+          <Button onPress={cleanAllCache}>
+            <Text>Clean All Cache</Text>
+          </Button>
+          <Button onPress={cleanPaperCache}>
+            <Text>Clean Paper Cache</Text>
           </Button>
         </KeyboardAwareScrollView>
       </ThemedView>
