@@ -88,14 +88,36 @@ export const calSingleTermSummary = (data: CourseGradesData[], term: string) => 
   const maxScore = Math.max(...filteredData.map(item => parseFloat(item.score) || 0));
   // 计算单科最低分
   const minScore = Math.min(...filteredData.map(item => parseFloat(item.score) || 0));
-  // 计算平均学分绩(GPA)，单门课程学分绩点乘积之和除以总学分
-  const gpa = filteredData.reduce((sum, item) => sum + (parseFloat(item.gpa) || 0) * parseFloat(item.credit), 0);
+
+  // 计算平均学分绩(GPA)，单门课程学分绩点乘积之和除以总学分，计算比较复杂
+
+  // 需要统计的课程类型
+  // 我们设计白名单模式，是因为有些课程类型太奇怪了，比如二专业开头的课程，或者新的课程类型
+  const validElectiveTypes = ['通识必修', '实践必修', '毕业实习', '学科必修', '专业选修', '通识选修', '跨学科'];
+
+  // 进一步过滤出需要计算的数据
+  const gpaRelevantData = filteredData.filter(
+    item =>
+      validElectiveTypes.includes(item.elective_type) && // 课程类型在需要计算的范围内
+      item.gpa && // gpa 不为空
+      item.score !== '合格' &&
+      item.score !== '不合格', // 成绩不是“合格”或“不合格”的课程不参与绩点统计，即使他们绩点显示为 1.0
+  );
+
+  // 计算 GPA，单科学分绩点乘积之和除以总学分
+  const totalWeightedGPA = gpaRelevantData.reduce((sum, item) => {
+    const credit = parseFloat(item.credit || '0');
+    const gpa = parseFloat(item.gpa || '0');
+    return sum + credit * gpa; // 累加单科学分 * 绩点
+  }, 0);
+
+  const totalGpaCredits = gpaRelevantData.reduce((sum, item) => sum + parseFloat(item.credit || '0'), 0);
 
   return {
     totalCount,
     totalCredit,
     maxScore,
     minScore,
-    GPA: filteredData.length > 0 ? gpa / filteredData.length : 0, // 平均绩点
+    GPA: totalGpaCredits > 0 ? totalWeightedGPA / totalGpaCredits : 0, // 平均绩点
   };
 };
