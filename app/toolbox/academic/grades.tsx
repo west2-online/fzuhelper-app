@@ -185,7 +185,7 @@ export default function GradesPage() {
               >
                 {/* 学期总体数据 */}
                 {academicData.length > 0 && summary && (
-                  <View className="mx-4 mt-4">
+                  <View className="mx-4">
                     <SemesterSummaryCard summary={summary} />
                   </View>
                 )}

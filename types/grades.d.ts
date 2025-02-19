@@ -15,6 +15,5 @@ export type SemesterSummary = {
   totalCredit: number; // 本学期总修学分
   totalCount: number; // 本学期总课程数
   maxScore: number; // 单科最高分
-  minScore: number; // 单科最低分
   GPA: number; // GPA
 };

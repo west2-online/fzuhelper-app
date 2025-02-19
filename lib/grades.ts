@@ -86,8 +86,6 @@ export const calSingleTermSummary = (data: CourseGradesData[], term: string) => 
   const totalCredit = filteredData.reduce((sum, item) => sum + parseFloat(item.credit || '0'), 0);
   // 计算单科最高分
   const maxScore = Math.max(...filteredData.map(item => parseFloat(item.score) || 0));
-  // 计算单科最低分
-  const minScore = Math.min(...filteredData.map(item => parseFloat(item.score) || 0));
 
   // 计算平均学分绩(GPA)，单门课程学分绩点乘积之和除以总学分，计算比较复杂
 
@@ -126,7 +124,6 @@ export const calSingleTermSummary = (data: CourseGradesData[], term: string) => 
     totalCount,
     totalCredit,
     maxScore,
-    minScore,
     GPA: totalGpaCredits > 0 ? totalWeightedGPA / totalGpaCredits : 0, // 平均绩点
   };
 };
