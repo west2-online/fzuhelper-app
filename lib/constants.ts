@@ -57,6 +57,9 @@ export const CLASS_SCHEDULES = [
   ['20:50', '21:35'],
 ];
 
+// 历年卷
+export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';
+
 // for RNR
 // please sync it with values in `global.css`
 export const NAV_THEME = {
