@@ -59,6 +59,7 @@ export async function getApiV1JwchAcademicScores(options?: {
       teacher: string;
       term: string;
       exam_type: string;
+      elective_type: string;
     }[];
   }>('/api/v1/jwch/academic/scores', {
     method: 'GET',

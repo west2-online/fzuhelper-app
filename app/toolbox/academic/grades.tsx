@@ -1,17 +1,19 @@
-import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import BottomPicker from '@/components/BottomPicker';
+import FAQModal from '@/components/FAQModal';
 import { ThemedView } from '@/components/ThemedView';
 import GradeCard from '@/components/grade/GradeCard';
 import SemesterSummaryCard from '@/components/grade/SemesterSummaryCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Tabs as ExpoTabs } from 'expo-router';
 
 import { getApiV1JwchAcademicScores, getApiV1JwchTermList } from '@/api/generate';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
 import { formatSemesterDisplayText } from '@/lib/semester';
 import { CourseGradesData, SemesterSummary } from '@/types/grades';
@@ -24,9 +26,8 @@ export default function GradesPage() {
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
   const [semesterSummary, setSemesterSummary] = useState<SemesterSummary | null>(null); // 当前学期总体数据
   const [academicData, setAcademicData] = useState<CourseGradesData[]>([]); // 学术成绩数据
-  const [tempIndex, setTempIndex] = useState(0); // 临时索引，指向 Picker 选择的项
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null); // 最后更新时间
-  const [isPickerVisible, setPickerVisible] = useState(false); // 是否显示 Picker
+  const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
 
   const handleErrorRef = useRef(useSafeResponseSolve().handleError);
 
@@ -85,17 +86,6 @@ export default function GradesPage() {
     }
   }, [currentTerm, academicData]);
 
-  // 确认选择学期，之后会从 data 中加载该学期的数据
-  const handleConfirmTermSelectPicker = useCallback(() => {
-    setPickerVisible(false);
-    setCurrentTerm(termList[tempIndex]?.value ?? '');
-  }, [tempIndex, termList]);
-
-  // 关闭 Picker
-  const handleCloseTermSelectPicker = useCallback(() => {
-    setPickerVisible(false);
-  }, []);
-
   // 处理下拉刷新逻辑
   const handleRefresh = useCallback(() => {
     if (!isRefreshing) {
@@ -105,9 +95,25 @@ export default function GradesPage() {
     }
   }, [setAcademicData, getAcademicData, isRefreshing]);
 
+  // 处理 Modal 显示事件
+  const handleModalVisible = useCallback(() => {
+    setShowFAQ(prev => !prev);
+  }, []);
+
   return (
     <>
-      <Stack.Screen options={{ title: '成绩查询' }} />
+      <ExpoTabs.Screen
+        options={{
+          headerTitleAlign: 'center',
+          headerTitle: '成绩查询',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: () => (
+            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
+              <Ionicons name="help-circle-outline" size={26} className="mr-4" />
+            </Pressable>
+          ),
+        }}
+      />
 
       <ThemedView className="flex-1">
         <ScrollView
@@ -161,16 +167,8 @@ export default function GradesPage() {
         </ScrollView>
       </ThemedView>
 
-      {/* 选择学期 */}
-      <BottomPicker
-        visible={isPickerVisible}
-        title="选择学期"
-        data={termList.map(s => s.label + '(' + s.value + ')')}
-        selectIndex={tempIndex}
-        onChange={idx => setTempIndex(idx)}
-        onConfirm={handleConfirmTermSelectPicker}
-        onClose={handleCloseTermSelectPicker}
-      />
+      {/* FAQ 模态框 */}
+      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_COURSE_GRADE} />
     </>
   );
 }
