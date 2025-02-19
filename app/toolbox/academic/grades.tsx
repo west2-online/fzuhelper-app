@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { Dimensions, FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import FAQModal from '@/components/FAQModal';
 import { ThemedView } from '@/components/ThemedView';
 import GradeCard from '@/components/grade/GradeCard';
 import SemesterSummaryCard from '@/components/grade/SemesterSummaryCard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs as ExpoTabs } from 'expo-router';
@@ -16,7 +16,7 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
 import { formatSemesterDisplayText } from '@/lib/semester';
-import { CourseGradesData, SemesterSummary } from '@/types/grades';
+import { CourseGradesData } from '@/types/grades';
 import { SemesterData } from '@/types/semester';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,12 +24,14 @@ export default function GradesPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
   const [termList, setTermList] = useState<SemesterData[]>([]); // 学期列表
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
-  const [semesterSummary, setSemesterSummary] = useState<SemesterSummary | null>(null); // 当前学期总体数据
   const [academicData, setAcademicData] = useState<CourseGradesData[]>([]); // 学术成绩数据
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null); // 最后更新时间
   const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
 
   const handleErrorRef = useRef(useSafeResponseSolve().handleError);
+  const flatListRef = useRef<FlatList<any>>(null); // 添加 FlatList 引用
+  const tabsScrollViewRef = useRef<ScrollView>(null); // Tabs所用ScrollView的引用
+  const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
 
   // 访问 west2-online 服务器获取成绩数据（由于教务处限制，只能获取全部数据）
   // 由于教务处限制，成绩数据会直接返回所有课程的成绩，我们需要在本地进行区分，因此引入了下一个获取学期列表的函数
@@ -77,15 +79,6 @@ export default function GradesPage() {
     getAcademicData();
   }, [fetchTermList, getAcademicData]);
 
-  // 当学期变化时，重新计算学期总体数据
-  useEffect(() => {
-    if (currentTerm) {
-      const filteredData = academicData.filter(item => item.term === currentTerm);
-      const summary = calSingleTermSummary(filteredData, currentTerm);
-      setSemesterSummary(summary);
-    }
-  }, [currentTerm, academicData]);
-
   // 处理下拉刷新逻辑
   const handleRefresh = useCallback(() => {
     if (!isRefreshing) {
@@ -99,6 +92,37 @@ export default function GradesPage() {
   const handleModalVisible = useCallback(() => {
     setShowFAQ(prev => !prev);
   }, []);
+
+  // 处理 flatList 滚动
+  const handleTabChange = (value: string) => {
+    setCurrentTerm(value);
+    const index = termList.findIndex(term => term.value === value);
+    if (flatListRef.current && index > -1) {
+      flatListRef.current.scrollToIndex({ index, animated: true });
+    }
+  };
+
+  // 当 currentTerm 改变时，更新 Tabs 的 ScrollView 滚动位置
+  useEffect(() => {
+    const index = termList.findIndex(term => term.value === currentTerm);
+    if (tabsScrollViewRef.current && index > -1) {
+      const ITEM_WIDTH = 96; // 根据 w-24 的宽度
+      const scrollTo = index * ITEM_WIDTH - (screenWidth / 2 - ITEM_WIDTH / 2);
+      tabsScrollViewRef.current.scrollTo({ x: scrollTo, animated: true });
+    }
+  }, [currentTerm, screenWidth, termList]);
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: any[] }) => {
+      if (viewableItems.length > 0) {
+        const newTerm = viewableItems[0].item.value;
+        if (newTerm !== currentTerm) {
+          setCurrentTerm(newTerm);
+        }
+      }
+    },
+    [currentTerm],
+  );
 
   return (
     <>
@@ -116,55 +140,74 @@ export default function GradesPage() {
       />
 
       <ThemedView className="flex-1">
-        <ScrollView
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={() => {
-                if (!isRefreshing) {
-                  handleRefresh();
+        <Tabs value={currentTerm} onValueChange={handleTabChange}>
+          {/* 横向滚动的 Tabs 表头 */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} ref={tabsScrollViewRef}>
+            <TabsList className="flex-row">
+              {termList.map((term, index) => (
+                <TabsTrigger key={index} value={term.value} className="items-center">
+                  <Text className="w-24 text-center">{term.value}</Text>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </ScrollView>
+        </Tabs>
+
+        <FlatList
+          data={termList}
+          horizontal
+          pagingEnabled
+          windowSize={3}
+          ref={flatListRef}
+          keyExtractor={(_, index) => index.toString()}
+          showsHorizontalScrollIndicator={false}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
+          renderItem={({ item }) => {
+            // 本页对应学期的数据过滤与排序
+            const filteredData = academicData.filter(it => it.term === item.value);
+            const summary = calSingleTermSummary(filteredData, item.value);
+            return (
+              <ScrollView
+                style={{ width: screenWidth }}
+                // eslint-disable-next-line react-native/no-inline-styles
+                contentContainerStyle={{ flexGrow: 1 }}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={() => {
+                      if (!isRefreshing) {
+                        handleRefresh();
+                      }
+                    }}
+                  />
                 }
-              }}
-            />
-          }
-        >
-          <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
-            {/* 可横向滚动的表头 */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <TabsList className="flex-row">
-                {/* 生成学期表头 */}
-                {termList.map((term, index) => (
-                  <TabsTrigger key={index} value={term.value} className="items-center">
-                    <Text className="w-24 text-center">{term.value}</Text>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </ScrollView>
-
-            <TabsContent value={currentTerm}>
-              {/* 学期总体数据 */}
-              {academicData.length > 0 && semesterSummary && <SemesterSummaryCard summary={semesterSummary} />}
-
-              <SafeAreaView edges={['bottom']}>
-                {/* 学术成绩数据列表 */}
-                {academicData.filter(item => item.term === currentTerm).length > 0 ? (
-                  academicData
-                    .filter(item => item.term === currentTerm)
-                    .sort((a, b) => {
-                      return parseScore(b.score) - parseScore(a.score);
-                    })
-                    .map((item, index) => (
-                      <View key={index} className="mx-4 mt-4">
-                        <GradeCard item={item} />
-                      </View>
-                    ))
-                ) : (
-                  <Text className="text-center text-gray-500">暂无成绩数据或正在加载中</Text>
+              >
+                {/* 学期总体数据 */}
+                {academicData.length > 0 && summary && (
+                  <View className="mx-4 mt-4">
+                    <SemesterSummaryCard summary={summary} />
+                  </View>
                 )}
-              </SafeAreaView>
-            </TabsContent>
-          </Tabs>
-        </ScrollView>
+
+                <SafeAreaView edges={['bottom']}>
+                  {/* 学术成绩数据列表 */}
+                  {filteredData.length > 0 ? (
+                    filteredData
+                      .sort((a, b) => parseScore(b.score) - parseScore(a.score))
+                      .map((item, index) => (
+                        <View key={index} className="mx-4 mt-4">
+                          <GradeCard item={item} />
+                        </View>
+                      ))
+                  ) : (
+                    <Text className="text-center text-gray-500">暂无成绩数据或正在加载中</Text>
+                  )}
+                </SafeAreaView>
+              </ScrollView>
+            );
+          }}
+        />
       </ThemedView>
 
       {/* FAQ 模态框 */}
