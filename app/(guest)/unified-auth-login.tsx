@@ -89,7 +89,6 @@ const UnifiedLoginPage: React.FC = () => {
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
-        console.log('登录失败:', data);
         Alert.alert('请求失败', data.code + ': ' + data.msg);
       }
     } finally {
