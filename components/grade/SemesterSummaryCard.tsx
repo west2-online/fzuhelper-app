@@ -27,12 +27,12 @@ export default function SemesterSummaryCard({ summary }: SemesterSummaryCardProp
           <Text className="text-lg font-bold text-gray-800">{summary.minScore.toFixed(2)}</Text>
         </View>
         <View className="flex flex-col items-start">
-          <Text className="text-sm text-gray-500">学期 GPA</Text>
+          <Text className="text-sm text-gray-500">学期绩点</Text>
           <Text className="text-lg font-bold text-gray-800">{summary.GPA.toFixed(2) + ' #'}</Text>
         </View>
       </View>
       <View className="mx-5 flex flex-row items-center justify-between">
-        <Text className="text-sm text-gray-500"># 单一学期GPA 非学校教务系统数据，可能存在误差，仅供参考</Text>
+        <Text className="text-sm text-gray-500"># 单学期绩点非学校教务系统数据，可能存在误差，仅供参考</Text>
       </View>
     </View>
   );

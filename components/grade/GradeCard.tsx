@@ -38,7 +38,9 @@ const GradeCard: React.FC<GradeCardProps> = ({ item }) => {
         </View>
         {/* 右侧：成绩 */}
         <View className="items-right flex w-1/2 flex-col items-end">
-          <Text className={`text-3xl font-bold ${parseScoreToColor(item.score)}`}>{item.score}</Text>
+          <Text className="text-3xl font-bold" style={{ color: parseScoreToColor(item.score) }}>
+            {item.score}
+          </Text>
         </View>
       </View>
     </Card>

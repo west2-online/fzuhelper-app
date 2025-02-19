@@ -68,9 +68,10 @@ export const parseScore = (score: string) => {
   }
   // 五级制和两级制转换为数值进行比较
   if (score === '优秀') return 89.9;
+  if (score === '合格') return 89.89;
   if (score === '良好') return 79.9;
   if (score === '中等') return 69.9;
-  if (score === '及格' || score === '合格') return 59.9;
+  if (score === '及格') return 59.9;
   if (score === '不及格' || score === '不合格') return -1;
   return -2; // 其他情况，按最低分处理
 };

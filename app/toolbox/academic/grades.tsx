@@ -16,6 +16,7 @@ import { calSingleTermSummary, parseScore } from '@/lib/grades';
 import { formatSemesterDisplayText } from '@/lib/semester';
 import { CourseGradesData, SemesterSummary } from '@/types/grades';
 import { SemesterData } from '@/types/semester';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function GradesPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
@@ -138,21 +139,23 @@ export default function GradesPage() {
               {/* 学期总体数据 */}
               {academicData.length > 0 && semesterSummary && <SemesterSummaryCard summary={semesterSummary} />}
 
-              {/* 学术成绩数据列表 */}
-              {academicData.filter(item => item.term === currentTerm).length > 0 ? (
-                academicData
-                  .filter(item => item.term === currentTerm)
-                  .sort((a, b) => {
-                    return parseScore(b.score) - parseScore(a.score);
-                  })
-                  .map((item, index) => (
-                    <View key={index} className="mx-4 mt-4">
-                      <GradeCard item={item} />
-                    </View>
-                  ))
-              ) : (
-                <Text className="text-center text-gray-500">暂无成绩数据或正在加载中</Text>
-              )}
+              <SafeAreaView edges={['bottom']}>
+                {/* 学术成绩数据列表 */}
+                {academicData.filter(item => item.term === currentTerm).length > 0 ? (
+                  academicData
+                    .filter(item => item.term === currentTerm)
+                    .sort((a, b) => {
+                      return parseScore(b.score) - parseScore(a.score);
+                    })
+                    .map((item, index) => (
+                      <View key={index} className="mx-4 mt-4">
+                        <GradeCard item={item} />
+                      </View>
+                    ))
+                ) : (
+                  <Text className="text-center text-gray-500">暂无成绩数据或正在加载中</Text>
+                )}
+              </SafeAreaView>
             </TabsContent>
           </Tabs>
         </ScrollView>
