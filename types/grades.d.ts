@@ -7,6 +7,7 @@ export type CourseGradesData = {
   gpa: string; // 绩点（注意这个可能是空的）
   term: string; // 学期(e.g. 202402)
   exam_type: string; // 考试类型(e.g. 正常考考试、第1次重修、正常考考试补考)
+  elective_type: string; // 选修类型(e.g. 通识必修、实践必修、毕业实习、学科必修、专业选修、人文社会科学类)
 };
 
 // 学期总结
