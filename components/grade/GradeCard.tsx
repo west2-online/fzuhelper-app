@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-import { parseScoreToColor } from '@/lib/grades'; // 确保路径正确
-import { CourseGradesData } from '@/types/grades'; // 确保路径正确
+import { parseScoreToColor } from '@/lib/grades';
+import { CourseGradesData } from '@/types/grades';
 import React from 'react';
 import { View } from 'react-native';
 
@@ -18,8 +18,13 @@ const GradeCard: React.FC<GradeCardProps> = ({ item }) => {
         {/* 考试类型 */}
         <Text className="text-sm text-gray-500">{item.exam_type}</Text>
       </View>
-      {/* 授课教师 */}
-      <Text className="mt-1 truncate text-xs text-gray-600">{item.teacher}</Text>
+      {/* 授课教师和课程类型 */}
+      <View className="mt-1 flex flex-row justify-between">
+        {/* 授课教师 */}
+        <Text className="truncate text-xs text-gray-600">{item.teacher}</Text>
+        {/* 课程类型 */}
+        <Text className="truncate text-xs text-gray-600">{item.elective_type}</Text>
+      </View>
       {/* 分割线 */}
       <View className="my-1 border-b border-gray-300" />
       <View className="mt-1 flex flex-row items-center justify-between">
