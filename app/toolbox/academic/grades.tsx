@@ -190,8 +190,8 @@ export default function GradesPage() {
                   </View>
                 )}
 
+                {/* 学术成绩数据列表 */}
                 <SafeAreaView edges={['bottom']}>
-                  {/* 学术成绩数据列表 */}
                   {filteredData.length > 0 ? (
                     filteredData
                       .sort((a, b) => parseScore(b.score) - parseScore(a.score))
@@ -202,6 +202,14 @@ export default function GradesPage() {
                       ))
                   ) : (
                     <Text className="text-center text-gray-500">暂无成绩数据或正在加载中</Text>
+                  )}
+                  {filteredData.length > 0 && (
+                    <View className="my-4 flex flex-row items-center justify-center">
+                      <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
+                      <Text className="text-sm leading-5 text-gray-600">
+                        数据同步时间：{(lastUpdated && lastUpdated.toLocaleString()) || '请进行一次同步'}
+                      </Text>
+                    </View>
                   )}
                 </SafeAreaView>
               </ScrollView>
