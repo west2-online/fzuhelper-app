@@ -58,12 +58,12 @@ export const CLASS_SCHEDULES = [
 ];
 
 // 成绩颜色对照
-export const GRADE_COLOR_EXCELLENT = 'text-green-500'; // >90 优秀
-export const GRADE_COLOR_GOOD = 'text-blue-500'; // 80-89 良好
-export const GRADE_COLOR_MEDIUM = 'text-yellow-500'; // 70-79 中等
-export const GRADE_COLOR_PASS = 'text-orange-500'; // 60-69 及格
-export const GRADE_COLOR_FAIL = 'text-red-500'; // <60 不及格
-export const GRADE_COLOR_UNKNOWN = 'text-gray-400'; // 成绩未录入 缺考
+export const GRADE_COLOR_EXCELLENT = '#9310FF'; // >90 优秀
+export const GRADE_COLOR_GOOD = '#1089FF'; // 80-89 良好
+export const GRADE_COLOR_MEDIUM = '#10CEFF'; // 70-79 中等
+export const GRADE_COLOR_PASS = '#FFA710'; // 60-69 及格
+export const GRADE_COLOR_FAIL = '#FF0000'; // <60 不及格
+export const GRADE_COLOR_UNKNOWN = '#BBBBBB'; // 成绩未录入 缺考
 
 // for RNR
 // please sync it with values in `global.css`

@@ -11,6 +11,7 @@ import WheelPicker from '@/components/wheelPicker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getApiV1JwchAcademicScores, getApiV1JwchTermList } from '@/api/generate';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import {
   GRADE_COLOR_EXCELLENT,
@@ -20,6 +21,7 @@ import {
   GRADE_COLOR_PASS,
   GRADE_COLOR_UNKNOWN,
 } from '@/lib/constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface CourseGradesData {
   name: string; // 课程名
@@ -163,7 +165,9 @@ const generateGradeCard = (item: CourseGradesData) => (
       </View>
       {/* 右侧：成绩 */}
       <View className="items-right flex w-1/2 flex-col items-end">
-        <Text className={`text-3xl font-bold ${parseScoreToColor(item.score)}`}>{item.score}</Text>
+        <Text className="text-3xl font-bold" style={{ color: parseScoreToColor(item.score) }}>
+          {item.score}
+        </Text>
       </View>
     </View>
   </Card>
@@ -259,7 +263,7 @@ export default function GradesPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '学业成绩' }} />
+      <Stack.Screen options={{ title: '成绩查询' }} />
 
       <ThemedView className="flex-1">
         <ScrollView
@@ -274,86 +278,86 @@ export default function GradesPage() {
             />
           }
         >
-          {/* 学期选择 */}
-          <View className="mb-4 flex flex-row items-center justify-between space-x-4 rounded-lg bg-gray-100 p-4">
-            {/* 左侧部分 */}
-            <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-800">
-                {currentTerm ? formatSemesterDisplayText(currentTerm) + '(' + currentTerm + ')' : '未选择'}
-              </Text>
-              <View className="mt-1 flex flex-row items-center">
-                <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
-                <Text className="text-sm leading-5 text-gray-600">
-                  数据同步时间：{(lastUpdated && lastUpdated.toLocaleString()) || '请进行一次同步'}
-                </Text>
-              </View>
-            </View>
+          <Tabs value={currentTerm} onValueChange={setCurrentTerm}>
+            {/* 可横向滚动的表头 */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <TabsList className="flex-row">
+                {/* 生成学期表头 */}
+                {termList.map((term, index) => (
+                  <TabsTrigger key={index} value={term.value} className="items-center">
+                    <Text className="w-24 text-center">{term.value}</Text>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </ScrollView>
 
-            {/* 右侧按钮 */}
-            <Button onPress={() => setPickerVisible(true)} className="rounded-lg bg-blue-500 px-4 py-2">
-              <Text className="text-sm font-medium text-white">选择学期</Text>
-            </Button>
-          </View>
+            <TabsContent value={currentTerm}>
+              {academicData.length > 0 && semesterSummary && (
+                <View>
+                  <View className="mx-5 mt-2 flex flex-row items-center justify-between bg-gray-100">
+                    <View className="flex flex-col items-start">
+                      <Text className="text-sm text-gray-500">总课程数</Text>
+                      <Text className="text-lg font-bold text-gray-800">{semesterSummary.totalCount}</Text>
+                    </View>
+                    <View className="flex flex-col items-start">
+                      <Text className="text-sm text-gray-500">应修学分</Text>
+                      <Text className="text-lg font-bold text-gray-800">{semesterSummary.totalCredit.toFixed(2)}</Text>
+                    </View>
+                    <View className="flex flex-col items-start">
+                      <Text className="text-sm text-gray-500">单科最高</Text>
+                      <Text className="text-lg font-bold text-gray-800">{semesterSummary.maxScore.toFixed(2)}</Text>
+                    </View>
+                    <View className="flex flex-col items-start">
+                      <Text className="text-sm text-gray-500">单科最低</Text>
+                      <Text className="text-lg font-bold text-gray-800">{semesterSummary.minScore.toFixed(2)}</Text>
+                    </View>
+                    <View className="flex flex-col items-start">
+                      <Text className="text-sm text-gray-500">学期绩点</Text>
+                      <Text className="text-lg font-bold text-gray-800">{semesterSummary.GPA.toFixed(2) + '(#)'}</Text>
+                    </View>
+                  </View>
+                  <View className="mx-5 flex flex-row items-center justify-between bg-gray-100">
+                    <Text className="text-sm text-gray-500">
+                      # 单学期绩点非学校教务系统数据，可能存在误差，仅供参考
+                    </Text>
+                  </View>
+                </View>
+              )}
 
-          {academicData.length > 0 && semesterSummary && (
-            <View>
-              <View className="mx-5 flex flex-row items-center justify-between bg-gray-100">
-                <View className="flex flex-col items-start">
-                  <Text className="text-sm text-gray-500">总课程数</Text>
-                  <Text className="text-lg font-bold text-gray-800">{semesterSummary.totalCount}</Text>
-                </View>
-                <View className="flex flex-col items-start">
-                  <Text className="text-sm text-gray-500">应修学分</Text>
-                  <Text className="text-lg font-bold text-gray-800">{semesterSummary.totalCredit.toFixed(2)}</Text>
-                </View>
-                <View className="flex flex-col items-start">
-                  <Text className="text-sm text-gray-500">单科最高</Text>
-                  <Text className="text-lg font-bold text-gray-800">{semesterSummary.maxScore.toFixed(2)}</Text>
-                </View>
-                <View className="flex flex-col items-start">
-                  <Text className="text-sm text-gray-500">单科最低</Text>
-                  <Text className="text-lg font-bold text-gray-800">{semesterSummary.minScore.toFixed(2)}</Text>
-                </View>
-                <View className="flex flex-col items-start">
-                  <Text className="text-sm text-gray-500">平均 GPA</Text>
-                  <Text className="text-lg font-bold text-gray-800">{semesterSummary.GPA.toFixed(2) + '(#)'}</Text>
-                </View>
-              </View>
-              <View className="mx-5 flex flex-row items-center justify-between bg-gray-100">
-                <Text className="text-sm text-gray-500"># 单一学期GPA 非学校教务系统数据，可能存在误差，仅供参考</Text>
-              </View>
-            </View>
-          )}
-
-          {/* 学术成绩数据列表 */}
-          {academicData.filter(item => item.term === currentTerm).length > 0 ? (
-            academicData
-              .filter(item => item.term === currentTerm)
-              .sort((a, b) => {
-                // 根据分数排序，高分优先
-                const parseScore = (score: string) => {
-                  const numericScore = parseFloat(score);
-                  if (!isNaN(numericScore)) {
-                    return numericScore;
-                  }
-                  // 五级制和两级制转换为数值进行比较
-                  if (score === '优秀') return 89.9;
-                  if (score === '良好') return 79.9;
-                  if (score === '中等') return 69.9;
-                  if (score === '及格' || score === '合格') return 59.9;
-                  if (score === '不及格' || score === '不合格') return -1;
-                  return -2; // 其他情况，按最低分处理
-                };
-                return parseScore(b.score) - parseScore(a.score);
-              })
-              .map((item, index) => (
-                <View key={index} className="mx-4 mt-4">
-                  {generateGradeCard(item)}
-                </View>
-              ))
-          ) : (
-            <Text className="text-center text-gray-500">暂无成绩数据或正在加载中</Text>
-          )}
+              <SafeAreaView edges={['bottom']}>
+                {/* 学术成绩数据列表 */}
+                {academicData.filter(item => item.term === currentTerm).length > 0 ? (
+                  academicData
+                    .filter(item => item.term === currentTerm)
+                    .sort((a, b) => {
+                      // 根据分数排序，高分优先
+                      const parseScore = (score: string) => {
+                        const numericScore = parseFloat(score);
+                        if (!isNaN(numericScore)) {
+                          return numericScore;
+                        }
+                        // 五级制和两级制转换为数值进行比较
+                        if (score === '优秀') return 89.9;
+                        if (score === '合格') return 89.89;
+                        if (score === '良好') return 79.9;
+                        if (score === '中等') return 69.9;
+                        if (score === '及格') return 59.9;
+                        if (score === '不及格' || score === '不合格') return -1;
+                        return -2; // 其他情况，按最低分处理
+                      };
+                      return parseScore(b.score) - parseScore(a.score);
+                    })
+                    .map((item, index) => (
+                      <View key={index} className="mx-4 mt-4">
+                        {generateGradeCard(item)}
+                      </View>
+                    ))
+                ) : (
+                  <Text className="text-center text-gray-500">暂无成绩数据或正在加载中</Text>
+                )}
+              </SafeAreaView>
+            </TabsContent>
+          </Tabs>
         </ScrollView>
       </ThemedView>
 
