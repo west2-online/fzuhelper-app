@@ -91,14 +91,23 @@ export const calSingleTermSummary = (data: CourseGradesData[], term: string) => 
 
   // 计算平均学分绩(GPA)，单门课程学分绩点乘积之和除以总学分，计算比较复杂
 
-  // 需要统计的课程类型
-  // 我们设计白名单模式，是因为有些课程类型太奇怪了，比如二专业开头的课程，或者新的课程类型
-  const validElectiveTypes = ['通识必修', '实践必修', '毕业实习', '学科必修', '专业选修', '通识选修', '跨学科'];
+  // 需要排除的课程类型
+  const excludedElectiveTypes = [
+    '自然科学与工程技术类',
+    '人文社会科学类',
+    '经济管理类',
+    '文学与艺术类',
+    '工程技术类',
+    '劳动教育类',
+    '创新创业类',
+    '通识选修任选',
+  ];
 
   // 进一步过滤出需要计算的数据
   const gpaRelevantData = filteredData.filter(
     item =>
-      validElectiveTypes.includes(item.elective_type) && // 课程类型在需要计算的范围内
+      !excludedElectiveTypes.includes(item.elective_type) && // 排除特定课程类型
+      !item.elective_type.includes('二专业') && // 排除课程类型中包含“二专业”的课程
       item.gpa && // gpa 不为空
       item.score !== '合格' &&
       item.score !== '不合格', // 成绩不是“合格”或“不合格”的课程不参与绩点统计，即使他们绩点显示为 1.0
