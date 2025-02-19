@@ -245,8 +245,8 @@ export default function ExamRoomPage() {
           </ScrollView>
 
           {/* 生成考试卡片 */}
-          {termList.map((term, index) => (
-            <TabsContent key={index} value={term}>
+          {termList.map(term => (
+            <TabsContent key={term} value={term}>
               {/* 显示刷新时间 */}
               {mergedDataMap[term]?.lastUpdated && (
                 <View className="mb-2 flex flex-row items-center rounded-lg bg-gray-100 p-2">
@@ -258,7 +258,9 @@ export default function ExamRoomPage() {
               )}
               {/* 渲染考试数据 */}
               {mergedDataMap[term]?.data ? (
-                mergedDataMap[term].data.map(item => generateCourseCard(item))
+                mergedDataMap[term].data.map((item, idx) => (
+                  <View key={`${item.name}-${idx}`}>{generateCourseCard(item)}</View>
+                ))
               ) : (
                 <Text>加载中...</Text>
               )}

@@ -57,6 +57,9 @@ export const CLASS_SCHEDULES = [
   ['20:50', '21:35'],
 ];
 
+// 历年卷
+export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';
+
 // 成绩颜色对照
 export const GRADE_COLOR_EXCELLENT = 'text-green-500'; // >90 优秀
 export const GRADE_COLOR_GOOD = 'text-blue-500'; // 80-89 良好
