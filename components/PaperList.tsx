@@ -3,6 +3,8 @@ import { FolderIcon, getFileIcon, guessFileType } from '@/lib/filetype';
 import { router } from 'expo-router';
 import { memo } from 'react';
 import { FlatList, Image, RefreshControl, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Loading from './loading';
 
 export enum PaperType {
   FOLDER = 'folder',
@@ -50,10 +52,10 @@ const PaperItem = memo(function PaperItem({ paper, currentPath, setCurrentPath }
           router.push({ pathname: '/toolbox/paper/file-preview', params: { filepath: path } });
         }
       }}
-      className="h-16 w-full flex-row items-center px-4 py-2"
+      className="h-16 w-full flex-row items-center px-6 py-2"
     >
       {/* 由于文件夹和文件的图标大小不一样，需要使用不同的 size */}
-      <Image source={icon} className={`mr-6 ${type === 'folder' ? 'h-5 w-5' : 'h-8 w-8'}`} resizeMode="contain" />
+      <Image source={icon} className={`mr-6 ${type === 'folder' ? 'h-5 w-8' : 'h-8 w-8'}`} resizeMode="contain" />
       <Text numberOfLines={2} ellipsizeMode="tail" className="flex-1 text-base">
         {name}
       </Text>
@@ -69,11 +71,18 @@ export default function PaperList({
   onRefresh,
   ...props
 }: PaperListProps) {
-  return (
+  const insets = useSafeAreaInsets();
+
+  return isRefreshing ? (
+    <Loading className="flex-1" />
+  ) : (
     <FlatList
       data={papers}
-      className="h-full"
-      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} // 下拉刷新控件
+      className="flex-1"
+      contentContainerStyle={{
+        paddingBottom: insets.bottom,
+      }}
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       renderItem={({ item }) => <PaperItem paper={item} currentPath={currentPath} setCurrentPath={setCurrentPath} />}
     />
   );
