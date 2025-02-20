@@ -1,7 +1,14 @@
 import { Icon } from '@/components/Icon';
 import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  useColorScheme,
+  useWindowDimensions,
+  type LayoutRectangle,
+  type ViewToken,
+} from 'react-native';
 
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
@@ -28,6 +35,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
+  const colorScheme = useColorScheme();
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -99,11 +107,11 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
     schedules.forEach(schedule => {
       if (!map[schedule.syllabus]) {
-        map[schedule.syllabus] = generateRandomColor(schedule.name); // 基于课程名称生成颜色
+        map[schedule.syllabus] = generateRandomColor(schedule.name, colorScheme === 'dark'); // 基于课程名称生成颜色
       }
     });
     return map;
-  }, [schedules]);
+  }, [colorScheme, schedules]);
 
   // 通过 viewability 回调获取当前周
   const handleViewableItemsChanged = useCallback(
