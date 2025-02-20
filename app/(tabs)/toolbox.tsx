@@ -1,3 +1,14 @@
+import { useRouter, type Href, type Router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, FlatList, Image, Linking, Text } from 'react-native';
+import { toast } from 'sonner-native';
+
+import { ThemedView } from '@/components/ThemedView';
+import Banner, { type BannerContent } from '@/components/banner';
+import { Button } from '@/components/ui/button';
+
+import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
+
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
@@ -9,14 +20,6 @@ import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.png';
 import RoomIcon from '@/assets/images/toolbox/ic_room.png';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.png';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.png';
-import { ThemedView } from '@/components/ThemedView';
-import Banner, { type BannerContent } from '@/components/banner';
-import { Button } from '@/components/ui/button';
-import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
-import { useRouter, type Href, type Router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Linking, Text } from 'react-native';
-import { toast } from 'sonner-native';
 
 // 工具类型的枚举
 enum ToolType {
