@@ -1722,6 +1722,13 @@
   dependencies:
     make-synchronized "^0.2.8"
 
+"@quidone/react-native-wheel-picker@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.npmjs.org/@quidone/react-native-wheel-picker/-/react-native-wheel-picker-1.4.0.tgz#695f3e6c3ae7fd5cec3772434d0e56fca066c532"
+  integrity sha512-5O7ePg+US0HCIcsFw0uY+H267O2PxWHzU2gOmbXGgmSVgQgPcj53h6DcvZxbHpgh6mwrLoAUhOIdON1qP6pe1w==
+  dependencies:
+    "@rozhkov/react-useful-hooks" "^1.0.9"
+
 "@radix-ui/primitive@1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@radix-ui/primitive/-/primitive-1.1.1.tgz#fc169732d755c7fbad33ba8d0cd7fd10c90dc8e3"
@@ -2486,6 +2493,13 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@rn-primitives/types/-/types-1.1.0.tgz#2b7b0c2599dfe46329867d570f6ba8d0608f9843"
   integrity sha512-duS4La965KsVVAeytcSFDJUafw6ZScvejgxlFkwqzW06pDBRMxwfunmZmf3JZ82P/2xaEVPIGseeyblertC/+g==
+
+"@rozhkov/react-useful-hooks@^1.0.9":
+  version "1.0.9"
+  resolved "https://registry.npmjs.org/@rozhkov/react-useful-hooks/-/react-useful-hooks-1.0.9.tgz#13eef9eca0e46d26a64c3a5727c7de2e9a5e4a2f"
+  integrity sha512-RffdvTrJI7RIvQOYM8/JrDZguNLpKCGjh7UyOjepiJRDtjM10ef+QX0xa6vOLReQ+8kzubBjQ42YM6aj1GotDg==
+  dependencies:
+    default-values "^1.0.1"
 
 "@rtsao/scc@^1.1.0":
   version "1.1.0"
@@ -4492,6 +4506,11 @@ default-gateway@^4.2.0:
   dependencies:
     execa "^1.0.0"
     ip-regex "^2.1.0"
+
+default-values@^1.0.1:
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/default-values/-/default-values-1.0.2.tgz#cf104c52185c0e60a691113ba0a3880ed4d4d2ed"
+  integrity sha512-OaZEvojjexigvv1IT6N0rKUD5Af7fG11a0jg87jySv5xzjc2+IEW9oWNvqxWLHGhShRRZ0QopCGzGjJv/aY+mw==
 
 defaults@^1.0.3:
   version "1.0.4"
