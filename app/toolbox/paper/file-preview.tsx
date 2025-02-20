@@ -4,7 +4,9 @@ import * as FileSystem from 'expo-file-system';
 import { Stack, UnknownOutputParams, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
-import { Image, Share, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, Share, Text, TouchableOpacity, View } from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import * as mime from 'react-native-mime-types';
 import { toast } from 'sonner-native';
 
 interface FilePreviewPageParam extends UnknownOutputParams {
@@ -15,17 +17,36 @@ export default function FilePreviewPage() {
   const { filepath } = useLocalSearchParams<FilePreviewPageParam>();
   const filename = filepath.substring(filepath.lastIndexOf('/') + 1);
   const fileIcon = getFileIcon(guessFileType(filename));
-  const downloadDir = FileSystem.cacheDirectory + 'paper';
-  const localFileUri = downloadDir + filepath;
+  const [localFileUri, setLocalFileUri] = useState<string>('');
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
   const downloadUri = `http://files.w2fzu.com/${encodeURIComponent(filepath.substring(1))}?_upt=78e7a6691739858884`;
 
   useEffect(() => {
+    switch (Platform.OS) {
+      case 'android':
+        setLocalFileUri(ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir + '/fzuPaper/' + filepath);
+        break;
+      case 'ios':
+        setLocalFileUri(FileSystem.cacheDirectory + 'paper' + filepath);
+        break;
+    }
+  }, [filepath]);
+
+  useEffect(() => {
     const checkFile = async () => {
-      const fileInfo = await FileSystem.getInfoAsync(localFileUri);
-      setIsDownloaded(fileInfo.exists);
+      switch (Platform.OS) {
+        case 'android':
+          ReactNativeBlobUtil.fs.exists(localFileUri).then(exists => {
+            setIsDownloaded(exists);
+          });
+          break;
+        case 'ios':
+          const fileInfo = await FileSystem.getInfoAsync(localFileUri);
+          setIsDownloaded(fileInfo.exists);
+          break;
+      }
     };
     checkFile();
   }, [localFileUri]);
@@ -35,21 +56,72 @@ export default function FilePreviewPage() {
     setProgress(0);
 
     try {
-      const parentDir = localFileUri.substring(0, localFileUri.lastIndexOf('/') + 1);
-      const parentDirInfo = await FileSystem.getInfoAsync(parentDir);
-      if (!parentDirInfo.exists) await FileSystem.makeDirectoryAsync(parentDir, { intermediates: true });
-      const downloadResumable = FileSystem.createDownloadResumable(downloadUri, localFileUri, {}, downloadProgress => {
-        const percentage = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-        setProgress(percentage);
-      });
-      await downloadResumable.downloadAsync();
-      setIsDownloaded(true);
-      toast.success('下载成功, 文件已下载到本地');
-      handleShareFile();
+      switch (Platform.OS) {
+        case 'android': {
+          ReactNativeBlobUtil.config({
+            fileCache: true,
+            addAndroidDownloads: {
+              useDownloadManager: true,
+              // Show notification when response data transmitted
+              notification: true,
+              mediaScannable: true,
+              path: localFileUri,
+            },
+          })
+            .fetch('GET', downloadUri)
+            .progress({ count: 10 }, (received, total) => {
+              console.log('progress', received, total);
+              setProgress(received / total);
+            })
+            .then(res => {
+              try {
+                setIsDownloaded(true);
+                toast.success('下载成功');
+                handleOpenFile();
+              } catch (err) {
+                console.log(err);
+              }
+            });
+          break;
+        }
+        case 'ios': {
+          const parentDir = localFileUri.substring(0, localFileUri.lastIndexOf('/') + 1);
+          const parentDirInfo = await FileSystem.getInfoAsync(parentDir);
+          if (!parentDirInfo.exists) await FileSystem.makeDirectoryAsync(parentDir, { intermediates: true });
+          const downloadResumable = FileSystem.createDownloadResumable(
+            downloadUri,
+            localFileUri,
+            {},
+            downloadProgress => {
+              const percentage = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+              setProgress(percentage);
+            },
+          );
+          await downloadResumable.downloadAsync();
+          break;
+        }
+      }
     } catch (error) {
-      toast.error('下载失败, 请检查网络: ' + error);
+      console.log(error);
+      toast.error('下载失败，请检查网络: ' + error);
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleOpenFile = async () => {
+    switch (Platform.OS) {
+      case 'android': {
+        ReactNativeBlobUtil.android.actionViewIntent(
+          localFileUri,
+          mime.lookup(localFileUri) || 'application/octet-stream',
+        );
+        break;
+      }
+      case 'ios': {
+        await handleShareFile();
+        break;
+      }
     }
   };
 
@@ -57,7 +129,7 @@ export default function FilePreviewPage() {
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(localFileUri);
     } else {
-      toast.error('分享失败, 设备不支持分享功能:');
+      toast.error('分享失败，设备不支持分享功能');
     }
   };
 
@@ -65,7 +137,7 @@ export default function FilePreviewPage() {
     try {
       Share.share({ message: downloadUri });
     } catch (error) {
-      toast.error('分享失败, 设备不支持分享功能: ' + error);
+      toast.error('分享失败，设备不支持分享功能: ' + error);
     }
   };
 
@@ -77,22 +149,32 @@ export default function FilePreviewPage() {
         <Text className="mb-4 text-lg font-semibold text-gray-800">{filename}</Text>
         <View className="w-full space-y-3">
           {isDownloaded ? (
-            <TouchableOpacity
-              onPress={handleShareFile}
-              className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
-            >
-              <Text className="text-base font-medium text-white">分享文件</Text>
-            </TouchableOpacity>
+            Platform.OS === 'android' && (
+              <View>
+                <TouchableOpacity
+                  onPress={handleOpenFile}
+                  className="mb-3 w-full items-center rounded-lg bg-primary py-3 shadow-md"
+                >
+                  <Text className="text-base font-medium text-white">打开文件</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleShareFile}
+                  className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
+                >
+                  <Text className="text-base font-medium text-white">分享文件</Text>
+                </TouchableOpacity>
+              </View>
+            )
           ) : isDownloading ? (
             <View className="relative flex h-12 w-full items-center justify-center overflow-hidden rounded-lg bg-gray-300 shadow-md">
-              <View className="absolute left-0 top-0 h-full bg-blue-500" style={{ width: `${progress * 100}%` }} />
+              <View className="absolute left-0 top-0 h-full bg-primary" style={{ width: `${progress * 100}%` }} />
               <Text className="z-10 font-medium text-white">下载中 {Math.round(progress * 100)}%</Text>
             </View>
           ) : (
             <>
               <TouchableOpacity
                 onPress={handleDownload}
-                className="mb-3 h-12 w-full items-center rounded-lg bg-blue-500 py-3 shadow-md"
+                className="mb-3 h-12 w-full items-center rounded-lg bg-primary py-3 shadow-md"
               >
                 <Text className="text-base font-medium text-white">下载到本地</Text>
               </TouchableOpacity>
@@ -100,7 +182,7 @@ export default function FilePreviewPage() {
                 onPress={handleShareLink}
                 className="h-12 w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
               >
-                <Text className="text-base font-medium text-white">分享下载链接</Text>
+                <Text className="text-base font-medium text-white">分享链接</Text>
               </TouchableOpacity>
             </>
           )}
