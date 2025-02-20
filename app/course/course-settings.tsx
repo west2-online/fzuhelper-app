@@ -1,19 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner-native';
 
-import IcCancel from '@/assets/images/misc/ic_cancel.svg';
-import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
 import { ThemedView } from '@/components/ThemedView';
-import { Button } from '@/components/ui/button';
+import PickerModel from '@/components/picker-model';
 import { Text } from '@/components/ui/text';
-import WheelPicker from '@quidone/react-native-wheel-picker';
 
-import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
@@ -162,45 +157,18 @@ export default function AcademicPage() {
           onValueChange={handleShowNonCurrentWeekCourses}
         />
 
-        <View></View>
-        {/* 底部弹出的 Picker */}
-        <Modal
+        <PickerModel
           visible={isPickerVisible}
-          transparent
-          navigationBarTranslucent
-          statusBarTranslucent
-          animationType="slide" // 从底部滑入
-          onRequestClose={handleCloseTermSelectPicker} // Android 的返回键关闭
-        >
-          <View className="flex flex-1 justify-end">
-            {/* 点击背景关闭 */}
-            <Pressable className="absolute h-full w-full bg-[#00000050]" onPress={handleCloseTermSelectPicker} />
-            {/* Picker 容器 */}
-            <View className="space-y-6 rounded-t-3xl bg-background p-6">
-              <View className="flex-row justify-between">
-                <Pressable onPress={handleCloseTermSelectPicker}>
-                  <IcCancel className="m-1 h-6 w-6" />
-                </Pressable>
-                <Text className="text-xl font-bold text-primary">选择学期</Text>
-                <Pressable onPress={handleConfirmTermSelectPicker}>
-                  <IcConfirm className="m-1 h-6 w-6" />
-                </Pressable>
-              </View>
-              <View className="overflow-hidden">
-                <WheelPicker
-                  data={semesters.map(s => ({
-                    value: s,
-                    label: s,
-                  }))}
-                  value={settings.selectedSemester}
-                  onValueChanged={({ item: { value } }) => {
-                    setPickerSemester(value);
-                  }}
-                />
-              </View>
-            </View>
-          </View>
-        </Modal>
+          title="选择学期"
+          data={semesters.map(s => ({
+            value: s,
+            label: s,
+          }))}
+          value={settings.selectedSemester}
+          onClose={handleCloseTermSelectPicker}
+          onConfirm={handleConfirmTermSelectPicker}
+          onValueChange={setPickerSemester}
+        />
       </ThemedView>
     </>
   );
