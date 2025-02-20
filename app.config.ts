@@ -26,6 +26,32 @@ const config: ExpoConfig = {
     favicon: './assets/images/icon.png',
   },
   plugins: [
+    [
+        "@bittingz/expo-widgets",
+        {
+//             ios: {
+//                 src: "./native_widget/ios",
+//                 devTeamId: "your apple dev team ID",
+//                 mode: "production",
+//                 moduleDependencies: [],
+//                 useLiveActivities: false,
+//                 frequentUpdates: false,
+//                 entitlements: {
+//                     "any xcode entitlement the widget needs": "entitlement value"
+//                 }
+//             },
+            android: {
+                src: "./modules/native-widget/android",
+                widgets: [
+                    {
+                        "name": "NextClassWidgetProvider",
+                        "resourceName": "@xml/next_class_widget_provider"
+                    }
+                ],
+                distPlaceholder: "optional.placeholder"
+            }
+        }
+    ],
     'expo-router',
     [
       'expo-build-properties',
