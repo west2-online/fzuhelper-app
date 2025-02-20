@@ -15,14 +15,12 @@ import { getApiV1JwchAcademicScores, getApiV1JwchTermList } from '@/api/generate
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
-import { formatSemesterDisplayText } from '@/lib/semester';
 import { CourseGradesData } from '@/types/grades';
-import { SemesterData } from '@/types/semester';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function GradesPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const [termList, setTermList] = useState<SemesterData[]>([]); // 学期列表
+  const [termList, setTermList] = useState<string[]>([]); // 学期列表
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
   const [academicData, setAcademicData] = useState<CourseGradesData[]>([]); // 学术成绩数据
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null); // 最后更新时间
@@ -57,11 +55,7 @@ export default function GradesPage() {
     try {
       const result = await getApiV1JwchTermList();
       const terms = result.data.data as string[];
-      const formattedTerms = terms.map(semester => ({
-        label: formatSemesterDisplayText(semester),
-        value: semester,
-      }));
-      setTermList(formattedTerms);
+      setTermList(terms);
       if (!currentTerm && terms.length) {
         setCurrentTerm(terms[0]);
       }
@@ -96,7 +90,7 @@ export default function GradesPage() {
   // 处理 flatList 滚动
   const handleTabChange = (value: string) => {
     setCurrentTerm(value);
-    const index = termList.findIndex(term => term.value === value);
+    const index = termList.findIndex(term => term === value);
     if (flatListRef.current && index > -1) {
       flatListRef.current.scrollToIndex({ index, animated: true });
     }
@@ -104,7 +98,7 @@ export default function GradesPage() {
 
   // 当 currentTerm 改变时，更新 Tabs 的 ScrollView 滚动位置
   useEffect(() => {
-    const index = termList.findIndex(term => term.value === currentTerm);
+    const index = termList.findIndex(term => term === currentTerm);
     if (tabsScrollViewRef.current && index > -1) {
       const ITEM_WIDTH = 96; // 根据 w-24 的宽度
       const scrollTo = index * ITEM_WIDTH - (screenWidth / 2 - ITEM_WIDTH / 2);
@@ -115,7 +109,7 @@ export default function GradesPage() {
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: any[] }) => {
       if (viewableItems.length > 0) {
-        const newTerm = viewableItems[0].item.value;
+        const newTerm = viewableItems[0].item;
         if (newTerm !== currentTerm) {
           setCurrentTerm(newTerm);
         }
@@ -145,8 +139,8 @@ export default function GradesPage() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} ref={tabsScrollViewRef}>
             <TabsList className="flex-row">
               {termList.map((term, index) => (
-                <TabsTrigger key={index} value={term.value} className="items-center">
-                  <Text className="w-24 text-center">{term.value}</Text>
+                <TabsTrigger key={index} value={term} className="items-center">
+                  <Text className="w-24 text-center">{term}</Text>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -165,8 +159,8 @@ export default function GradesPage() {
           viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
           renderItem={({ item }) => {
             // 本页对应学期的数据过滤与排序
-            const filteredData = academicData.filter(it => it.term === item.value);
-            const summary = calSingleTermSummary(filteredData, item.value);
+            const filteredData = academicData.filter(it => it.term === item);
+            const summary = calSingleTermSummary(filteredData, item);
             return (
               <ScrollView
                 style={{ width: screenWidth }}
