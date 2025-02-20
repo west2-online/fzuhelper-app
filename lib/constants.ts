@@ -68,6 +68,13 @@ export const GRADE_COLOR_PASS = '#FFA710'; // 60-69 及格
 export const GRADE_COLOR_FAIL = '#FF0000'; // <60 不及格
 export const GRADE_COLOR_UNKNOWN = '#BBBBBB'; // 成绩未录入 缺考
 
+// 课程类型映射，目前适用于考场查询
+export const COURSE_SYMBOLS_MAP = {
+  '▲': '[补考]',
+  '●': '[重修]',
+  '★': '[二专业]',
+} as const;
+
 // for RNR
 // please sync it with values in `global.css`
 export const NAV_THEME = {

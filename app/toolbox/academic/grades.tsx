@@ -16,7 +16,7 @@ import { TabFlatList } from '@/components/tab-flatlist';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
-import { CourseGradesData } from '@/types/grades';
+import { CourseGradesData } from '@/types/academic';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function GradesPage() {
