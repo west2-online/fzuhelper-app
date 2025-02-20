@@ -36,7 +36,6 @@ export default function UnifiedExamScorePage() {
 
   // 初始化时获取数据
   useEffect(() => {
-    setIsRefreshing(true);
     fetchUnifiedExamData();
   }, [fetchUnifiedExamData]);
 

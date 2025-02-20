@@ -34,7 +34,6 @@ export default function CreditsPage() {
 
   // 初始化时获取学分数据
   useEffect(() => {
-    setIsRefreshing(true);
     fetchCreditData();
   }, [fetchCreditData]);
 
