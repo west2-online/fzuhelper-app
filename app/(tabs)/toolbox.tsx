@@ -10,8 +10,7 @@ import RoomIcon from '@/assets/images/toolbox/ic_room.png';
 import { ThemedView } from '@/components/ThemedView';
 import Banner, { type BannerContent } from '@/components/banner';
 import { Button } from '@/components/ui/button';
-import { JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { pushToWebViewJWCH } from '@/lib/webview';
 import { useRouter, type Href, type Router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Image, Linking, Text } from 'react-native';
@@ -88,17 +87,8 @@ const DEFAULT_TOOLS: Tool[] = [
     name: '嘉锡讲坛',
     icon: JiaXiIcon,
     type: ToolType.FUNCTION,
-    action: async router => {
-      router.push({
-        pathname: '/web',
-        params: {
-          title: '嘉熙讲坛',
-          url:
-            'https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx?id=' +
-            (await AsyncStorage.getItem(JWCH_ID_KEY)),
-          jwchCookie: (await AsyncStorage.getItem(JWCH_COOKIES_KEY)) ?? undefined,
-        },
-      });
+    action: async () => {
+      await pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
     },
   },
 ];

@@ -12,6 +12,7 @@ export interface WebParams {
   url: string; // URL 地址
   jwchCookie?: string; // （可选）本科教务系统 Cookie
   title?: string; // （可选）固定标题
+  [key: string]: any; // 添加字符串索引签名
 }
 
 // 内嵌的网页浏览器，用于显示网页
