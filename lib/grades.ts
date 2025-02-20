@@ -1,4 +1,4 @@
-import { CourseGradesData } from '@/types/grades';
+import { CourseGradesData } from '@/types/academic';
 import {
   GRADE_COLOR_EXCELLENT,
   GRADE_COLOR_FAIL,

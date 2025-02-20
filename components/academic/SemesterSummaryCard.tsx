@@ -1,5 +1,5 @@
 import { Text } from '@/components/ui/text';
-import { SemesterSummary } from '@/types/grades';
+import { SemesterSummary } from '@/types/academic';
 import { View } from 'react-native';
 import { Card } from '../ui/card';
 

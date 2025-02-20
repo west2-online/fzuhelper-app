@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { parseScoreToColor } from '@/lib/grades';
-import { CourseGradesData } from '@/types/grades';
+import { CourseGradesData } from '@/types/academic';
 import React from 'react';
 import { View } from 'react-native';
 

@@ -17,3 +17,15 @@ export type SemesterSummary = {
   maxScore: number; // 单科最高分
   GPA: number; // GPA
 };
+
+// 合并后列表项结构 由于考试数据和选课数据的字段不同，需要合并后再展示
+// 存在考试的科目，优先使用考试数据，否则使用选课数据
+export type MergedExamData = {
+  name: string; // 课程名
+  credit: string; // 学分
+  teacher: string; // 授课教师
+  date?: Date; // 考试日期
+  location?: string; // 考场位置
+  time?: string; // 考试时间
+  isFinished: boolean; // 是否已经结束
+};
