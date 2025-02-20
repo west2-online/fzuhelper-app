@@ -4,8 +4,8 @@ import { toast } from 'sonner-native';
 
 import FAQModal from '@/components/FAQModal';
 import { ThemedView } from '@/components/ThemedView';
-import GradeCard from '@/components/grade/GradeCard';
-import SemesterSummaryCard from '@/components/grade/SemesterSummaryCard';
+import GradeCard from '@/components/academic/GradeCard';
+import SemesterSummaryCard from '@/components/academic/SemesterSummaryCard';
 import { Text } from '@/components/ui/text';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs as ExpoTabs } from 'expo-router';
