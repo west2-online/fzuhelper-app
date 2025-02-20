@@ -19,6 +19,11 @@ function withIOSInject(config: ExpoConfig): ExpoConfig {
     //   'w2fzu.com',
     // ];
 
+    // 添加出口合规设置
+    // 详见 docs：https://developer.apple.com/documentation/Security/complying-with-encryption-export-regulations
+    infoPlist.modResults.ITSAppUsesNonExemptEncryption = false; // 设置为 NO
+    infoPlist.modResults.ITSEncryptionExportComplianceCode = ''; // 不需要出口合规文档，保持为空
+
     // 允许访问非 HTTPS 的内容
     infoPlist.modResults.NSAppTransportSecurity = {
       NSAllowsArbitraryLoads: true,
