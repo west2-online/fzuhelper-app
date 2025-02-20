@@ -24,11 +24,11 @@ export const CreditCard: React.FC<CreditCardProps> = ({ item }) => {
     item.total.trim() === '' // 判断 total 是否为空（排除空格）
       ? ''
       : remaining === 0
-        ? '(已满足)'
-        : `(还需 ${remaining}分)`;
+        ? ' (已满足)'
+        : ` (还需 ${remaining} 分)`;
 
   return (
-    <View className="mb-1 mt-1 flex-row justify-between p-2" key={item.type}>
+    <View className="my-1 flex-row justify-between p-2" key={item.type}>
       {/* 学分类型 */}
       <Text>{item.type}</Text>
 
@@ -36,7 +36,7 @@ export const CreditCard: React.FC<CreditCardProps> = ({ item }) => {
       <Text className="font-bold">
         {gain}
         {item.total.trim() === '' ? '' : '/' + total}
-        {NOT_SHOW_CREDIT_TYPE.includes(item.type) ? '' : `分 ${remainingText}`}
+        {NOT_SHOW_CREDIT_TYPE.includes(item.type) ? '' : ` 分${remainingText}`}
       </Text>
     </View>
   );
