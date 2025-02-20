@@ -3,6 +3,7 @@ import { FolderIcon, getFileIcon, guessFileType } from '@/lib/filetype';
 import { router } from 'expo-router';
 import { memo } from 'react';
 import { FlatList, Image, RefreshControl, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Loading from './loading';
 
 export enum PaperType {
@@ -70,13 +71,18 @@ export default function PaperList({
   onRefresh,
   ...props
 }: PaperListProps) {
+  const insets = useSafeAreaInsets();
+
   return isRefreshing ? (
     <Loading className="flex-1" />
   ) : (
     <FlatList
       data={papers}
       className="flex-1"
-      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} // 下拉刷新控件
+      contentContainerStyle={{
+        paddingBottom: insets.bottom,
+      }}
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       renderItem={({ item }) => <PaperItem paper={item} currentPath={currentPath} setCurrentPath={setCurrentPath} />}
     />
   );
