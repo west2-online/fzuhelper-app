@@ -1,9 +1,9 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Href, Link, Tabs } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Image, ImageSourcePropType, ScrollView, TouchableOpacity, View } from 'react-native';
 
+import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -146,7 +146,7 @@ export default function HomePage() {
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Link href="/(guest)/about" asChild>
-              <Ionicons name="settings-outline" size={24} className="mr-4" />
+              <Icon name="settings-outline" size={24} className="mr-4" />
             </Link>
           ),
         }}

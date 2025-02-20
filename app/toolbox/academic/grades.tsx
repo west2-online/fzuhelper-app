@@ -1,4 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-native';
@@ -6,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import FAQModal from '@/components/FAQModal';
+import { Icon } from '@/components/Icon';
 import GradeCard from '@/components/academic/GradeCard';
 import SemesterSummaryCard from '@/components/academic/SemesterSummaryCard';
 import Loading from '@/components/loading';
@@ -130,7 +130,7 @@ export default function GradesPage() {
           )}
           {filteredData.length > 0 && (
             <View className="my-4 flex flex-row items-center justify-center">
-              <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
+              <Icon name="time-outline" size={16} className="mr-2 text-gray-500" />
               <Text className="text-sm leading-5 text-gray-600">
                 数据同步时间：{(lastUpdated && lastUpdated.toLocaleString()) || '请进行一次同步'}
               </Text>
@@ -150,7 +150,7 @@ export default function GradesPage() {
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-              <Ionicons name="help-circle-outline" size={26} className="mr-4" />
+              <Icon name="help-circle-outline" size={26} className="mr-4" />
             </Pressable>
           ),
         }}

@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Icon } from '@/components/Icon';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
@@ -69,7 +69,7 @@ export default function UnifiedExamScorePage() {
                     {/* 显示最后更新时间 */}
                     {lastUpdated && (
                       <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
-                        <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
+                        <Icon name="time-outline" size={16} className="mr-2 text-gray-500" />
                         <Text className="text-l leading-5 text-gray-600">
                           数据同步时间：{lastUpdated.toLocaleString()}
                         </Text>

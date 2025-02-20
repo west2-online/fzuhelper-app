@@ -1,7 +1,7 @@
-import Ionicons from '@expo/vector-icons/Ionicons'; // 图标库
 import { Link, useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
 
+import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -20,7 +20,7 @@ export default function NotFoundScreen() {
       {/* 页面内容 */}
       <PageContainer className="items-center justify-center bg-background p-5">
         {/* 可爱表情图标 */}
-        <Ionicons name="sad-outline" size={80} color="#FF6F61" />
+        <Icon name="sad-outline" size={80} color="#FF6F61" />
 
         {/* 提示文字 */}
         <Text className="mt-6 text-center text-xl font-semibold">哎呀，这个页面被小猫叼走啦！</Text>

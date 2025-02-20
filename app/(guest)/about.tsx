@@ -1,4 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { Stack, router } from 'expo-router';
 import { Image, Linking, Pressable, View } from 'react-native';
@@ -10,6 +9,7 @@ import {
   DescriptionListRow,
   DescriptionListTerm,
 } from '@/components/DescriptionList';
+import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
@@ -53,7 +53,7 @@ export default function AboutPage() {
                   <Text className="text-text-secondary">官方网站</Text>
                 </DescriptionListTerm>
                 <DescriptionListDescription>
-                  <Ionicons name="chevron-forward" />
+                  <Icon name="chevron-forward" />
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
@@ -92,7 +92,7 @@ export default function AboutPage() {
               </Text>
             </View>
             <View className="flex-row">
-              <Text className="text-text-secondary text-sm">本APP由</Text>
+              <Text className="text-sm text-text-secondary">本APP由</Text>
               <Text
                 className="text-sm text-primary"
                 onPress={() => {
@@ -101,7 +101,7 @@ export default function AboutPage() {
               >
                 又拍云
               </Text>
-              <Text className="text-text-secondary text-sm">提供CDN加速/云存储服务</Text>
+              <Text className="text-sm text-text-secondary">提供CDN加速/云存储服务</Text>
             </View>
             <Pressable
               className="flex-row items-center"
@@ -109,10 +109,10 @@ export default function AboutPage() {
                 Linking.openURL('https://beian.miit.gov.cn/');
               }}
             >
-              <Text className="text-text-secondary mr-1 text-sm">ICP备案号：闽ICP备19020557号-4A</Text>
-              <Ionicons name="chevron-forward" size={10} />
+              <Text className="mr-1 text-sm text-text-secondary">ICP备案号：闽ICP备19020557号-4A</Text>
+              <Icon name="chevron-forward" size={10} />
             </Pressable>
-            <Text className="text-text-tertiary mb-6 text-sm">
+            <Text className="mb-6 text-sm text-text-tertiary">
               Copyright © 2017-{new Date().getFullYear()} west2-online. All Rights Reserved
             </Text>
           </SafeAreaView>

@@ -8,9 +8,9 @@ import { Text } from '@/components/ui/text';
 
 import type { JwchAcademicGpaResponse } from '@/api/backend';
 import { getApiV1JwchAcademicGpa } from '@/api/generate';
+import { Icon } from '@/components/Icon';
 import Loading from '@/components/loading';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const NAVIGATION_TITLE = '绩点排名';
@@ -79,7 +79,7 @@ export default function GPAPage() {
                 ))}
                 {/* 显示最后更新时间 */}
                 <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
-                  <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
+                  <Icon name="time-outline" size={16} className="mr-2 text-gray-500" />
                   <Text className="text-l leading-5 text-gray-600">{academicData.time}</Text>
                 </View>
                 <Text className="p-2 text-red-500">
