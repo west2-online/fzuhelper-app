@@ -53,5 +53,5 @@ export default function PlanPage() {
     getPlanData();
   }, [getPlanData]);
 
-  return <PageContainer className="flex-1 bg-white">{isRefreshing && <Loading />}</PageContainer>;
+  return <PageContainer className="flex-1 bg-background">{isRefreshing && <Loading />}</PageContainer>;
 }

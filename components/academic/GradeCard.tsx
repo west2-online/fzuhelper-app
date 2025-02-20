@@ -11,7 +11,7 @@ interface GradeCardProps {
 
 const GradeCard: React.FC<GradeCardProps> = ({ item }) => {
   return (
-    <Card className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+    <Card className="rounded-lg border border-gray-200 p-3 shadow-sm">
       <View className="mb-1 flex flex-row items-center justify-between">
         {/* 课程名称 */}
         <Text className="break-words text-base font-semibold leading-tight text-gray-800">{item.name}</Text>

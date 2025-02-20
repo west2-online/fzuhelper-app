@@ -5,6 +5,7 @@ import { toast } from 'sonner-native';
 
 import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
+import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
 import { SafeAreaView } from 'react-native';
@@ -16,6 +17,7 @@ import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
 import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -123,45 +125,49 @@ export default function AcademicPage() {
     <>
       <Stack.Screen options={{ title: '课程表设置' }} />
 
-      <SafeAreaView className="flex-1 bg-white px-8 pt-8">
-        {/* 菜单列表 */}
-        <Text className="mb-2 text-sm text-foreground">课程数据</Text>
+      <PageContainer>
+        <SafeAreaView className="flex-1 bg-background px-8 pt-8">
+          <ScrollView className="m-4">
+            {/* 菜单列表 */}
+            <Text className="mb-2 text-sm text-foreground">课程数据</Text>
 
-        <LabelEntry leftText="刷新数据" />
+            <LabelEntry leftText="刷新数据" />
 
-        <LabelEntry
-          leftText="切换学期"
-          rightText={isLoadingSemester ? '加载中...' : settings.selectedSemester}
-          onPress={handleOpenTermSelectPicker}
-          disabled={isLoadingSemester}
-        />
+            <LabelEntry
+              leftText="切换学期"
+              rightText={isLoadingSemester ? '加载中...' : settings.selectedSemester}
+              onPress={handleOpenTermSelectPicker}
+              disabled={isLoadingSemester}
+            />
 
-        <Text className="mb-2 mt-4 text-sm text-foreground">开关设置</Text>
+            <Text className="mb-2 mt-4 text-sm text-foreground">开关设置</Text>
 
-        <SwitchWithLabel
-          label="导出到本地日历"
-          value={settings.calendarExportEnabled}
-          onValueChange={handleExportToCalendar}
-        />
+            <SwitchWithLabel
+              label="导出到本地日历"
+              value={settings.calendarExportEnabled}
+              onValueChange={handleExportToCalendar}
+            />
 
-        <SwitchWithLabel
-          label="显示非本周课程"
-          value={settings.showNonCurrentWeekCourses}
-          onValueChange={handleShowNonCurrentWeekCourses}
-        />
+            <SwitchWithLabel
+              label="显示非本周课程"
+              value={settings.showNonCurrentWeekCourses}
+              onValueChange={handleShowNonCurrentWeekCourses}
+            />
 
-        <PickerModal
-          visible={isPickerVisible}
-          title="选择学期"
-          data={semesters.map(s => ({
-            value: s,
-            label: s,
-          }))}
-          value={settings.selectedSemester}
-          onClose={() => setPickerVisible(false)}
-          onConfirm={handleConfirmTermSelectPicker}
-        />
-      </SafeAreaView>
+            <PickerModal
+              visible={isPickerVisible}
+              title="选择学期"
+              data={semesters.map(s => ({
+                value: s,
+                label: s,
+              }))}
+              value={settings.selectedSemester}
+              onClose={() => setPickerVisible(false)}
+              onConfirm={handleConfirmTermSelectPicker}
+            />
+          </ScrollView>
+        </SafeAreaView>
+      </PageContainer>
     </>
   );
 }

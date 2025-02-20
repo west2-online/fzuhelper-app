@@ -11,7 +11,8 @@ declare module '*.webp' {
 }
 
 declare module '*.svg' {
-  import { ImageSourcePropType } from 'react-native';
-  const value: ImageSourcePropType;
-  export default value;
+  import React from 'react';
+  import { SvgProps } from 'react-native-svg';
+  const content: React.FC<SvgProps>;
+  export default content;
 }

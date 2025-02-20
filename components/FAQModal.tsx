@@ -52,9 +52,9 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
         onPress={onClose} // 点击外部关闭 Modal
       >
         <View className="flex-1 items-center justify-center bg-black/50">
-          <View className="max-h-3/5 w-4/5 rounded-2xl bg-white p-5">
+          <View className="max-h-3/5 w-4/5 rounded-2xl bg-background p-5">
             {/* 标题 */}
-            <Text className="mb-4 text-center text-xl font-bold">常见问题 (FAQ)</Text>
+            <Text className="mb-4 text-center text-xl font-bold text-primary">常见问题 (FAQ)</Text>
 
             {/* 动态渲染 FAQ 内容 */}
             <View className="space-y-4">

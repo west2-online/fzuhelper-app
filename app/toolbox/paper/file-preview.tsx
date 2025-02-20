@@ -1,3 +1,4 @@
+import PageContainer from '@/components/page-container';
 import { getFileIcon, guessFileType } from '@/lib/filetype';
 import * as FileSystem from 'expo-file-system';
 import { Stack, UnknownOutputParams, useLocalSearchParams } from 'expo-router';
@@ -71,43 +72,46 @@ export default function FilePreviewPage() {
   return (
     <>
       <Stack.Screen options={{ title: '文件详情' }} />
-      <SafeAreaView className="flex-1 items-center justify-center bg-gray-100 px-4 py-6">
-        <Image source={fileIcon} className="mb-4 h-20 w-20" />
-        <Text className="mb-4 text-lg font-semibold text-gray-800">{filename}</Text>
-        <View className="w-full space-y-3">
-          {isDownloaded ? (
-            <TouchableOpacity
-              onPress={handleShareFile}
-              className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
-            >
-              <Text className="text-base font-medium text-white">分享文件</Text>
-            </TouchableOpacity>
-          ) : isDownloading ? (
-            <View className="relative flex h-12 w-full items-center justify-center overflow-hidden rounded-lg bg-gray-300 shadow-md">
-              <View className="absolute left-0 top-0 h-full bg-blue-500" style={{ width: `${progress * 100}%` }} />
-              <Text className="z-10 font-medium text-white">下载中 {Math.round(progress * 100)}%</Text>
-            </View>
-          ) : (
-            <>
+
+      <PageContainer>
+        <SafeAreaView className="m-3 flex-1 items-center justify-center bg-background px-4 py-6">
+          <Image source={fileIcon} className="mb-4 h-20 w-20" />
+          <Text className="mb-4 text-lg font-semibold text-primary">{filename}</Text>
+          <View className="w-full space-y-3">
+            {isDownloaded ? (
               <TouchableOpacity
-                onPress={handleDownload}
-                className="mb-3 h-12 w-full items-center rounded-lg bg-blue-500 py-3 shadow-md"
+                onPress={handleShareFile}
+                className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
               >
-                <Text className="text-base font-medium text-white">下载到本地</Text>
+                <Text className="text-base font-medium text-white">分享文件</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleShareLink}
-                className="h-12 w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
-              >
-                <Text className="text-base font-medium text-white">分享下载链接</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-        <Text className="mt-6 text-sm text-gray-500">
-          文件来自第三方，对于出现文件不准确导致挂科后果，不予负责，请谨慎下载
-        </Text>
-      </SafeAreaView>
+            ) : isDownloading ? (
+              <View className="relative flex h-12 w-full items-center justify-center overflow-hidden rounded-lg bg-gray-300 shadow-md">
+                <View className="absolute left-0 top-0 h-full bg-blue-500" style={{ width: `${progress * 100}%` }} />
+                <Text className="z-10 font-medium text-white">下载中 {Math.round(progress * 100)}%</Text>
+              </View>
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={handleDownload}
+                  className="mb-3 h-12 w-full items-center rounded-lg bg-blue-500 py-3 shadow-md"
+                >
+                  <Text className="text-base font-medium text-white">下载到本地</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleShareLink}
+                  className="h-12 w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
+                >
+                  <Text className="text-base font-medium text-white">分享下载链接</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+          <Text className="mt-6 text-sm text-gray-500">
+            文件来自第三方，对于出现文件不准确导致挂科后果，不予负责，请谨慎下载
+          </Text>
+        </SafeAreaView>
+      </PageContainer>
     </>
   );
 }

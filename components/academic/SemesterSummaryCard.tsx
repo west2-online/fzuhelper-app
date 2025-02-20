@@ -9,7 +9,7 @@ interface SemesterSummaryCardProps {
 
 export default function SemesterSummaryCard({ summary }: SemesterSummaryCardProps) {
   return (
-    <Card className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+    <Card className="mt-3 rounded-lg border border-gray-200 p-3 shadow-sm">
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-col items-start">
           <Text className="text-sm text-gray-500">总课程数</Text>

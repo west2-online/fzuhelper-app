@@ -65,12 +65,12 @@ export default function GPAPage() {
         >
           {/* 学术成绩数据列表 */}
           {academicData && (
-            <View className="mt-6">
+            <View>
               {/* 时间信息，居中显示 */}
-              <Text className="mb-4 text-center text-lg font-bold text-gray-700">{academicData.time}</Text>
+              <Text className="mb-1 text-center text-lg font-bold text-gray-700">{academicData.time}</Text>
 
               {/* 数据列表 */}
-              <SafeAreaView className="gap-4 rounded-lg bg-gray-100 p-4 shadow-sm">
+              <SafeAreaView className="rounded-lg bg-background p-4 shadow-sm">
                 {academicData.data.map((item, index) => (
                   <View className="my-1 flex-row justify-between p-2" key={item.type}>
                     <Text>{item.type}</Text>
