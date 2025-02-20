@@ -1,4 +1,5 @@
 import ArrowRightIcon from '@/assets/images/toolbox/paper/icon_arrow_right.png';
+import { useEffect, useRef } from 'react';
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 
 interface BreadcrumbProps {
@@ -7,6 +8,13 @@ interface BreadcrumbProps {
 }
 
 export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbProps) {
+  const flatListRef = useRef<FlatList>(null);
+
+  // 总是滚动到最后一项
+  useEffect(() => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, [currentPath]);
+
   // 处理路径参数
   // '/a/b' -> ['a', 'a/b']
   const pathSegments = currentPath
@@ -30,9 +38,11 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
 
   return (
     <FlatList
+      ref={flatListRef}
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="h-16 flex-grow-0 bg-white pl-3"
+      className="h-16 flex-grow-0 bg-white"
+      contentContainerClassName="px-3"
       data={breadcrumbs}
       renderItem={({ item, index }) => {
         const isLast = index === breadcrumbs.length - 1;
