@@ -127,7 +127,19 @@ export default function FilePreviewPage() {
 
   const handleShareFile = async () => {
     if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(localFileUri);
+      switch (Platform.OS) {
+        case 'android':
+          const tempUri = FileSystem.cacheDirectory + filename;
+          // Sharing 无法读到公有目录下App写入的文件，复制到缓存目录处理
+          ReactNativeBlobUtil.fs.cp(localFileUri, tempUri);
+          await Sharing.shareAsync(tempUri);
+          // 删除临时文件
+          ReactNativeBlobUtil.fs.unlink(tempUri);
+          break;
+        case 'ios':
+          await Sharing.shareAsync(localFileUri);
+          break;
+      }
     } else {
       toast.error('分享失败，设备不支持分享功能');
     }
