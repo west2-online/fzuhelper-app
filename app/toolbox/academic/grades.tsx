@@ -11,6 +11,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs as ExpoTabs } from 'expo-router';
 
 import { getApiV1JwchAcademicScores, getApiV1JwchTermList } from '@/api/generate';
+import Loading from '@/components/loading';
 import { TabFlatList } from '@/components/tab-flatlist';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
@@ -19,7 +20,7 @@ import { CourseGradesData } from '@/types/grades';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function GradesPage() {
-  const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
+  const [isRefreshing, setIsRefreshing] = useState(true); // 按钮是否禁用
   const [termList, setTermList] = useState<string[]>([]); // 学期列表
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
   const [academicData, setAcademicData] = useState<CourseGradesData[]>([]); // 学术成绩数据
@@ -125,7 +126,7 @@ export default function GradesPage() {
                 </View>
               ))
           ) : (
-            <Text className="text-center text-gray-500">暂无成绩数据或正在加载中</Text>
+            <Text className="text-center text-gray-500">暂无成绩数据</Text>
           )}
           {filteredData.length > 0 && (
             <View className="my-4 flex flex-row items-center justify-center">
@@ -156,7 +157,16 @@ export default function GradesPage() {
       />
 
       <ThemedView className="flex-1">
-        <TabFlatList data={termList} value={currentTerm} onChange={setCurrentTerm} renderContent={renderTermContent} />
+        {isRefreshing ? (
+          <Loading />
+        ) : (
+          <TabFlatList
+            data={termList}
+            value={currentTerm}
+            onChange={setCurrentTerm}
+            renderContent={renderTermContent}
+          />
+        )}
       </ThemedView>
 
       {/* FAQ 模态框 */}
