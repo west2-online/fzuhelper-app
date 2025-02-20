@@ -1,5 +1,5 @@
 import { Icon } from '@/components/Icon';
-import { Link, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
 
@@ -141,11 +141,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
             </Pressable>
           ),
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <Link href="/course/course-settings" asChild>
-              <Icon name="settings-outline" size={24} className="mr-4" />
-            </Link>
-          ),
+          headerRight: () => <Icon href="/course/course-settings" name="settings-outline" size={24} className="mr-4" />,
         }}
       />
 
