@@ -17,12 +17,12 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
   const renderAnswer = (answer: FAQItem['answer']) => {
     if (typeof answer === 'string') {
       // 如果是纯文本，直接渲染
-      return <Text className="mb-1 text-sm text-gray-600">{answer}</Text>;
+      return <Text className="text-text-secondary mb-1 text-sm">{answer}</Text>;
     }
 
     // 如果是数组，逐个渲染
     return (
-      <Text className="mb-1 text-sm text-gray-600">
+      <Text className="text-text-secondary mb-1 text-sm">
         {answer.map((part, index) => {
           if (typeof part === 'string') {
             // 文本部分直接渲染
@@ -32,7 +32,7 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
             return (
               <Text
                 key={index}
-                className="text-blue-500 underline"
+                className="text-primary underline"
                 onPress={() => Linking.openURL(part.url)} // 点击打开链接
               >
                 {part.text}
@@ -46,7 +46,14 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
   };
 
   return (
-    <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+      statusBarTranslucent
+      navigationBarTranslucent
+    >
       <Pressable
         className="flex-1"
         onPress={onClose} // 点击外部关闭 Modal
@@ -60,7 +67,7 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
             <View className="space-y-4">
               {data.map((item, index) => (
                 <View key={index}>
-                  <Text className="mt-1 text-base font-semibold text-gray-800">{item.question}</Text>
+                  <Text className="text-text-primary mt-1 text-base font-semibold">{item.question}</Text>
                   {renderAnswer(item.answer)}
                 </View>
               ))}
