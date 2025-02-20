@@ -162,8 +162,8 @@ export default function ExamRoomPage() {
         {/* 显示刷新时间 */}
         {lastUpdated && (
           <View className="my-4 flex flex-row items-center justify-center">
-            <Icon name="time-outline" size={16} className="mr-2 text-gray-500" />
-            <Text className="text-sm leading-5 text-gray-600">数据同步时间：{lastUpdated.toLocaleString()}</Text>
+            <Icon name="time-outline" size={16} className="mr-2" />
+            <Text className="text-text-primary text-sm leading-5">数据同步时间：{lastUpdated.toLocaleString()}</Text>
           </View>
         )}
       </ScrollView>

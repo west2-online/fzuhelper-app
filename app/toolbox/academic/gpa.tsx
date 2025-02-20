@@ -60,17 +60,14 @@ export default function GPAPage() {
         <Loading />
       ) : (
         <ScrollView
-          contentContainerStyle={{ padding: 16 }}
+          className="flex-1 p-4"
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
         >
           {/* 学术成绩数据列表 */}
           {academicData && (
             <View>
-              {/* 时间信息，居中显示 */}
-              <Text className="mb-1 text-center text-lg font-bold text-gray-700">{academicData.time}</Text>
-
               {/* 数据列表 */}
-              <SafeAreaView className="rounded-lg bg-background p-4 shadow-sm">
+              <SafeAreaView edges={['bottom']}>
                 {academicData.data.map((item, index) => (
                   <View className="my-1 flex-row justify-between p-2" key={item.type}>
                     <Text>{item.type}</Text>
@@ -79,8 +76,8 @@ export default function GPAPage() {
                 ))}
                 {/* 显示最后更新时间 */}
                 <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
-                  <Icon name="time-outline" size={16} className="mr-2 text-gray-500" />
-                  <Text className="text-l leading-5 text-gray-600">{academicData.time}</Text>
+                  <Icon name="time-outline" size={16} className="mr-2" />
+                  <Text className="text-l text-text-primary leading-5">{academicData.time}</Text>
                 </View>
                 <Text className="p-2 text-red-500">
                   注：绩点排名中的总学分只计算参与绩点计算的学分总和，并不代表所修学分总和。
