@@ -1,29 +1,31 @@
 import WheelPicker from '@quidone/react-native-wheel-picker';
+import { useEffect, useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import { Text } from '@/components/ui/text';
 
-interface PickerModelProps {
+interface PickerModalProps {
   visible: boolean;
   title: string;
   data: { value: string; label: string }[];
   value: string;
   onClose: () => void;
-  onConfirm: () => void;
-  onValueChange: (value: string) => void;
+  onConfirm: (value: string) => void;
 }
 
-export default function PickerModel({
-  visible,
-  title,
-  data,
-  value,
-  onClose,
-  onConfirm,
-  onValueChange,
-}: PickerModelProps) {
+export default function PickerModal({ visible, title, data, value, onClose, onConfirm }: PickerModalProps) {
+  const [tempValue, setTempValue] = useState(value);
+
+  useEffect(() => {
+    setTempValue(value);
+  }, [value]);
+
+  const handleConfirm = () => {
+    onConfirm(tempValue);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -41,12 +43,12 @@ export default function PickerModel({
               <IcCancel className="m-1 h-6 w-6" />
             </Pressable>
             <Text className="text-xl font-bold text-primary">{title}</Text>
-            <Pressable onPress={onConfirm}>
+            <Pressable onPress={handleConfirm}>
               <IcConfirm className="m-1 h-6 w-6" />
             </Pressable>
           </View>
           <View className="overflow-hidden">
-            <WheelPicker data={data} value={value} onValueChanged={({ item: { value } }) => onValueChange(value)} />
+            <WheelPicker data={data} value={tempValue} onValueChanged={({ item: { value } }) => setTempValue(value)} />
           </View>
         </View>
       </View>

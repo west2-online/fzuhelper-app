@@ -1,17 +1,9 @@
 import { AntDesign } from '@expo/vector-icons';
 import { Link, Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  FlatList,
-  Modal,
-  Pressable,
-  View,
-  useWindowDimensions,
-  type LayoutRectangle,
-  type ViewToken,
-} from 'react-native';
+import { FlatList, Pressable, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
 
-import WeekSelector from '@/components/course/week-selector';
+import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
 
 import type { TermsListResponse_Terms } from '@/api/backend';
@@ -123,6 +115,16 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     [],
   );
 
+  // 生成周数选择器的数据
+  const weekPickerData = useMemo(
+    () =>
+      Array.from({ length: maxWeek }, (_, i) => ({
+        value: String(i + 1),
+        label: `第 ${i + 1} 周`,
+      })),
+    [maxWeek],
+  );
+
   return (
     <>
       {/* 顶部 Tab 导航栏 */}
@@ -182,38 +184,22 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       />
 
       {/* 周数选择器 */}
-      <Modal
-        animationType="slide"
-        transparent={true}
+      <PickerModal
         visible={showWeekSelector}
-        onRequestClose={() => {
-          setShowWeekSelector(!showWeekSelector);
+        title="选择周数"
+        data={weekPickerData}
+        value={String(week)}
+        onClose={() => setShowWeekSelector(false)}
+        onConfirm={selectedValue => {
+          setShowWeekSelector(false);
+          const selectedWeek = parseInt(selectedValue, 10);
+          setWeek(selectedWeek);
+          flatListRef.current?.scrollToIndex({
+            index: selectedWeek - 1,
+            animated: false,
+          });
         }}
-      >
-        <Pressable
-          className="flex-1"
-          onPress={() => setShowWeekSelector(false)} // 点击外部关闭 Modal
-        >
-          <View className="flex flex-1 items-center justify-center bg-[#00000050]">
-            <View className="max-h-[60%] w-4/5 rounded-lg bg-card p-6">
-              <WeekSelector
-                currentWeek={week}
-                maxWeek={maxWeek}
-                onWeekSelect={selectedWeek => {
-                  setWeek(selectedWeek);
-
-                  // 滚动到对应周数的位置
-                  flatListRef.current?.scrollToIndex({
-                    index: selectedWeek - 1, // FlatList 的索引从 0 开始
-                    animated: false, // 关闭平滑滚动
-                  });
-                  setShowWeekSelector(false); // 关闭 Modal
-                }}
-              />
-            </View>
-          </View>
-        </Pressable>
-      </Modal>
+      />
     </>
   );
 };

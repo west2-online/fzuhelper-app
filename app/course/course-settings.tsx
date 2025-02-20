@@ -6,7 +6,7 @@ import { toast } from 'sonner-native';
 import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
 import { ThemedView } from '@/components/ThemedView';
-import PickerModel from '@/components/picker-model';
+import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
@@ -18,13 +18,11 @@ import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/l
 import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
 
 export default function AcademicPage() {
-  // 下面这些数据会在页面 Loading 时读取 AsyncStorage，如果没有才使用下列默认值
-  const [isPickerVisible, setPickerVisible] = useState(false); // 是否显示 Picker
-  const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting); // 课程设置
-  const [semesters, setSemesters] = useState<string[]>([]); // 动态加载的数据
-  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
-  const [isLoadingSemester, setLoadingSemester] = useState(false); // 是否正在加载学期数据
-  const [pickerSemester, setPickerSemester] = useState(settings.selectedSemester); // 临时索引
+  const [isPickerVisible, setPickerVisible] = useState(false);
+  const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
+  const [semesters, setSemesters] = useState<string[]>([]);
+  const { handleError } = useSafeResponseSolve();
+  const [isLoadingSemester, setLoadingSemester] = useState(false);
 
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
@@ -83,16 +81,11 @@ export default function AcademicPage() {
     setLoadingSemester(false);
   }, [getTermsData]);
 
-  // 关闭 Picker
-  const handleCloseTermSelectPicker = useCallback(() => {
+  // 确认选择学期
+  const handleConfirmTermSelectPicker = useCallback((selectedValue: string) => {
     setPickerVisible(false);
+    setSettings(prevSettings => ({ ...prevSettings, selectedSemester: selectedValue }));
   }, []);
-
-  // 确认选择学期（这里默认学期发生改变，即使用户选择了同一个学期）
-  const handleConfirmTermSelectPicker = useCallback(() => {
-    setPickerVisible(false);
-    setSettings(prevSettings => ({ ...prevSettings, selectedSemester: pickerSemester }));
-  }, [pickerSemester]);
 
   // 设置是否显示非本周课程
   const handleShowNonCurrentWeekCourses = useCallback(() => {
@@ -157,7 +150,7 @@ export default function AcademicPage() {
           onValueChange={handleShowNonCurrentWeekCourses}
         />
 
-        <PickerModel
+        <PickerModal
           visible={isPickerVisible}
           title="选择学期"
           data={semesters.map(s => ({
@@ -165,9 +158,8 @@ export default function AcademicPage() {
             label: s,
           }))}
           value={settings.selectedSemester}
-          onClose={handleCloseTermSelectPicker}
+          onClose={() => setPickerVisible(false)}
           onConfirm={handleConfirmTermSelectPicker}
-          onValueChange={setPickerSemester}
         />
       </ThemedView>
     </>
