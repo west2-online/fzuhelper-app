@@ -83,6 +83,7 @@ export default function PaperList({
         paddingBottom: insets.bottom,
       }}
       refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+      getItemLayout={(_data, index) => ({ length: 56, offset: 56 * index, index })} // 对应 PaperItem 的 h-16
       renderItem={({ item }) => <PaperItem paper={item} currentPath={currentPath} setCurrentPath={setCurrentPath} />}
     />
   );
