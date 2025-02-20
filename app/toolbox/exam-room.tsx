@@ -155,7 +155,7 @@ export default function ExamRoomPage() {
               </View>
             ))
           ) : (
-            <Text className="text-center text-gray-500">{isRefreshing ? '正在刷新中' : '暂无考试数据'}</Text>
+            <Text className="text-text-secondary text-center">{isRefreshing ? '正在刷新中' : '暂无考试数据'}</Text>
           )}
         </SafeAreaView>
 
@@ -175,7 +175,7 @@ export default function ExamRoomPage() {
       <Stack.Screen
         options={{
           headerTitleAlign: 'center',
-          headerTitle: '考场',
+          headerTitle: '考场查询',
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
