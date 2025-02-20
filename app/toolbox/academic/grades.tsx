@@ -54,7 +54,8 @@ export default function GradesPage() {
       const result = await getApiV1JwchTermList();
       const terms = result.data.data as string[];
       setTermList(terms);
-      if (!currentTerm && terms.length) {
+      // 只在首次加载（terms 存在且 currentTerm 为空）时设置 currentTerm
+      if (terms.length > 0 && !currentTerm) {
         setCurrentTerm(terms[0]);
       }
     } catch (error: any) {
@@ -63,13 +64,15 @@ export default function GradesPage() {
         toast.error(data.message || '发生未知错误，请稍后再试');
       }
     }
-  }, [currentTerm]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 移除 currentTerm 依赖，避免重复获取
 
-  // 直接加载学期列表和学术成绩数据，因为教务处是直接把所有学期的课程数据直接返回，我们所做的只是本地区分
+  // 分离初始化加载逻辑
   useEffect(() => {
     fetchTermList();
     getAcademicData();
-  }, [fetchTermList, getAcademicData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 只在组件挂载时执行一次
 
   // 处理下拉刷新逻辑
   const handleRefresh = useCallback(() => {
