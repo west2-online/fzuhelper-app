@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@quidone/react-native-wheel-picker": "^1.4.0",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.1",
     "@react-native-cookies/cookies": "^6.2.1",
@@ -56,8 +57,8 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "~0.77.0",
+    "react-native-animated-spinkit": "^1.5.2",
     "react-native-edge-to-edge": "^1.4.2",
-    "react-native-event-listeners": "^1.0.7",
     "react-native-gesture-handler": "~2.22.0",
     "react-native-keyboard-controller": "^1.15.2",
     "react-native-qrcode-svg": "^6.3.12",
@@ -90,6 +91,7 @@
     "prettier": "^3.3.3",
     "prettier-plugin-organize-imports": "^4.1.0",
     "prettier-plugin-tailwindcss": "^0.6.8",
+    "react-native-svg-transformer": "^1.5.0",
     "react-test-renderer": "18.2.0",
     "typescript": "~5.3.3"
   },

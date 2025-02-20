@@ -138,11 +138,6 @@ export default function HomePage() {
               <Text>Not Found Page</Text>
             </Button>
           </Link>
-          <Link href="/devtools/wheelpicker" asChild>
-            <Button>
-              <Text>Wheel Picker</Text>
-            </Button>
-          </Link>
 
           {/* 功能测试 */}
           <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>

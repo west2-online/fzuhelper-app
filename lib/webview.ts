@@ -22,9 +22,13 @@ export async function pushToWebViewJWCH(url: string, title: string) {
     }
   }
   const cookies = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+  const id = await AsyncStorage.getItem(JWCH_ID_KEY);
+
+  // 根据 URL 是否已有查询参数来决定连接符
+  const separator = url.includes('?') ? '&' : '?';
 
   const params: WebParams = {
-    url: url + '?id=' + (await AsyncStorage.getItem(JWCH_ID_KEY)),
+    url: `${url}${separator}id=${id}`,
     jwchCookie: cookieValid ? (jwchCookie ?? undefined) : (cookies ?? undefined),
     title: title, // 页面标题（可选）
   };
