@@ -57,6 +57,17 @@ export const CLASS_SCHEDULES = [
   ['20:50', '21:35'],
 ];
 
+// 历年卷
+export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';
+
+// 成绩颜色对照
+export const GRADE_COLOR_EXCELLENT = '#9310FF'; // >90 优秀
+export const GRADE_COLOR_GOOD = '#1089FF'; // 80-89 良好
+export const GRADE_COLOR_MEDIUM = '#10CEFF'; // 70-79 中等
+export const GRADE_COLOR_PASS = '#FFA710'; // 60-69 及格
+export const GRADE_COLOR_FAIL = '#FF0000'; // <60 不及格
+export const GRADE_COLOR_UNKNOWN = '#BBBBBB'; // 成绩未录入 缺考
+
 // for RNR
 // please sync it with values in `global.css`
 export const NAV_THEME = {

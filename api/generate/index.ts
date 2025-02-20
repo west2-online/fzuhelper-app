@@ -1,11 +1,11 @@
 /* eslint-disable */
 // @ts-ignore
-export * from './academic';
+export * from './types';
 export * from './authorization';
-export * from './classroom';
-export * from './common';
+export * from './user';
 export * from './course';
+export * from './academic';
+export * from './classroom';
 export * from './launchScreen';
 export * from './paper';
-export * from './types';
-export * from './user';
+export * from './common';
