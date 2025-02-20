@@ -144,9 +144,11 @@ export default function FilePreviewPage() {
   return (
     <>
       <Stack.Screen options={{ title: '文件详情' }} />
-      <ThemedView className="flex-1 items-center justify-center bg-gray-100 px-4 py-6">
-        <Image source={fileIcon} className="mb-4 h-20 w-20" />
-        <Text className="mb-4 text-lg font-semibold text-gray-800">{filename}</Text>
+      <ThemedView className="flex-1 items-center justify-between bg-gray-100 px-10 py-6">
+        <View className="mt-24 items-center">
+          <Image source={fileIcon} className="mb-4 h-20 w-20" />
+          <Text className="my-4 text-center text-lg font-semibold text-gray-800">{filename}</Text>
+        </View>
         <View className="w-full space-y-3">
           {isDownloaded ? (
             Platform.OS === 'android' && (
@@ -187,7 +189,7 @@ export default function FilePreviewPage() {
             </>
           )}
         </View>
-        <Text className="mt-6 text-sm text-gray-500">
+        <Text className="mx-2 mb-6 text-center text-sm text-gray-500">
           文件来自第三方，对于出现文件不准确导致挂科后果，不予负责，请谨慎下载
         </Text>
       </ThemedView>
