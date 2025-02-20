@@ -1,5 +1,5 @@
+import { Icon } from '@/components/Icon';
 import { cn } from '@/lib/utils';
-import { AntDesign } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
@@ -22,7 +22,7 @@ const LabelEntry: React.FC<LabelEntryProps> = ({ leftText, rightText, onPress, d
         <Text className="flex-1 truncate text-lg text-foreground">{leftText}</Text>
         <View className="flex-row items-center gap-3">
           <Text className="truncate text-lg text-muted-foreground">{rightText}</Text>
-          <AntDesign name="right" size={14} color="black" />
+          <Icon name="chevron-forward-outline" size={14} />
         </View>
       </View>
     </TouchableOpacity>

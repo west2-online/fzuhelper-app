@@ -7,7 +7,6 @@ import {
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Platform,
   TouchableOpacity,
   View,
 } from 'react-native';

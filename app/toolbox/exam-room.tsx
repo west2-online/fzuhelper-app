@@ -1,4 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-native';
@@ -6,17 +5,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import FAQModal from '@/components/FAQModal';
+import { Icon } from '@/components/Icon';
 import ExamRoomCard from '@/components/academic/ExamRoomCard';
+import PageContainer from '@/components/page-container';
 import { TabFlatList } from '@/components/tab-flatlist';
 import { Text } from '@/components/ui/text';
 
 import type { JwchClassroomExamResponse as ExamData } from '@/api/backend';
 import { ResultEnum } from '@/api/enum';
 import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
-import { ThemedView } from '@/components/ThemedView';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { FAQ_EXAME_ROOM } from '@/lib/FAQ';
-import { MergedExamData } from '@/types/academic';
+import { FAQ_EXAM_ROOM } from '@/lib/FAQ';
+import type { MergedExamData } from '@/types/academic';
 
 // 将日期字符串(xxxx年xx月xx日)转换为 Date 对象，如转换失败返回 undefined
 const parseDate = (dateStr: string): Date | undefined => {
@@ -155,15 +155,15 @@ export default function ExamRoomPage() {
               </View>
             ))
           ) : (
-            <Text className="text-center text-gray-500">{isRefreshing ? '正在刷新中' : '暂无考试数据'}</Text>
+            <Text className="text-text-secondary text-center">{isRefreshing ? '正在刷新中' : '暂无考试数据'}</Text>
           )}
         </SafeAreaView>
 
         {/* 显示刷新时间 */}
         {lastUpdated && (
           <View className="my-4 flex flex-row items-center justify-center">
-            <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
-            <Text className="text-sm leading-5 text-gray-600">数据同步时间：{lastUpdated.toLocaleString()}</Text>
+            <Icon name="time-outline" size={16} className="mr-2" />
+            <Text className="text-text-primary text-sm leading-5">数据同步时间：{lastUpdated.toLocaleString()}</Text>
           </View>
         )}
       </ScrollView>
@@ -175,22 +175,22 @@ export default function ExamRoomPage() {
       <Stack.Screen
         options={{
           headerTitleAlign: 'center',
-          headerTitle: '考场',
+          headerTitle: '考场查询',
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-              <Ionicons name="help-circle-outline" size={26} className="mr-4" />
+              <Icon name="help-circle-outline" size={26} className="mr-4" />
             </Pressable>
           ),
         }}
       />
 
-      <ThemedView className="flex-1">
+      <PageContainer>
         <TabFlatList data={termList} value={currentTerm} onChange={setCurrentTerm} renderContent={renderContent} />
-      </ThemedView>
+      </PageContainer>
 
       {/* FAQ Modal */}
-      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_EXAME_ROOM} />
+      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_EXAM_ROOM} />
     </>
   );
 }

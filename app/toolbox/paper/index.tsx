@@ -1,12 +1,11 @@
 import { getApiV1PaperList } from '@/api/generate';
 import Breadcrumb from '@/components/Breadcrumb';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
-import { ThemedView } from '@/components/ThemedView';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { SafeAreaView, TouchableOpacity } from 'react-native';
 
 enum LoadingState {
   UNINIT = 'uninit',
@@ -74,7 +73,7 @@ export default function PaperPage() {
           headerRight: () => <SearchButton currentPath={currentPath} papers={currentPapers} />,
         }}
       />
-      <ThemedView className="flex-1">
+      <SafeAreaView className="flex-1">
         <Breadcrumb currentPath={currentPath} setCurrentPath={setCurrentPath} />
         <PaperList
           papers={currentPapers}
@@ -83,7 +82,7 @@ export default function PaperPage() {
           isRefreshing={loadingState === LoadingState.PENDING || loadingState === LoadingState.UNINIT}
           onRefresh={getPaperData}
         />
-      </ThemedView>
+      </SafeAreaView>
     </>
   );
 }

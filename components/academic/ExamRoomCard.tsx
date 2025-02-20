@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Icon } from '@/components/Icon';
 import React from 'react';
 import { View } from 'react-native';
 
@@ -32,7 +32,7 @@ const ExamRoomCard: React.FC<CourseCardProps> = ({ item }) => (
   <Card className={cn('m-1 p-3', item.isFinished && 'opacity-50')}>
     {/* 考试课程 */}
     <View className="m-1 flex flex-row items-center">
-      <Ionicons name={item.isFinished ? 'checkmark-circle' : 'alert-circle'} size={16} className="mr-2" />
+      <Icon name={item.isFinished ? 'checkmark-circle' : 'alert-circle'} size={16} className="mr-2" />
       <Text className="flex-1 font-bold">
         {getCourseName(item.name)}
         {item.credit !== undefined && item.credit !== '0' && (
@@ -48,7 +48,7 @@ const ExamRoomCard: React.FC<CourseCardProps> = ({ item }) => (
     {/* 日期 */}
     {(item.date || item.time) && (
       <View className="m-1 flex flex-row items-center">
-        <Ionicons name="calendar" size={16} className="mr-2" />
+        <Icon name="calendar" size={16} className="mr-2" />
         {item.date && <Text>{formatDate(item.date)} </Text>}
         {item.time && <Text>{item.time}</Text>}
       </View>
@@ -57,7 +57,7 @@ const ExamRoomCard: React.FC<CourseCardProps> = ({ item }) => (
     {/* 考场位置 */}
     {item.location && (
       <View className="m-1 flex flex-row items-center">
-        <Ionicons name="location" size={16} className="mr-2" />
+        <Icon name="location" size={16} className="mr-2" />
         <Text>{item.location}</Text>
       </View>
     )}

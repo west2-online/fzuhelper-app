@@ -84,7 +84,7 @@ const DialogContent = React.forwardRef<
           >
             <X
               size={Platform.OS === 'web' ? 16 : 18}
-              className={cn('text-muted-foreground', open && 'text-accent-foreground')}
+              className={cn('text-text-secondary', open && 'text-accent-foreground')}
             />
           </DialogPrimitive.Close>
         </DialogPrimitive.Content>
@@ -127,7 +127,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn('text-sm native:text-base text-muted-foreground', className)}
+    className={cn('text-sm native:text-base text-text-secondary', className)}
     {...props}
   />
 ));

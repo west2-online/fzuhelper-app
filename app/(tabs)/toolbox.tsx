@@ -1,3 +1,15 @@
+import { useRouter, type Href, type Router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, FlatList, Image, Linking } from 'react-native';
+import { toast } from 'sonner-native';
+
+import Banner, { type BannerContent } from '@/components/banner';
+import PageContainer from '@/components/page-container';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
+
+import { pushToWebViewJWCH } from '@/lib/webview';
+
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
@@ -7,14 +19,6 @@ import GradeIcon from '@/assets/images/toolbox/ic_grade.png';
 import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.png';
 import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.png';
 import RoomIcon from '@/assets/images/toolbox/ic_room.png';
-import { ThemedView } from '@/components/ThemedView';
-import Banner, { type BannerContent } from '@/components/banner';
-import { Button } from '@/components/ui/button';
-import { pushToWebViewJWCH } from '@/lib/webview';
-import { useRouter, type Href, type Router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Linking, Text } from 'react-native';
-import { toast } from 'sonner-native';
 
 // 工具类型的枚举
 enum ToolType {
@@ -150,7 +154,13 @@ const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
     onPress={() => toolOnPress(item, router)}
   >
     {item.icon ? <Image source={item.icon} className="h-12 w-12" resizeMode="contain" /> : null}
-    <Text className="w-[50px] text-center align-middle text-sm text-foreground" numberOfLines={1} ellipsizeMode="tail">
+    <Text
+      className="w-[50px] text-center align-middle text-text-secondary"
+      // eslint-disable-next-line react-native/no-inline-styles
+      style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
+      numberOfLines={1}
+      ellipsizeMode="tail"
+    >
       {item.name}
     </Text>
   </Button>
@@ -161,7 +171,7 @@ export default function ToolsPage() {
   const router = useRouter();
 
   return (
-    <ThemedView className="m-6">
+    <PageContainer className="p-6">
       {/* 滚动横幅 */}
       <Banner contents={bannerList} />
 
@@ -174,6 +184,6 @@ export default function ToolsPage() {
         columnWrapperClassName="justify-between"
         renderItem={({ item }) => renderToolButton({ item }, router)}
       />
-    </ThemedView>
+    </PageContainer>
   );
 }

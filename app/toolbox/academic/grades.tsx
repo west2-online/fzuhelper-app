@@ -1,23 +1,23 @@
+import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import FAQModal from '@/components/FAQModal';
-import { ThemedView } from '@/components/ThemedView';
+import { Icon } from '@/components/Icon';
 import GradeCard from '@/components/academic/GradeCard';
 import SemesterSummaryCard from '@/components/academic/SemesterSummaryCard';
+import Loading from '@/components/loading';
+import PageContainer from '@/components/page-container';
+import { TabFlatList } from '@/components/tab-flatlist';
 import { Text } from '@/components/ui/text';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Tabs as ExpoTabs } from 'expo-router';
 
 import { getApiV1JwchAcademicScores, getApiV1JwchTermList } from '@/api/generate';
-import Loading from '@/components/loading';
-import { TabFlatList } from '@/components/tab-flatlist';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
-import { CourseGradesData } from '@/types/academic';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import type { CourseGradesData } from '@/types/academic';
 
 export default function GradesPage() {
   const [isRefreshing, setIsRefreshing] = useState(true); // 按钮是否禁用
@@ -130,8 +130,8 @@ export default function GradesPage() {
           )}
           {filteredData.length > 0 && (
             <View className="my-4 flex flex-row items-center justify-center">
-              <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
-              <Text className="text-sm leading-5 text-gray-600">
+              <Icon name="time-outline" size={16} className="mr-2" />
+              <Text className="text-text-primary text-sm leading-5">
                 数据同步时间：{(lastUpdated && lastUpdated.toLocaleString()) || '请进行一次同步'}
               </Text>
             </View>
@@ -143,20 +143,20 @@ export default function GradesPage() {
 
   return (
     <>
-      <ExpoTabs.Screen
+      <Tabs.Screen
         options={{
           headerTitleAlign: 'center',
           headerTitle: '成绩查询',
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-              <Ionicons name="help-circle-outline" size={26} className="mr-4" />
+              <Icon name="help-circle-outline" size={26} className="mr-4" />
             </Pressable>
           ),
         }}
       />
 
-      <ThemedView className="flex-1">
+      <PageContainer>
         {isRefreshing ? (
           <Loading />
         ) : (
@@ -167,10 +167,10 @@ export default function GradesPage() {
             renderContent={renderTermContent}
           />
         )}
-      </ThemedView>
 
-      {/* FAQ 模态框 */}
-      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_COURSE_GRADE} />
+        {/* FAQ Modal */}
+        <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_COURSE_GRADE} />
+      </PageContainer>
     </>
   );
 }

@@ -32,7 +32,7 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
     <FlatList
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="h-16 bg-white pl-3"
+      className="h-16 bg-background pl-3"
       data={breadcrumbs}
       renderItem={({ item, index }) => {
         const isLast = index === breadcrumbs.length - 1;
