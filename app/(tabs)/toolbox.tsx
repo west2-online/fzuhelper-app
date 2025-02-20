@@ -92,7 +92,7 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: JiaXiIcon,
     type: ToolType.FUNCTION,
     action: async () => {
-      await pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
+      pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
     },
   },
 ];

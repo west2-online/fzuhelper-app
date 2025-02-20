@@ -24,12 +24,12 @@ interface ScheduleDetailsDialogProps {
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ isOpen, onClose, schedules }) => {
   const [scheduleIndex, setScheduleIndex] = React.useState(0);
   const schedule = schedules[scheduleIndex];
-  const handleSyllabusPress = async () => {
+  const handleSyllabusPress = () => {
     onClose();
     pushToWebViewJWCH(schedule.syllabus, '教学大纲');
   };
 
-  const handleLessonplanPress = async () => {
+  const handleLessonplanPress = () => {
     onClose();
     pushToWebViewJWCH(schedule.lessonplan, '授课计划');
   };
