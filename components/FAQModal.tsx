@@ -47,34 +47,30 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
 
   return (
     <Modal
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       visible={visible}
       onRequestClose={onClose}
       statusBarTranslucent
       navigationBarTranslucent
     >
-      <Pressable
-        className="flex-1"
-        onPress={onClose} // 点击外部关闭 Modal
-      >
-        <View className="flex-1 items-center justify-center bg-black/50">
-          <View className="max-h-3/5 w-4/5 rounded-2xl bg-background p-5">
-            {/* 标题 */}
-            <Text className="mb-4 text-center text-xl font-bold text-primary">常见问题 (FAQ)</Text>
+      <View className="flex-1 items-center justify-center bg-black/50">
+        <Pressable className="absolute h-full w-full" onPress={onClose} />
+        <View className="max-h-3/5 w-4/5 rounded-2xl bg-background p-5">
+          {/* 标题 */}
+          <Text className="mb-4 text-center text-xl font-bold text-primary">常见问题 (FAQ)</Text>
 
-            {/* 动态渲染 FAQ 内容 */}
-            <View className="space-y-4">
-              {data.map((item, index) => (
-                <View key={index}>
-                  <Text className="text-text-primary mt-1 text-base font-semibold">{item.question}</Text>
-                  {renderAnswer(item.answer)}
-                </View>
-              ))}
-            </View>
+          {/* 动态渲染 FAQ 内容 */}
+          <View className="space-y-4">
+            {data.map((item, index) => (
+              <View key={index}>
+                <Text className="text-text-primary mt-1 text-base font-semibold">{item.question}</Text>
+                {renderAnswer(item.answer)}
+              </View>
+            ))}
           </View>
         </View>
-      </Pressable>
+      </View>
     </Modal>
   );
 };
