@@ -38,3 +38,15 @@ export async function pushToWebViewJWCH(url: string, title: string) {
     params, // 传递参数
   });
 }
+
+export async function pushToWebViewNormal(url: string, title: string) {
+  const params: WebParams = {
+    url,
+    title: title, // 页面标题（可选）
+  };
+
+  router.push({
+    pathname: '/(guest)/web',
+    params, // 传递参数
+  });
+}

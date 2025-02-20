@@ -7,10 +7,12 @@ import GradeIcon from '@/assets/images/toolbox/ic_grade.png';
 import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.png';
 import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.png';
 import RoomIcon from '@/assets/images/toolbox/ic_room.png';
+import FZURunIcon from '@/assets/images/toolbox/ic_run.png';
+import WikiIcon from '@/assets/images/toolbox/ic_wiki.png';
 import { ThemedView } from '@/components/ThemedView';
 import Banner, { type BannerContent } from '@/components/banner';
 import { Button } from '@/components/ui/button';
-import { pushToWebViewJWCH } from '@/lib/webview';
+import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
 import { useRouter, type Href, type Router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Image, Linking, Text } from 'react-native';
@@ -89,6 +91,30 @@ const DEFAULT_TOOLS: Tool[] = [
     type: ToolType.FUNCTION,
     action: async () => {
       await pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
+    },
+  },
+  {
+    name: '学期选课',
+    icon: JiaXiIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      await pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '选课页面');
+    },
+  },
+  {
+    name: '飞跃手册',
+    icon: FZURunIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      await pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
+    },
+  },
+  {
+    name: '福大Wiki',
+    icon: WikiIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      await pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
     },
   },
 ];
