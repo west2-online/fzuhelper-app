@@ -1,12 +1,11 @@
 import { Paper, PaperType } from '@/components/PaperList';
-import { ThemedView } from '@/components/ThemedView';
 import { PAPER_SEARCH_HISTORY_KEY } from '@/lib/constants';
 import { FolderIcon, getFileIcon, guessFileType } from '@/lib/filetype';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, UnknownOutputParams, useLocalSearchParams, useRouter } from 'expo-router';
 import { Trash2 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface SearchPageParam extends UnknownOutputParams {
   currentPath: string;
@@ -71,7 +70,7 @@ export default function SearchPage() {
   return (
     <>
       <Stack.Screen options={{ title: '搜索' }} />
-      <ThemedView className="flex-1">
+      <SafeAreaView className="flex-1">
         <View className="border-b border-gray-300 p-4">
           <TextInput
             className="h-12 rounded bg-gray-200 px-3"
@@ -122,7 +121,7 @@ export default function SearchPage() {
             )}
           </View>
         )}
-      </ThemedView>
+      </SafeAreaView>
     </>
   );
 }

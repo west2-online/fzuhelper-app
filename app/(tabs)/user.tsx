@@ -158,7 +158,7 @@ export default function HomePage() {
             <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
             <View>
               <Text className="text-xl font-bold">{userInfo.name}</Text>
-              <Text className="text-text-secondary mt-2 text-sm">这是一条签名</Text>
+              <Text className="mt-2 text-sm text-text-secondary">这是一条签名</Text>
             </View>
           </View>
 

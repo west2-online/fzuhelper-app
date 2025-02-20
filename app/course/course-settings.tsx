@@ -5,9 +5,9 @@ import { toast } from 'sonner-native';
 
 import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
-import { ThemedView } from '@/components/ThemedView';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
+import { SafeAreaView } from 'react-native';
 
 import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
@@ -123,7 +123,7 @@ export default function AcademicPage() {
     <>
       <Stack.Screen options={{ title: '课程表设置' }} />
 
-      <ThemedView className="flex-1 bg-white px-8 pt-8">
+      <SafeAreaView className="flex-1 bg-white px-8 pt-8">
         {/* 菜单列表 */}
         <Text className="mb-2 text-sm text-foreground">课程数据</Text>
 
@@ -161,7 +161,7 @@ export default function AcademicPage() {
           onClose={() => setPickerVisible(false)}
           onConfirm={handleConfirmTermSelectPicker}
         />
-      </ThemedView>
+      </SafeAreaView>
     </>
   );
 }

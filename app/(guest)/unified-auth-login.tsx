@@ -152,12 +152,12 @@ const UnifiedLoginPage: React.FC = () => {
 
               {/* 公告栏 */}
               <View className="mt-10 w-full px-1">
-                <Text className="text-text-secondary my-2 text-lg font-bold">友情提示</Text>
-                <Text className="text-text-secondary text-base">
+                <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+                <Text className="text-base text-text-secondary">
                   1. 统一身份认证平台为福州大学统一登录系统，可用于登录图书馆、一码通、智汇福大等平台。
                 </Text>
-                <Text className="text-text-secondary text-base">2. 新生可使用身份证号作为登录账号。</Text>
-                <Text className="text-text-secondary text-base">
+                <Text className="text-base text-text-secondary">2. 新生可使用身份证号作为登录账号。</Text>
+                <Text className="text-base text-text-secondary">
                   3. 福州大学教务处系统独立于统一身份认证平台，需使用专有密码登录。
                 </Text>
               </View>
@@ -170,7 +170,7 @@ const UnifiedLoginPage: React.FC = () => {
               onPress={() => setIsAgree(!isAgree)}
             >
               <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-              <Text className="text-text-secondary text-center">
+              <Text className="text-center text-text-secondary">
                 {'  '}
                 阅读并同意{' '}
                 <Text
