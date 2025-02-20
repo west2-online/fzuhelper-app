@@ -15,7 +15,7 @@ import type { JwchClassroomExamResponse as ExamData } from '@/api/backend';
 import { ResultEnum } from '@/api/enum';
 import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { FAQ_EXAME_ROOM } from '@/lib/FAQ';
+import { FAQ_EXAM_ROOM } from '@/lib/FAQ';
 import type { MergedExamData } from '@/types/academic';
 
 // 将日期字符串(xxxx年xx月xx日)转换为 Date 对象，如转换失败返回 undefined
@@ -190,7 +190,7 @@ export default function ExamRoomPage() {
       </PageContainer>
 
       {/* FAQ Modal */}
-      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_EXAME_ROOM} />
+      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_EXAM_ROOM} />
     </>
   );
 }
