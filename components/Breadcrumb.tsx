@@ -32,7 +32,7 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
     <FlatList
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="h-16 bg-white pl-3"
+      className="h-16 flex-grow-0 bg-white pl-3"
       data={breadcrumbs}
       renderItem={({ item, index }) => {
         const isLast = index === breadcrumbs.length - 1;
@@ -48,7 +48,7 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
                 <Text className="mx-1 text-gray-600">{item.name}</Text>
               </TouchableOpacity>
             ) : (
-              <Text className="mx-1 text-blue-500">{item.name}</Text>
+              <Text className="mx-1 text-primary">{item.name}</Text>
             )}
           </View>
         );
