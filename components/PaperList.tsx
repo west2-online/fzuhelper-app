@@ -50,10 +50,10 @@ const PaperItem = memo(function PaperItem({ paper, currentPath, setCurrentPath }
           router.push({ pathname: '/toolbox/paper/file-preview', params: { filepath: path } });
         }
       }}
-      className="h-16 w-full flex-row items-center px-4 py-2"
+      className="h-16 w-full flex-row items-center px-6 py-2"
     >
       {/* 由于文件夹和文件的图标大小不一样，需要使用不同的 size */}
-      <Image source={icon} className={`mr-6 ${type === 'folder' ? 'h-5 w-5' : 'h-8 w-8'}`} resizeMode="contain" />
+      <Image source={icon} className={`mr-6 ${type === 'folder' ? 'h-5 w-8' : 'h-8 w-8'}`} resizeMode="contain" />
       <Text numberOfLines={2} ellipsizeMode="tail" className="flex-1 text-base">
         {name}
       </Text>
