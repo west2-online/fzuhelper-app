@@ -6,6 +6,7 @@ import { useColorScheme } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Toaster } from 'sonner-native';
 
 import { Provider } from '@/components/Provider';
@@ -20,22 +21,24 @@ export default function RootLayout() {
   const currentColorScheme = useColorScheme();
 
   return (
-    <Provider>
-      {/* 此处配置 Expo Router 封装的 React Navigation 系列组件的浅色/深色主题 */}
-      <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <KeyboardProvider>
-          <GestureHandlerRootView>
-            <Stack>
-              <Stack.Screen name="/(guest)" />
-              <Stack.Screen name="+not-found" />
-            </Stack>
+    <SafeAreaProvider>
+      <Provider>
+        {/* 此处配置 Expo Router 封装的 React Navigation 系列组件的浅色/深色主题 */}
+        <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <KeyboardProvider>
+            <GestureHandlerRootView>
+              <Stack screenOptions={{ animation: 'slide_from_right' }}>
+                <Stack.Screen name="/(guest)" />
+                <Stack.Screen name="+not-found" />
+              </Stack>
 
-            <Toaster cn={cn} position="top-center" duration={2500} offset={100} />
-            <PortalHost />
-            <SystemBars style="auto" />
-          </GestureHandlerRootView>
-        </KeyboardProvider>
-      </ThemeProvider>
-    </Provider>
+              <Toaster cn={cn} position="top-center" duration={2500} offset={100} />
+              <PortalHost />
+              <SystemBars style="auto" />
+            </GestureHandlerRootView>
+          </KeyboardProvider>
+        </ThemeProvider>
+      </Provider>
+    </SafeAreaProvider>
   );
 }

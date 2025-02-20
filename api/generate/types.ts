@@ -8,6 +8,11 @@ export type getApiV1CommonClassroomEmptyParams = {
   endTime?: string;
 };
 
+export type getApiV1JwchClassroomExamParams = {
+  /** 学期 202401 */
+  term?: string;
+};
+
 export type getApiV1JwchCourseListParams = {
   /** 学期 */
   term: string;
@@ -25,4 +30,16 @@ export type getApiV1LaunchScreenScreenParams = {
   student_id: string;
   /** 设备类型，android,ios 二选一，注意区分大小写 */
   device: string;
+};
+
+export type getApiV1PaperDownloadParams = {
+  filepath?: string;
+};
+
+export type getApiV1PaperListParams = {
+  path?: string;
+};
+
+export type getApiV1TermsInfoParams = {
+  term?: string;
 };

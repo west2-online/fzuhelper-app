@@ -14,6 +14,14 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { JWCH_USER_INFO_KEY } from '@/lib/constants';
 import { clearUserStorage } from '@/utils/user';
 
+import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
+import AvatarDefault from '@/assets/images/my/avatar_default.png';
+import CalendarIcon from '@/assets/images/my/ic_calendar.png';
+import EcardIcon from '@/assets/images/my/ic_ecard.png';
+import HelpIcon from '@/assets/images/my/ic_help.png';
+import HomeworkIcon from '@/assets/images/my/ic_homework.png';
+import NoteIcon from '@/assets/images/my/ic_note.png';
+
 export default function HomePage() {
   const { handleError } = useSafeResponseSolve();
   const redirect = useRedirectWithoutHistory();
@@ -28,16 +36,6 @@ export default function HomePage() {
     major: '', // 所属专业
   });
 
-  const userInfoLabels: Record<string, string> = {
-    stu_id: '学号',
-    birthday: '生日',
-    sex: '性别',
-    name: '姓名',
-    college: '所属学院',
-    grade: '所属年级',
-    major: '所属专业',
-  };
-
   interface MenuItem {
     icon: ImageSourcePropType;
     name: string; // 菜单项名称
@@ -47,27 +45,27 @@ export default function HomePage() {
   // 菜单项数据
   const menuItems: MenuItem[] = [
     {
-      icon: require('assets/images/my/ic_homework.png'),
+      icon: HomeworkIcon,
       name: '我的作业',
       link: '/my/grades' as Href,
     },
     {
-      icon: require('assets/images/my/ic_note.png'),
+      icon: NoteIcon,
       name: '备忘录',
       link: '/my/gpa' as Href,
     },
     {
-      icon: require('assets/images/my/ic_calendar.png'),
+      icon: CalendarIcon,
       name: '校历',
       link: '/my/credits' as Href,
     },
     {
-      icon: require('assets/images/my/ic_ecard.png'),
+      icon: EcardIcon,
       name: '一卡通',
       link: '/my/unified-exam' as Href,
     },
     {
-      icon: require('assets/images/my/ic_help.png'),
+      icon: HelpIcon,
       name: '帮助与反馈',
       link: '/my/plan' as Href,
     },
@@ -157,7 +155,7 @@ export default function HomePage() {
       <PageContainer>
         <ScrollView>
           <View className="flex-row items-center p-8">
-            <Image source={require('@/assets/images/my/avatar_default.png')} className="mr-6 h-24 w-24 rounded-full" />
+            <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
             <View>
               <Text className="text-xl font-bold">{userInfo.name}</Text>
               <Text className="text-text-secondary mt-2 text-sm">这是一条签名</Text>
@@ -187,7 +185,7 @@ export default function HomePage() {
                       <Text className="ml-5 text-lg">{item.name}</Text>
                     </View>
                     {/* 右侧箭头 */}
-                    <Image source={require('assets/images/misc/ic_arrow_right.png')} className="h-5 w-5" />
+                    <Image source={ArrowRightIcon} className="h-5 w-5" />
                   </TouchableOpacity>
                 </Link>
               ))}

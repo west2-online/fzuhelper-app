@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Constants from 'expo-constants';
 import { Stack, router } from 'expo-router';
 import { Image, Linking, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +13,7 @@ import {
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
+import IconTransparent from '@/assets/images/icon_transparent.png';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 
 export default function AboutPage() {
@@ -21,12 +23,9 @@ export default function AboutPage() {
 
       <PageContainer>
         <View className="flex items-center p-12">
-          <Image
-            source={require('@/assets/images/icon_transparent.png')}
-            className="mb-6 h-20 w-20 rounded-full bg-card"
-          />
+          <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-background" />
           <View>
-            <Text className="text-xl text-primary">7.0.0</Text>
+            <Text className="text-xl text-primary">{Constants.expoConfig?.version ?? ''}</Text>
           </View>
         </View>
 

@@ -1,4 +1,4 @@
-import { Href, useRouter } from 'expo-router';
+import { useRouter, type Href, type Router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Image, Linking } from 'react-native';
 import { toast } from 'sonner-native';
@@ -8,65 +8,92 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
+import { pushToWebViewJWCH } from '@/lib/webview';
+
+import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
+import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
+import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
+import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.png';
+import FileIcon from '@/assets/images/toolbox/ic_file.png';
+import GradeIcon from '@/assets/images/toolbox/ic_grade.png';
+import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.png';
+import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.png';
+import RoomIcon from '@/assets/images/toolbox/ic_room.png';
+
 // 工具类型的枚举
 enum ToolType {
   LINK = 'link', // 跳转路由
   URL = 'URL', // 打开网页
+  FUNCTION = 'function', // 执行函数
   NULL = 'null', // 空操作
 }
 
-// 定义工具数据的结构
-interface Tool {
-  name: string; // 名称
-  icon: any; // 图标
-  type: ToolType; // 工具类型
-  data: string; // 附加数据（如路由地址或其他信息）
-}
+type Tool = {
+  name: string;
+  icon: any;
+} & (
+  | {
+      type: ToolType.LINK;
+      href: Href;
+    }
+  | {
+      type: ToolType.URL;
+      href: string;
+    }
+  | {
+      type: ToolType.FUNCTION;
+      action: (router: ReturnType<typeof useRouter>) => void | Promise<void>;
+    }
+  | {
+      type: ToolType.NULL;
+    }
+);
 
 // 常量：横幅数据
 const DEFAULT_BANNERS: BannerContent[] = [
-  { image: require('assets/images/banner/default_banner1.webp'), onPress: () => {} },
-  { image: require('assets/images/banner/default_banner2.webp'), onPress: () => {} },
-  { image: require('assets/images/banner/default_banner3.webp'), onPress: () => {} },
+  { image: BannerImage1, onPress: () => {} },
+  { image: BannerImage2, onPress: () => {} },
+  { image: BannerImage3, onPress: () => {} },
 ];
 
-// 常量：工具数据
 const DEFAULT_TOOLS: Tool[] = [
   {
     name: '学业状况',
-    icon: require('assets/images/toolbox/ic_grade.png'),
+    icon: GradeIcon,
     type: ToolType.LINK,
-    data: '/toolbox/academic',
+    href: '/toolbox/academic',
   },
   {
     name: '历年卷',
-    icon: require('assets/images/toolbox/ic_file.png'),
+    icon: FileIcon,
     type: ToolType.LINK,
-    data: '/toolbox/paper',
+    href: '/toolbox/paper',
   },
   {
     name: '空教室',
-    icon: require('assets/images/toolbox/ic_room.png'),
+    icon: RoomIcon,
     type: ToolType.LINK,
-    data: '/toolbox/empty-room',
+    href: '/toolbox/empty-room',
   },
   {
     name: '考场查询',
-    icon: require('assets/images/toolbox/ic_examroom.png'),
+    icon: ExamRoomIcon,
     type: ToolType.LINK,
-    data: '/toolbox/exam-room',
+    href: '/toolbox/exam-room',
   },
   {
     name: '一键评议',
-    icon: require('assets/images/toolbox/ic_onekey.png'),
+    icon: OneKeyIcon,
     type: ToolType.LINK,
-    data: '/toolbox/onekey', // 路由地址
+    href: '/toolbox/onekey' as any, // 路由地址（不存在）
   },
   {
     name: '嘉锡讲坛',
-    icon: require('assets/images/toolbox/ic_jiaxi.png'),
-    type: ToolType.LINK,
-    data: '/toolbox/jiaxi-lecture', // 自定义操作标识
+    icon: JiaXiIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      await pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
+    },
   },
 ];
 
@@ -81,6 +108,7 @@ const processTools = (tools: Tool[]) => {
     type: ToolType.NULL,
     data: '',
   });
+
   return [...tools, ...placeholders];
 };
 
@@ -104,19 +132,22 @@ const toolOnPress = (tool: Tool, router: ReturnType<typeof useRouter>) => {
     case ToolType.NULL: // 空操作
       break;
     case ToolType.LINK: // 跳转路由
-      router.push(tool.data as Href);
+      router.push(tool.href);
       break;
     case ToolType.URL: // 打开网页
-      Linking.openURL(tool.data).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+      Linking.openURL(tool.href).catch(err => Alert.alert('错误', '无法打开链接 (' + err + ')'));
+      break;
+    case ToolType.FUNCTION: // 执行函数，并传入 router 参数
+      tool.action(router);
       break;
     default:
-      toast.error('未知工具类型: ' + tool.type);
-      console.warn('未知工具类型:', tool.type);
+      toast.error('未知工具类型');
+      console.error('未知工具类型', tool);
   }
 };
 
 // 工具按钮的渲染函数
-const renderToolButton = ({ item }: { item: Tool }, router: ReturnType<typeof useRouter>) => (
+const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
   <Button
     className="mb-3 h-auto w-auto items-center justify-center bg-transparent"
     size="icon"
