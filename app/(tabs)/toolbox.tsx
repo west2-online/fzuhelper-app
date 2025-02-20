@@ -155,7 +155,7 @@ const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
   >
     {item.icon ? <Image source={item.icon} className="h-12 w-12" resizeMode="contain" /> : null}
     <Text
-      className="text-text-secondary w-[50px] text-center align-middle"
+      className="w-[50px] text-center align-middle text-text-secondary"
       // eslint-disable-next-line react-native/no-inline-styles
       style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
       numberOfLines={1}
