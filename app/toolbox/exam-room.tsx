@@ -129,6 +129,12 @@ export default function ExamRoomPage() {
     setShowFAQ(prev => !prev);
   }, []);
 
+  // 处理下拉刷新逻辑
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    refreshData();
+  }, [refreshData]);
+
   // 渲染每个学期的内容
   const renderContent = (term: string) => {
     const termData = examDataMap[term]?.data || [];
@@ -136,7 +142,7 @@ export default function ExamRoomPage() {
 
     return (
       <ScrollView
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refreshData} />}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
         className="grow"
         style={{ width: screenWidth }}
       >
@@ -149,7 +155,7 @@ export default function ExamRoomPage() {
               </View>
             ))
           ) : (
-            <Text className="text-center text-gray-500">暂无考试数据</Text>
+            <Text className="text-center text-gray-500">{isRefreshing ? '正在刷新中' : '暂无考试数据'}</Text>
           )}
         </SafeAreaView>
 
