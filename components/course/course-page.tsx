@@ -1,4 +1,4 @@
-import { AntDesign } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { Link, Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
@@ -137,13 +137,13 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           headerTitle: () => (
             <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
               <Text className="mr-1 text-lg">第 {week} 周 </Text>
-              <AntDesign name={showWeekSelector ? 'caretup' : 'caretdown'} size={10} color="black" />
+              <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
             </Pressable>
           ),
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Link href="/course/course-settings" asChild>
-              <AntDesign name="setting" size={24} color="black" className="mr-4" />
+              <Icon name="settings-outline" size={24} className="mr-4" />
             </Link>
           ),
         }}
