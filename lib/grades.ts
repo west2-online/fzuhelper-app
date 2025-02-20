@@ -99,6 +99,7 @@ export const calSingleTermSummary = (data: CourseGradesData[], term: string) => 
     '劳动教育类',
     '创新创业类',
     '通识选修任选',
+    '任意选修', // 转专业会遇到
   ];
 
   // 进一步过滤出需要计算的数据
