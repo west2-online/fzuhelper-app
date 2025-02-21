@@ -1,8 +1,6 @@
 import { type ExpoConfig } from 'expo/config';
 import 'ts-node/register'; // Add this to import TypeScript files
 
-const value = (prodValue: string, devValue: string) => (process.env.NODE_ENV === 'production' ? prodValue : devValue);
-
 const config: ExpoConfig = {
   name: 'fzuhelper-app',
   slug: 'fzuhelper-app',
@@ -17,7 +15,7 @@ const config: ExpoConfig = {
     supportsTablet: true,
   },
   android: {
-    package: value('com.helper.west2ol.fzuhelper', 'com.helper.west2ol.fzuhelper.dev'),
+    package: 'com.helper.west2ol.fzuhelper',
     versionCode: 700001,
   },
   web: {
@@ -50,9 +48,9 @@ const config: ExpoConfig = {
       {
         // 以下配置可以暴露在公网，不会导致安全问题
         // Android
-        AndroidAppKey: '677631911233c160e700af49', // 发布（正式包名）时需更换
+        AndroidAppKey: '5dce696b570df3081900033f', // 发布（正式包名）时需更换
         channel: 'default', // Android渠道号
-        msgsec: 'd494151a2eed479371d1e13c0f52b1fa', // 仅供 Android，iOS 是证书鉴权，具体参考 KeeWeb
+        msgsec: '2931a731b52ca1457b387bcc22cdff32', // 仅供 Android，iOS 是证书鉴权，具体参考 KeeWeb
         // iOS
         iOSAppKey: '679132946d8fdd4ad83ab20e', // 发布（正式包名）时需更换
         bridgingSourcePath: './modules/umeng-bridge/ios/ExpoUmeng-Bridging-Header.h', // (iOS) 源路径（相对于 app.plugin.js 文件）
