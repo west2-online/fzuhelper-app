@@ -23,7 +23,7 @@ export default function AboutPage() {
 
       <PageContainer>
         <View className="flex items-center p-12">
-          <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-background" />
+          <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-card" />
           <View>
             <Text className="text-xl text-primary">{Constants.expoConfig?.version ?? ''}</Text>
           </View>

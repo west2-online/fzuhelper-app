@@ -18,11 +18,11 @@ function withAndroidSign(config: ExpoConfig): ExpoConfig {
       'signingConfigs {',
       `
         release {
-            if (project.hasProperty('FZUHELPER_UPLOAD_STORE_FILE')) {
-                storeFile file(FZUHELPER_UPLOAD_STORE_FILE)
-                storePassword FZUHELPER_UPLOAD_STORE_PASSWORD
-                keyAlias FZUHELPER_UPLOAD_KEY_ALIAS
-                keyPassword FZUHELPER_UPLOAD_KEY_PASSWORD
+            System.getenv("KEYSTORE_PATH")?.let {
+                storeFile = file(it)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
             }
         }`,
     );
@@ -39,8 +39,8 @@ function withAndroidSign(config: ExpoConfig): ExpoConfig {
         abi {
             reset()
             enable true
-            universalApk true
-            include "armeabi-v7a", "arm64-v8a", "x86_64"
+            universalApk false
+            include "arm64-v8a", "x86_64"
         }
     }`,
     );
