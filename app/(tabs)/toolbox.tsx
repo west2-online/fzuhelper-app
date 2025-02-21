@@ -78,7 +78,7 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: RoomIcon,
     type: ToolType.FUNCTION,
     action: async () => {
-      Alert.alert('暂未开放', '负责的同学正在紧锣密鼓的开发中，敬请期待');
+      Alert.alert('暂未开放', '开发组正在紧锣密鼓地开发中，敬请期待');
     },
   },
   {
@@ -92,7 +92,7 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: OneKeyIcon,
     type: ToolType.FUNCTION,
     action: async () => {
-      Alert.alert('暂未开放', '旧版一键评议功能存在功能性缺陷，目前正在修正，预计学期结束前（即评议开始前）上线');
+      Alert.alert('暂未开放', '新版一键评议正在设计中，预计学期结束前（即评议开始前）上线，敬请期待');
     },
   },
 
