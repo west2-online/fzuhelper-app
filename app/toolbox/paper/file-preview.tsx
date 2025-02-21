@@ -168,29 +168,36 @@ export default function FilePreviewPage() {
           <Text className="my-8 text-center text-lg font-semibold text-gray-800">{filename}</Text>
         </View>
         <View className="w-full space-y-3">
-          {isDownloaded ? (
-            Platform.OS === 'android' && (
-              <View>
-                <TouchableOpacity
-                  onPress={handleOpenFile}
-                  className="mb-3 w-full items-center rounded-lg bg-primary py-3 shadow-md"
-                >
-                  <Text className="text-base font-medium text-white">打开文件</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleShareFile}
-                  className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
-                >
-                  <Text className="text-base font-medium text-white">分享文件</Text>
-                </TouchableOpacity>
-              </View>
-            )
-          ) : isDownloading ? (
+          {/* 已下载，仅安卓展示打开按钮 */}
+          {isDownloaded && Platform.OS === 'android' && (
+            <TouchableOpacity
+              onPress={handleOpenFile}
+              className="mb-3 w-full items-center rounded-lg bg-primary py-3 shadow-md"
+            >
+              <Text className="text-base font-medium text-white">打开文件</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* 已下载，展示分享文件按钮 */}
+          {isDownloaded && (
+            <TouchableOpacity
+              onPress={handleShareFile}
+              className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
+            >
+              <Text className="text-base font-medium text-white">分享文件</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* 下载中进度 */}
+          {isDownloading && (
             <View className="relative flex h-12 w-full items-center justify-center overflow-hidden rounded-lg bg-gray-300 shadow-md">
               <View className="absolute left-0 top-0 h-full bg-primary" style={{ width: `${progress * 100}%` }} />
               <Text className="z-10 font-medium text-white">下载中 {Math.round(progress * 100)}%</Text>
             </View>
-          ) : (
+          )}
+
+          {/* 初始状态 */}
+          {!isDownloaded && !isDownloading && (
             <>
               <TouchableOpacity
                 onPress={handleDownload}
