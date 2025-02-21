@@ -31,7 +31,7 @@ const LabelEntry: React.FC<LabelEntryProps> = ({
           <Text className="text-text-primary truncate text-lg">{leftText}</Text>
           {description && <Text className="text-text-secondary text-sm">{description}</Text>}
         </View>
-        <View className="flex-row items-center">
+        <View className="ml-3 flex-row items-center">
           <Text className="text-text-secondary mr-3 truncate text-lg">{rightText}</Text>
           <Icon name="chevron-forward-outline" size={14} />
         </View>
