@@ -1,10 +1,11 @@
 import { getApiV1PaperList } from '@/api/generate';
 import Breadcrumb from '@/components/Breadcrumb';
 import { Icon } from '@/components/Icon';
+import PageContainer from '@/components/page-container';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { useFocusEffect } from '@react-navigation/native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
 
@@ -97,14 +98,16 @@ export default function PaperPage() {
           headerRight: () => <SearchButton currentPath={currentPath} papers={currentPapers} />,
         }}
       />
-      <Breadcrumb currentPath={currentPath} setCurrentPath={setCurrentPath} />
-      <PaperList
-        papers={currentPapers}
-        currentPath={currentPath}
-        setCurrentPath={setCurrentPath}
-        isRefreshing={loadingState === LoadingState.PENDING || loadingState === LoadingState.UNINIT}
-        onRefresh={getPaperData}
-      />
+      <PageContainer>
+        <Breadcrumb currentPath={currentPath} setCurrentPath={setCurrentPath} />
+        <PaperList
+          papers={currentPapers}
+          currentPath={currentPath}
+          setCurrentPath={setCurrentPath}
+          isRefreshing={loadingState === LoadingState.PENDING || loadingState === LoadingState.UNINIT}
+          onRefresh={getPaperData}
+        />
+      </PageContainer>
     </>
   );
 }
