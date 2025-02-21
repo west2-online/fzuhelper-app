@@ -1,10 +1,11 @@
 import { ThemedView } from '@/components/ThemedView';
 import { getFileIcon, guessFileType } from '@/lib/filetype';
+import Clipboard from '@react-native-clipboard/clipboard';
 import * as FileSystem from 'expo-file-system';
 import { Stack, UnknownOutputParams, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
-import { Platform, Share, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import * as mime from 'react-native-mime-types';
 import { toast } from 'sonner-native';
@@ -103,7 +104,7 @@ export default function FilePreviewPage() {
       }
     } catch (error) {
       console.log(error);
-      toast.error('下载失败，请检查网络: ' + error);
+      toast.error('下载失败，请检查网络：' + error);
     } finally {
       setIsDownloading(false);
     }
@@ -145,11 +146,12 @@ export default function FilePreviewPage() {
     }
   };
 
-  const handleShareLink = async () => {
+  const handleCopyLink = async () => {
     try {
-      Share.share({ message: downloadUri });
+      Clipboard.setString(downloadUri);
+      toast.success('已复制下载链接');
     } catch (error) {
-      toast.error('分享失败，设备不支持分享功能: ' + error);
+      toast.error('复制失败：' + error);
     }
   };
 
@@ -193,10 +195,10 @@ export default function FilePreviewPage() {
                 <Text className="text-base font-medium text-white">下载到本地</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={handleShareLink}
+                onPress={handleCopyLink}
                 className="h-12 w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
               >
-                <Text className="text-base font-medium text-white">分享链接</Text>
+                <Text className="text-base font-medium text-white">复制链接</Text>
               </TouchableOpacity>
             </>
           )}
