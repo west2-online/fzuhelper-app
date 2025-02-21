@@ -1,6 +1,6 @@
 import { useRouter, type Href, type Router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Linking } from 'react-native';
+import { Alert, FlatList, Linking } from 'react-native';
 import { toast } from 'sonner-native';
 
 import Banner, { type BannerContent } from '@/components/banner';
@@ -8,17 +8,21 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
-import { pushToWebViewJWCH } from '@/lib/webview';
+import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
-import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.png';
-import FileIcon from '@/assets/images/toolbox/ic_file.png';
-import GradeIcon from '@/assets/images/toolbox/ic_grade.png';
-import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.png';
-import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.png';
-import RoomIcon from '@/assets/images/toolbox/ic_room.png';
+import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
+import FileIcon from '@/assets/images/toolbox/ic_file.svg';
+import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
+import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
+import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
+import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
+import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
+import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
+import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
+import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
 
 // 工具类型的枚举
 enum ToolType {
@@ -72,8 +76,10 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '空教室',
     icon: RoomIcon,
-    type: ToolType.LINK,
-    href: '/toolbox/empty-room',
+    type: ToolType.FUNCTION,
+    action: async () => {
+      Alert.alert('暂未开放', '开发组正在紧锣密鼓地开发中，敬请期待');
+    },
   },
   {
     name: '考场查询',
@@ -84,8 +90,25 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '一键评议',
     icon: OneKeyIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      Alert.alert('暂未开放', '新版一键评议正在设计中，预计学期结束前（即评议开始前）上线，敬请期待');
+    },
+  },
+
+  {
+    name: '选课',
+    icon: XuankeIcon,
     type: ToolType.LINK,
-    href: '/toolbox/onekey' as any, // 路由地址（不存在）
+    href: '/toolbox/xuanke',
+  },
+  {
+    name: '校园指南',
+    icon: WikiIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
+    },
   },
   {
     name: '嘉锡讲坛',
@@ -93,6 +116,22 @@ const DEFAULT_TOOLS: Tool[] = [
     type: ToolType.FUNCTION,
     action: async () => {
       pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
+    },
+  },
+  {
+    name: '智慧餐厅',
+    icon: ZHCTIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      pushToWebViewNormal('http://hqczhct.fzu.edu.cn:8001/html/index.html', '智慧餐厅');
+    },
+  },
+  {
+    name: '飞跃手册',
+    icon: FZURunIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
     },
   },
 ];
@@ -153,9 +192,9 @@ const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
     size="icon"
     onPress={() => toolOnPress(item, router)}
   >
-    {item.icon ? <Image source={item.icon} className="h-12 w-12" resizeMode="contain" /> : null}
+    {item.icon ? <item.icon width="42px" height="42px" /> : null}
     <Text
-      className="w-[50px] text-center align-middle text-text-secondary"
+      className="text-text-secondary w-[50px] text-center align-middle"
       // eslint-disable-next-line react-native/no-inline-styles
       style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
       numberOfLines={1}
