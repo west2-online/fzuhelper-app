@@ -10,6 +10,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      NODE_ENV: production
+
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
@@ -38,7 +41,13 @@ jobs:
       - name: Build Release APK
         run: |
           cd android
+          echo ${{ secrets.SIGN_KEYSTORE_BASE64 }} | base64 -d > keystore.jks
           ./gradlew app:packageRelease
+        env:
+          KEYSTORE_PATH: '../keystore.jks'
+          KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
 
       - name: Upload outputs
         uses: actions/upload-artifact@v4
