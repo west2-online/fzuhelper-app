@@ -1,6 +1,6 @@
 import { useRouter, type Href, type Router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Linking } from 'react-native';
+import { Alert, FlatList, Linking } from 'react-native';
 import { toast } from 'sonner-native';
 
 import Banner, { type BannerContent } from '@/components/banner';
@@ -13,14 +13,15 @@ import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
-import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.png';
-import FileIcon from '@/assets/images/toolbox/ic_file.png';
-import GradeIcon from '@/assets/images/toolbox/ic_grade.png';
-import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.png';
-import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.png';
-import RoomIcon from '@/assets/images/toolbox/ic_room.png';
-import FZURunIcon from '@/assets/images/toolbox/ic_run.png';
-import WikiIcon from '@/assets/images/toolbox/ic_wiki.png';
+import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
+import FileIcon from '@/assets/images/toolbox/ic_file.svg';
+import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
+import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
+import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
+import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
+import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
+import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
+import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
 
 // 工具类型的枚举
 enum ToolType {
@@ -74,8 +75,10 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '空教室',
     icon: RoomIcon,
-    type: ToolType.LINK,
-    href: '/toolbox/empty-room',
+    type: ToolType.FUNCTION,
+    action: async () => {
+      Alert.alert('暂未开放', '负责的同学正在紧锣密鼓的开发中，敬请期待');
+    },
   },
   {
     name: '考场查询',
@@ -86,8 +89,10 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '一键评议',
     icon: OneKeyIcon,
-    type: ToolType.LINK,
-    href: '/toolbox/onekey' as any, // 路由地址（不存在）
+    type: ToolType.FUNCTION,
+    action: async () => {
+      Alert.alert('暂未开放', '旧版一键评议功能存在功能性缺陷，目前正在修正，预计学期结束前（即评议开始前）上线');
+    },
   },
   {
     name: '嘉锡讲坛',
@@ -97,12 +102,20 @@ const DEFAULT_TOOLS: Tool[] = [
       pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
     },
   },
+  // {
+  //   name: '学期选课',
+  //   icon: JiaXiIcon,
+  //   type: ToolType.FUNCTION,
+  //   action: async () => {
+  //     pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '选课页面');
+  //   },
+  // },
   {
-    name: '学期选课',
-    icon: JiaXiIcon,
+    name: '智慧餐厅',
+    icon: ZHCTIcon,
     type: ToolType.FUNCTION,
     action: async () => {
-      await pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '选课页面');
+      pushToWebViewNormal('http://hqczhct.fzu.edu.cn:8001/html/index.html', '智慧餐厅');
     },
   },
   {
@@ -110,7 +123,7 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: FZURunIcon,
     type: ToolType.FUNCTION,
     action: async () => {
-      await pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
+      pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
     },
   },
   {
@@ -118,31 +131,7 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: WikiIcon,
     type: ToolType.FUNCTION,
     action: async () => {
-      await pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
-    },
-  },
-  {
-    name: '学期选课',
-    icon: JiaXiIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      await pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '选课页面');
-    },
-  },
-  {
-    name: '飞跃手册',
-    icon: FZURunIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      await pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
-    },
-  },
-  {
-    name: '福大Wiki',
-    icon: WikiIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      await pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
+      pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
     },
   },
 ];
@@ -203,7 +192,7 @@ const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
     size="icon"
     onPress={() => toolOnPress(item, router)}
   >
-    {item.icon ? <Image source={item.icon} className="h-12 w-12" resizeMode="contain" /> : null}
+    {item.icon ? <item.icon width="100%" height="80%" className="h-12 w-12" /> : null}
     <Text
       className="text-text-secondary w-[50px] text-center align-middle"
       // eslint-disable-next-line react-native/no-inline-styles
