@@ -77,7 +77,8 @@ export default function PaperList({
   ) : (
     <FlatList
       data={papers}
-      className="flex-1"
+      className="flex-1 rounded-tr-4xl bg-card"
+      showsVerticalScrollIndicator={false}
       contentContainerStyle={{
         paddingBottom: insets.bottom,
       }}

@@ -1,6 +1,6 @@
 import WheelPicker from '@quidone/react-native-wheel-picker';
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { Modal, Pressable, View, useColorScheme } from 'react-native';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
@@ -17,6 +17,8 @@ interface PickerModalProps {
 
 export default function PickerModal({ visible, title, data, value, onClose, onConfirm }: PickerModalProps) {
   const [tempValue, setTempValue] = useState(value);
+  const colorScheme = useColorScheme();
+  const adaptiveColor = colorScheme === 'dark' ? 'white' : 'black';
 
   useEffect(() => {
     setTempValue(value);
@@ -48,7 +50,12 @@ export default function PickerModal({ visible, title, data, value, onClose, onCo
             </Pressable>
           </View>
           <View className="overflow-hidden">
-            <WheelPicker data={data} value={tempValue} onValueChanged={({ item: { value } }) => setTempValue(value)} />
+            <WheelPicker
+              data={data}
+              value={tempValue}
+              onValueChanged={({ item: { value } }) => setTempValue(value)}
+              itemTextStyle={{ color: adaptiveColor }}
+            />
           </View>
         </View>
       </View>

@@ -41,7 +41,7 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
       ref={flatListRef}
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="h-16 flex-grow-0 bg-white"
+      className="h-16 flex-grow-0 bg-background"
       contentContainerClassName="px-3"
       data={breadcrumbs}
       renderItem={({ item, index }) => {
@@ -55,7 +55,7 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
                 onPress={() => setCurrentPath(item.path)}
                 activeOpacity={0.7}
               >
-                <Text className="mx-1 text-gray-600">{item.name}</Text>
+                <Text className="text-text-secondary mx-1">{item.name}</Text>
               </TouchableOpacity>
             ) : (
               <Text className="mx-1 text-primary">{item.name}</Text>

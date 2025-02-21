@@ -2,7 +2,7 @@ import { router, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { toast } from 'sonner-native';
 
-import { ThemedView } from '@/components/ThemedView';
+import PageContainer from '@/components/page-container';
 
 import type { JwchAcademicPlanResponse } from '@/api/backend';
 import { getApiV1JwchAcademicPlan } from '@/api/generate';
@@ -53,5 +53,5 @@ export default function PlanPage() {
     getPlanData();
   }, [getPlanData]);
 
-  return <ThemedView className="flex-1 bg-white">{isRefreshing && <Loading />}</ThemedView>;
+  return <PageContainer className="flex-1 bg-background">{isRefreshing && <Loading />}</PageContainer>;
 }

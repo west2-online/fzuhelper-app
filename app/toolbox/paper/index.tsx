@@ -1,13 +1,13 @@
 import { getApiV1PaperList } from '@/api/generate';
 import Breadcrumb from '@/components/Breadcrumb';
+import { Icon } from '@/components/Icon';
+import PageContainer from '@/components/page-container';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
-import { ThemedView } from '@/components/ThemedView';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { useFocusEffect } from '@react-navigation/native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { Search } from 'lucide-react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { BackHandler, Platform, TouchableOpacity } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
 
 enum LoadingState {
   UNINIT = 'uninit',
@@ -26,17 +26,15 @@ interface SearchButtonProps {
 
 function SearchButton({ currentPath, papers }: SearchButtonProps) {
   return (
-    <TouchableOpacity
+    <Icon
+      name="search"
       onPress={() =>
         router.push({
           pathname: '/toolbox/paper/search',
           params: { currentPath: currentPath, currentPapers: JSON.stringify(papers) },
         })
       }
-      className="p-2"
-    >
-      <Search size={20} />
-    </TouchableOpacity>
+    />
   );
 }
 
@@ -100,7 +98,7 @@ export default function PaperPage() {
           headerRight: () => <SearchButton currentPath={currentPath} papers={currentPapers} />,
         }}
       />
-      <ThemedView className="flex-1">
+      <PageContainer>
         <Breadcrumb currentPath={currentPath} setCurrentPath={setCurrentPath} />
         <PaperList
           papers={currentPapers}
@@ -109,7 +107,7 @@ export default function PaperPage() {
           isRefreshing={loadingState === LoadingState.PENDING || loadingState === LoadingState.UNINIT}
           onRefresh={getPaperData}
         />
-      </ThemedView>
+      </PageContainer>
     </>
   );
 }

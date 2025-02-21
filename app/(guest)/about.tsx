@@ -1,40 +1,46 @@
-import IconTransparent from '@/assets/images/icon_transparent.png';
+import Constants from 'expo-constants';
+import { Stack, router } from 'expo-router';
+import { Image, Linking, Pressable, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import {
   DescriptionList,
   DescriptionListDescription,
   DescriptionListRow,
   DescriptionListTerm,
 } from '@/components/DescriptionList';
-import { ThemedView } from '@/components/ThemedView';
+import { Icon } from '@/components/Icon';
+import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
+
+import IconTransparent from '@/assets/images/icon_transparent.png';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
-import { AntDesign } from '@expo/vector-icons';
-import Constants from 'expo-constants';
-import { Stack, router } from 'expo-router';
-import { Image, Linking, Pressable, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AboutPage() {
   return (
     <>
       <Stack.Screen options={{ title: '关于福uu' }} />
 
-      <ThemedView className="flex-1">
+      <PageContainer>
         <View className="flex items-center p-12">
-          <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-white" />
+          <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-background" />
           <View>
             <Text className="text-xl text-primary">{Constants.expoConfig?.version ?? ''}</Text>
           </View>
         </View>
 
-        <View className="flex-1 rounded-tr-4xl bg-white px-4 pt-8">
+        <View className="flex-1 rounded-tr-4xl bg-card px-4 pt-8">
           <DescriptionList className="gap-6">
             <DescriptionListRow>
-              <DescriptionListTerm>版本更新</DescriptionListTerm>
+              <DescriptionListTerm>
+                <Text className="text-text-secondary">版本更新</Text>
+              </DescriptionListTerm>
               <DescriptionListDescription>点我检查更新</DescriptionListDescription>
             </DescriptionListRow>
             <DescriptionListRow>
-              <DescriptionListTerm>研发团队</DescriptionListTerm>
+              <DescriptionListTerm>
+                <Text className="text-text-secondary">研发团队</Text>
+              </DescriptionListTerm>
               <DescriptionListDescription>西二在线福uu项目组</DescriptionListDescription>
             </DescriptionListRow>
             <Pressable
@@ -43,9 +49,11 @@ export default function AboutPage() {
               }}
             >
               <DescriptionListRow>
-                <DescriptionListTerm>官方网站</DescriptionListTerm>
+                <DescriptionListTerm>
+                  <Text className="text-text-secondary">官方网站</Text>
+                </DescriptionListTerm>
                 <DescriptionListDescription>
-                  <AntDesign name="right" />
+                  <Icon name="chevron-forward" size={14} />
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
@@ -84,7 +92,7 @@ export default function AboutPage() {
               </Text>
             </View>
             <View className="flex-row">
-              <Text className="text-sm text-muted-foreground">本APP由</Text>
+              <Text className="text-text-secondary text-sm">本APP由</Text>
               <Text
                 className="text-sm text-primary"
                 onPress={() => {
@@ -93,7 +101,7 @@ export default function AboutPage() {
               >
                 又拍云
               </Text>
-              <Text className="text-sm text-muted-foreground">提供CDN加速/云存储服务</Text>
+              <Text className="text-text-secondary text-sm">提供CDN加速/云存储服务</Text>
             </View>
             <Pressable
               className="flex-row items-center"
@@ -101,15 +109,15 @@ export default function AboutPage() {
                 Linking.openURL('https://beian.miit.gov.cn/');
               }}
             >
-              <Text className="mr-1 text-sm text-muted-foreground">ICP备案号：闽ICP备19020557号-4A</Text>
-              <AntDesign name="right" size={10} />
+              <Text className="text-text-secondary mr-1 text-sm">ICP备案号：闽ICP备19020557号-4A</Text>
+              <Icon name="chevron-forward" size={10} />
             </Pressable>
-            <Text className="mb-6 text-sm text-muted-foreground">
+            <Text className="text-text-tertiary mb-6 text-sm">
               Copyright © 2017-{new Date().getFullYear()} west2-online. All Rights Reserved
             </Text>
           </SafeAreaView>
         </View>
-      </ThemedView>
+      </PageContainer>
     </>
   );
 }

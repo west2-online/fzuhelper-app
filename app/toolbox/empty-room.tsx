@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { ThemedView } from '@/components/ThemedView';
+import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
@@ -40,7 +40,7 @@ export default function EmptyRoomPage() {
     <>
       <Stack.Screen options={{ title: '空教室' }} />
 
-      <ThemedView className="flex-1">
+      <PageContainer>
         <ScrollView contentContainerStyle={{ padding: 16 }}>
           {/* 学术成绩数据列表 */}
           {academicData && (
@@ -63,7 +63,7 @@ export default function EmptyRoomPage() {
             <Text>{isRefreshing ? '刷新中...' : '刷新学业情况'}</Text>
           </Button>
         </ScrollView>
-      </ThemedView>
+      </PageContainer>
     </>
   );
 }
