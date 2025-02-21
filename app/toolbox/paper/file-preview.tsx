@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system';
 import { Stack, UnknownOutputParams, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
-import { Image, Platform, Share, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Share, Text, TouchableOpacity, View } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import * as mime from 'react-native-mime-types';
 import { toast } from 'sonner-native';
@@ -16,7 +16,7 @@ interface FilePreviewPageParam extends UnknownOutputParams {
 export default function FilePreviewPage() {
   const { filepath } = useLocalSearchParams<FilePreviewPageParam>();
   const filename = filepath.substring(filepath.lastIndexOf('/') + 1);
-  const fileIcon = getFileIcon(guessFileType(filename));
+  const FileIcon = getFileIcon(guessFileType(filename));
   const [localFileUri, setLocalFileUri] = useState<string>('');
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -158,8 +158,8 @@ export default function FilePreviewPage() {
       <Stack.Screen options={{ title: '文件详情' }} />
       <ThemedView className="flex-1 items-center justify-between bg-gray-100 px-10 py-6">
         <View className="mt-24 items-center">
-          <Image source={fileIcon} className="mb-4 h-20 w-20" />
-          <Text className="my-4 text-center text-lg font-semibold text-gray-800">{filename}</Text>
+          <FileIcon width={80} height={80} />
+          <Text className="my-8 text-center text-lg font-semibold text-gray-800">{filename}</Text>
         </View>
         <View className="w-full space-y-3">
           {isDownloaded ? (

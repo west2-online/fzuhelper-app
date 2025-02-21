@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Vectornator (http://vectornator.io/) -->
+<svg height="96.0pt" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 96 96" width="96.0pt" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g id="图层-2">
+<path d="M0 18C0 8.05887 8.05887 7.10543e-15 18 1.42109e-14L78 1.42109e-14C87.9411 1.42109e-14 96 8.05887 96 18L96 78C96 87.9411 87.9411 96 78 96L18 96C8.05887 96 0 87.9411 0 78L0 18Z" fill="#faedff" fill-rule="nonzero" opacity="1" stroke="none"/>
+<path d="M42 32.9646L48 32.9646L48 38.9646L42 38.9646L42 32.9646Z" fill="#bb2cf4" fill-rule="nonzero" opacity="1" stroke="none"/>
+<path d="M42 20.9646L48 20.9646L48 26.9646L42 26.9646L42 20.9646Z" fill="#bb2cf4" fill-rule="nonzero" opacity="1" stroke="none"/>
+<path d="M48 38.9646L54 38.9646L54 44.9646L48 44.9646L48 38.9646Z" fill="#bb2cf4" fill-rule="nonzero" opacity="1" stroke="none"/>
+<path d="M42 45L48 45L48 51L42 51L42 45Z" fill="#bb2cf4" fill-rule="nonzero" opacity="1" stroke="none"/>
+<path d="M20 26C20 22.6863 22.6863 20 26 20L70 20C73.3137 20 76 22.6863 76 26L76 70C76 73.3137 73.3137 76 70 76L26 76C22.6863 76 20 73.3137 20 70L20 26Z" fill="none" opacity="1" stroke="#bb2cf4" stroke-linecap="butt" stroke-linejoin="round" stroke-width="4"/>
+<path d="M38.002 53.9472C38.002 53.3949 38.4497 52.9472 39.002 52.9472L56.998 52.9472C57.5503 52.9472 57.998 53.3949 57.998 53.9472L57.998 59.9472C57.998 60.4995 57.5503 60.9472 56.998 60.9472L39.002 60.9472C38.4497 60.9472 38.002 60.4995 38.002 59.9472L38.002 53.9472Z" fill="none" opacity="1" stroke="#bb2cf4" stroke-linecap="butt" stroke-linejoin="round" stroke-width="4"/>
+<path d="M48 26.9646L54 26.9646L54 32.9646L48 32.9646L48 26.9646Z" fill="#bb2cf4" fill-rule="nonzero" opacity="1" stroke="none"/>
+</g>
+</svg>

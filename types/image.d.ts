@@ -10,8 +10,8 @@ declare module '*.webp' {
   export default value;
 }
 
+// 可以直接作为组件使用
 declare module '*.svg' {
-  import { ImageSourcePropType } from 'react-native';
-  const value: ImageSourcePropType;
+  const value: React.FC<SvgProps>;
   export default value;
 }
