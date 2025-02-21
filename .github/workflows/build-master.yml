@@ -38,7 +38,7 @@ jobs:
       - name: Build Release APK
         run: |
           cd android
-          echo ${{ secrets.SIGN_KEYSTORE_BASE64 }} | base64 -d > .app/keystore.jks
+          echo ${{ secrets.SIGN_KEYSTORE_BASE64 }} | base64 -d > ./app/keystore.jks
           ./gradlew app:packageRelease
         env:
           KEYSTORE_PATH: 'keystore.jks'
