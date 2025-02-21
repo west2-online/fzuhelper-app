@@ -7,11 +7,19 @@ interface LabelEntryProps {
   leftText: string;
   rightText?: string;
   onPress?: () => void;
+  description?: string;
   disabled?: boolean;
   className?: string;
 }
 
-const LabelEntry: React.FC<LabelEntryProps> = ({ leftText, rightText, onPress, disabled = false, className }) => {
+const LabelEntry: React.FC<LabelEntryProps> = ({
+  leftText,
+  rightText,
+  description,
+  onPress,
+  disabled = false,
+  className,
+}) => {
   return (
     <TouchableOpacity
       className={cn('flex-row items-center justify-between space-y-4 py-4', className)}
@@ -19,8 +27,11 @@ const LabelEntry: React.FC<LabelEntryProps> = ({ leftText, rightText, onPress, d
       disabled={disabled}
     >
       <View className="w-full flex-row items-center justify-between">
-        <Text className="flex-1 truncate text-lg text-foreground">{leftText}</Text>
-        <View className="flex-row items-center gap-3">
+        <View className="flex-1">
+          <Text className="truncate text-lg text-foreground">{leftText}</Text>
+          {description && <Text className="text-sm text-muted-foreground">{description}</Text>}
+        </View>
+        <View className="flex-row items-center">
           <Text className="truncate text-lg text-muted-foreground">{rightText}</Text>
           <Icon name="chevron-forward-outline" size={14} />
         </View>

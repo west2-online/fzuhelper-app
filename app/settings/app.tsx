@@ -1,11 +1,13 @@
-import { Stack } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Stack, router } from 'expo-router';
 
 import LabelEntry from '@/components/LabelEntry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
+import { Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { router } from 'expo-router';
+import { pushToWebViewJWCH } from '@/lib/webview';
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
@@ -14,29 +16,37 @@ export default function AcademicPage() {
     router.push('/settings/notifications');
   };
 
-  // 关于我们
-  const handleAboutUs = () => {
-    router.push('/(guest)/about');
-  };
-
   // 清除数据
   const handleClearData = () => {
-    console.log('清除数据');
+    Alert.alert('确认清除', '确认要清除全部数据吗？之后需要重新登录 APP', [
+      {
+        text: '取消',
+        style: 'cancel',
+      },
+      {
+        text: '退出',
+        style: 'destructive',
+        onPress: async () => {
+          await AsyncStorage.clear();
+          Alert.alert('清除成功', '数据已清除，请重新登录 APP');
+        },
+      },
+    ]);
   };
 
   // 隐私权限设置
   const handlePrivacyPermission = () => {
-    router.push('/settings/privacy-permission');
+    router.push('/settings/permissions');
   };
 
   // 个人信息搜集清单
   const handlePersonalInfoList = () => {
-    console.log('个人信息搜集清单');
+    router.push('/settings/personal-info-list');
   };
 
   // 第三方信息共享清单
   const handleThirdPartyInfoList = () => {
-    console.log('第三方信息共享清单');
+    pushToWebViewJWCH('https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#third-party', '第三方信息共享清单');
   };
 
   return (

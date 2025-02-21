@@ -26,6 +26,12 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     [
+      'react-native-permissions',
+      {
+        iosPermissions: ['Camera', 'Calendars'],
+      },
+    ],
+    [
       'expo-build-properties',
       {
         android: {

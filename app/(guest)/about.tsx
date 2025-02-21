@@ -19,7 +19,7 @@ import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 export default function AboutPage() {
   return (
     <>
-      <Stack.Screen options={{ title: '关于福uu' }} />
+      <Stack.Screen options={{ title: '关于' }} />
 
       <PageContainer>
         <View className="flex items-center p-12">
@@ -41,11 +41,11 @@ export default function AboutPage() {
               <DescriptionListTerm>
                 <Text className="text-text-secondary">研发团队</Text>
               </DescriptionListTerm>
-              <DescriptionListDescription>西二在线福uu项目组</DescriptionListDescription>
+              <DescriptionListDescription>west2-online</DescriptionListDescription>
             </DescriptionListRow>
             <Pressable
               onPress={() => {
-                Linking.openURL('https://fzuhelper.w2fzu.com/');
+                Linking.openURL('https://site.west2.online/');
               }}
             >
               <DescriptionListRow>
@@ -92,7 +92,7 @@ export default function AboutPage() {
               </Text>
             </View>
             <View className="flex-row">
-              <Text className="text-text-secondary text-sm">本APP由</Text>
+              <Text className="text-sm text-text-secondary">本APP由</Text>
               <Text
                 className="text-sm text-primary"
                 onPress={() => {
@@ -101,7 +101,7 @@ export default function AboutPage() {
               >
                 又拍云
               </Text>
-              <Text className="text-text-secondary text-sm">提供CDN加速/云存储服务</Text>
+              <Text className="text-sm text-text-secondary">提供CDN加速/云存储服务</Text>
             </View>
             <Pressable
               className="flex-row items-center"
@@ -109,10 +109,10 @@ export default function AboutPage() {
                 Linking.openURL('https://beian.miit.gov.cn/');
               }}
             >
-              <Text className="text-text-secondary mr-1 text-sm">ICP备案号：闽ICP备19020557号-4A</Text>
+              <Text className="mr-1 text-sm text-text-secondary">ICP备案号：闽ICP备19020557号-4A</Text>
               <Icon name="chevron-forward" size={10} />
             </Pressable>
-            <Text className="text-text-tertiary mb-6 text-sm">
+            <Text className="mb-6 text-sm text-text-tertiary">
               Copyright © 2017-{new Date().getFullYear()} west2-online. All Rights Reserved
             </Text>
           </SafeAreaView>
