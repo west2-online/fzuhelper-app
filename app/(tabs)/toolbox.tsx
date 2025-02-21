@@ -99,10 +99,8 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '选课',
     icon: XuankeIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '选课页面');
-    },
+    type: ToolType.LINK,
+    href: '/toolbox/xuanke',
   },
   {
     name: '校园指南',
