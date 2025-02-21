@@ -74,15 +74,16 @@ export default function FilePreviewPage() {
               console.log('progress', received, total);
               setProgress(received / total);
             })
-            .then(res => {
-              try {
+            .then(
+              () => {
                 setIsDownloaded(true);
                 toast.success('下载成功');
                 handleOpenFile();
-              } catch (err) {
-                console.log(err);
-              }
-            });
+              },
+              reason => {
+                throw reason;
+              },
+            );
           break;
         }
         case 'ios': {
@@ -99,6 +100,9 @@ export default function FilePreviewPage() {
             },
           );
           await downloadResumable.downloadAsync();
+          setIsDownloaded(true);
+          toast.success('下载成功');
+          handleOpenFile();
           break;
         }
       }
