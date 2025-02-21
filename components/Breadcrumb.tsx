@@ -48,14 +48,14 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
         const isLast = index === breadcrumbs.length - 1;
         return (
           <View key={item.path} className="h-16 flex-row items-center">
-            {index !== 0 && <ChevronRight size={14} />}
+            {index !== 0 && <ChevronRight size={14} color="gray" />}
             {!isLast ? (
               <TouchableOpacity
                 className="h-16 justify-center"
                 onPress={() => setCurrentPath(item.path)}
                 activeOpacity={0.7}
               >
-                <Text className="text-text-secondary mx-1">{item.name}</Text>
+                <Text className="mx-1 text-text-secondary">{item.name}</Text>
               </TouchableOpacity>
             ) : (
               <Text className="mx-1 text-primary">{item.name}</Text>
