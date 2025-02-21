@@ -1,12 +1,12 @@
 import { getApiV1PaperList } from '@/api/generate';
 import Breadcrumb from '@/components/Breadcrumb';
+import { Icon } from '@/components/Icon';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { useFocusEffect } from '@react-navigation/native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { Search } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { BackHandler, Platform, TouchableOpacity } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
 
 enum LoadingState {
   UNINIT = 'uninit',
@@ -25,17 +25,15 @@ interface SearchButtonProps {
 
 function SearchButton({ currentPath, papers }: SearchButtonProps) {
   return (
-    <TouchableOpacity
+    <Icon
+      name="search"
       onPress={() =>
         router.push({
           pathname: '/toolbox/paper/search',
           params: { currentPath: currentPath, currentPapers: JSON.stringify(papers) },
         })
       }
-      className="p-2"
-    >
-      <Search size={20} />
-    </TouchableOpacity>
+    />
   );
 }
 
@@ -99,16 +97,14 @@ export default function PaperPage() {
           headerRight: () => <SearchButton currentPath={currentPath} papers={currentPapers} />,
         }}
       />
-      <SafeAreaView className="flex-1">
-        <Breadcrumb currentPath={currentPath} setCurrentPath={setCurrentPath} />
-        <PaperList
-          papers={currentPapers}
-          currentPath={currentPath}
-          setCurrentPath={setCurrentPath}
-          isRefreshing={loadingState === LoadingState.PENDING || loadingState === LoadingState.UNINIT}
-          onRefresh={getPaperData}
-        />
-      </SafeAreaView>
+      <Breadcrumb currentPath={currentPath} setCurrentPath={setCurrentPath} />
+      <PaperList
+        papers={currentPapers}
+        currentPath={currentPath}
+        setCurrentPath={setCurrentPath}
+        isRefreshing={loadingState === LoadingState.PENDING || loadingState === LoadingState.UNINIT}
+        onRefresh={getPaperData}
+      />
     </>
   );
 }

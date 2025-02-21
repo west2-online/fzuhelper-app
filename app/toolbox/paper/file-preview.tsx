@@ -163,10 +163,10 @@ export default function FilePreviewPage() {
   return (
     <>
       <Stack.Screen options={{ title: '文件详情' }} />
-      <ThemedView className="flex-1 items-center justify-between bg-gray-100 px-10 py-6">
+      <PageContainer className="flex-1 items-center justify-between bg-background px-10 py-6">
         <View className="mt-24 items-center">
           <FileIcon width={80} height={80} />
-          <Text className="my-8 text-center text-lg font-semibold text-gray-800">{filename}</Text>
+          <Text className="text-text-primary my-8 text-center text-lg font-semibold">{filename}</Text>
         </View>
         <View className="w-full space-y-3">
           {/* 已下载，仅安卓展示打开按钮 */}
@@ -215,10 +215,10 @@ export default function FilePreviewPage() {
             </>
           )}
         </View>
-        <Text className="mx-2 mb-6 text-center text-sm text-gray-500">
+        <Text className="text-text-secondary mx-2 mb-6 text-center text-sm">
           文件来自第三方，对于出现文件不准确导致挂科后果，不予负责，请谨慎下载
         </Text>
-      </ThemedView>
+      </PageContainer>
     </>
   );
 }

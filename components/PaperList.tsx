@@ -77,7 +77,7 @@ export default function PaperList({
   ) : (
     <FlatList
       data={papers}
-      className="flex-1"
+      className="flex-1 bg-card"
       contentContainerStyle={{
         paddingBottom: insets.bottom,
       }}
