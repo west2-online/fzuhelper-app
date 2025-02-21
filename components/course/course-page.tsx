@@ -149,7 +149,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
             </Pressable>
           ),
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => <Icon href="/course/course-settings" name="settings-outline" size={24} className="mr-4" />,
+          headerRight: () => <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />,
         }}
       />
 

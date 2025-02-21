@@ -19,8 +19,6 @@ import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
 import EcardIcon from '@/assets/images/my/ic_ecard.png';
 import HelpIcon from '@/assets/images/my/ic_help.png';
-import HomeworkIcon from '@/assets/images/my/ic_homework.png';
-import NoteIcon from '@/assets/images/my/ic_note.png';
 
 export default function HomePage() {
   const { handleError } = useSafeResponseSolve();
@@ -45,29 +43,19 @@ export default function HomePage() {
   // 菜单项数据
   const menuItems: MenuItem[] = [
     {
-      icon: HomeworkIcon,
-      name: '我的作业',
-      link: '/my/grades' as Href,
-    },
-    {
-      icon: NoteIcon,
-      name: '备忘录',
-      link: '/my/gpa' as Href,
-    },
-    {
       icon: CalendarIcon,
       name: '校历',
       link: '/my/credits' as Href,
     },
     {
-      icon: EcardIcon,
-      name: '一卡通',
-      link: '/my/unified-exam' as Href,
-    },
-    {
       icon: HelpIcon,
       name: '帮助与反馈',
       link: '/my/plan' as Href,
+    },
+    {
+      icon: EcardIcon,
+      name: '关于我们',
+      link: '/(guest)/about' as Href,
     },
   ];
 
@@ -144,7 +132,7 @@ export default function HomePage() {
       <Tabs.Screen
         options={{
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => <Icon href="/(guest)/about" name="settings-outline" size={24} className="mr-4" />,
+          headerRight: () => <Icon href="/settings/app" name="settings-outline" size={24} className="mr-4" />,
         }}
       />
 
@@ -154,7 +142,7 @@ export default function HomePage() {
             <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
             <View>
               <Text className="text-xl font-bold">{userInfo.name}</Text>
-              <Text className="text-text-secondary mt-2 text-sm">这是一条签名</Text>
+              <Text className="mt-2 text-sm text-text-secondary">这是一条签名</Text>
             </View>
           </View>
 
