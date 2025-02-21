@@ -25,32 +25,33 @@ export default function FilePreviewPage() {
   const downloadUri = `http://files.w2fzu.com/${encodeURIComponent(filepath.substring(1))}?_upt=78e7a6691739858884`;
 
   useEffect(() => {
+    // 根据平台设置 localFileUri
+    let uri = '';
     switch (Platform.OS) {
       case 'android':
-        setLocalFileUri(ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir + '/fzuPaper/' + filepath);
+        uri = ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir + '/fzuPaper/' + filepath;
         break;
       case 'ios':
-        setLocalFileUri(FileSystem.cacheDirectory + 'paper' + filepath);
+        uri = FileSystem.cacheDirectory + 'paper' + filepath;
         break;
     }
-  }, [filepath]);
+    setLocalFileUri(uri);
 
-  useEffect(() => {
+    // 检查文件是否存在
     const checkFile = async () => {
       switch (Platform.OS) {
         case 'android':
-          ReactNativeBlobUtil.fs.exists(localFileUri).then(exists => {
-            setIsDownloaded(exists);
-          });
+          const exists = await ReactNativeBlobUtil.fs.exists(uri);
+          setIsDownloaded(exists);
           break;
         case 'ios':
-          const fileInfo = await FileSystem.getInfoAsync(localFileUri);
+          const fileInfo = await FileSystem.getInfoAsync(uri);
           setIsDownloaded(fileInfo.exists);
           break;
       }
     };
     checkFile();
-  }, [localFileUri]);
+  }, [filepath]);
 
   const handleDownload = async () => {
     setIsDownloading(true);
