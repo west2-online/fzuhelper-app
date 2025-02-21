@@ -59,8 +59,8 @@ export default function AcademicPage() {
     <PageContainer className="bg-background p-4">
       {/* 菜单列表 */}
       <View className="mx-4 space-y-4">
-        {menuItems.map(item => (
-          <LabelIconEntry icon={item.icon} label={item.name} onPress={() => router.push(item.link)} />
+        {menuItems.map((item, index) => (
+          <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => router.push(item.link)} />
         ))}
       </View>
     </PageContainer>
