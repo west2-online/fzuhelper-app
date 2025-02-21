@@ -43,7 +43,8 @@ android {
 }
 
 dependencies {
-    // 解决请求很慢的问题 (fastFallback)
-    implementation('com.squareup.okhttp3:okhttp:5.0.0-alpha.14')
+    // https://github.com/facebook/react-native/blob/main/packages/react-native/gradle/libs.versions.toml#L31
+    // 此版本不支持 Fast Fallback，为避免依赖冲突闪退而暂时使用
+    implementation('com.squareup.okhttp3:okhttp:4.9.2')
     implementation('com.google.code.gson:gson:2.11.0')
 }

@@ -99,7 +99,7 @@ class NativeRequestModule : Module() {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
                 resp.headers = response.headers.toMap()
-                resp.data = response.body.bytes()
+                resp.data = response.body?.bytes()
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
@@ -129,7 +129,7 @@ class NativeRequestModule : Module() {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
                 resp.headers = response.headers.toMap()
-                resp.data = response.body.bytes()
+                resp.data = response.body?.bytes()
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
@@ -158,7 +158,7 @@ class NativeRequestModule : Module() {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
                 resp.headers = response.headers.toMap()
-                resp.data = response.body.bytes()
+                resp.data = response.body?.bytes()
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
