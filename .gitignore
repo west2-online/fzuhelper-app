@@ -27,6 +27,7 @@ nativewind-env.d.ts
 /ios/*
 /android/
 !/ios/ci_scripts/ci_post_clone.sh
+!/ios/ci_scripts/ci_post_xcodebuild.sh
 
 # yarn
 yarn-error.log

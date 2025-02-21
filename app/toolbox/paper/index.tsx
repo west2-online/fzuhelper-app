@@ -1,12 +1,13 @@
 import { getApiV1PaperList } from '@/api/generate';
 import Breadcrumb from '@/components/Breadcrumb';
+import { Icon } from '@/components/Icon';
+import PageContainer from '@/components/page-container';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
-import { ThemedView } from '@/components/ThemedView';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { Search } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
 
 enum LoadingState {
   UNINIT = 'uninit',
@@ -25,17 +26,15 @@ interface SearchButtonProps {
 
 function SearchButton({ currentPath, papers }: SearchButtonProps) {
   return (
-    <TouchableOpacity
+    <Icon
+      name="search"
       onPress={() =>
         router.push({
           pathname: '/toolbox/paper/search',
           params: { currentPath: currentPath, currentPapers: JSON.stringify(papers) },
         })
       }
-      className="p-2"
-    >
-      <Search size={20} />
-    </TouchableOpacity>
+    />
   );
 }
 
@@ -45,6 +44,31 @@ export default function PaperPage() {
   const [currentPath, setCurrentPath] = useState(path !== undefined ? path : '/');
   const [currentPapers, setCurrentPapers] = useState<Paper[]>([]);
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
+
+  // 使用 useFocusEffect 替代 useEffect
+  useFocusEffect(
+    useCallback(() => {
+      let backHandler: any;
+
+      if (Platform.OS === 'android') {
+        backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+          if (currentPath === '/') {
+            return false;
+          }
+          const parentPath = currentPath.split('/').slice(0, -1).join('/') || '/';
+          setCurrentPath(parentPath);
+          return true;
+        });
+      }
+
+      // 清理函数
+      return () => {
+        if (backHandler) {
+          backHandler.remove();
+        }
+      };
+    }, [currentPath]),
+  );
 
   // 访问 west2-online 服务器
   const getPaperData = useCallback(async () => {
@@ -74,7 +98,7 @@ export default function PaperPage() {
           headerRight: () => <SearchButton currentPath={currentPath} papers={currentPapers} />,
         }}
       />
-      <ThemedView className="flex-1">
+      <PageContainer>
         <Breadcrumb currentPath={currentPath} setCurrentPath={setCurrentPath} />
         <PaperList
           papers={currentPapers}
@@ -83,7 +107,7 @@ export default function PaperPage() {
           isRefreshing={loadingState === LoadingState.PENDING || loadingState === LoadingState.UNINIT}
           onRefresh={getPaperData}
         />
-      </ThemedView>
+      </PageContainer>
     </>
   );
 }

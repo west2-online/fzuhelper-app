@@ -1,4 +1,19 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Href, Link, Tabs } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, Image, ImageSourcePropType, ScrollView, TouchableOpacity, View } from 'react-native';
+
+import { Icon } from '@/components/Icon';
+import PageContainer from '@/components/page-container';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
+
 import { getApiV1JwchUserInfo } from '@/api/generate';
+import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { JWCH_USER_INFO_KEY } from '@/lib/constants';
+import { clearUserStorage } from '@/utils/user';
+
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
 import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
@@ -6,19 +21,6 @@ import EcardIcon from '@/assets/images/my/ic_ecard.png';
 import HelpIcon from '@/assets/images/my/ic_help.png';
 import HomeworkIcon from '@/assets/images/my/ic_homework.png';
 import NoteIcon from '@/assets/images/my/ic_note.png';
-import { ThemedView } from '@/components/ThemedView';
-import { Button } from '@/components/ui/button';
-import { Text } from '@/components/ui/text';
-import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { JWCH_USER_INFO_KEY } from '@/lib/constants';
-import { clearUserStorage } from '@/utils/user';
-import { AntDesign } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { Href, Link, Tabs } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, ImageSourcePropType, ScrollView, TouchableOpacity, View } from 'react-native';
 
 export default function HomePage() {
   const { handleError } = useSafeResponseSolve();
@@ -33,16 +35,6 @@ export default function HomePage() {
     grade: '', // 所属年级
     major: '', // 所属专业
   });
-
-  const userInfoLabels: Record<string, string> = {
-    stu_id: '学号',
-    birthday: '生日',
-    sex: '性别',
-    name: '姓名',
-    college: '所属学院',
-    grade: '所属年级',
-    major: '所属专业',
-  };
 
   interface MenuItem {
     icon: ImageSourcePropType;
@@ -152,32 +144,29 @@ export default function HomePage() {
       <Tabs.Screen
         options={{
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <Link href="/(guest)/about" asChild>
-              <AntDesign name="setting" size={24} color="black" className="mr-4" />
-            </Link>
-          ),
+          headerRight: () => <Icon href="/(guest)/about" name="settings-outline" size={24} className="mr-4" />,
         }}
       />
-      <ThemedView className="flex-1">
+
+      <PageContainer>
         <ScrollView>
           <View className="flex-row items-center p-8">
             <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
             <View>
               <Text className="text-xl font-bold">{userInfo.name}</Text>
-              <Text className="mt-2 text-sm text-gray-500">这是一条签名</Text>
+              <Text className="text-text-secondary mt-2 text-sm">这是一条签名</Text>
             </View>
           </View>
 
-          <View className="h-full rounded-tr-4xl bg-white px-8">
+          <View className="h-full rounded-tr-4xl bg-card px-8">
             <View className="mt-6">
               <View className="w-full flex-row justify-between">
                 <Text>{userInfo.college}</Text>
                 <Text>{userInfo.stu_id}</Text>
               </View>
               <View className="mt-2 w-full flex-row justify-between">
-                <Text className="text-muted-foreground">2024年1学期</Text>
-                <Text className="text-muted-foreground">第 22 周</Text>
+                <Text className="text-text-secondary">2024年1学期</Text>
+                <Text className="text-text-secondary">第 22 周</Text>
               </View>
             </View>
 
@@ -189,7 +178,7 @@ export default function HomePage() {
                     {/* 图标和名称 */}
                     <View className="flex-row items-center space-x-4">
                       <Image source={item.icon} className="h-7 w-7" />
-                      <Text className="ml-5 text-lg text-foreground">{item.name}</Text>
+                      <Text className="ml-5 text-lg">{item.name}</Text>
                     </View>
                     {/* 右侧箭头 */}
                     <Image source={ArrowRightIcon} className="h-5 w-5" />
@@ -198,23 +187,23 @@ export default function HomePage() {
               ))}
             </View>
 
-            {/* 按钮部分 */}
+            {/* 按钮部分，调试用，后续移除 */}
             <View className="mt-6">
               <Button onPress={getUserInfo} disabled={isRefreshing} className="mb-4">
-                <Text>{isRefreshing ? '刷新中...' : '刷新个人信息'}</Text>
+                <Text className="text-white">{isRefreshing ? '刷新中...' : '刷新个人信息'}</Text>
               </Button>
               <Button onPress={logout} className="mb-4">
-                <Text>退出当前账户</Text>
+                <Text className="text-white">退出当前账户</Text>
               </Button>
               <Link href="/devtools" asChild>
                 <Button>
-                  <Text>开发者选项</Text>
+                  <Text className="text-white">开发者选项</Text>
                 </Button>
               </Link>
             </View>
           </View>
         </ScrollView>
-      </ThemedView>
+      </PageContainer>
     </>
   );
 }

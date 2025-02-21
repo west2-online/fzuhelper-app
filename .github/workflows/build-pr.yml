@@ -1,9 +1,6 @@
 name: Build Debug APK
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
     branches:
       - master

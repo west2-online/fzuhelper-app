@@ -41,7 +41,7 @@ const TimeCol: React.FC = () => {
   }, []);
 
   return (
-    <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
+    <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col bg-background">
       {CLASS_SCHEDULES.map((time, index) => {
         const isActive = isTimeInRange(currentTime, time[0], time[1]);
 
@@ -54,11 +54,11 @@ const TimeCol: React.FC = () => {
             )}
             style={{ minHeight: SCHEDULE_ITEM_MIN_HEIGHT }}
           >
-            <Text className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-muted-foreground')}>
+            <Text className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-text-secondary')}>
               {index + 1}
             </Text>
-            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-muted-foreground')}>{time[0]}</Text>
-            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-muted-foreground')}>{time[1]}</Text>
+            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-text-secondary')}>{time[0]}</Text>
+            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-text-secondary')}>{time[1]}</Text>
           </View>
         );
       })}

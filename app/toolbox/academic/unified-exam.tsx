@@ -1,18 +1,18 @@
+import { Icon } from '@/components/Icon';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { ThemedView } from '@/components/ThemedView';
 import { UnifiedExamCard } from '@/components/academic/UnifiedExamCard';
 import Loading from '@/components/loading';
+import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
-import Ionicons from '@expo/vector-icons/Ionicons';
 
 import type { JwchAcademicUnifiedExamResponse_UnifiedExamData as UnifiedExamData } from '@/api/backend';
 import { getApiV1JwchAcademicUnifiedExam } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function UnifiedExamScorePage() {
   const [isRefreshing, setIsRefreshing] = useState(true); // 是否正在刷新
@@ -54,31 +54,33 @@ export default function UnifiedExamScorePage() {
       {isRefreshing ? (
         <Loading />
       ) : (
-        <ThemedView className="flex-1">
-          <ScrollView
-            className="p-4"
-            refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
-          >
-            {unifiedExamData && unifiedExamData.length > 0 && (
-              <>
-                <SafeAreaView className="flex-1" edges={['bottom']}>
-                  {unifiedExamData.map((item, index) => (
-                    <UnifiedExamCard key={index} item={item} />
-                  ))}
-                  {/* 显示最后更新时间 */}
-                  {lastUpdated && (
-                    <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
-                      <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
-                      <Text className="text-l leading-5 text-gray-600">
-                        数据同步时间：{lastUpdated.toLocaleString()}
-                      </Text>
-                    </View>
-                  )}
-                </SafeAreaView>
-              </>
-            )}
-          </ScrollView>
-        </ThemedView>
+        <PageContainer className="bg-background">
+          <SafeAreaView className="flex-1" edges={['bottom']}>
+            <ScrollView
+              className="p-4"
+              refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+            >
+              {unifiedExamData && unifiedExamData.length > 0 && (
+                <>
+                  <SafeAreaView className="flex-1" edges={['bottom']}>
+                    {unifiedExamData.map((item, index) => (
+                      <UnifiedExamCard key={index} item={item} />
+                    ))}
+                    {/* 显示最后更新时间 */}
+                    {lastUpdated && (
+                      <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
+                        <Icon name="time-outline" size={16} className="mr-2" />
+                        <Text className="text-l text-text-primary leading-5">
+                          数据同步时间：{lastUpdated.toLocaleString()}
+                        </Text>
+                      </View>
+                    )}
+                  </SafeAreaView>
+                </>
+              )}
+            </ScrollView>
+          </SafeAreaView>
+        </PageContainer>
       )}
     </>
   );
