@@ -21,6 +21,7 @@ import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
+import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
 
 // 工具类型的枚举
@@ -94,6 +95,23 @@ const DEFAULT_TOOLS: Tool[] = [
       Alert.alert('暂未开放', '旧版一键评议功能存在功能性缺陷，目前正在修正，预计学期结束前（即评议开始前）上线');
     },
   },
+
+  {
+    name: '选课',
+    icon: XuankeIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '选课页面');
+    },
+  },
+  {
+    name: '校园指南',
+    icon: WikiIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
+    },
+  },
   {
     name: '嘉锡讲坛',
     icon: JiaXiIcon,
@@ -102,14 +120,6 @@ const DEFAULT_TOOLS: Tool[] = [
       pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
     },
   },
-  // {
-  //   name: '学期选课',
-  //   icon: JiaXiIcon,
-  //   type: ToolType.FUNCTION,
-  //   action: async () => {
-  //     pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '选课页面');
-  //   },
-  // },
   {
     name: '智慧餐厅',
     icon: ZHCTIcon,
@@ -124,14 +134,6 @@ const DEFAULT_TOOLS: Tool[] = [
     type: ToolType.FUNCTION,
     action: async () => {
       pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
-    },
-  },
-  {
-    name: '福大Wiki',
-    icon: WikiIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
     },
   },
 ];
@@ -192,7 +194,7 @@ const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
     size="icon"
     onPress={() => toolOnPress(item, router)}
   >
-    {item.icon ? <item.icon width="100%" height="80%" className="h-12 w-12" /> : null}
+    {item.icon ? <item.icon width="42px" height="42px" /> : null}
     <Text
       className="text-text-secondary w-[50px] text-center align-middle"
       // eslint-disable-next-line react-native/no-inline-styles

@@ -306,7 +306,7 @@ export default function SplashScreen() {
                 onPrivacyAgree();
               }}
             >
-              <Text>同意并继续</Text>
+              <Text className="text-white">同意并继续</Text>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
