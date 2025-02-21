@@ -1,11 +1,12 @@
-import ExcelIcon from '@/assets/images/toolbox/paper/file_excel.png';
-import ImageIcon from '@/assets/images/toolbox/paper/file_image.png';
-import PDFIcon from '@/assets/images/toolbox/paper/file_pdf.png';
-import PPTIcon from '@/assets/images/toolbox/paper/file_ppt.png';
-import UnknownIcon from '@/assets/images/toolbox/paper/file_unknown.png';
-import WordIcon from '@/assets/images/toolbox/paper/file_word.png';
-import ZIPIcon from '@/assets/images/toolbox/paper/file_zip.png';
-import FolderIcon from '@/assets/images/toolbox/paper/folder.png';
+import ExcelIcon from '@/assets/images/toolbox/paper/file_excel.svg';
+import ImageIcon from '@/assets/images/toolbox/paper/file_image.svg';
+import PDFIcon from '@/assets/images/toolbox/paper/file_pdf.svg';
+import PPTIcon from '@/assets/images/toolbox/paper/file_ppt.svg';
+import UnknownIcon from '@/assets/images/toolbox/paper/file_unknown.svg';
+import WordIcon from '@/assets/images/toolbox/paper/file_word.svg';
+import ZIPIcon from '@/assets/images/toolbox/paper/file_zip.svg';
+import FolderIcon from '@/assets/images/toolbox/paper/folder.svg';
+import type { SvgProps } from 'react-native-svg';
 
 export { ExcelIcon, FolderIcon, ImageIcon, PDFIcon, PPTIcon, UnknownIcon, WordIcon, ZIPIcon };
 
@@ -19,7 +20,7 @@ export enum FileType {
   UNKNOWN = 'unknown',
 }
 
-export function getFileIcon(filetype: FileType) {
+export function getFileIcon(filetype: FileType): React.FC<SvgProps> {
   let icon = UnknownIcon;
   switch (filetype) {
     case FileType.EXCEL:

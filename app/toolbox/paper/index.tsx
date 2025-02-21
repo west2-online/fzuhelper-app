@@ -3,10 +3,11 @@ import Breadcrumb from '@/components/Breadcrumb';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
 import { ThemedView } from '@/components/ThemedView';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { useFocusEffect } from '@react-navigation/native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { BackHandler, Platform, TouchableOpacity } from 'react-native';
 
 enum LoadingState {
   UNINIT = 'uninit',
@@ -45,6 +46,31 @@ export default function PaperPage() {
   const [currentPath, setCurrentPath] = useState(path !== undefined ? path : '/');
   const [currentPapers, setCurrentPapers] = useState<Paper[]>([]);
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
+
+  // 使用 useFocusEffect 替代 useEffect
+  useFocusEffect(
+    useCallback(() => {
+      let backHandler: any;
+
+      if (Platform.OS === 'android') {
+        backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+          if (currentPath === '/') {
+            return false;
+          }
+          const parentPath = currentPath.split('/').slice(0, -1).join('/') || '/';
+          setCurrentPath(parentPath);
+          return true;
+        });
+      }
+
+      // 清理函数
+      return () => {
+        if (backHandler) {
+          backHandler.remove();
+        }
+      };
+    }, [currentPath]),
+  );
 
   // 访问 west2-online 服务器
   const getPaperData = useCallback(async () => {

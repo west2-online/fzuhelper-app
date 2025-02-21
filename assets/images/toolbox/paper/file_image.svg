@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Vectornator (http://vectornator.io/) -->
+<svg height="96.0pt" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 96 96" width="96.0pt" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<clipPath id="ArtboardFrame">
+<rect height="96" width="96" x="0" y="0"/>
+</clipPath>
+<g clip-path="url(#ArtboardFrame)" id="图层-2">
+<path d="M-1.42109e-14 18C-1.42109e-14 8.05887 8.05887 7.10543e-15 18 1.42109e-14L78 1.42109e-14C87.9411 1.42109e-14 96 8.05887 96 18L96 78C96 87.9411 87.9411 96 78 96L18 96C8.05887 96-1.42109e-14 87.9411-1.42109e-14 78L-1.42109e-14 18Z" fill="#ffeeee" fill-rule="nonzero" opacity="1" stroke="none"/>
+</g>
+<g id="图层-3">
+<g opacity="1">
+<path d="M20 32C20 28.6863 22.6863 26 26 26L70 26C73.3137 26 76 28.6863 76 32L76 64C76 67.3137 73.3137 70 70 70L26 70C22.6863 70 20 67.3137 20 64L20 32Z" fill="none" opacity="1" stroke="#ee6767" stroke-linecap="butt" stroke-linejoin="round" stroke-width="4"/>
+<path d="M30.0356 42.1715C30.0356 38.8578 32.7219 36.1715 36.0356 36.1715C39.3493 36.1715 42.0356 38.8578 42.0356 42.1715C42.0356 45.4852 39.3493 48.1715 36.0356 48.1715C32.7219 48.1715 30.0356 45.4852 30.0356 42.1715Z" fill="none" opacity="1" stroke="#ee6767" stroke-linecap="butt" stroke-linejoin="round" stroke-width="4"/>
+<path d="M28.6353 70L42.0356 53.4112L50.6554 60.6982" fill="none" opacity="1" stroke="#ee6767" stroke-linecap="butt" stroke-linejoin="round" stroke-width="4"/>
+<path d="M43.1117 70L63.7763 44.9245L76 57.4425" fill="none" opacity="1" stroke="#ee6767" stroke-linecap="butt" stroke-linejoin="round" stroke-width="4"/>
+</g>
+</g>
+</svg>
