@@ -1,6 +1,6 @@
-import ArrowRightIcon from '@/assets/images/toolbox/paper/icon_arrow_right.png';
+import { ChevronRight } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
-import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 
 interface BreadcrumbProps {
   currentPath: string;
@@ -48,7 +48,7 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
         const isLast = index === breadcrumbs.length - 1;
         return (
           <View key={item.path} className="h-16 flex-row items-center">
-            {index !== 0 && <Image source={ArrowRightIcon} className="h-3.5 w-3.5" resizeMode="contain" />}
+            {index !== 0 && <ChevronRight size={14} />}
             {!isLast ? (
               <TouchableOpacity
                 className="h-16 justify-center"

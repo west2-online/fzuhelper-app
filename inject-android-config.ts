@@ -27,10 +27,9 @@ function withAndroidSign(config: ExpoConfig): ExpoConfig {
             }
         }`,
     );
-    contents = insertAfter(
-      contents,
-      'buildTypes {\n        debug {\n            signingConfig signingConfigs.debug\n        }\n        release {',
-      `\n            signingConfig signingConfigs.release`,
+    contents = contents.replace(
+      `// Caution! In production, you need to generate your own keystore file.\n            // see https://reactnative.dev/docs/signed-apk-android.\n            signingConfig signingConfigs.debug`,
+      'signingConfig signingConfigs.release',
     );
     contents = insertAfter(
       contents,
