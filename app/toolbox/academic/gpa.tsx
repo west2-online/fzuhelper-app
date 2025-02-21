@@ -1,19 +1,22 @@
 import { useNavigation } from 'expo-router';
-import { useCallback, useLayoutEffect, useState } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { ThemedView } from '@/components/ThemedView';
+import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import type { JwchAcademicGpaResponse } from '@/api/backend';
 import { getApiV1JwchAcademicGpa } from '@/api/generate';
+import { Icon } from '@/components/Icon';
+import Loading from '@/components/loading';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const NAVIGATION_TITLE = '绩点排名';
 
 export default function GPAPage() {
-  const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
+  const [isRefreshing, setIsRefreshing] = useState(true); // 按钮是否禁用
   const [academicData, setAcademicData] = useState<JwchAcademicGpaResponse | null>(null); // 学术成绩数据
 
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
@@ -26,8 +29,6 @@ export default function GPAPage() {
 
   // 访问 west2-online 服务器
   const getAcademicData = useCallback(async () => {
-    if (isRefreshing) return;
-    setIsRefreshing(true);
     try {
       const result = await getApiV1JwchAcademicGpa();
       setAcademicData(result.data.data); // 第一个 data 指的是响应 HTTP 的 data 字段，第二个 data 指的是响应数据的 data 字段
@@ -39,43 +40,53 @@ export default function GPAPage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, handleError]);
+  }, [handleError]);
+
+  useEffect(() => {
+    getAcademicData();
+  }, [getAcademicData]);
+
+  const handleRefresh = useCallback(() => {
+    if (!isRefreshing) {
+      setIsRefreshing(true);
+      setAcademicData(null);
+      getAcademicData();
+    }
+  }, [getAcademicData, isRefreshing]);
 
   return (
-    <ThemedView className="flex-1 bg-white">
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {/* 学术成绩数据列表 */}
-        {academicData && (
-          <View className="mt-6">
-            {/* 时间信息，居中显示 */}
-            <Text className="mb-4 text-center text-lg font-bold text-gray-700">{academicData.time}</Text>
-
-            {/* 数据列表 */}
-            <View className="gap-4 rounded-lg bg-gray-100 p-4 shadow-sm">
-              {academicData.data.map((item, index) => (
-                <View
-                  key={index}
-                  className="mb-2 flex-row items-center justify-between border-b border-gray-300 pb-2 last:border-none"
-                >
-                  <Text className="capitalize text-gray-500">{item.type}:</Text>
-                  <Text className="font-medium text-gray-800">{item.value}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* 刷新按钮 */}
-        <TouchableOpacity
-          onPress={getAcademicData}
-          disabled={isRefreshing}
-          className={`mt-6 rounded-full px-6 py-3 ${isRefreshing ? 'bg-gray-300' : 'bg-blue-500'} shadow-md`}
+    <PageContainer className="bg-background">
+      {isRefreshing ? (
+        <Loading />
+      ) : (
+        <ScrollView
+          className="flex-1 p-4"
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
         >
-          <Text className="text-center text-lg font-semibold text-white">
-            {isRefreshing ? '刷新中...' : '刷新学业情况'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </ThemedView>
+          {/* 学术成绩数据列表 */}
+          {academicData && (
+            <View>
+              {/* 数据列表 */}
+              <SafeAreaView edges={['bottom']}>
+                {academicData.data.map((item, index) => (
+                  <View className="my-1 flex-row justify-between p-2" key={item.type}>
+                    <Text>{item.type}</Text>
+                    <Text className="font-bold">{item.value}</Text>
+                  </View>
+                ))}
+                {/* 显示最后更新时间 */}
+                <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
+                  <Icon name="time-outline" size={16} className="mr-2" />
+                  <Text className="text-l text-text-primary leading-5">{academicData.time}</Text>
+                </View>
+                <Text className="p-2 text-red-500">
+                  注：绩点排名中的总学分只计算参与绩点计算的学分总和，并不代表所修学分总和。
+                </Text>
+              </SafeAreaView>
+            </View>
+          )}
+        </ScrollView>
+      )}
+    </PageContainer>
   );
 }

@@ -47,7 +47,7 @@ const courseColorMap: Map<string, string> = new Map(); // 存储 courseName 和�
  * @param courseName 课程名称
  * @returns 分配的颜色
  */
-const generateRandomColor = (courseName: string): string => {
+const generateRandomColor = (courseName: string, darkmode: boolean): string => {
   // 如果已经为这个 courseName 分配了颜色，直接返回
   if (courseColorMap.has(courseName)) {
     return courseColorMap.get(courseName)!;
@@ -66,10 +66,12 @@ const generateRandomColor = (courseName: string): string => {
   // 从可用颜色数组中移除已选择的颜色
   availableColors.splice(randomIndex, 1);
 
-  // TODO: 深色主题下，对颜色进行按位与 0xC0FFFFFF 的处理，使颜色变得更加柔和
-  // eslint-disable-next-line no-bitwise
-  // const processedColor = `#${(parseInt(color.slice(1), 16) & 0xc0ffffff).toString(16).padStart(6, '0').toUpperCase()}`;
-  const processedColor = color;
+  // 深色主题下，对颜色进行按位与 0xC0FFFFFF 的处理，使颜色变得更加柔和
+  let processedColor = color;
+  if (darkmode) {
+    // eslint-disable-next-line no-bitwise
+    processedColor = `#${(parseInt(color.slice(1), 16) & 0xc0ffffff).toString(16).padStart(6, '0').toUpperCase()}`;
+  }
 
   // 将新颜色与 courseName 的关系存储到映射中
   courseColorMap.set(courseName, processedColor);

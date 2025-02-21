@@ -38,17 +38,26 @@ function withIOSInject(config: ExpoConfig): ExpoConfig {
   config = withDangerousMod(config, [
     'ios',
     async iosConfig => {
-      // 将 script/ci_post_clone.sh 复制到 iOS 目录下
-      const iosProjectPath = join(iosConfig.modRequest.projectRoot, 'ios'); // iOS 项目目录
-      const sourcePath = resolve(iosConfig.modRequest.projectRoot, './scripts/ci_post_clone.sh'); // 脚本文件地址
-      const targetPath = join(iosProjectPath, 'ci_scripts/ci_post_clone.sh'); // 目标地址
+      // iOS 项目目录
+      const iosProjectPath = join(iosConfig.modRequest.projectRoot, 'ios');
+
+      // 定义需要复制的脚本文件
+      const scripts = [
+        { source: './scripts/ci_post_clone.sh', target: 'ci_scripts/ci_post_clone.sh' },
+        { source: './scripts/ci_post_xcodebuild.sh', target: 'ci_scripts/ci_post_xcodebuild.sh' },
+      ];
 
       try {
-        // 确保目标目录存在
-        await fs.mkdir(join(targetPath, '..'), { recursive: true });
-        // 复制文件
-        await fs.copyFile(sourcePath, targetPath);
-        console.log(`Copied Prebuild Scripts from ${sourcePath} to ${targetPath}`);
+        for (const script of scripts) {
+          const sourcePath = resolve(iosConfig.modRequest.projectRoot, script.source); // 脚本文件地址
+          const targetPath = join(iosProjectPath, script.target); // 目标地址
+
+          // 确保目标目录存在
+          await fs.mkdir(join(targetPath, '..'), { recursive: true });
+          // 复制文件
+          await fs.copyFile(sourcePath, targetPath);
+          console.log(`Copied Prebuild Script from ${sourcePath} to ${targetPath}`);
+        }
       } catch (error: any) {
         console.error(`Failed to copy Prebuild Scripts: ${error.message}`);
         throw error;
@@ -57,6 +66,7 @@ function withIOSInject(config: ExpoConfig): ExpoConfig {
       return iosConfig;
     },
   ]);
+
   return config;
 }
 

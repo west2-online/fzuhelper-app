@@ -1,12 +1,13 @@
 import { Paper, PaperType } from '@/components/PaperList';
-import { ThemedView } from '@/components/ThemedView';
+import { Card } from '@/components/ui/card';
 import { PAPER_SEARCH_HISTORY_KEY } from '@/lib/constants';
 import { FolderIcon, getFileIcon, guessFileType } from '@/lib/filetype';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, UnknownOutputParams, useLocalSearchParams, useRouter } from 'expo-router';
 import { Trash2 } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
-import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface SearchPageParam extends UnknownOutputParams {
   currentPath: string;
@@ -17,6 +18,7 @@ export default function SearchPage() {
   const { currentPath, currentPapers } = useLocalSearchParams<SearchPageParam>();
   const router = useRouter();
   const [parsedPapers, setParsedPapers] = useState<Paper[]>([]);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (currentPapers) {
@@ -40,8 +42,9 @@ export default function SearchPage() {
   };
 
   const saveSearchHistory = async (query: string) => {
-    if (!query || searchHistory.includes(query)) return;
-    const updatedHistory = [query, ...searchHistory.slice(0, 9)];
+    if (!query) return;
+    let updatedHistory = searchHistory.filter(item => item !== query);
+    updatedHistory = [query, ...updatedHistory.slice(0, 9)];
     setSearchHistory(updatedHistory);
     await AsyncStorage.setItem(PAPER_SEARCH_HISTORY_KEY, JSON.stringify(updatedHistory));
   };
@@ -71,58 +74,66 @@ export default function SearchPage() {
   return (
     <>
       <Stack.Screen options={{ title: '搜索' }} />
-      <ThemedView className="flex-1">
-        <View className="border-b border-gray-300 p-4">
-          <TextInput
-            className="h-12 rounded bg-gray-200 px-3"
-            placeholder="搜索"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={() => saveSearchHistory(searchQuery)}
-          />
-        </View>
-        {searchQuery ? (
-          <FlatList
-            data={filteredPapers}
-            keyExtractor={item => item.name}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                className="flex-row items-center border-b border-gray-200 p-3"
-                onPress={() => handlePressItem(item)}
-              >
-                <Image
-                  source={item.type === PaperType.FOLDER ? FolderIcon : getFileIcon(guessFileType(item.name))}
-                  className="mr-2 h-6 w-6"
-                  resizeMode="contain"
-                />
-                <Text>{item.name}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        ) : (
-          <View className="p-4">
-            <View className="mb-2 flex-row items-center justify-between">
-              <Text className="font-bold">搜索历史</Text>
-              <TouchableOpacity onPress={clearSearchHistory}>
-                <Trash2 size={20} color="gray" />
-              </TouchableOpacity>
-            </View>
-            {searchHistory.length > 0 ? (
-              searchHistory.map((query, index) => (
-                <TouchableOpacity
-                  key={index}
-                  className="border-b border-gray-200 p-2"
-                  onPress={() => setSearchQuery(query)}
-                >
-                  <Text>{query}</Text>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <Text className="text-gray-500">无搜索历史</Text>
-            )}
+      <Card className="mx-4 mt-4">
+        <TextInput
+          className="h-12 rounded px-3"
+          placeholder="输入关键词搜索"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onSubmitEditing={() => saveSearchHistory(searchQuery)}
+        />
+      </Card>
+      {searchQuery ? (
+        <FlatList
+          data={filteredPapers}
+          keyExtractor={item => item.name}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            paddingBottom: insets.bottom,
+          }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              className="h-16 w-full flex-row items-center px-6 py-2"
+              onPress={() => {
+                handlePressItem(item);
+                saveSearchHistory(searchQuery);
+              }}
+            >
+              {item.type === PaperType.FOLDER ? (
+                <FolderIcon width={18} height={18} />
+              ) : (
+                React.createElement(getFileIcon(guessFileType(item.name)), { width: 18, height: 18 })
+              )}
+              <Text className="ml-6 flex-1 text-base">{item.name}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      ) : (
+        <View className="p-4">
+          <View className="mb-2 flex-row items-center justify-between">
+            <Text className="font-bold">搜索历史</Text>
+            <TouchableOpacity onPress={clearSearchHistory}>
+              <Trash2 size={20} color="gray" />
+            </TouchableOpacity>
           </View>
-        )}
-      </ThemedView>
+          {searchHistory.length > 0 ? (
+            searchHistory.map((query, index) => (
+              <TouchableOpacity
+                key={index}
+                className="border-b border-border p-2"
+                onPress={() => {
+                  setSearchQuery(query);
+                  saveSearchHistory(query);
+                }}
+              >
+                <Text>{query}</Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text className="text-text-secondary">无搜索历史</Text>
+          )}
+        </View>
+      )}
     </>
   );
 }

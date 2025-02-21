@@ -1,11 +1,12 @@
 import { useRouter, type Href, type Router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Linking, Text } from 'react-native';
+import { Alert, FlatList, Image, Linking } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { ThemedView } from '@/components/ThemedView';
 import Banner, { type BannerContent } from '@/components/banner';
+import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 
 import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
 
@@ -93,7 +94,31 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: JiaXiIcon,
     type: ToolType.FUNCTION,
     action: async () => {
-      await pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
+      pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
+    },
+  },
+  {
+    name: '学期选课',
+    icon: JiaXiIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      await pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '选课页面');
+    },
+  },
+  {
+    name: '飞跃手册',
+    icon: FZURunIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      await pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
+    },
+  },
+  {
+    name: '福大Wiki',
+    icon: WikiIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      await pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
     },
   },
   {
@@ -179,7 +204,13 @@ const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
     onPress={() => toolOnPress(item, router)}
   >
     {item.icon ? <Image source={item.icon} className="h-12 w-12" resizeMode="contain" /> : null}
-    <Text className="w-[50px] text-center align-middle text-sm text-foreground" numberOfLines={1} ellipsizeMode="tail">
+    <Text
+      className="text-text-secondary w-[50px] text-center align-middle"
+      // eslint-disable-next-line react-native/no-inline-styles
+      style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
+      numberOfLines={1}
+      ellipsizeMode="tail"
+    >
       {item.name}
     </Text>
   </Button>
@@ -190,7 +221,7 @@ export default function ToolsPage() {
   const router = useRouter();
 
   return (
-    <ThemedView className="m-6">
+    <PageContainer className="p-6">
       {/* 滚动横幅 */}
       <Banner contents={bannerList} />
 
@@ -203,6 +234,6 @@ export default function ToolsPage() {
         columnWrapperClassName="justify-between"
         renderItem={({ item }) => renderToolButton({ item }, router)}
       />
-    </ThemedView>
+    </PageContainer>
   );
 }

@@ -1,6 +1,7 @@
 import {
   getApiV1JwchAcademicCredit,
   getApiV1JwchAcademicGpa,
+  getApiV1JwchAcademicPlan,
   getApiV1JwchAcademicUnifiedExam,
   getApiV1JwchClassroomExam,
   getApiV1JwchCourseList,
@@ -50,6 +51,9 @@ export type JwchAcademicCreditResponse_AcademicCreditData = JwchAcademicCreditRe
 // getApiV1JwchAcademicUnifiedExam
 export type JwchAcademicUnifiedExamResponse = AsyncReturnType<typeof getApiV1JwchAcademicUnifiedExam>['data']['data'];
 export type JwchAcademicUnifiedExamResponse_UnifiedExamData = JwchAcademicUnifiedExamResponse[0];
+
+// getApiV1JwchAcademicPlan
+export type JwchAcademicPlanResponse = AsyncReturnType<typeof getApiV1JwchAcademicPlan>['data']['data'];
 
 // === 教室 ===
 
