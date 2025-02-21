@@ -3,8 +3,8 @@ import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner-native';
 
-import LabelEntry from '@/components/LabelEntry';
-import SwitchWithLabel from '@/components/Switch';
+import LabelEntry from '@/components/label-entry';
+import LabelSwitch from '@/components/label-switch';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
@@ -129,7 +129,7 @@ export default function AcademicPage() {
         <ScrollView className="flex-1 bg-background px-8 pt-8">
           <SafeAreaView edges={['bottom']}>
             {/* 菜单列表 */}
-            <Text className="mb-2 text-sm text-foreground">课程数据</Text>
+            <Text className="text-text-secondary mb-2 text-sm">课程数据</Text>
 
             <LabelEntry leftText="刷新数据" />
 
@@ -140,15 +140,15 @@ export default function AcademicPage() {
               disabled={isLoadingSemester}
             />
 
-            <Text className="mb-2 mt-4 text-sm text-foreground">开关设置</Text>
+            <Text className="text-text-secondary mb-2 mt-4 text-sm">开关设置</Text>
 
-            <SwitchWithLabel
+            <LabelSwitch
               label="导出到本地日历"
               value={settings.calendarExportEnabled}
               onValueChange={handleExportToCalendar}
             />
 
-            <SwitchWithLabel
+            <LabelSwitch
               label="显示非本周课程"
               value={settings.showNonCurrentWeekCourses}
               onValueChange={handleShowNonCurrentWeekCourses}

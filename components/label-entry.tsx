@@ -28,11 +28,11 @@ const LabelEntry: React.FC<LabelEntryProps> = ({
     >
       <View className="w-full flex-row items-center justify-between">
         <View className="flex-1">
-          <Text className="truncate text-lg text-foreground">{leftText}</Text>
-          {description && <Text className="text-sm text-muted-foreground">{description}</Text>}
+          <Text className="text-text-primary truncate text-lg">{leftText}</Text>
+          {description && <Text className="text-text-secondary text-sm">{description}</Text>}
         </View>
         <View className="flex-row items-center">
-          <Text className="truncate text-lg text-muted-foreground">{rightText}</Text>
+          <Text className="text-text-secondary mr-3 truncate text-lg">{rightText}</Text>
           <Icon name="chevron-forward-outline" size={14} />
         </View>
       </View>

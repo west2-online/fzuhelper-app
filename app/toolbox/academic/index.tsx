@@ -1,16 +1,15 @@
-import { Link, useNavigation, type Href } from 'expo-router';
+import { router, useNavigation, type Href } from 'expo-router';
 import { useLayoutEffect } from 'react';
-import { Image, TouchableOpacity, View, type ImageSourcePropType } from 'react-native';
+import { View, type ImageSourcePropType } from 'react-native';
 
 import PageContainer from '@/components/page-container';
-import { Text } from '@/components/ui/text';
 
-import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
 import CreditIcon from '@/assets/images/toolbox/academic/ic_credit.png';
 import GpaIcon from '@/assets/images/toolbox/academic/ic_gpa.png';
 import PlanIcon from '@/assets/images/toolbox/academic/ic_plan.png';
 import ScoreIcon from '@/assets/images/toolbox/academic/ic_score.png';
 import UnifiedIcon from '@/assets/images/toolbox/academic/ic_unified.png';
+import LabelIconEntry from '@/components/label-icon-entry';
 
 interface MenuItem {
   icon: ImageSourcePropType;
@@ -59,19 +58,9 @@ export default function AcademicPage() {
   return (
     <PageContainer className="bg-background p-4">
       {/* 菜单列表 */}
-      <View className="space-y-4">
-        {menuItems.map((item, index) => (
-          <Link key={index} href={item.link} asChild>
-            <TouchableOpacity className="flex-row items-center justify-between p-4">
-              {/* 图标和名称 */}
-              <View className="flex-row items-center space-x-4">
-                <Image source={item.icon} className="h-7 w-7" />
-                <Text className="ml-5 text-lg">{item.name}</Text>
-              </View>
-              {/* 右侧箭头 */}
-              <Image source={ArrowRightIcon} className="h-5 w-5" />
-            </TouchableOpacity>
-          </Link>
+      <View className="mx-4 space-y-4">
+        {menuItems.map(item => (
+          <LabelIconEntry icon={item.icon} label={item.name} onPress={() => router.push(item.link)} />
         ))}
       </View>
     </PageContainer>

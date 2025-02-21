@@ -4,7 +4,7 @@ import { View } from 'react-native';
 
 import PageContainer from '@/components/page-container';
 
-import LabelEntry from '@/components/LabelEntry';
+import LabelEntry from '@/components/label-entry';
 import { pushToWebViewJWCH } from '@/lib/webview';
 
 interface MenuItem {

@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Href, Link, Tabs } from 'expo-router';
+import { Href, Link, router, Tabs } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, ImageSourcePropType, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ImageSourcePropType, ScrollView, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
+import LabelIconEntry from '@/components/label-icon-entry';
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -14,7 +15,6 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { JWCH_USER_INFO_KEY } from '@/lib/constants';
 import { clearUserStorage } from '@/utils/user';
 
-import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
 import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
 import EcardIcon from '@/assets/images/my/ic_ecard.png';
@@ -142,7 +142,7 @@ export default function HomePage() {
             <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
             <View>
               <Text className="text-xl font-bold">{userInfo.name}</Text>
-              <Text className="mt-2 text-sm text-text-secondary">这是一条签名</Text>
+              <Text className="text-text-secondary mt-2 text-sm">这是一条签名</Text>
             </View>
           </View>
 
@@ -160,18 +160,8 @@ export default function HomePage() {
 
             {/* 菜单列表 */}
             <View className="mt-4 space-y-4">
-              {menuItems.map((item, index) => (
-                <Link key={index} href={item.link} asChild>
-                  <TouchableOpacity className="flex-row items-center justify-between py-4">
-                    {/* 图标和名称 */}
-                    <View className="flex-row items-center space-x-4">
-                      <Image source={item.icon} className="h-7 w-7" />
-                      <Text className="ml-5 text-lg">{item.name}</Text>
-                    </View>
-                    {/* 右侧箭头 */}
-                    <Image source={ArrowRightIcon} className="h-5 w-5" />
-                  </TouchableOpacity>
-                </Link>
+              {menuItems.map(item => (
+                <LabelIconEntry icon={item.icon} label={item.name} onPress={() => router.push(item.link)} />
               ))}
             </View>
 

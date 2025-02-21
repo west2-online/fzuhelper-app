@@ -10,7 +10,7 @@ import {
   openSettings,
 } from 'react-native-permissions';
 
-import LabelEntry from '@/components/LabelEntry';
+import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 import { SafeAreaView } from 'react-native-safe-area-context';

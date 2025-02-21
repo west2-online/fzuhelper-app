@@ -8,15 +8,15 @@ interface SwitchWithLabelProps {
   onValueChange: () => void;
 }
 
-const SwitchWithLabel: React.FC<SwitchWithLabelProps> = ({ label, value, onValueChange }) => {
+const LabelSwitch: React.FC<SwitchWithLabelProps> = ({ label, value, onValueChange }) => {
   return (
     <Pressable className="space-y-4" onPress={onValueChange}>
       <View className="flex-row items-center justify-between py-4">
-        <Text className="text-lg text-foreground">{label}</Text>
+        <Text className="text-text-primary text-lg">{label}</Text>
         <Switch checked={value} onCheckedChange={onValueChange} />
       </View>
     </Pressable>
   );
 };
 
-export default SwitchWithLabel;
+export default LabelSwitch;
