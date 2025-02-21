@@ -39,8 +39,8 @@ function withAndroidSign(config: ExpoConfig): ExpoConfig {
         abi {
             reset()
             enable true
-            universalApk true
-            include "armeabi-v7a", "arm64-v8a", "x86_64"
+            universalApk false
+            include "arm64-v8a", "x86_64"
         }
     }`,
     );
