@@ -7,10 +7,6 @@
  * - 对于单独业务的 key，请以业务名称简写开头，并在同一业务内保持统一。
  */
 
-// 事件
-// 以 EVENT_ 开头
-export const EVENT_COURSE_UPDATE = 'course_update';
-
 // 服务端Token
 export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
@@ -59,6 +55,21 @@ export const CLASS_SCHEDULES = [
 
 // 历年卷
 export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';
+
+// 成绩颜色对照
+export const GRADE_COLOR_EXCELLENT = '#9310FF'; // >90 优秀
+export const GRADE_COLOR_GOOD = '#1089FF'; // 80-89 良好
+export const GRADE_COLOR_MEDIUM = '#10CEFF'; // 70-79 中等
+export const GRADE_COLOR_PASS = '#FFA710'; // 60-69 及格
+export const GRADE_COLOR_FAIL = '#FF0000'; // <60 不及格
+export const GRADE_COLOR_UNKNOWN = '#BBBBBB'; // 成绩未录入 缺考
+
+// 课程类型映射，目前适用于考场查询
+export const COURSE_SYMBOLS_MAP = {
+  '▲': '[补考]',
+  '●': '[重修]',
+  '★': '[二专业]',
+} as const;
 
 // for RNR
 // please sync it with values in `global.css`

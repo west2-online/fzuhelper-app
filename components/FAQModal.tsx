@@ -1,9 +1,9 @@
 import React from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Linking, Modal, Pressable, Text, View } from 'react-native';
 
 interface FAQItem {
   question: string;
-  answer: string;
+  answer: string | (string | { text: string; url: string })[]; // 支持包含链接的复杂内容
 }
 
 interface FAQModalProps {
@@ -13,6 +13,38 @@ interface FAQModalProps {
 }
 
 const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
+  // 渲染 answer 内容（支持纯文本和包含链接的混合内容）
+  const renderAnswer = (answer: FAQItem['answer']) => {
+    if (typeof answer === 'string') {
+      // 如果是纯文本，直接渲染
+      return <Text className="mb-1 text-sm text-gray-600">{answer}</Text>;
+    }
+
+    // 如果是数组，逐个渲染
+    return (
+      <Text className="mb-1 text-sm text-gray-600">
+        {answer.map((part, index) => {
+          if (typeof part === 'string') {
+            // 文本部分直接渲染
+            return <Text key={index}>{part}</Text>;
+          } else if (typeof part === 'object' && part.url) {
+            // 链接部分渲染为可点击的文本
+            return (
+              <Text
+                key={index}
+                className="text-blue-500 underline"
+                onPress={() => Linking.openURL(part.url)} // 点击打开链接
+              >
+                {part.text}
+              </Text>
+            );
+          }
+          return null;
+        })}
+      </Text>
+    );
+  };
+
   return (
     <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
       <Pressable
@@ -29,7 +61,7 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
               {data.map((item, index) => (
                 <View key={index}>
                   <Text className="mt-1 text-base font-semibold text-gray-800">{item.question}</Text>
-                  <Text className="mb-1 text-sm text-gray-600">{item.answer}</Text>
+                  {renderAnswer(item.answer)}
                 </View>
               ))}
             </View>

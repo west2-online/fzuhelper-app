@@ -13,7 +13,7 @@ import { useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CreditsPage() {
-  const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
+  const [isRefreshing, setIsRefreshing] = useState(true); // 是否正在刷新
   const [creditData, setCreditData] = useState<CreditData[] | null>(null); // 学分数据
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null); // 数据最后更新时间
   const handleErrorRef = useRef(useSafeResponseSolve().handleError); // 错误处理函数
@@ -34,7 +34,6 @@ export default function CreditsPage() {
 
   // 初始化时获取学分数据
   useEffect(() => {
-    setIsRefreshing(true);
     fetchCreditData();
   }, [fetchCreditData]);
 
@@ -50,30 +49,31 @@ export default function CreditsPage() {
   return (
     <>
       <Stack.Screen options={{ headerTitle: '学分统计' }} />
-      <SafeAreaView className="flex-1" edges={['bottom']}>
+      {isRefreshing ? (
+        <Loading />
+      ) : (
         <ScrollView
           className="flex-1 p-4"
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
         >
-          {creditData && creditData.length > 0 ? (
+          {creditData && creditData.length > 0 && (
             <>
-              {/* 显示最后更新时间 */}
-              {lastUpdated && (
-                <View className="mb-2 flex flex-row items-center justify-center rounded-lg p-2">
-                  <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
-                  <Text className="text-l leading-5 text-gray-600">数据同步时间：{lastUpdated.toLocaleString()}</Text>
-                </View>
-              )}
-
-              {creditData.map((credit, index) => (
-                <CreditCard key={index} item={credit} />
-              ))}
+              <SafeAreaView className="flex-1" edges={['bottom']}>
+                {creditData.map((credit, index) => (
+                  <CreditCard key={index} item={credit} />
+                ))}
+                {/* 显示最后更新时间 */}
+                {lastUpdated && (
+                  <View className="my-4 flex flex-row items-center justify-center rounded-lg p-2">
+                    <Ionicons name="time-outline" size={16} className="mr-2 text-gray-500" />
+                    <Text className="text-l leading-5 text-gray-600">数据同步时间：{lastUpdated.toLocaleString()}</Text>
+                  </View>
+                )}
+              </SafeAreaView>
             </>
-          ) : (
-            <Loading />
           )}
         </ScrollView>
-      </SafeAreaView>
+      )}
     </>
   );
 }

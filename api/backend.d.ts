@@ -1,6 +1,8 @@
 import {
   getApiV1JwchAcademicCredit,
   getApiV1JwchAcademicGpa,
+  getApiV1JwchAcademicPlan,
+  getApiV1JwchAcademicUnifiedExam,
   getApiV1JwchClassroomExam,
   getApiV1JwchCourseList,
   getApiV1TermsList,
@@ -25,7 +27,7 @@ export type AsyncReturnType<
 // getApiV1TermsList
 export type TermsListResponse = AsyncReturnType<typeof getApiV1TermsList>['data']['data'];
 export type TermsListResponse_Terms = TermsListResponse['terms']; // 学期列表
-export type TermsListResponse_Term = TermsListResponse_Terms[0]; // 默认的第一个学期
+export type TermsListResponse_Term = TermsListResponse_Terms[0]; // 列表中的元素（一个学期）
 
 // === 课表 ===
 
@@ -45,6 +47,13 @@ export type JwchAcademicGpaResponse_AcademicGpaDataItem = JwchAcademicGpaRespons
 // getApiV1JwchAcademicCredit
 export type JwchAcademicCreditResponse = AsyncReturnType<typeof getApiV1JwchAcademicCredit>['data']['data'];
 export type JwchAcademicCreditResponse_AcademicCreditData = JwchAcademicCreditResponse[0];
+
+// getApiV1JwchAcademicUnifiedExam
+export type JwchAcademicUnifiedExamResponse = AsyncReturnType<typeof getApiV1JwchAcademicUnifiedExam>['data']['data'];
+export type JwchAcademicUnifiedExamResponse_UnifiedExamData = JwchAcademicUnifiedExamResponse[0];
+
+// getApiV1JwchAcademicPlan
+export type JwchAcademicPlanResponse = AsyncReturnType<typeof getApiV1JwchAcademicPlan>['data']['data'];
 
 // === 教室 ===
 

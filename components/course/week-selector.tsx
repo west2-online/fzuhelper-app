@@ -1,8 +1,8 @@
-// WeekSelector.tsx
+import { useCallback } from 'react';
+import { FlatList } from 'react-native';
 
-import { AntDesign } from '@expo/vector-icons';
-import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 
 interface WeekSelectorProps {
   currentWeek: number;
@@ -11,13 +11,15 @@ interface WeekSelectorProps {
 }
 
 const WeekSelector: React.FC<WeekSelectorProps> = ({ currentWeek, maxWeek, onWeekSelect }) => {
-  const renderItem = ({ item }: { item: number }) => (
-    <TouchableOpacity
-      onPress={() => onWeekSelect(item)}
-      style={[styles.itemContainer, item === currentWeek ? styles.selectedItem : styles.unselectedItem]}
-    >
-      <Text style={styles.itemText}>第 {item} 周</Text>
-    </TouchableOpacity>
+  const renderItem = useCallback(
+    ({ item }: { item: number }) => (
+      <Button onPress={() => onWeekSelect(item)} variant={item === currentWeek ? 'default' : 'outline'}>
+        <Text>
+          第 {item} 周 {item === currentWeek ? '（当前周）' : ''}
+        </Text>
+      </Button>
+    ),
+    [currentWeek, onWeekSelect],
   );
 
   return (
@@ -25,38 +27,10 @@ const WeekSelector: React.FC<WeekSelectorProps> = ({ currentWeek, maxWeek, onWee
       data={Array.from({ length: maxWeek }, (_, i) => i + 1)}
       renderItem={renderItem}
       keyExtractor={item => item.toString()}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={{ padding: 10 }}
       showsVerticalScrollIndicator={false}
     />
   );
 };
-
-const styles = StyleSheet.create({
-  list: {
-    padding: 10,
-  },
-  itemContainer: {
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 5,
-    elevation: 3, // For Android shadow
-    shadowColor: '#000', // For iOS shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    alignItems: 'center',
-  },
-  selectedItem: {
-    backgroundColor: '#007BFF', // Green for selected
-  },
-  unselectedItem: {
-    backgroundColor: 'white', // White for unselected
-  },
-  itemText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-});
 
 export default WeekSelector;

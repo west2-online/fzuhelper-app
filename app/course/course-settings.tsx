@@ -1,72 +1,39 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, TouchableWithoutFeedback, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner-native';
 
 import LabelEntry from '@/components/LabelEntry';
 import SwitchWithLabel from '@/components/Switch';
 import { ThemedView } from '@/components/ThemedView';
-import { Button } from '@/components/ui/button';
+import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
-import WheelPicker from '@/components/wheelPicker';
 
-import { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
+import { useUpdateEffect } from '@/hooks/use-update-effect';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EVENT_COURSE_UPDATE } from '@/lib/constants';
-import EventRegister from '@/lib/event-bus';
+import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
 import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
 
-interface SemesterData {
-  label: string;
-  value: string;
-}
-
 export default function AcademicPage() {
-  // 下面这些数据会在页面 Loading 时读取 AsyncStorage，如果没有才使用下列默认值
-  const [isPickerVisible, setPickerVisible] = useState(false); // 是否显示 Picker
-  const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting); // 课程设置
-  const [semesters, setSemesters] = useState<SemesterData[]>([]); // 动态加载的数据
-  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
-  const [isLoadingSemester, setLoadingSemester] = useState(false); // 是否正在加载学期数据
-  const [tempIndex, setTempIndex] = useState(0); // 临时索引
-
-  // 处理显示名称，示例：
-  // 202401 -> 2024年秋季
-  // 202402 -> 2025年春季
-  const formatSemesterDisplayText = useCallback((semester: string) => {
-    // 额外判断一下长度，防止出现异常
-    if (semester.length !== 6) {
-      return '未知学期 (' + semester + ')';
-    }
-
-    const year = parseInt(semester.slice(0, 4), 10);
-    const term = semester.slice(4);
-
-    return `${year + (term === '01' ? 0 : 1)}年${term === '01' ? '秋季' : '春季'}`;
-  }, []);
-
-  const semesterLabel = useMemo(
-    () => formatSemesterDisplayText(settings.selectedSemester),
-    [settings, formatSemesterDisplayText],
-  );
+  const [isPickerVisible, setPickerVisible] = useState(false);
+  const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
+  const [semesters, setSemesters] = useState<string[]>([]);
+  const { handleError } = useSafeResponseSolve();
+  const [isLoadingSemester, setLoadingSemester] = useState(false);
 
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
     console.log('读取课程设置');
-
     setSettings(await readCourseSetting());
   }, []);
 
   // 将当前设置保存至 AsyncStorage，采用 json 形式保存
-  // 保存后会发送 EVENT_COURSE_UPDATE 事件，通知课程页面更新
   const saveSettingsToStorage = useCallback(async (newSettings: CourseSetting) => {
-    console.log('保存课程设置');
+    console.log('保存课程设置, ', newSettings);
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(newSettings));
-    EventRegister.emit(EVENT_COURSE_UPDATE, newSettings.selectedSemester); // 发送事件，通知课程页面更新为具体的学期
   }, []);
 
   // 页面加载时读取设置
@@ -75,7 +42,7 @@ export default function AcademicPage() {
   }, [readSettingsFromStorage]);
 
   // 设置变化时保存设置
-  useEffect(() => {
+  useUpdateEffect(() => {
     saveSettingsToStorage(settings);
   }, [settings, saveSettingsToStorage]);
 
@@ -89,20 +56,14 @@ export default function AcademicPage() {
     queryFn: getApiV1TermsList,
   });
 
-  const semesterList = useMemo<TermsListResponse_Terms>(() => termListData?.data.data.terms ?? [], [termListData]);
-
   // 获取学期数据
   const getTermsData = useCallback(async () => {
     try {
       const result = await getApiV1JwchTermList(); // 数据格式样例： ['202401', '202402']
-      const formattedSemesters = result.data.data.map(term => ({
-        label: formatSemesterDisplayText(term),
-        value: term,
-      }));
-      setSemesters(formattedSemesters); // 更新学期数据源
+      setSemesters(result.data.data); // 更新学期数据源
       setSettings(prevSettings => ({
         ...prevSettings,
-        selectedSemester: prevSettings.selectedSemester || formattedSemesters[0]?.value,
+        selectedSemester: prevSettings.selectedSemester || semesters[0],
       }));
     } catch (error: any) {
       const data = handleError(error);
@@ -110,7 +71,7 @@ export default function AcademicPage() {
         toast.error(data.msg ? data.msg : '未知错误');
       }
     }
-  }, [handleError, formatSemesterDisplayText]);
+  }, [semesters, handleError]);
 
   // 选择学期开关
   const handleOpenTermSelectPicker = useCallback(async () => {
@@ -120,17 +81,11 @@ export default function AcademicPage() {
     setLoadingSemester(false);
   }, [getTermsData]);
 
-  // 关闭 Picker
-  const handleCloseTermSelectPicker = useCallback(() => {
+  // 确认选择学期
+  const handleConfirmTermSelectPicker = useCallback((selectedValue: string) => {
     setPickerVisible(false);
+    setSettings(prevSettings => ({ ...prevSettings, selectedSemester: selectedValue }));
   }, []);
-
-  // 确认选择学期（这里默认学期发生改变，即使用户选择了同一个学期）
-  const handleConfirmTermSelectPicker = useCallback(() => {
-    setPickerVisible(false);
-    const newValue = semesters[tempIndex]?.value ?? '';
-    setSettings(prevSettings => ({ ...prevSettings, selectedSemester: newValue }));
-  }, [tempIndex, semesters]);
 
   // 设置是否显示非本周课程
   const handleShowNonCurrentWeekCourses = useCallback(() => {
@@ -164,13 +119,6 @@ export default function AcademicPage() {
     // await exportCourseToNativeCalendar(courseData.data.data, startDate);
   }, [termListData, courseData]);
 
-  useEffect(() => {
-    if (isPickerVisible && semesters.length > 0) {
-      const sIndex = semesters.findIndex(item => item.value === settings.selectedSemester);
-      setTempIndex(sIndex < 0 ? 0 : sIndex);
-    }
-  }, [isPickerVisible, semesters, settings]);
-
   return (
     <>
       <Stack.Screen options={{ title: '课程表设置' }} />
@@ -183,7 +131,7 @@ export default function AcademicPage() {
 
         <LabelEntry
           leftText="切换学期"
-          rightText={isLoadingSemester ? '加载中...' : semesterLabel}
+          rightText={isLoadingSemester ? '加载中...' : settings.selectedSemester}
           onPress={handleOpenTermSelectPicker}
           disabled={isLoadingSemester}
         />
@@ -202,34 +150,17 @@ export default function AcademicPage() {
           onValueChange={handleShowNonCurrentWeekCourses}
         />
 
-        {/* 底部弹出的 Picker */}
-        <Modal
+        <PickerModal
           visible={isPickerVisible}
-          transparent
-          animationType="slide" // 从底部滑入
-          onRequestClose={handleCloseTermSelectPicker} // Android 的返回键关闭
-        >
-          {/* 点击背景关闭 */}
-          <TouchableWithoutFeedback onPress={handleCloseTermSelectPicker}>
-            <View className="flex-1 bg-black/50" />
-          </TouchableWithoutFeedback>
-
-          {/* Picker 容器 */}
-          <View className="space-y-6 rounded-t-2xl bg-background p-6 pb-10">
-            <Text className="text-center text-xl font-bold">选择学期</Text>
-            <WheelPicker
-              data={semesters.map(s => s.label + '(' + s.value + ')')}
-              wheelWidth="100%"
-              selectIndex={tempIndex}
-              onChange={idx => setTempIndex(idx)}
-            />
-
-            {/* 确认按钮 */}
-            <Button className="mt-6" onPress={handleConfirmTermSelectPicker}>
-              <Text>确认</Text>
-            </Button>
-          </View>
-        </Modal>
+          title="选择学期"
+          data={semesters.map(s => ({
+            value: s,
+            label: s,
+          }))}
+          value={settings.selectedSemester}
+          onClose={() => setPickerVisible(false)}
+          onConfirm={handleConfirmTermSelectPicker}
+        />
       </ThemedView>
     </>
   );

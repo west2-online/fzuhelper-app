@@ -127,7 +127,7 @@ export default function HomePage() {
             </Button>
           </Link>
           <Button
-            onPress={async () => {
+            onPress={() => {
               pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '(Web 测试) 选课');
             }}
           >
@@ -136,11 +136,6 @@ export default function HomePage() {
           <Link href="/+not-found" asChild>
             <Button>
               <Text>Not Found Page</Text>
-            </Button>
-          </Link>
-          <Link href="/devtools/wheelpicker" asChild>
-            <Button>
-              <Text>Wheel Picker</Text>
             </Button>
           </Link>
 
