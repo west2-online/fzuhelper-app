@@ -4,8 +4,9 @@ import { FolderIcon, getFileIcon, guessFileType } from '@/lib/filetype';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, UnknownOutputParams, useLocalSearchParams, useRouter } from 'expo-router';
 import { Trash2 } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
-import { FlatList, Image, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface SearchPageParam extends UnknownOutputParams {
   currentPath: string;
@@ -16,6 +17,7 @@ export default function SearchPage() {
   const { currentPath, currentPapers } = useLocalSearchParams<SearchPageParam>();
   const router = useRouter();
   const [parsedPapers, setParsedPapers] = useState<Paper[]>([]);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (currentPapers) {
@@ -39,8 +41,9 @@ export default function SearchPage() {
   };
 
   const saveSearchHistory = async (query: string) => {
-    if (!query || searchHistory.includes(query)) return;
-    const updatedHistory = [query, ...searchHistory.slice(0, 9)];
+    if (!query) return;
+    let updatedHistory = searchHistory.filter(item => item !== query);
+    updatedHistory = [query, ...updatedHistory.slice(0, 9)];
     setSearchHistory(updatedHistory);
     await AsyncStorage.setItem(PAPER_SEARCH_HISTORY_KEY, JSON.stringify(updatedHistory));
   };
@@ -84,17 +87,20 @@ export default function SearchPage() {
           <FlatList
             data={filteredPapers}
             keyExtractor={item => item.name}
+            contentContainerStyle={{
+              paddingBottom: insets.bottom,
+            }}
             renderItem={({ item }) => (
               <TouchableOpacity
-                className="flex-row items-center border-b border-gray-200 p-3"
+                className="h-16 w-full flex-row items-center px-6 py-2"
                 onPress={() => handlePressItem(item)}
               >
-                <Image
-                  source={item.type === PaperType.FOLDER ? FolderIcon : getFileIcon(guessFileType(item.name))}
-                  className="mr-2 h-6 w-6"
-                  resizeMode="contain"
-                />
-                <Text>{item.name}</Text>
+                {item.type === PaperType.FOLDER ? (
+                  <FolderIcon width={18} height={18} />
+                ) : (
+                  React.createElement(getFileIcon(guessFileType(item.name)), { width: 18, height: 18 })
+                )}
+                <Text className="ml-6 flex-1 text-base">{item.name}</Text>
               </TouchableOpacity>
             )}
           />
@@ -111,7 +117,10 @@ export default function SearchPage() {
                 <TouchableOpacity
                   key={index}
                   className="border-b border-gray-200 p-2"
-                  onPress={() => setSearchQuery(query)}
+                  onPress={() => {
+                    setSearchQuery(query);
+                    saveSearchHistory(query);
+                  }}
                 >
                   <Text>{query}</Text>
                 </TouchableOpacity>
