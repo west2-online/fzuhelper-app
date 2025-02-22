@@ -79,6 +79,11 @@ export default function AcademicPage() {
     pushToWebViewNormal('https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#third-party', '第三方信息共享清单');
   };
 
+  // 进入开发者工具
+  const handleDeveloperTools = () => {
+    router.push('/devtools');
+  };
+
   return (
     <>
       <Stack.Screen options={{ title: '设置' }} />
@@ -98,6 +103,10 @@ export default function AcademicPage() {
             <LabelEntry leftText="隐私权限设置" onPress={handlePrivacyPermission} />
             <LabelEntry leftText="个人信息收集清单" onPress={handlePersonalInfoList} />
             <LabelEntry leftText="第三方信息共享清单" onPress={handleThirdPartyInfoList} />
+
+            <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text>
+
+            <LabelEntry leftText="开发者工具" onPress={handleDeveloperTools} />
           </SafeAreaView>
         </ScrollView>
       </PageContainer>

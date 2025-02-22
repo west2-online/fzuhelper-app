@@ -129,7 +129,7 @@ export default function AcademicPage() {
         <ScrollView className="flex-1 bg-background px-8 pt-8">
           <SafeAreaView edges={['bottom']}>
             {/* 菜单列表 */}
-            <Text className="text-text-secondary mb-2 text-sm">课程数据</Text>
+            <Text className="mb-2 text-sm text-text-secondary">课程数据</Text>
 
             <LabelEntry leftText="刷新数据" />
 
@@ -140,7 +140,7 @@ export default function AcademicPage() {
               disabled={isLoadingSemester}
             />
 
-            <Text className="text-text-secondary mb-2 mt-4 text-sm">开关设置</Text>
+            <Text className="mb-2 mt-4 text-sm text-text-secondary">开关设置</Text>
 
             <LabelSwitch
               label="导出到本地日历"
