@@ -16,12 +16,14 @@ export const ALLOW_PUSH_EVENT_KEYS = 'allow_push_event';
 
 // 本科生教务系统
 // 以 JWCH_ 开头
-export const JWCH_ID_KEY = 'jwch_id';
-export const JWCH_COOKIES_KEY = 'jwch_cookies';
-export const JWCH_USER_ID_KEY = 'jwch_user_id';
-export const JWCH_USER_PASSWORD_KEY = 'jwch_user_password';
-export const JWCH_USER_INFO_KEY = 'jwch_user_info';
-export const JWCH_COOKIES_DOMAIN = 'https://jwcjwxt2.fzu.edu.cn:81';
+export const JWCH_ID_KEY = 'jwch_id'; // JWCH 识别身份用的 Identifier
+export const JWCH_COOKIES_KEY = 'jwch_cookies'; // JWCH 识别身份用的 Cookies
+export const JWCH_USER_ID_KEY = 'jwch_user_id'; // 用户名
+export const JWCH_USER_PASSWORD_KEY = 'jwch_user_password'; // 密码
+export const JWCH_USER_INFO_KEY = 'jwch_user_info'; // 用户信息
+export const JWCH_COOKIES_DOMAIN = 'https://jwcjwxt2.fzu.edu.cn:81'; // JWCH Cookies 域名
+export const JWCH_LOCATE_DATE_URL = 'https://jwcjwxt2.fzu.edu.cn:82/week.asp'; // JWCH 定位日期 URL
+export const JWCH_CURRENT_SEMESTER_KEY = 'jwch_current_semester'; // 当前学期信息
 
 // 一码通
 export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';

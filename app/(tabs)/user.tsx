@@ -1,7 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Href, router, Tabs } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, ImageSourcePropType, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Image, ImageSourcePropType, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import LabelIconEntry from '@/components/label-icon-entry';
@@ -9,28 +8,36 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchUserInfo } from '@/api/generate';
-import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { JWCH_USER_INFO_KEY } from '@/lib/constants';
+import usePersistedQuery from '@/hooks/usePersistedQuery';
+import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
+import { JWCHLocateDateResult } from '@/types/data';
+import { UserInfo } from '@/types/user';
+import { fetchJwchLocateDate } from '@/utils/locate-date';
 
 import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
 import EcardIcon from '@/assets/images/my/ic_ecard.png';
 import HelpIcon from '@/assets/images/my/ic_help.png';
 
+const defaultUserInfo: UserInfo = {
+  stu_id: '未知',
+  name: '未知',
+  birthday: '未知',
+  sex: '未知',
+  college: '未知',
+  grade: '未知',
+  major: '未知',
+};
+
+const defaultTermInfo: JWCHLocateDateResult = {
+  week: -1,
+  year: -1,
+  term: -1,
+};
+
 export default function HomePage() {
-  const { handleError } = useSafeResponseSolve();
-  const redirect = useRedirectWithoutHistory();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [userInfo, setUserInfo] = useState({
-    stu_id: '', // 学号
-    birthday: '', // 生日
-    name: '', // 姓名
-    sex: '', // 性别
-    college: '', // 所属学院
-    grade: '', // 所属年级
-    major: '', // 所属专业
-  });
+  const [userInfo, setUserInfo] = useState<UserInfo>(defaultUserInfo);
+  const [termInfo, setTermInfo] = useState<JWCHLocateDateResult>(defaultTermInfo);
 
   interface MenuItem {
     icon: ImageSourcePropType;
@@ -48,7 +55,7 @@ export default function HomePage() {
     {
       icon: HelpIcon,
       name: '帮助与反馈',
-      link: '/my/plan' as Href,
+      link: '/common/feedback' as Href,
     },
     {
       icon: EcardIcon,
@@ -57,50 +64,31 @@ export default function HomePage() {
     },
   ];
 
-  // 从 AsyncStorage 加载用户信息
-  const loadUserInfoFromStorage = useCallback(async () => {
-    try {
-      const storedData = await AsyncStorage.getItem(JWCH_USER_INFO_KEY);
-      if (storedData) {
-        setUserInfo(JSON.parse(storedData));
-      }
-    } catch (error) {
-      console.error('Failed to load user info from AsyncStorage:', error);
-    }
-  }, []);
+  const { data: userData } = usePersistedQuery({
+    queryKey: [JWCH_USER_INFO_KEY],
+    queryFn: () => getApiV1JwchUserInfo(),
+    cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
+  });
 
-  // 将用户信息保存到 AsyncStorage
-  const saveUserInfoToStorage = useCallback(async (info: typeof userInfo) => {
-    try {
-      await AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(info));
-    } catch (error) {
-      console.error('Failed to save user info to AsyncStorage:', error);
-    }
-  }, []);
-
-  // 访问服务器获取用户信息
-  const getUserInfo = useCallback(async () => {
-    if (isRefreshing) return; // 防止重复点击
-    setIsRefreshing(true); // 禁用按钮
-    try {
-      const result = await getApiV1JwchUserInfo();
-      const fetchedInfo = result.data.data;
-      setUserInfo(fetchedInfo);
-      await saveUserInfoToStorage(fetchedInfo); // 同步到 AsyncStorage
-    } catch (error: any) {
-      const data = handleError(error);
-      if (data) {
-        Alert.alert('请求失败', data.code + ': ' + data.message);
-      }
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [handleError, saveUserInfoToStorage, isRefreshing]);
+  // 获取当前学期信息
+  const { data: termData } = usePersistedQuery({
+    queryKey: [JWCH_CURRENT_SEMESTER_KEY],
+    queryFn: fetchJwchLocateDate,
+    cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
+  });
 
   // 在组件加载时初始化数据
   useEffect(() => {
-    loadUserInfoFromStorage();
-  }, [loadUserInfoFromStorage]);
+    if (userData) {
+      setUserInfo(userData.data.data);
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    if (termData) {
+      setTermInfo(termData);
+    }
+  }, [termData]);
 
   return (
     <>
@@ -112,7 +100,6 @@ export default function HomePage() {
       />
 
       <PageContainer>
-        {/* <RefreshControl refreshing={isRefreshing} onRefresh={getUserInfo}> */}
         {/* 用户信息 */}
         <View className="flex flex-row items-center p-8">
           <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
@@ -128,8 +115,8 @@ export default function HomePage() {
               <Text>{userInfo.stu_id}</Text>
             </View>
             <View className="mt-2 w-full flex-row justify-between">
-              <Text className="text-text-secondary">2024年1学期</Text>
-              <Text className="text-text-secondary">第 22 周</Text>
+              <Text className="text-text-secondary">{termInfo.year + '学年第' + termInfo.term + '学期'}</Text>
+              <Text className="text-text-secondary">第 {termInfo.week} 周</Text>
             </View>
           </View>
 
