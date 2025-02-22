@@ -9,6 +9,7 @@ interface LabelEntryProps {
   onPress?: () => void;
   description?: string;
   disabled?: boolean;
+  noIcon?: boolean;
   className?: string;
 }
 
@@ -18,6 +19,7 @@ const LabelEntry: React.FC<LabelEntryProps> = ({
   description,
   onPress,
   disabled = false,
+  noIcon = false,
   className,
 }) => {
   return (
@@ -28,12 +30,12 @@ const LabelEntry: React.FC<LabelEntryProps> = ({
     >
       <View className="w-full flex-row items-center justify-between">
         <View className="flex-1">
-          <Text className="text-text-primary truncate text-lg">{leftText}</Text>
-          {description && <Text className="text-text-secondary text-sm">{description}</Text>}
+          <Text className="truncate text-lg text-text-primary">{leftText}</Text>
+          {description && <Text className="text-sm text-text-secondary">{description}</Text>}
         </View>
         <View className="ml-3 flex-row items-center">
-          <Text className="text-text-secondary mr-3 truncate text-lg">{rightText}</Text>
-          <Icon name="chevron-forward-outline" size={14} />
+          <Text className="mr-3 truncate text-lg text-text-secondary">{rightText}</Text>
+          {!noIcon && <Icon name="chevron-forward" size={20} className="text-text-secondary" />}
         </View>
       </View>
     </TouchableOpacity>

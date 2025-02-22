@@ -82,7 +82,7 @@ export default function AcademicPage() {
         <ScrollView className="flex-1 bg-background px-8 pt-8">
           <SafeAreaView edges={['bottom']}>
             {/* 菜单列表 */}
-            <Text className="text-text-secondary mb-2 text-sm">
+            <Text className="mb-2 text-sm text-text-secondary">
               为了提供更好的服务，我们在特定场景下需要向您申请系统权限。在本页面，您也可以了解到我们会如何使用这些权限。
             </Text>
 

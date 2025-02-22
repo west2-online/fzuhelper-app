@@ -45,7 +45,7 @@ export default function HomePage() {
     {
       icon: CalendarIcon,
       name: '校历',
-      link: '/my/credits' as Href,
+      link: '/my/academic-calendar' as Href,
     },
     {
       icon: HelpIcon,
