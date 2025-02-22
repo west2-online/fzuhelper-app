@@ -15,19 +15,30 @@ import { Text } from '@/components/ui/text';
 
 import IconTransparent from '@/assets/images/icon_transparent.png';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import { useState } from 'react';
 
 export default function AboutPage() {
+  const [clickCount, setClickCount] = useState(0);
   return (
     <>
       <Stack.Screen options={{ title: '关于' }} />
 
       <PageContainer>
-        <View className="flex items-center p-12">
+        <Pressable
+          className="flex items-center p-12"
+          onPress={() => {
+            setClickCount(clickCount + 1);
+            if (clickCount === 5) {
+              router.push('/devtools');
+              setClickCount(0);
+            }
+          }}
+        >
           <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-card" />
           <View>
             <Text className="text-xl text-primary">{Constants.expoConfig?.version ?? ''}</Text>
           </View>
-        </View>
+        </Pressable>
 
         <View className="flex-1 rounded-tr-4xl bg-card px-4 pt-8">
           <DescriptionList className="gap-6">
@@ -41,7 +52,7 @@ export default function AboutPage() {
               <DescriptionListTerm>
                 <Text className="text-text-secondary">研发团队</Text>
               </DescriptionListTerm>
-              <DescriptionListDescription>west2-online</DescriptionListDescription>
+              <DescriptionListDescription>西二在线工作室</DescriptionListDescription>
             </DescriptionListRow>
             <Pressable
               onPress={() => {

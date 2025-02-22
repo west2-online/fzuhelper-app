@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Href, Link, router, Tabs } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, ImageSourcePropType, ScrollView, View } from 'react-native';
+import { Alert, Image, ImageSourcePropType, RefreshControl, ScrollView, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import LabelIconEntry from '@/components/label-icon-entry';
@@ -99,29 +99,6 @@ export default function HomePage() {
     }
   }, [handleError, saveUserInfoToStorage, isRefreshing]);
 
-  // 登出
-  const logout = useCallback(async () => {
-    Alert.alert('确认退出', '确认要退出账号吗？', [
-      {
-        text: '取消',
-        style: 'cancel',
-      },
-      {
-        text: '退出',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await clearUserStorage();
-            redirect('/(guest)/academic-login');
-          } catch (error) {
-            console.error('Error clearing storage:', error);
-            Alert.alert('清理用户数据失败', '无法清理用户数据');
-          }
-        },
-      },
-    ]);
-  }, [redirect]);
-
   // 在组件加载时初始化数据
   useEffect(() => {
     loadUserInfoFromStorage();
@@ -137,50 +114,35 @@ export default function HomePage() {
       />
 
       <PageContainer>
-        <ScrollView>
-          <View className="flex-row items-center p-8">
-            <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
-            <View>
-              <Text className="text-xl font-bold">{userInfo.name}</Text>
-              <Text className="text-text-secondary mt-2 text-sm">这是一条签名</Text>
+        {/* <RefreshControl refreshing={isRefreshing} onRefresh={getUserInfo}> */}
+        {/* 用户信息 */}
+        <View className="flex flex-row items-center p-8">
+          <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
+          <View>
+            <Text className="text-xl font-bold">{userInfo.name}</Text>
+            <Text className="mt-2 text-sm text-text-secondary">这是一条签名</Text>
+          </View>
+        </View>
+        <View className="h-full rounded-tr-4xl bg-card px-8">
+          <View className="mt-6">
+            <View className="w-full flex-row justify-between">
+              <Text>{userInfo.college}</Text>
+              <Text>{userInfo.stu_id}</Text>
+            </View>
+            <View className="mt-2 w-full flex-row justify-between">
+              <Text className="text-text-secondary">2024年1学期</Text>
+              <Text className="text-text-secondary">第 22 周</Text>
             </View>
           </View>
 
-          <View className="h-full rounded-tr-4xl bg-card px-8">
-            <View className="mt-6">
-              <View className="w-full flex-row justify-between">
-                <Text>{userInfo.college}</Text>
-                <Text>{userInfo.stu_id}</Text>
-              </View>
-              <View className="mt-2 w-full flex-row justify-between">
-                <Text className="text-text-secondary">2024年1学期</Text>
-                <Text className="text-text-secondary">第 22 周</Text>
-              </View>
-            </View>
-
-            {/* 菜单列表 */}
-            <View className="mt-4 space-y-4">
-              {menuItems.map((item, index) => (
-                <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => router.push(item.link)} />
-              ))}
-            </View>
-
-            {/* 按钮部分，调试用，后续移除 */}
-            <View className="mt-6">
-              <Button onPress={getUserInfo} disabled={isRefreshing} className="mb-4">
-                <Text className="text-white">{isRefreshing ? '刷新中...' : '刷新个人信息'}</Text>
-              </Button>
-              <Button onPress={logout} className="mb-4">
-                <Text className="text-white">退出当前账户</Text>
-              </Button>
-              <Link href="/devtools" asChild>
-                <Button>
-                  <Text className="text-white">开发者选项</Text>
-                </Button>
-              </Link>
-            </View>
+          {/* 菜单列表 */}
+          <View className="mt-4 space-y-4">
+            {menuItems.map((item, index) => (
+              <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => router.push(item.link)} />
+            ))}
           </View>
-        </ScrollView>
+        </View>
+        {/* </RefreshControl> */}
       </PageContainer>
     </>
   );
