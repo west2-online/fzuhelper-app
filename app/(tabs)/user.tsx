@@ -1,19 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Href, Link, router, Tabs } from 'expo-router';
+import { Href, router, Tabs } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, ImageSourcePropType, RefreshControl, ScrollView, View } from 'react-native';
+import { Alert, Image, ImageSourcePropType, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import LabelIconEntry from '@/components/label-icon-entry';
 import PageContainer from '@/components/page-container';
-import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchUserInfo } from '@/api/generate';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { JWCH_USER_INFO_KEY } from '@/lib/constants';
-import { clearUserStorage } from '@/utils/user';
 
 import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
@@ -45,7 +43,7 @@ export default function HomePage() {
     {
       icon: CalendarIcon,
       name: '校历',
-      link: '/my/academic-calendar' as Href,
+      link: '/common/academic-calendar' as Href,
     },
     {
       icon: HelpIcon,
@@ -55,7 +53,7 @@ export default function HomePage() {
     {
       icon: EcardIcon,
       name: '关于我们',
-      link: '/(guest)/about' as Href,
+      link: '/common/about' as Href,
     },
   ];
 
