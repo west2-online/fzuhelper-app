@@ -1,4 +1,4 @@
-import { router, useNavigation } from 'expo-router';
+import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { toast } from 'sonner-native';
 
@@ -6,9 +6,9 @@ import PageContainer from '@/components/page-container';
 
 import type { JwchAcademicPlanResponse } from '@/api/backend';
 import { getApiV1JwchAcademicPlan } from '@/api/generate';
-import { WebParams } from '@/app/common/web';
 import Loading from '@/components/loading';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { replaceToWebViewJWCH } from '@/lib/webview';
 
 const NAVIGATION_TITLE = '培养计划';
 
@@ -29,16 +29,8 @@ export default function PlanPage() {
     try {
       const result = await getApiV1JwchAcademicPlan();
       setPlanData(result.data.data); // 第一个 data 指的是响应 HTTP 的 data 字段，第二个 data 指的是响应数据的 data 字段
-      const params: WebParams = {
-        url: planData || '',
-        jwch: true,
-        title: NAVIGATION_TITLE,
-      };
       // 跳转不保留当前页
-      router.replace({
-        pathname: '/(guest)/web',
-        params,
-      });
+      replaceToWebViewJWCH(planData || '', NAVIGATION_TITLE);
     } catch (error: any) {
       const data = handleError(error);
       if (data) {

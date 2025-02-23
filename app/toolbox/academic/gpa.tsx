@@ -77,7 +77,7 @@ export default function GPAPage() {
                 {/* 显示最后更新时间 */}
                 <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
                   <Icon name="time-outline" size={16} className="mr-2" />
-                  <Text className="text-l text-text-primary leading-5">{academicData.time}</Text>
+                  <Text className="text-l leading-5 text-text-primary">{academicData.time}</Text>
                 </View>
                 <Text className="p-2 text-red-500">
                   注：绩点排名中的总学分只计算参与绩点计算的学分总和，并不代表所修学分总和。
