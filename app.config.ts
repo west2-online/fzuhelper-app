@@ -4,7 +4,7 @@ import 'ts-node/register'; // Add this to import TypeScript files
 const config: ExpoConfig = {
   name: '福uu',
   slug: 'fzuhelper-app',
-  version: '7.0.0',
+  version: '7.0.0', // 每部分都只能是一位数字
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'fzuhelper',
@@ -21,7 +21,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.helper.west2ol.fzuhelper',
-    versionCode: 700001,
+    versionCode: 700001, // 此处不需要修改，将在inject-android-config中自增
   },
   web: {
     bundler: 'metro',
