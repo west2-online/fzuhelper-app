@@ -3,6 +3,7 @@ import { useLayoutEffect } from 'react';
 import { View, type ImageSourcePropType } from 'react-native';
 
 import PageContainer from '@/components/page-container';
+import { Text } from '@/components/ui/text';
 
 import CreditIcon from '@/assets/images/toolbox/academic/ic_credit.png';
 import GpaIcon from '@/assets/images/toolbox/academic/ic_gpa.png';
@@ -62,6 +63,15 @@ export default function AcademicPage() {
         {menuItems.map((item, index) => (
           <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => router.push(item.link)} />
         ))}
+      </View>
+      <View className="mx-4 space-y-4">
+        <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+        <Text className="my-2 text-base text-text-secondary">
+          在教务系统中可能没有全部专业的培养计划，或没有当前专业当前年级的培养计划
+        </Text>
+        <Text className="text-base text-text-secondary">
+          统考成绩采集自教务系统数据，数据更新时间会晚于官方统考成绩公布渠道
+        </Text>
       </View>
     </PageContainer>
   );
