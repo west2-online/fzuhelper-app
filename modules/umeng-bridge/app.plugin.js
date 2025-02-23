@@ -16,7 +16,19 @@ import {
   withXcodeProject,
 } from '@expo/config-plugins';
 
-const withKey = (config, { AndroidAppKey, iOSAppKey, channel, msgsec, bridgingSourcePath, bridgingTargetPath }) => {
+const withKey = (
+  config,
+  {
+    AndroidAppKey,
+    iOSAppKey,
+    channel,
+    msgsec,
+    bridgingSourcePath,
+    bridgingTargetPath,
+    NSPushNotificationUsageDescription,
+    NSUserTrackingUsageDescription,
+  },
+) => {
   // Android 配置
   config = withAndroidManifest(config, manifestConfig => {
     const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(manifestConfig.modResults);
@@ -51,12 +63,12 @@ const withKey = (config, { AndroidAppKey, iOSAppKey, channel, msgsec, bridgingSo
     }
 
     // 添加推送通知权限描述（iOS12 及以上开始内容由 Apple 固定，开发者无权干涉）
-    infoPlist.modResults.NSPushNotificationUsageDescription =
-      '我们会使用推送通知来推送成绩信息、教务处最新通知，通知发送受福州大学监管，不会泄露您的个人信息';
+    infoPlist.modResults.NSPushNotificationUsageDescription = NSPushNotificationUsageDescription;
+    // '我们会使用推送通知来推送成绩信息、教务处最新通知，通知发送受福州大学监管，不会泄露您的个人信息';
 
     // 添加用户追踪权限描述（广告标识符使用）（iOS12 及以上开始内容由 Apple 固定，开发者无权干涉）
-    infoPlist.modResults.NSUserTrackingUsageDescription =
-      '我们会使用设备号来分析软件使用情况，以便提供更好的服务以及修复漏洞';
+    infoPlist.modResults.NSUserTrackingUsageDescription = NSUserTrackingUsageDescription;
+    // '我们会使用设备号来分析软件使用情况，以便提供更好的服务以及修复漏洞';
     return infoPlist;
   });
 
