@@ -6,7 +6,7 @@ import PageContainer from '@/components/page-container';
 
 import type { JwchAcademicPlanResponse } from '@/api/backend';
 import { getApiV1JwchAcademicPlan } from '@/api/generate';
-import { WebParams } from '@/app/(guest)/web';
+import { WebParams } from '@/app/common/web';
 import Loading from '@/components/loading';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 

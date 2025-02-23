@@ -24,13 +24,13 @@ function withIOSInject(config: ExpoConfig): ExpoConfig {
     infoPlist.modResults.ITSAppUsesNonExemptEncryption = false; // 设置为 NO
     infoPlist.modResults.ITSEncryptionExportComplianceCode = ''; // 不需要出口合规文档，保持为空
 
+    // 添加支持直接跳转 App Store 商店
+    infoPlist.modResults.LSApplicationQueriesSchemes = ['itms-apps'];
+
     // 允许访问非 HTTPS 的内容
     infoPlist.modResults.NSAppTransportSecurity = {
       NSAllowsArbitraryLoads: true,
     };
-
-    // 历年卷权限申请描述
-    infoPlist.modResults.NSFileProviderDomainUsageDescription = '我们需要使用文件拓展来保存和上传历年卷文件';
 
     return infoPlist;
   });
