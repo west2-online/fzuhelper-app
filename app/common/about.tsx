@@ -25,6 +25,7 @@ export default function AboutPage() {
     console.log('check update');
     if (Platform.OS === 'ios') {
       Linking.openURL('itms-apps://itunes.apple.com/app/id866768101');
+    } else {
     }
   };
 

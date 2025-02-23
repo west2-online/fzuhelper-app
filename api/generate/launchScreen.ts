@@ -3,7 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** AddImagePointTime add image point time GET /api/v1/launch-screen/image/point-time https://apifox.com/web/project/3275694/apis/api-225730374-run */
+/** AddImagePointTime add image point time GET /api/v1/launch-screen/image/point-time */
 export async function getApiV1LaunchScreenImagePointTime(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1LaunchScreenImagePointTimeParams,
@@ -21,7 +21,7 @@ export async function getApiV1LaunchScreenImagePointTime(
   );
 }
 
-/** MobileGetImage get image by student_id and device GET /api/v1/launch-screen/screen https://apifox.com/web/project/3275694/apis/api-225730375-run */
+/** MobileGetImage get image by student_id and device GET /api/v1/launch-screen/screen */
 export async function getApiV1LaunchScreenScreen(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1LaunchScreenScreenParams,
