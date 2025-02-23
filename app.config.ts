@@ -2,7 +2,7 @@ import { type ExpoConfig } from 'expo/config';
 import 'ts-node/register'; // Add this to import TypeScript files
 
 const config: ExpoConfig = {
-  name: 'fzuhelper-app',
+  name: '福uu',
   slug: 'fzuhelper-app',
   version: '7.0.0',
   orientation: 'portrait',
