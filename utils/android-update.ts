@@ -53,7 +53,7 @@ const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: 
     const result = await getApiV2VersionAndroid();
     const config = result.data.data.beta; // 测试期间仅在beta通道更新
 
-    if (parseInt(config.version_code, 10) !== parseInt(DeviceInfo.getBuildNumber(), 10)) {
+    if (parseInt(config.version_code, 10) > parseInt(DeviceInfo.getBuildNumber(), 10)) {
       callbacks?.onUpdate?.(config);
     } else {
       callbacks?.onNoUpdate?.();
