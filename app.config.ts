@@ -22,6 +22,10 @@ const config: ExpoConfig = {
   android: {
     package: 'com.helper.west2ol.fzuhelper',
     versionCode: 700001, // 此处不需要修改，将在inject-android-config中自增
+    adaptiveIcon: {
+      foregroundImage: './assets/images/ic_launcher_foreground.png',
+      backgroundColor: '#FFFFFF',
+    },
   },
   web: {
     bundler: 'metro',
@@ -80,7 +84,7 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
-        image: './assets/images/icon_transparent.png',
+        image: './assets/images/ic_launcher_foreground.png',
         // 不设置默认的 backgroundColor，会导致 logo 透明背景被改变
         dark: {
           backgroundColor: '#000000',

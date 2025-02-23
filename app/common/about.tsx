@@ -14,7 +14,7 @@ import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
-import IconTransparent from '@/assets/images/icon_transparent.png';
+import IconTransparent from '@/assets/images/ic_launcher_foreground.png';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 
