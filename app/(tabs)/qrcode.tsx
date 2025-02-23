@@ -165,13 +165,13 @@ export default function YiMaTongPage() {
 
           <CardFooter className="flex-row gap-4">
             <View className="w-full px-1">
-              <Text className="text-text-secondary my-2 text-lg font-bold">友情提示</Text>
+              <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
               {currentTab === '消费码' ? (
-                <Text className="text-text-secondary text-base">
+                <Text className="text-base text-text-secondary">
                   消费码：适用于福州大学大门、生活区入口及宿舍楼门禁，不可用于桃李园消费。
                 </Text>
               ) : (
-                <Text className="text-text-secondary text-base">认证码：适用于福州大学铜盘校区入口门禁。</Text>
+                <Text className="text-base text-text-secondary">认证码：适用于福州大学铜盘校区入口门禁。</Text>
               )}
             </View>
           </CardFooter>

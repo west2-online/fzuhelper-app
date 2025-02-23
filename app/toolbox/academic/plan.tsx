@@ -42,7 +42,7 @@ export default function PlanPage() {
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
-        toast.error(data.msg ? data.msg : '未知错误');
+        toast.error(data.msg ? data.msg : '培养计划没有找到');
       }
     } finally {
       setIsRefreshing(false);
