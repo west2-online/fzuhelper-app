@@ -1,13 +1,9 @@
+import { CachedData } from '@/types/cache';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // 或者其他 AsyncStorage 的实现
 import type { DefaultError, QueryClient, QueryKey } from '@tanstack/query-core';
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query/src/types';
 import { toast } from 'sonner-native';
-
-interface CachedData<T> {
-  data: T;
-  timestamp: number;
-}
 
 // 这个 hooks 实现了一个简单的缓存机制
 // 优先使用未过期的缓存数据，否则请求服务器并更新缓存

@@ -16,11 +16,13 @@ import { useUpdateEffect } from '@/hooks/use-update-effect';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
+import { CachedData } from '@/types/cache';
 import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
   const [semesters, setSemesters] = useState<string[]>([]);
   const { handleError } = useSafeResponseSolve();
@@ -48,17 +50,19 @@ export default function AcademicPage() {
     saveSettingsToStorage(settings);
   }, [settings, saveSettingsToStorage]);
 
+  // 获取课程数据
   const { data: courseData } = usePersistedQuery({
     queryKey: [COURSE_DATA_KEY, settings.selectedSemester],
     queryFn: () => getApiV1JwchCourseList({ term: settings.selectedSemester }),
   });
 
+  // 获取完整学期数据
   const { data: termListData } = usePersistedQuery({
     queryKey: [COURSE_TERMS_LIST_KEY],
     queryFn: getApiV1TermsList,
   });
 
-  // 获取学期数据
+  // 获取用户就读学期数据
   const getTermsData = useCallback(async () => {
     try {
       const result = await getApiV1JwchTermList(); // 数据格式样例： ['202401', '202402']
@@ -74,6 +78,27 @@ export default function AcademicPage() {
       }
     }
   }, [semesters, handleError]);
+
+  // 强制刷新数据（即不使用本地缓存）
+  const forceRefreshCourseData = useCallback(async () => {
+    try {
+      const data = await getApiV1JwchCourseList({ term: settings.selectedSemester });
+      const cacheToStore = {
+        data: data,
+        timestamp: Date.now(),
+      };
+
+      await AsyncStorage.setItem([COURSE_DATA_KEY, settings.selectedSemester].join('__'), JSON.stringify(cacheToStore));
+    } catch (error: any) {
+      const data = handleError(error);
+      console.log(data);
+      if (data) {
+        toast.error(data.msg ? data.msg : '未知错误');
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [settings.selectedSemester, handleError]);
 
   // 选择学期开关
   const handleOpenTermSelectPicker = useCallback(async () => {
@@ -96,6 +121,12 @@ export default function AcademicPage() {
       showNonCurrentWeekCourses: !prevSettings.showNonCurrentWeekCourses,
     }));
   }, []);
+
+  const handleForceRefresh = useCallback(() => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    forceRefreshCourseData();
+  }, [isRefreshing, forceRefreshCourseData]);
 
   // 控制导出到本地日历
   const handleExportToCalendar = useCallback(async () => {
@@ -131,7 +162,12 @@ export default function AcademicPage() {
             {/* 菜单列表 */}
             <Text className="mb-2 text-sm text-text-secondary">课程数据</Text>
 
-            <LabelEntry leftText="刷新数据" />
+            <LabelEntry
+              leftText="刷新数据"
+              onPress={handleForceRefresh}
+              disabled={isRefreshing}
+              rightText={isRefreshing ? '加载中...' : ''}
+            />
 
             <LabelEntry
               leftText="切换学期"
