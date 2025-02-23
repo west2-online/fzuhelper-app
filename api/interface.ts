@@ -9,5 +9,4 @@ export interface LocateDateResult {
   week: number;
   day: number;
   semester: string;
-  semesterStart: string;
 }

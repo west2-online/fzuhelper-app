@@ -1,4 +1,3 @@
-import { getApiV1TermsInfo } from '@/api/generate';
 import type { LocateDateResult } from '@/api/interface';
 import { JWCH_LOCATE_DATE_URL } from '@/lib/constants';
 import { get } from '@/modules/native-request';
@@ -29,8 +28,9 @@ export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
 }
 
 // 基于教务处的数据定位今天是第几周，以及今天的日期
-// 返回一个对象，包含 date（当前日期）、week（当前周数）、day（当前星期几）、semester（当前学期，格式样例：202401）、semesterStart（学期开始日期）
-// e.g. { date: '2024-06-01', week: 23, day: 3, semester: '202401', semesterStart: '2024-03-04' }
+// 返回一个对象，包含 date（当前日期）、week（当前周数）、day（当前星期几）、semester（当前学期，格式样例：202401）
+// e.g. { date: '2024-06-01', week: 23, day: 3, semester: '202401' }
+// 这个函数应当只会在课表业务中涉及
 export default async function locateDate(): Promise<LocateDateResult> {
   // 先获取教务处定位数据
   const { week, year, term } = await fetchJwchLocateDate();
@@ -44,25 +44,5 @@ export default async function locateDate(): Promise<LocateDateResult> {
   // 格式化日期为 YYYY-MM-DD
   const formattedDate = date.toISOString().split('T')[0];
 
-  // 获取学期开始日期，这个需要爬取校历，参数需要有学期信息
-  const semesterStartResponse = await getApiV1TermsInfo({ term: semester });
-
-  // 检查 API 响应是否正常
-  if (!semesterStartResponse || semesterStartResponse.status !== 200) {
-    throw new Error('Failed to fetch semester start date from API');
-  }
-
-  // 提取事件列表
-  const events = semesterStartResponse.data.data.events;
-
-  // 查找 name 为“正式上课”的事件
-  const startClassEvent = events.find(event => event.name === '正式上课');
-  if (!startClassEvent) {
-    throw new Error('Failed to find "正式上课" event in API response');
-  }
-
-  // 提取 start_date
-  const semesterStart = startClassEvent.start_date;
-
-  return { date: formattedDate, week, day, semester, semesterStart };
+  return { date: formattedDate, week, day, semester };
 }

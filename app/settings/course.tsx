@@ -130,10 +130,10 @@ export default function AcademicPage() {
 
   // 控制导出到本地日历
   const handleExportToCalendar = useCallback(async () => {
-    setSettings(prevSettings => ({
-      ...prevSettings,
-      calendarExportEnabled: !prevSettings.calendarExportEnabled,
-    }));
+    // setSettings(prevSettings => ({
+    //   ...prevSettings,
+    //   calendarExportEnabled: !prevSettings.calendarExportEnabled,
+    // }));
 
     if (!courseData) {
       toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
@@ -179,9 +179,10 @@ export default function AcademicPage() {
             <Text className="mb-2 mt-4 text-sm text-text-secondary">开关设置</Text>
 
             <LabelSwitch
-              label="导出到本地日历"
+              label="导出到本地日历(正在开发)"
               value={settings.calendarExportEnabled}
               onValueChange={handleExportToCalendar}
+              disabled
             />
 
             <LabelSwitch

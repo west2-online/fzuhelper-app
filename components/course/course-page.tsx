@@ -1,4 +1,5 @@
 import { Icon } from '@/components/Icon';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -29,7 +30,7 @@ interface CoursePageProps {
   semesterList: TermsListResponse_Terms;
 }
 
-// 课程表页面，
+// 课程表页面
 const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semesterList }) => {
   const [week, setWeek] = useState(1); // 当前周数
   const [showWeekSelector, setShowWeekSelector] = useState(false);
@@ -56,9 +57,10 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     [semesterList],
   );
 
-  // 获取当前学期的开始结束时间（即从 semesterList 中取出当前学期的信息）
+  // 获取当前学期的开始结束时间（即从 semesterList 中取出当前学期的信息，term 表示当前选择的学期）
   const currentSemester = useMemo(() => semesterListMap[term], [semesterListMap, term]);
 
+  // 确认当前周，如果是历史学期（即和 locateDateResult 给出的学期不符），则默认回退到第一周
   useEffect(() => {
     setWeek(term === locateDateResult.semester ? locateDateResult.week : 1);
   }, [term, locateDateResult, semesterListMap]);
@@ -68,6 +70,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     () => getWeeksBySemester(currentSemester.start_date, currentSemester.end_date),
     [currentSemester],
   );
+
   // 生成一周的日期数据
   const weekArray = useMemo(
     () =>
@@ -81,7 +84,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
   // schedules 是一个数组，每个元素是一个课程数据，包含了课程的详细信息
 
-  // 这个 useMemo 用于将课程数据转换为适合展示的格式，在这里我们会先清空显示颜色的索引
+  // 这个 useMemo 用于将课程数据转换为适合展示的格式，同
   const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
   const schedulesByDays = useMemo(
     () =>
