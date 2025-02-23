@@ -155,7 +155,7 @@ export default function ExamRoomPage() {
               </View>
             ))
           ) : (
-            <Text className="text-text-secondary text-center">{isRefreshing ? '正在刷新中' : '暂无考试数据'}</Text>
+            <Text className="text-center text-text-secondary">{isRefreshing ? '正在刷新中' : '暂无考试数据'}</Text>
           )}
         </SafeAreaView>
 
@@ -163,7 +163,7 @@ export default function ExamRoomPage() {
         {lastUpdated && (
           <View className="my-4 flex flex-row items-center justify-center">
             <Icon name="time-outline" size={16} className="mr-2" />
-            <Text className="text-text-primary text-sm leading-5">数据同步时间：{lastUpdated.toLocaleString()}</Text>
+            <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
           </View>
         )}
       </ScrollView>

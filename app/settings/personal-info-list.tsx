@@ -1,14 +1,14 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
+import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
 
+import { getApiV1JwchUserInfo } from '@/api/generate';
 import { JWCH_USER_INFO_KEY } from '@/lib/constants';
 
 export default function PersonalInfoListPage() {
@@ -23,22 +23,18 @@ export default function PersonalInfoListPage() {
   });
 
   // 从 AsyncStorage 加载用户信息
-  const loadUserInfoFromStorage = useCallback(async () => {
-    try {
-      const storedData = await AsyncStorage.getItem(JWCH_USER_INFO_KEY);
-      if (storedData) {
-        setUserInfo(JSON.parse(storedData));
-      }
-    } catch (error) {
-      console.error('Failed to load user info from AsyncStorage:', error);
-      toast.error('加载用户信息失败');
-    }
-  }, []);
+  const { data: userData } = usePersistedQuery({
+    queryKey: [JWCH_USER_INFO_KEY],
+    queryFn: () => getApiV1JwchUserInfo(),
+    cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
+  });
 
   // 在组件加载时初始化数据
   useEffect(() => {
-    loadUserInfoFromStorage();
-  }, [loadUserInfoFromStorage]);
+    if (userData) {
+      setUserInfo(userData.data.data);
+    }
+  }, [userData]);
 
   return (
     <>

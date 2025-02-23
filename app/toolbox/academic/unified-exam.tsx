@@ -70,7 +70,7 @@ export default function UnifiedExamScorePage() {
                     {lastUpdated && (
                       <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
                         <Icon name="time-outline" size={16} className="mr-2" />
-                        <Text className="text-l text-text-primary leading-5">
+                        <Text className="text-l leading-5 text-text-primary">
                           数据同步时间：{lastUpdated.toLocaleString()}
                         </Text>
                       </View>

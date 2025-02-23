@@ -26,3 +26,28 @@ export async function pushToWebViewNormal(url: string, title: string) {
     params, // 传递参数
   });
 }
+
+export async function replaceToWebViewJWCH(url: string, title: string) {
+  const params: WebParams = {
+    url: url,
+    jwch: true,
+    title: title, // 页面标题（可选）
+  };
+
+  router.replace({
+    pathname: '/common/web',
+    params, // 传递参数
+  });
+}
+
+export async function replaceToWebViewNormal(url: string, title: string) {
+  const params: WebParams = {
+    url,
+    title: title, // 页面标题（可选）
+  };
+
+  router.replace({
+    pathname: '/common/web',
+    params, // 传递参数
+  });
+}

@@ -12,24 +12,24 @@ export default function SemesterSummaryCard({ summary }: SemesterSummaryCardProp
     <Card className="mt-3 p-3">
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-col items-start">
-          <Text className="text-text-primary text-sm">总课程数</Text>
-          <Text className="text-text-primary text-lg font-bold">{summary.totalCount}</Text>
+          <Text className="text-sm text-text-primary">总课程数</Text>
+          <Text className="text-lg font-bold text-text-primary">{summary.totalCount}</Text>
         </View>
         <View className="flex flex-col items-start">
-          <Text className="text-text-primary text-sm">应修学分</Text>
-          <Text className="text-text-primary text-lg font-bold">{summary.totalCredit.toFixed(2)}</Text>
+          <Text className="text-sm text-text-primary">应修学分</Text>
+          <Text className="text-lg font-bold text-text-primary">{summary.totalCredit.toFixed(2)}</Text>
         </View>
         <View className="flex flex-col items-start">
-          <Text className="text-text-primary text-sm">单科最高</Text>
-          <Text className="text-text-primary text-lg font-bold">{summary.maxScore.toFixed(2)}</Text>
+          <Text className="text-sm text-text-primary">单科最高</Text>
+          <Text className="text-lg font-bold text-text-primary">{summary.maxScore.toFixed(2)}</Text>
         </View>
         <View className="flex flex-col items-start">
-          <Text className="text-text-primary text-sm">学期绩点</Text>
-          <Text className="text-text-primary text-lg font-bold">{summary.GPA.toFixed(2) + ' #'}</Text>
+          <Text className="text-sm text-text-primary">学期绩点</Text>
+          <Text className="text-lg font-bold text-text-primary">{summary.GPA.toFixed(2) + ' #'}</Text>
         </View>
       </View>
       <View className="flex flex-row items-center justify-between">
-        <Text className="text-text-secondary text-sm"># 单学期绩点非学校教务系统数据，可能存在误差，仅供参考</Text>
+        <Text className="text-sm text-text-secondary"># 单学期绩点非学校教务系统数据，可能存在误差，仅供参考</Text>
       </View>
     </Card>
   );
