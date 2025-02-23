@@ -6,6 +6,7 @@ import {
   getApiV1JwchClassroomExam,
   getApiV1JwchCourseList,
   getApiV1TermsList,
+  getApiV2VersionAndroid,
 } from '@/api/generate';
 
 // 推断异步函数返回值类型的类型体操
@@ -60,3 +61,9 @@ export type JwchAcademicPlanResponse = AsyncReturnType<typeof getApiV1JwchAcadem
 // getApiV1JwchClassroomExam
 export type JwchClassroomExamResponse = AsyncReturnType<typeof getApiV1JwchClassroomExam>['data']['data'];
 export type JwchClassroomExamResponse_ClassroomExam = JwchClassroomExamResponse[0];
+
+// === 安卓更新检测 ===
+
+// getApiV2VersionAndroid
+export type VersionAndroidResponse = AsyncReturnType<typeof getApiV2VersionAndroid>['data']['data'];
+export type VersionAndroidResponse_Data = VersionAndroidResponse['release'];

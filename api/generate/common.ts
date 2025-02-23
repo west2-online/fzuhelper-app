@@ -3,7 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 学期信息 GET /api/v1/terms/info https://apifox.com/web/project/3275694/apis/api-227251089-run */
+/** 学期信息 GET /api/v1/terms/info */
 export async function getApiV1TermsInfo(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1TermsInfoParams,
@@ -27,7 +27,7 @@ export async function getApiV1TermsInfo(
   });
 }
 
-/** 学期列表 GET /api/v1/terms/list https://apifox.com/web/project/3275694/apis/api-227251088-run */
+/** 学期列表 GET /api/v1/terms/list */
 export async function getApiV1TermsList(options?: { [key: string]: unknown }) {
   return request<{
     code: string;
@@ -43,6 +43,35 @@ export async function getApiV1TermsList(options?: { [key: string]: unknown }) {
       }[];
     };
   }>('/api/v1/terms/list', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** 获取安卓版本更新信息 GET /api/v2/version/android */
+export async function getApiV2VersionAndroid(options?: {
+  [key: string]: unknown;
+}) {
+  return request<{
+    code: string;
+    message: string;
+    data: {
+      release: {
+        version_code: string;
+        version_name: string;
+        force: boolean;
+        changelog: string;
+        url: string;
+      };
+      beta: {
+        version_code: string;
+        version_name: string;
+        force: boolean;
+        changelog: string;
+        url: string;
+      };
+    };
+  }>('/api/v2/version/android', {
     method: 'GET',
     ...(options || {}),
   });

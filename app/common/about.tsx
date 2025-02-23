@@ -14,17 +14,38 @@ import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
-import IconTransparent from '@/assets/images/icon_transparent.png';
+import IconTransparent from '@/assets/images/ic_launcher_foreground.png';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
+import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
+import { toast } from 'sonner-native';
 
 export default function AboutPage() {
   const [clickCount, setClickCount] = useState(0);
+  const { handleError } = useSafeResponseSolve();
+  const [updateCheckState, setUpdateCheckState] = useState('点击检查更新');
 
-  const handleCheckUpdate = () => {
+  const handleCheckUpdate = async () => {
     console.log('check update');
     if (Platform.OS === 'ios') {
       Linking.openURL('itms-apps://itunes.apple.com/app/id866768101');
+    } else {
+      setUpdateCheckState('正在检查更新');
+
+      checkAndroidUpdate(handleError, {
+        onUpdate: data => {
+          setUpdateCheckState('发现新版本');
+          showAndroidUpdateDialog(data);
+        },
+        onNoUpdate: () => {
+          setUpdateCheckState('已经是最新版本');
+        },
+        onError: error => {
+          toast.error(error);
+          setUpdateCheckState('检查更新失败，请稍后再试');
+        },
+      });
     }
   };
 
@@ -77,7 +98,7 @@ export default function AboutPage() {
                   <Text className="text-text-secondary">版本更新</Text>
                 </DescriptionListTerm>
                 <DescriptionListDescription>
-                  <Text>{Platform.OS === 'ios' ? '点击前往 App Store 查看' : '检查更新'}</Text>
+                  <Text>{Platform.OS === 'ios' ? '点击前往 App Store 查看' : updateCheckState}</Text>
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
