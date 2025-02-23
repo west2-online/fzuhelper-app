@@ -32,9 +32,6 @@ function withIOSInject(config: ExpoConfig): ExpoConfig {
       NSAllowsArbitraryLoads: true,
     };
 
-    // 历年卷权限申请描述
-    infoPlist.modResults.NSFileProviderDomainUsageDescription = '我们需要使用文件拓展来保存和上传历年卷文件';
-
     return infoPlist;
   });
   // 通过 withDangerousMod 注入 iOS 脚本

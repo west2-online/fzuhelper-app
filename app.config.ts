@@ -13,6 +13,11 @@ const config: ExpoConfig = {
     bundleIdentifier: 'FzuHelper.FzuHelper',
     buildNumber: '7.0.0',
     supportsTablet: true,
+    infoPlist: {
+      NSCalendarsFullAccessUsageDescription: '我们需要申请日历权限以导出课表、考场安排等内容到日历',
+      NSCameraUsageDescription: '我们需要申请相机权限以提供拍照上传头像等功能',
+      NSPhotoLibraryUsageDescription: '我们需要申请相册权限以提供上传头像等功能',
+    },
   },
   android: {
     package: 'com.helper.west2ol.fzuhelper',
