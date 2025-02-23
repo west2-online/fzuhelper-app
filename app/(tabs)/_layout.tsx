@@ -1,11 +1,12 @@
 import { Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { Alert, AppState } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
 
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
 const NAVIGATION_TITLE = '首页';
 
@@ -55,6 +56,17 @@ export default function TabLayout() {
       subscription.remove();
     };
   });
+
+  useEffect(() => {
+    // 安卓检查更新
+    if (Platform.OS === 'android') {
+      checkAndroidUpdate(handleError, {
+        onUpdate: data => {
+          showAndroidUpdateDialog(data);
+        },
+      });
+    }
+  }, [handleError]);
 
   return (
     <Tabs>

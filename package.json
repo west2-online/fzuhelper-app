@@ -59,6 +59,7 @@
     "react-native": "~0.77.0",
     "react-native-animated-spinkit": "^1.5.2",
     "react-native-blob-util": "^0.21.2",
+    "react-native-device-info": "^14.0.4",
     "react-native-edge-to-edge": "^1.4.2",
     "react-native-gesture-handler": "~2.22.0",
     "react-native-keyboard-controller": "^1.15.2",
