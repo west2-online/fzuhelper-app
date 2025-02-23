@@ -17,8 +17,11 @@ if [[ -d "$CI_APP_STORE_SIGNED_APP_PATH" ]]; then
     # 写入 en-US 文件
     echo "$GIT_LOG" > $TESTFLIGHT_DIR_PATH/WhatToTest.en-US.txt || { echo "Failed to write WhatToTest.en-US file"; exit 1; }
 
-    # 写入 zh-CN 文件
-    echo "$GIT_LOG_ZH" > $TESTFLIGHT_DIR_PATH/WhatToTest.zh-CN.txt || { echo "Failed to write WhatToTest.zh-CN file"; exit 1; }
+    # 写入 zh-Hans 文件
+    echo "$GIT_LOG_ZH" > $TESTFLIGHT_DIR_PATH/WhatToTest.zh-Hans.txt || { echo "Failed to write WhatToTest.zh-Hans file"; exit 1; }
+
+    # 写入 zh-Hant 文件
+    echo "$GIT_LOG_ZH" > $TESTFLIGHT_DIR_PATH/WhatToTest.zh-Hant.txt || { echo "Failed to write WhatToTest.zh-Hant file"; exit 1; }
 fi
 
 # 这个脚本是在 Xcode Cloud 上运行的，在 Xcode 构建完成后执行
