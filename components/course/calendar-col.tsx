@@ -56,31 +56,35 @@ const CalendarCol: React.FC<CalendarColProps> = ({
 
     for (let i = 1; i <= 11; i++) {
       // 找出当前时间段且为当前周的课程
-      let currentWeekSchedules = schedules.filter(
-        s =>
-          s.startClass === i &&
-          s.endClass >= i && // 当前时间段是否在课程时间范围内
-          s.startWeek <= week &&
-          s.endWeek >= week &&
-          ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)), // 是否符合周数条件
-      );
+      let currentWeekSchedules = schedules
+        .filter(
+          s =>
+            s.startClass === i &&
+            s.endClass >= i && // 当前时间段是否在课程时间范围内
+            s.startWeek <= week &&
+            s.endWeek >= week &&
+            ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)), // 是否符合周数条件
+        )
+        .sort((a, b) => a.endClass - a.startClass - (b.endClass - b.startClass)); // 升序排序，优先安排短课程
 
       // 找出当前时间段但不是当前周的课程
       let nonCurrentWeekSchedules = isShowNonCurrentWeekCourses
-        ? schedules.filter(
-            s =>
-              s.startClass === i &&
-              s.endClass >= i && // 当前时间段是否在课程时间范围内
-              (s.startWeek > week ||
-                s.endWeek < week ||
-                !((s.single && week % 2 === 1) || (s.double && week % 2 === 0))), // 是否不符合周数条件
-          )
+        ? schedules
+            .filter(
+              s =>
+                s.startClass === i &&
+                s.endClass >= i && // 当前时间段是否在课程时间范围内
+                (s.startWeek > week ||
+                  s.endWeek < week ||
+                  !((s.single && week % 2 === 1) || (s.double && week % 2 === 0))), // 是否不符合周数条件
+            )
+            .sort((a, b) => a.endClass - a.startClass - (b.endClass - b.startClass)) // 按课程长度升序排序
         : [];
 
       let scheduleOnTime = currentWeekSchedules.length > 0 ? currentWeekSchedules : nonCurrentWeekSchedules;
 
       if (scheduleOnTime.length > 0) {
-        const primarySchedule = scheduleOnTime[0]; // 默认取第一个课程为主课程
+        const primarySchedule = scheduleOnTime[0]; // 默认取第一个课程为主课程（此时已按长度排序）
         const span = primarySchedule.endClass - primarySchedule.startClass + 1;
 
         res.push({
