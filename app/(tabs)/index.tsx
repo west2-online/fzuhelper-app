@@ -9,8 +9,8 @@ import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
+import locateDate from '@/lib/locate-date';
 import { normalizeCourseSetting } from '@/utils/course';
-import locateDate from '@/utils/locate-date';
 
 export default function HomePage() {
   const [config, setConfig] = useState<CourseSetting | null>(null); // 课程设置

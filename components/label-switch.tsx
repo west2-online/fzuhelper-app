@@ -7,9 +7,16 @@ interface SwitchWithLabelProps {
   value: boolean;
   onValueChange: () => void;
   description?: string;
+  disabled?: boolean;
 }
 
-const LabelSwitch: React.FC<SwitchWithLabelProps> = ({ label, value, onValueChange, description }) => {
+const LabelSwitch: React.FC<SwitchWithLabelProps> = ({
+  label,
+  value,
+  onValueChange,
+  description,
+  disabled = false,
+}) => {
   return (
     <Pressable className="space-y-4" onPress={onValueChange}>
       <View className="flex-row items-center justify-between py-4">
@@ -20,7 +27,7 @@ const LabelSwitch: React.FC<SwitchWithLabelProps> = ({ label, value, onValueChan
         </View>
         {/* 右侧 Switch 区域 */}
         <View>
-          <Switch checked={value} onCheckedChange={onValueChange} />
+          <Switch checked={value} onCheckedChange={onValueChange} disabled={disabled} />
         </View>
       </View>
     </Pressable>
