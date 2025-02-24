@@ -12,20 +12,25 @@ export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'ra
 export interface ExtendCourse extends ParsedCourse {
   id: number; // 我们为每门课程分配一个唯一的 ID，后续可以用于识别
   color: string; // 课程颜色
-  priority?: number; // 优先级
+  priority: number; // 优先级
 }
 
 interface CacheCourseData {
   data: Record<number, ExtendCourse[]>;
+  priorityCounter: number;
   digest: string;
 }
 
 export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
 export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
+const MAX_PRIORITY = 10000; // 最大优先级，达到这个优先级后会重新计数
+const DEFAULT_PRIORITY = 1; // 默认优先级
+const DEFAULT_STARTID = 1000; // 默认 ID 起始值
 
 export class CourseCache {
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
   private static cachedData: Record<number, ExtendCourse[]> | null = null; // 缓存的课程数据
+  private static priorityCounter: number = DEFAULT_PRIORITY; // 静态优先级计数器，初始值为 1
 
   /**
    * 获取缓存数据
@@ -45,6 +50,7 @@ export class CourseCache {
     const result = JSON.parse(resp) as CacheCourseData;
     this.cachedDigest = result.digest;
     this.cachedData = result.data;
+    this.priorityCounter = result.priorityCounter;
     console.log('Loaded cached course data.');
   }
 
@@ -57,6 +63,7 @@ export class CourseCache {
       JSON.stringify({
         data: this.cachedData,
         digest: this.cachedDigest,
+        priorityCounter: this.priorityCounter,
       }),
     );
   }
@@ -67,6 +74,7 @@ export class CourseCache {
   public static async clear(): Promise<void> {
     this.cachedDigest = null;
     this.cachedData = null;
+    this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
     await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
   }
 
@@ -84,7 +92,7 @@ export class CourseCache {
    * @param courseID - 课程 ID
    * @param priority - 优先级
    */
-  public static async setPriority(courseID: number, priority: number): Promise<void> {
+  public static async setPriority(courseID: number): Promise<void> {
     if (!this.cachedData) {
       return;
     }
@@ -92,9 +100,11 @@ export class CourseCache {
     const updatedData = Object.values(this.cachedData).map(day =>
       day.map(course => {
         if (course.id === courseID) {
+          console.log(`Set priority for course ${course.name} to ${this.priorityCounter}`);
+          this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
           return {
             ...course,
-            priority,
+            priority: this.priorityCounter, // 设置优先级并自增计数器
           };
         }
         return course;
@@ -164,19 +174,18 @@ export class CourseCache {
     clearColorMapping(); // 清空颜色映射
     const courseColorMap: Record<string, string> = {}; // 用于存储课程与颜色的映射关系
 
-    let startID = 1000; // 从 1000 开始分配 ID
+    let startID = DEFAULT_STARTID; // 从 1000 开始分配 ID
 
     // 为每个课程生成颜色并扩展数据
     const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
       if (!courseColorMap[schedule.name]) {
         courseColorMap[schedule.name] = generateRandomColor(schedule.name, colorScheme === 'dark');
       }
-      startID += 1; // 递增 ID
       return {
         ...schedule,
         color: courseColorMap[schedule.name],
         priority: 0, // 默认优先级为 0
-        id: startID, // 生成一个随机 ID
+        id: startID++, // 生成一个随机 ID
       };
     });
 

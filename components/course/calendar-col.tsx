@@ -89,7 +89,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
 
         res.push({
           type: 'course',
-          schedules: scheduleOnTime,
+          schedules: scheduleOnTime.sort((a, b) => b.priority - a.priority), // 按优先级排序，优先级大的排在前面
           span,
           color:
             isShowNonCurrentWeekCourses &&

@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
+import OverlapIcon from '@/assets/images/course/overlap.svg';
 import { Text } from '@/components/ui/text';
 import ScheduleDetailsDialog from './schedule-detail-dialog';
 
-import { type ParsedCourse } from '@/lib/course';
-
-import OverlapIcon from '@/assets/images/course/overlap.svg';
+import { type ExtendCourse } from '@/lib/course';
 
 interface ScheduleItemProps {
-  schedules: ParsedCourse[];
+  schedules: ExtendCourse[];
   height: number;
   span: number;
   color: string; // 课程的颜色
