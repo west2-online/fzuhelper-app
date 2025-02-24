@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { CLASS_SCHEDULES } from '@/lib/constants';
+import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
 import { cn } from '@/lib/utils';
-import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/utils/course';
 
 // 判断当前时间是否在指定时间段内
 const isTimeInRange = (currentTime: string, startTime: string, endTime: string): boolean => {

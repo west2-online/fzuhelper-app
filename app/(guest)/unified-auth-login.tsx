@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
+import { pushToWebViewNormal } from '@/lib/webview';
 import YMTLogin from '@/lib/ymt-login';
+import { push } from 'expo-router/build/global-state/routing';
 
 const NAVIGATION_TITLE = '统一身份认证';
 const URL_FORGET_PASSWORD = 'https://sso.fzu.edu.cn/public/client/forget-password/qr';
@@ -29,24 +31,12 @@ const UnifiedLoginPage: React.FC = () => {
 
   // 打开服务协议
   const openUserAgreement = useCallback(() => {
-    router.push({
-      pathname: '/web',
-      params: {
-        url: URL_USER_AGREEMENT,
-        title: '服务协议',
-      },
-    });
+    pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
   }, []);
 
   // 打开隐私政策
   const openPrivacyPolicy = useCallback(() => {
-    router.push({
-      pathname: '/web',
-      params: {
-        url: URL_PRIVACY_POLICY,
-        title: '隐私政策',
-      },
-    });
+    pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
   }, []);
 
   // 忘记密码

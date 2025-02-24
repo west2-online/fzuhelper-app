@@ -2,6 +2,7 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { CourseCache } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewJWCH } from '@/lib/webview';
@@ -91,6 +92,11 @@ export default function HomePage() {
     }
   };
 
+  const SetDifferentCourseCacheDigest = async () => {
+    CourseCache.setDigest('test');
+    toast.success('已经设置不同的课程缓存摘要');
+  };
+
   return (
     <>
       <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
@@ -159,14 +165,17 @@ export default function HomePage() {
           <Button onPress={setInvalidAccessTokenYmt}>
             <Text>Set Invalid AccessToken (ymt)</Text>
           </Button>
+          <Button onPress={SetDifferentCourseCacheDigest}>
+            <Text>Set Different Course Cache Digest</Text>
+          </Button>
 
           {/* 缓存清理 */}
           <Text className="m-3 my-4 text-lg font-bold">Cache clean</Text>
           <Button onPress={cleanAllCache}>
-            <Text>Clean All Cache</Text>
+            <Text>Clean All Cache (File System)</Text>
           </Button>
           <Button onPress={cleanPaperCache}>
-            <Text>Clean Paper Cache</Text>
+            <Text>Clean Paper Cache (File System)</Text>
           </Button>
         </KeyboardAwareScrollView>
       </PageContainer>

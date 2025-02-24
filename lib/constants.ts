@@ -23,6 +23,7 @@ export const JWCH_USER_PASSWORD_KEY = 'jwch_user_password'; // 密码
 export const JWCH_USER_INFO_KEY = 'jwch_user_info'; // 用户信息
 export const JWCH_COOKIES_DOMAIN = 'https://jwcjwxt2.fzu.edu.cn:81'; // JWCH Cookies 域名
 export const JWCH_LOCATE_DATE_URL = 'https://jwcjwxt2.fzu.edu.cn:82/week.asp'; // JWCH 定位日期 URL
+export const JWCH_LOCATE_DATE_CACHE_KEY = 'jwch_locate_date'; // JWCH 定位日期缓存 Key
 export const JWCH_CURRENT_SEMESTER_KEY = 'jwch_current_semester'; // 当前学期信息
 
 // 一码通
@@ -40,6 +41,7 @@ export const SPLASH_DATE = 'splash_date';
 export const SPLASH_ID = 'splash_id';
 
 // 课程表
+export const COURSE_CURRENT_CACHE_KEY = 'course_current_cache';
 export const COURSE_SETTINGS_KEY = 'course_settings';
 export const COURSE_DATA_KEY = 'course_data';
 export const COURSE_LOCAL_CALENDAR_ID_KEY = 'course_local_calendar_id';

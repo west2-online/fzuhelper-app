@@ -6,12 +6,13 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 import { Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import { CourseCache } from '@/lib/course';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { clearUserStorage } from '@/utils/user';
 import { ScrollView } from 'react-native-gesture-handler';
-import { toast } from 'sonner-native';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
@@ -53,6 +54,7 @@ export default function AcademicPage() {
         style: 'destructive',
         onPress: async () => {
           try {
+            CourseCache.clear();
             await clearUserStorage();
             redirect('/(guest)/academic-login');
           } catch (error) {

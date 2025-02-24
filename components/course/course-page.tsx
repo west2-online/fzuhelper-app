@@ -1,5 +1,4 @@
 import { Icon } from '@/components/Icon';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -13,16 +12,15 @@ import {
 
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
+import { toast } from 'sonner-native';
+import CourseWeek from './course-week';
 
 import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
-import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_DATA_KEY } from '@/lib/constants';
-import { getFirstDateByWeek, getWeeksBySemester, parseCourses, type ParsedCourse } from '@/utils/course';
-import generateRandomColor, { clearColorMapping } from '@/utils/random-color';
-
-import CourseWeek from './course-week';
+import { CourseCache, getFirstDateByWeek, getWeeksBySemester, type ExtendCourse } from '@/lib/course';
+import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 interface CoursePageProps {
   config: CourseSetting;
@@ -36,8 +34,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
-  const colorScheme = useColorScheme();
+  const [schedulesByDays, setSchedulesByDays] = useState<Record<number, ExtendCourse[]>>([]); // 目前的课程数据，按天归类
 
+  const colorScheme = useColorScheme();
   const flatListRef = useRef<FlatList>(null);
 
   // 从设置中读取相关信息（比如当前选择的学期，是否显示非本周课程），设置项由上级组件传入
@@ -46,11 +45,35 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   // 【查询课程数据】
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
   // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
-  const { data } = usePersistedQuery({
-    queryKey: [COURSE_DATA_KEY, term],
-    queryFn: () => getApiV1JwchCourseList({ term }),
-  });
+  useEffect(() => {
+    // 拉取新数据
+    const fetchData = async () => {
+      try {
+        const fetchedData = await fetchWithCache(
+          [COURSE_DATA_KEY, term],
+          () => getApiV1JwchCourseList({ term }),
+          1000 * 60 * 60 * 24,
+        );
 
+        // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
+        if (!CourseCache.getCachedData() || CourseCache.compareDigest(fetchedData.data.data) === false) {
+          toast.info('检测到课程数据变更，已刷新');
+          setSchedulesByDays(CourseCache.transferToExtendCourses(fetchedData.data.data, colorScheme));
+        }
+      } catch (error: any) {
+        console.error(error);
+        toast.error('课程数据获取失败，请检查网络连接，将使用本地缓存');
+      }
+    };
+
+    // 如果有缓存数据，优先使用缓存数据
+    if (CourseCache.getCachedData()) {
+      setSchedulesByDays(CourseCache.getCachedData());
+    }
+    fetchData();
+  }, [term, colorScheme]);
+
+  // 以下是处理学期的数据
   // 将学期数据转换为 Map，方便后续使用
   const semesterListMap = useMemo(
     () => Object.fromEntries(semesterList.map(semester => [semester.term, semester])),
@@ -80,41 +103,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       })),
     [maxWeek, currentSemester],
   );
-
-  // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
-  // schedules 是一个数组，每个元素是一个课程数据，包含了课程的详细信息
-
-  // 这个 useMemo 用于将课程数据转换为适合展示的格式，同
-  const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
-  const schedulesByDays = useMemo(
-    () =>
-      schedules
-        ? schedules.reduce(
-            (result, current) => {
-              const day = current.weekday - 1;
-              if (!result[day]) result[day] = [];
-              result[day].push(current);
-              return result;
-            },
-            {} as Record<number, ParsedCourse[]>,
-          )
-        : {},
-    [schedules],
-  );
-
-  // 用于存储课程名称和颜色的对应关系，这里我们移入到 useMemo 中，避免每次渲染都重新生成
-  const courseColorMap = useMemo(() => {
-    clearColorMapping(); // 先清空先前的颜色映射
-
-    const map: Record<string, string> = {};
-
-    schedules.forEach(schedule => {
-      if (!map[schedule.syllabus]) {
-        map[schedule.syllabus] = generateRandomColor(schedule.name, colorScheme === 'dark'); // 基于课程名称生成颜色
-      }
-    });
-    return map;
-  }, [colorScheme, schedules]);
 
   // 通过 viewability 回调获取当前周
   const handleViewableItemsChanged = useCallback(
@@ -177,7 +165,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
             week={item.week}
             startDate={item.firstDate}
             schedulesByDays={schedulesByDays}
-            courseColorMap={courseColorMap}
             showNonCurrentWeekCourses={showNonCurrentWeekCourses}
             flatListLayout={flatListLayout}
           />
