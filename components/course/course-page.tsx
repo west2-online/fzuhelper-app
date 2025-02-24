@@ -10,7 +10,6 @@ import {
   type ViewToken,
 } from 'react-native';
 
-import Loading from '@/components/loading';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
 import { toast } from 'sonner-native';
@@ -20,14 +19,7 @@ import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import { COURSE_DATA_KEY } from '@/lib/constants';
-import {
-  CalDigest,
-  TransferToExtendCourse,
-  cachedData,
-  cachedDigest,
-  getFirstDateByWeek,
-  getWeeksBySemester,
-} from '@/lib/course';
+import { CourseCache, getFirstDateByWeek, getWeeksBySemester, type ExtendCourse } from '@/lib/course';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 interface CoursePageProps {
@@ -42,7 +34,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
-  const [schedulesByDays, setSchedulesByDays] = useState(cachedData || []); // 目前的课程数据，按天归类
+  const [schedulesByDays, setSchedulesByDays] = useState<Record<number, ExtendCourse[]>>([]); // 目前的课程数据，按天归类
 
   const colorScheme = useColorScheme();
   const flatListRef = useRef<FlatList>(null);
@@ -63,10 +55,10 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           1000 * 60 * 60 * 24,
         );
 
-        // 如果有缓存数据，且缓存数据和新数据不一致，则更新数据
-        if (!cachedData || CalDigest(fetchedData.data.data) !== cachedDigest) {
+        // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
+        if (!CourseCache.getCachedData() || CourseCache.compareDigest(fetchedData.data.data) === false) {
           toast.info('检测到课程数据变更，已自动刷新');
-          setSchedulesByDays(TransferToExtendCourse(fetchedData.data.data, colorScheme));
+          setSchedulesByDays(CourseCache.transferToExtendCourses(fetchedData.data.data, colorScheme));
         }
       } catch (error: any) {
         console.error(error);
@@ -75,8 +67,8 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     };
 
     // 如果有缓存数据，优先使用缓存数据
-    if (cachedData) {
-      setSchedulesByDays(cachedData);
+    if (CourseCache.getCachedData()) {
+      setSchedulesByDays(CourseCache.getCachedData());
     }
     fetchData();
   }, [term, colorScheme]);

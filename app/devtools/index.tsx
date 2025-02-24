@@ -2,7 +2,7 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
-import { setDigest } from '@/lib/course';
+import { CourseCache } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewJWCH } from '@/lib/webview';
@@ -93,7 +93,7 @@ export default function HomePage() {
   };
 
   const SetDifferentCourseCacheDigest = async () => {
-    setDigest('test');
+    CourseCache.setDigest('test');
     toast.success('已经设置不同的课程缓存摘要');
   };
 

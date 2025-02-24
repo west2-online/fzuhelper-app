@@ -20,143 +20,186 @@ interface CacheCourseData {
   digest: string;
 }
 
-// 下面这两个数据会在 app 首次打开时加载，之后会一直保持在内存中，直到 app 退出
-export let cachedDigest: string | null = null; // 缓存上一次的 digest
-export let cachedData: Record<number, ExtendCourse[]> | null = null; // 缓存上一次的 processed data
-
 export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
 export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
 
-// 解析课程数据，将课程数据中的 scheduleRules 展开，返回一个新的数组
-export function parseCourses(courses: JwchCourseListResponse_Course[]): ParsedCourse[] {
-  const parsedCourses = courses.flatMap(course =>
-    course.scheduleRules.map(rule => {
-      const { rawAdjust, rawScheduleRules, scheduleRules, ...rest } = course;
+export class CourseCache {
+  private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
+  private static cachedData: Record<number, ExtendCourse[]> | null = null; // 缓存的课程数据
 
-      return {
-        ...rest,
-        ...rule,
-      };
-    }),
-  );
-
-  return parsedCourses;
-}
-
-// 从 AsyncStorage 中加载缓存的课程数据
-export const loadCachedData = async () => {
-  const resp = await AsyncStorage.getItem(COURSE_CURRENT_CACHE_KEY);
-  if (!resp) {
-    return;
-  }
-  const result = JSON.parse(resp) as CacheCourseData;
-  cachedDigest = result.digest;
-  cachedData = result.data;
-  console.log('Loaded cached course data.');
-};
-
-// 将课程数据缓存到 AsyncStorage 中
-export const saveCachedData = async (data: Record<number, ExtendCourse[]>) => {
-  await AsyncStorage.setItem(
-    COURSE_CURRENT_CACHE_KEY,
-    JSON.stringify({
-      data: data,
-      digest: cachedDigest,
-    }),
-  );
-};
-
-export const setDigest = (digest: string) => {
-  cachedDigest = digest;
-  saveCachedData(cachedData || {});
-};
-
-// 手动为某门课程设置优先级
-export const setCoursePriority = async (courseID: number, priority: number) => {
-  if (!cachedData) {
-    return;
+  /**
+   * 获取缓存数据
+   */
+  public static getCachedData(): Record<number, ExtendCourse[]> {
+    return this.cachedData ?? [];
   }
 
-  const updatedData = Object.values(cachedData).map(day =>
-    day.map(course => {
-      if (course.id === courseID) {
-        return {
-          ...course,
-          priority,
-        };
-      }
-      return course;
-    }),
-  );
-
-  cachedData = updatedData;
-  await saveCachedData(updatedData);
-};
-
-export const CalDigest = (data: JwchCourseListResponse_Course[]) => {
-  return objectHash(data);
-};
-
-/**
- * TransferToExtendCourse
- * @param tempData - 接口返回的数据
- * @param colorScheme - 当前的配色方案（'dark' 或 'light'）
- * @returns 按天归类的课程数据
- */
-// 添加这一层cache，我们可以在数据没有变化时直接返回缓存的数据，避免重复处理
-export const TransferToExtendCourse = (
-  tempData: JwchCourseListResponse_Course[],
-  colorScheme: 'dark' | 'light' | null | undefined,
-) => {
-  // 生成当前 tempData 的 digest
-  const currentDigest = CalDigest(tempData);
-
-  // 如果当前 digest 和上一次的 digest 一致，则直接返回缓存的 data
-  if (currentDigest === cachedDigest && cachedData) {
-    return cachedData;
-  }
-
-  // 否则，重新处理数据
-  const schedules = parseCourses(tempData); // 解析课程数据
-
-  clearColorMapping(); // 清空颜色映射
-  const courseColorMap: Record<string, string> = {}; // 用于存储课程与颜色的映射关系
-
-  var startID = 1000; // 从 1000 开始分配 ID
-
-  // 为每个课程生成颜色并扩展数据
-  const extendedCourse: ExtendCourse[] = schedules.map(schedule => {
-    if (!courseColorMap[schedule.name]) {
-      courseColorMap[schedule.name] = generateRandomColor(schedule.name, colorScheme === 'dark');
+  /**
+   * 加载缓存数据
+   */
+  public static async load(): Promise<void> {
+    const resp = await AsyncStorage.getItem(COURSE_CURRENT_CACHE_KEY);
+    if (!resp) {
+      return;
     }
-    startID += 1; // 递增 ID
-    return {
-      ...schedule,
-      color: courseColorMap[schedule.name],
-      priority: 0, // 默认优先级为 0
-      id: startID, // 生成一个随机 ID
-    };
-  });
+    const result = JSON.parse(resp) as CacheCourseData;
+    this.cachedDigest = result.digest;
+    this.cachedData = result.data;
+    console.log('Loaded cached course data.');
+  }
 
-  // 按天归类课程数据
-  const groupedData = extendedCourse.reduce(
-    (result, current) => {
-      const day = current.weekday - 1;
-      if (!result[day]) result[day] = [];
-      result[day].push(current);
-      return result;
-    },
-    {} as Record<number, ExtendCourse[]>,
-  );
+  /**
+   * 保存缓存数据
+   */
+  private static async save(): Promise<void> {
+    await AsyncStorage.setItem(
+      COURSE_CURRENT_CACHE_KEY,
+      JSON.stringify({
+        data: this.cachedData,
+        digest: this.cachedDigest,
+      }),
+    );
+  }
 
-  // 更新缓存
-  cachedDigest = currentDigest;
-  cachedData = groupedData;
+  /**
+   * 清除缓存数据
+   */
+  public static async clear(): Promise<void> {
+    this.cachedDigest = null;
+    this.cachedData = null;
+    await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
+  }
 
-  saveCachedData(groupedData); // 缓存数据
+  /**
+   * 设置摘要
+   * @param digest - 数据摘要
+   */
+  public static async setDigest(digest: string): Promise<void> {
+    this.cachedDigest = digest;
+    await this.save();
+  }
 
-  return groupedData;
-};
+  /**
+   * 手动为某门课程设置优先级
+   * @param courseID - 课程 ID
+   * @param priority - 优先级
+   */
+  public static async setPriority(courseID: number, priority: number): Promise<void> {
+    if (!this.cachedData) {
+      return;
+    }
+
+    const updatedData = Object.values(this.cachedData).map(day =>
+      day.map(course => {
+        if (course.id === courseID) {
+          return {
+            ...course,
+            priority,
+          };
+        }
+        return course;
+      }),
+    );
+
+    this.cachedData = updatedData;
+    await this.save();
+  }
+
+  /**
+   * 计算课程数据的摘要
+   * @param data - 课程数据
+   * @returns 数据摘要
+   */
+  public static calculateDigest(data: JwchCourseListResponse_Course[]): string {
+    return objectHash(data);
+  }
+
+  /**
+   * 计算摘要并和当前缓存的摘要进行比较
+   * @param data - 课程数据
+   * @returns 是否和当前缓存的数据一致
+   */
+  public static compareDigest(data: JwchCourseListResponse_Course[]): boolean {
+    return this.calculateDigest(data) === this.cachedDigest;
+  }
+
+  /**
+   * 解析课程数据
+   * @param courses - 原始课程数据
+   * @returns 解析后的课程数据
+   */
+  private static parseCourses(courses: JwchCourseListResponse_Course[]): ParsedCourse[] {
+    return courses.flatMap(course =>
+      course.scheduleRules.map(rule => {
+        const { rawAdjust, rawScheduleRules, scheduleRules, ...rest } = course;
+        return {
+          ...rest,
+          ...rule,
+        };
+      }),
+    );
+  }
+
+  /**
+   * 转换课程数据为扩展课程数据
+   * @param tempData - 接口返回的数据
+   * @param colorScheme - 当前的配色方案（'dark' 或 'light'）
+   * @returns 按天归类的课程数据
+   */
+  public static transferToExtendCourses(
+    tempData: JwchCourseListResponse_Course[],
+    colorScheme: 'dark' | 'light' | null | undefined,
+  ): Record<number, ExtendCourse[]> {
+    // 生成当前 tempData 的 digest
+    const currentDigest = this.calculateDigest(tempData);
+
+    // 如果当前 digest 和上一次的 digest 一致，则直接返回缓存的 data
+    if (currentDigest === this.cachedDigest && this.cachedData) {
+      return this.cachedData;
+    }
+
+    // 否则，重新处理数据
+    const schedules = this.parseCourses(tempData); // 解析课程数据
+
+    clearColorMapping(); // 清空颜色映射
+    const courseColorMap: Record<string, string> = {}; // 用于存储课程与颜色的映射关系
+
+    let startID = 1000; // 从 1000 开始分配 ID
+
+    // 为每个课程生成颜色并扩展数据
+    const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
+      if (!courseColorMap[schedule.name]) {
+        courseColorMap[schedule.name] = generateRandomColor(schedule.name, colorScheme === 'dark');
+      }
+      startID += 1; // 递增 ID
+      return {
+        ...schedule,
+        color: courseColorMap[schedule.name],
+        priority: 0, // 默认优先级为 0
+        id: startID, // 生成一个随机 ID
+      };
+    });
+
+    // 按天归类课程数据
+    const groupedData = extendedCourses.reduce(
+      (result, current) => {
+        const day = current.weekday - 1;
+        if (!result[day]) result[day] = [];
+        result[day].push(current);
+        return result;
+      },
+      {} as Record<number, ExtendCourse[]>,
+    );
+
+    // 更新缓存
+    this.cachedDigest = currentDigest;
+    this.cachedData = groupedData;
+
+    this.save(); // 缓存数据
+
+    return groupedData;
+  }
+}
 
 // 根据学期开始日期和当前周数获取当前周的第一天日期
 export function getFirstDateByWeek(semesterStart: string, currentWeek: number): string {

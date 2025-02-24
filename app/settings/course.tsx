@@ -17,7 +17,7 @@ import { useUpdateEffect } from '@/hooks/use-update-effect';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
-import { TransferToExtendCourse, defaultCourseSetting, readCourseSetting } from '@/lib/course';
+import { CourseCache, defaultCourseSetting, readCourseSetting } from '@/lib/course';
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
@@ -90,7 +90,7 @@ export default function AcademicPage() {
       };
 
       await AsyncStorage.setItem([COURSE_DATA_KEY, settings.selectedSemester].join('__'), JSON.stringify(cacheToStore));
-      TransferToExtendCourse(data.data.data, colorScheme);
+      CourseCache.transferToExtendCourses(data.data.data, colorScheme);
       toast.success('刷新成功');
     } catch (error: any) {
       const data = handleError(error);

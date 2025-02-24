@@ -9,7 +9,7 @@ import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
-import { loadCachedData, normalizeCourseSetting } from '@/lib/course';
+import { CourseCache, normalizeCourseSetting } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
 
 export default function HomePage() {
@@ -62,7 +62,7 @@ export default function HomePage() {
     // 确保缓存数据在首次加载时被初始化
     if (!cacheInitialized) {
       const initializeCache = async () => {
-        await loadCachedData(); // 加载缓存数据
+        await CourseCache.load(); // 加载缓存数据
         setCacheInitialized(true); // 设置缓存已初始化
       };
       initializeCache();
