@@ -57,7 +57,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
         // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
         if (!CourseCache.getCachedData() || CourseCache.compareDigest(fetchedData.data.data) === false) {
-          toast.info('检测到课程数据变更，已自动刷新');
+          toast.info('检测到课程数据变更，已刷新');
           setSchedulesByDays(CourseCache.transferToExtendCourses(fetchedData.data.data, colorScheme));
         }
       } catch (error: any) {
