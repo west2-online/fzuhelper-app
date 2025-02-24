@@ -13,13 +13,16 @@ import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
+import ApplicationIcon from '@/assets/images/toolbox/ic_application.svg';
 import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
 import FileIcon from '@/assets/images/toolbox/ic_file.svg';
 import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
+import GraduationIcon from '@/assets/images/toolbox/ic_graduation.svg';
 import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
 import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
+import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
@@ -95,12 +98,29 @@ const DEFAULT_TOOLS: Tool[] = [
       Alert.alert('暂未开放', '新版一键评议正在设计中，预计学期结束前（即评议开始前）上线，敬请期待');
     },
   },
-
   {
     name: '选课',
     icon: XuankeIcon,
     type: ToolType.LINK,
     href: '/toolbox/xuanke',
+  },
+  {
+    name: '各类申请',
+    icon: ApplicationIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/application',
+  },
+  {
+    name: '学生证',
+    icon: IDCardIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/id-card',
+  },
+  {
+    name: '毕业设计',
+    icon: GraduationIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/graduation',
   },
   {
     name: '校园指南',
@@ -194,7 +214,7 @@ const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
   >
     {item.icon ? <item.icon width="42px" height="42px" /> : null}
     <Text
-      className="text-text-secondary w-[50px] text-center align-middle"
+      className="w-[50px] text-center align-middle text-text-secondary"
       // eslint-disable-next-line react-native/no-inline-styles
       style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
       numberOfLines={1}
