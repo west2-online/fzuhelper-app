@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
+import { useColorScheme } from 'react-native';
 import { toast } from 'sonner-native';
 
 import LabelEntry from '@/components/label-entry';
@@ -16,8 +17,7 @@ import { useUpdateEffect } from '@/hooks/use-update-effect';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
-import { CachedData } from '@/types/cache';
-import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
+import { TransferToExtendCourse, defaultCourseSetting, readCourseSetting } from '@/lib/course';
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
@@ -27,6 +27,7 @@ export default function AcademicPage() {
   const [semesters, setSemesters] = useState<string[]>([]);
   const { handleError } = useSafeResponseSolve();
   const [isLoadingSemester, setLoadingSemester] = useState(false);
+  const colorScheme = useColorScheme();
 
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
@@ -89,6 +90,8 @@ export default function AcademicPage() {
       };
 
       await AsyncStorage.setItem([COURSE_DATA_KEY, settings.selectedSemester].join('__'), JSON.stringify(cacheToStore));
+      TransferToExtendCourse(data.data.data, colorScheme);
+      toast.success('刷新成功');
     } catch (error: any) {
       const data = handleError(error);
       console.log(data);
@@ -98,7 +101,7 @@ export default function AcademicPage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [settings.selectedSemester, handleError]);
+  }, [settings.selectedSemester, handleError, colorScheme]);
 
   // 选择学期开关
   const handleOpenTermSelectPicker = useCallback(async () => {

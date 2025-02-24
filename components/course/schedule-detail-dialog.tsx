@@ -7,7 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
-import { type ParsedCourse } from '@/utils/course';
+import { type ParsedCourse } from '@/lib/course';
 import React from 'react';
 import { Image, Pressable, View } from 'react-native';
 

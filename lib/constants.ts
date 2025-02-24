@@ -41,6 +41,7 @@ export const SPLASH_DATE = 'splash_date';
 export const SPLASH_ID = 'splash_id';
 
 // 课程表
+export const COURSE_CURRENT_CACHE_KEY = 'course_current_cache';
 export const COURSE_SETTINGS_KEY = 'course_settings';
 export const COURSE_DATA_KEY = 'course_data';
 export const COURSE_LOCAL_CALENDAR_ID_KEY = 'course_local_calendar_id';

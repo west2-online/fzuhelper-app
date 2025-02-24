@@ -13,16 +13,22 @@ import {
 import Loading from '@/components/loading';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
+import { toast } from 'sonner-native';
+import CourseWeek from './course-week';
 
 import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
-import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_DATA_KEY } from '@/lib/constants';
-import { getFirstDateByWeek, getWeeksBySemester, parseCourses, type ExtendCourse } from '@/utils/course';
-import generateRandomColor, { clearColorMapping } from '@/utils/random-color';
-
-import CourseWeek from './course-week';
+import {
+  CalDigest,
+  TransferToExtendCourse,
+  cachedData,
+  cachedDigest,
+  getFirstDateByWeek,
+  getWeeksBySemester,
+} from '@/lib/course';
+import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 interface CoursePageProps {
   config: CourseSetting;
@@ -36,8 +42,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
-  const colorScheme = useColorScheme();
+  const [schedulesByDays, setSchedulesByDays] = useState(cachedData || []); // 目前的课程数据，按天归类
 
+  const colorScheme = useColorScheme();
   const flatListRef = useRef<FlatList>(null);
 
   // 从设置中读取相关信息（比如当前选择的学期，是否显示非本周课程），设置项由上级组件传入
@@ -46,43 +53,35 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   // 【查询课程数据】
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
   // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
-  // 此处使用了依赖项 term，当 term 变化时，会重新请求数据，term 由上级传入
-  // 返回的 schedulesByDays 按天归类，同时每个课程数据都携带拓展信息，具体类型参考前面的 interface
-  const { data: schedulesByDays, isFetching } = usePersistedQuery({
-    queryKey: [COURSE_DATA_KEY, term],
-    queryFn: () => getApiV1JwchCourseList({ term }),
-    postAction: tempData => {
-      // 我们这里插入一个中间处理函数，将课程数据解析为拓展课程数据，包含颜色和优先级等内容
-      const schedules = parseCourses(tempData.data.data); // 转换为适合展示的课程数据
+  useEffect(() => {
+    // 拉取新数据
+    const fetchData = async () => {
+      try {
+        const fetchedData = await fetchWithCache(
+          [COURSE_DATA_KEY, term],
+          () => getApiV1JwchCourseList({ term }),
+          1000 * 60 * 60 * 24,
+        );
 
-      clearColorMapping(); // 先清空先前的颜色映射
-      // 创建一个映射表，用于存储课程与颜色的对应关系
-      const courseColorMap: Record<string, string> = {};
-      const coloredSchedules: ExtendCourse[] = schedules.map(schedule => {
-        // 如果没有为该课程生成过颜色，则生成并存储
-        if (!courseColorMap[schedule.syllabus]) {
-          courseColorMap[schedule.syllabus] = generateRandomColor(schedule.name, colorScheme === 'dark');
+        // 如果有缓存数据，且缓存数据和新数据不一致，则更新数据
+        if (!cachedData || CalDigest(fetchedData.data.data) !== cachedDigest) {
+          toast.info('检测到课程数据变更，已自动刷新');
+          setSchedulesByDays(TransferToExtendCourse(fetchedData.data.data, colorScheme));
         }
-        // 返回带颜色的课程数据
-        return {
-          ...schedule,
-          color: courseColorMap[schedule.syllabus],
-        };
-      });
+      } catch (error: any) {
+        console.error(error);
+        toast.error('课程数据获取失败，请检查网络连接，将使用本地缓存');
+      }
+    };
 
-      // 按天归类课程数据
-      return coloredSchedules.reduce(
-        (result, current) => {
-          const day = current.weekday - 1;
-          if (!result[day]) result[day] = [];
-          result[day].push(current);
-          return result;
-        },
-        {} as Record<number, ExtendCourse[]>, // 转换为按天分组的数据
-      );
-    },
-  });
+    // 如果有缓存数据，优先使用缓存数据
+    if (cachedData) {
+      setSchedulesByDays(cachedData);
+    }
+    fetchData();
+  }, [term, colorScheme]);
 
+  // 以下是处理学期的数据
   // 将学期数据转换为 Map，方便后续使用
   const semesterListMap = useMemo(
     () => Object.fromEntries(semesterList.map(semester => [semester.term, semester])),
@@ -133,10 +132,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     [maxWeek],
   );
 
-  if (isFetching) {
-    return <Loading />;
-  }
-
   return (
     <>
       {/* 顶部 Tab 导航栏 */}
@@ -177,7 +172,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
             key={item.week}
             week={item.week}
             startDate={item.firstDate}
-            schedulesByDays={schedulesByDays ?? []}
+            schedulesByDays={schedulesByDays}
             showNonCurrentWeekCourses={showNonCurrentWeekCourses}
             flatListLayout={flatListLayout}
           />

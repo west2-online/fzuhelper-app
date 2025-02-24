@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { View, type LayoutRectangle } from 'react-native';
 
-import { SCHEDULE_MIN_HEIGHT, type ExtendCourse } from '@/utils/course';
+import { SCHEDULE_MIN_HEIGHT, type ExtendCourse } from '@/lib/course';
 import { nonCurrentWeekCourses } from '@/utils/random-color';
 
 import EmptyScheduleItem from './empty-schedule-item';

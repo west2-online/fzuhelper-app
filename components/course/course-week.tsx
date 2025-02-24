@@ -1,7 +1,7 @@
 import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
 import { Text } from '@/components/ui/text';
-import type { ExtendCourse } from '@/utils/course';
+import type { ExtendCourse } from '@/lib/course';
 import { memo, useMemo } from 'react';
 import { ScrollView, View, type LayoutRectangle } from 'react-native';
 import CalendarCol from './calendar-col';

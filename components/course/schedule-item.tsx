@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import ScheduleDetailsDialog from './schedule-detail-dialog';
 
-import { type ParsedCourse } from '@/utils/course';
+import { type ParsedCourse } from '@/lib/course';
 
 import OverlapIcon from '@/assets/images/course/overlap.svg';
 
