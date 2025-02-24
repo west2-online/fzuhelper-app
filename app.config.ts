@@ -119,6 +119,7 @@ const config: ExpoConfig = {
       },
     ],
     './with-android-theme',
+    './with-android-localization',
   ],
   experiments: {
     typedRoutes: true,
