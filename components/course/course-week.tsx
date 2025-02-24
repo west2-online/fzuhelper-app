@@ -1,7 +1,7 @@
 import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
 import { Text } from '@/components/ui/text';
-import type { ParsedCourse } from '@/utils/course';
+import type { ExtendCourse } from '@/utils/course';
 import { memo, useMemo } from 'react';
 import { ScrollView, View, type LayoutRectangle } from 'react-native';
 import CalendarCol from './calendar-col';
@@ -10,8 +10,7 @@ import TimeCol from './time-col';
 interface CourseWeekProps {
   week: number;
   startDate: string;
-  schedulesByDays: Record<number, ParsedCourse[]>;
-  courseColorMap: Record<string, string>;
+  schedulesByDays: Record<number, ExtendCourse[]>;
   showNonCurrentWeekCourses: boolean;
   flatListLayout: LayoutRectangle;
 }
@@ -22,7 +21,6 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
   week,
   startDate,
   schedulesByDays,
-  courseColorMap,
   showNonCurrentWeekCourses,
   flatListLayout,
 }) => {
@@ -80,7 +78,6 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
                 key={`${startDate}_${i}`}
                 week={week}
                 schedulesOnDay={schedulesByDays[i] || []}
-                courseColorMap={courseColorMap}
                 isShowNonCurrentWeekCourses={showNonCurrentWeekCourses}
                 flatListLayout={{ ...flatListLayout, width: flatListLayout.width - 32 }} // 32px 时间列宽度
               />

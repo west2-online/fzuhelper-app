@@ -26,22 +26,47 @@ export default function HomePage() {
 
   // loadData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
   const loadData = useCallback(async () => {
-    const res = await locateDate();
-    setLocateDateResult(res);
+    const startTime = Date.now(); // 记录开始时间
 
+    const res = await locateDate();
+
+    // 检查 locateDateResult 是否变化
+    setLocateDateResult(prev => {
+      if (JSON.stringify(prev) !== JSON.stringify(res)) {
+        return res;
+      }
+      console.log('locateDateResult not changed');
+      return prev;
+    });
+
+    // 获取最新的课表设置
     const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
     const tryParsedSettings = setting ? JSON.parse(setting) : {};
     const selectedSemester = tryParsedSettings.selectedSemester || res.semester;
     const parsedSettings = normalizeCourseSetting({ ...tryParsedSettings, selectedSemester });
 
-    setConfig(parsedSettings);
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(parsedSettings));
+    // 检查 config 是否变化
+    setConfig(prev => {
+      if (JSON.stringify(prev) !== JSON.stringify(parsedSettings)) {
+        return parsedSettings;
+      }
+      console.log('config not changed');
+      return prev;
+    });
+
+    // 更新 AsyncStorage，仅在数据变化时写入
+    if (JSON.stringify(tryParsedSettings) !== JSON.stringify(parsedSettings)) {
+      await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(parsedSettings));
+    }
+
+    const endTime = Date.now(); // 记录结束时间
+    const elapsedTime = endTime - startTime; // 计算耗时
+    console.log(`loadData function took ${elapsedTime}ms to complete.`);
   }, []);
 
   // 当加载的时候会读取 COURSE_SETTINGS，里面有一个字段会存储当前选择的学期（不一定是最新学期）
   useFocusEffect(
     useCallback(() => {
-      setConfig(null);
       loadData();
     }, [loadData]),
   );

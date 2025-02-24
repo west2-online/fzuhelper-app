@@ -10,28 +10,33 @@ import { toast } from 'sonner-native';
 function usePersistedQuery<
   TQueryFnData = unknown,
   TError = DefaultError,
-  TData = TQueryFnData,
+  TPostActionData = TQueryFnData, // 新增泛型参数，用于 postAction 的返回值
   TQueryKey extends QueryKey = QueryKey,
 >(
   {
     queryKey,
     queryFn,
     cacheTime = 6 * 60 * 60 * 1000, // 默认缓存 6 小时（单位：毫秒）
+    postAction, // 请求成功后的中间处理函数
     timeout,
     ...options
-  }: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey> & {
+  }: Omit<UseQueryOptions<TQueryFnData, TError, TPostActionData, TQueryKey>, 'queryFn'> & {
     cacheTime?: number;
     timeout?: number;
+    postAction?: (data: TQueryFnData) => TPostActionData; // postAction 返回 TPostActionData
+    queryFn: (...args: any[]) => Promise<TQueryFnData>; // queryFn 返回 TQueryFnData
   },
   queryClient?: QueryClient,
 ) {
   const { enabled, ...otherOptions } = options;
 
-  return useQuery(
+  return useQuery<TQueryFnData, TError, TPostActionData, TQueryKey>(
     {
       queryKey,
       queryFn: async (...res): Promise<TQueryFnData> => {
-        if (typeof queryFn !== 'function') throw new Error('queryFn is required');
+        if (typeof queryFn !== 'function') {
+          throw new Error('queryFn is required');
+        }
 
         const cacheKey = queryKey.join('__');
         const persistedData = await AsyncStorage.getItem(cacheKey);
@@ -58,7 +63,7 @@ function usePersistedQuery<
           };
           await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheToStore));
 
-          return response;
+          return response; // 直接返回 queryFn 的结果
         } catch (error) {
           // 如果请求失败且有过期缓存，返回过期缓存
           if (persistedData) {
@@ -75,6 +80,7 @@ function usePersistedQuery<
         ...otherOptions,
         retry: false, // 禁用默认重试机制
         staleTime: Infinity, // 允许使用过期的数据
+        select: postAction, // 使用 React Query 的 select 选项
       },
     },
     queryClient,

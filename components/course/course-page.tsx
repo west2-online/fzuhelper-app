@@ -1,5 +1,4 @@
 import { Icon } from '@/components/Icon';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -11,6 +10,7 @@ import {
   type ViewToken,
 } from 'react-native';
 
+import Loading from '@/components/loading';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
 
@@ -19,7 +19,7 @@ import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_DATA_KEY } from '@/lib/constants';
-import { getFirstDateByWeek, getWeeksBySemester, parseCourses, type ParsedCourse } from '@/utils/course';
+import { getFirstDateByWeek, getWeeksBySemester, parseCourses, type ExtendCourse } from '@/utils/course';
 import generateRandomColor, { clearColorMapping } from '@/utils/random-color';
 
 import CourseWeek from './course-week';
@@ -46,9 +46,41 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   // 【查询课程数据】
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
   // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
-  const { data } = usePersistedQuery({
+  // 此处使用了依赖项 term，当 term 变化时，会重新请求数据，term 由上级传入
+  // 返回的 schedulesByDays 按天归类，同时每个课程数据都携带拓展信息，具体类型参考前面的 interface
+  const { data: schedulesByDays, isFetching } = usePersistedQuery({
     queryKey: [COURSE_DATA_KEY, term],
     queryFn: () => getApiV1JwchCourseList({ term }),
+    postAction: tempData => {
+      // 我们这里插入一个中间处理函数，将课程数据解析为拓展课程数据，包含颜色和优先级等内容
+      const schedules = parseCourses(tempData.data.data); // 转换为适合展示的课程数据
+
+      clearColorMapping(); // 先清空先前的颜色映射
+      // 创建一个映射表，用于存储课程与颜色的对应关系
+      const courseColorMap: Record<string, string> = {};
+      const coloredSchedules: ExtendCourse[] = schedules.map(schedule => {
+        // 如果没有为该课程生成过颜色，则生成并存储
+        if (!courseColorMap[schedule.syllabus]) {
+          courseColorMap[schedule.syllabus] = generateRandomColor(schedule.name, colorScheme === 'dark');
+        }
+        // 返回带颜色的课程数据
+        return {
+          ...schedule,
+          color: courseColorMap[schedule.syllabus],
+        };
+      });
+
+      // 按天归类课程数据
+      return coloredSchedules.reduce(
+        (result, current) => {
+          const day = current.weekday - 1;
+          if (!result[day]) result[day] = [];
+          result[day].push(current);
+          return result;
+        },
+        {} as Record<number, ExtendCourse[]>, // 转换为按天分组的数据
+      );
+    },
   });
 
   // 将学期数据转换为 Map，方便后续使用
@@ -81,41 +113,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     [maxWeek, currentSemester],
   );
 
-  // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
-  // schedules 是一个数组，每个元素是一个课程数据，包含了课程的详细信息
-
-  // 这个 useMemo 用于将课程数据转换为适合展示的格式，同
-  const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
-  const schedulesByDays = useMemo(
-    () =>
-      schedules
-        ? schedules.reduce(
-            (result, current) => {
-              const day = current.weekday - 1;
-              if (!result[day]) result[day] = [];
-              result[day].push(current);
-              return result;
-            },
-            {} as Record<number, ParsedCourse[]>,
-          )
-        : {},
-    [schedules],
-  );
-
-  // 用于存储课程名称和颜色的对应关系，这里我们移入到 useMemo 中，避免每次渲染都重新生成
-  const courseColorMap = useMemo(() => {
-    clearColorMapping(); // 先清空先前的颜色映射
-
-    const map: Record<string, string> = {};
-
-    schedules.forEach(schedule => {
-      if (!map[schedule.syllabus]) {
-        map[schedule.syllabus] = generateRandomColor(schedule.name, colorScheme === 'dark'); // 基于课程名称生成颜色
-      }
-    });
-    return map;
-  }, [colorScheme, schedules]);
-
   // 通过 viewability 回调获取当前周
   const handleViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken<(typeof weekArray)[0]>[] }) => {
@@ -135,6 +132,10 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       })),
     [maxWeek],
   );
+
+  if (isFetching) {
+    return <Loading />;
+  }
 
   return (
     <>
@@ -176,8 +177,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
             key={item.week}
             week={item.week}
             startDate={item.firstDate}
-            schedulesByDays={schedulesByDays}
-            courseColorMap={courseColorMap}
+            schedulesByDays={schedulesByDays ?? []}
             showNonCurrentWeekCourses={showNonCurrentWeekCourses}
             flatListLayout={flatListLayout}
           />

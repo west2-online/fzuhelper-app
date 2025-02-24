@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { View, type LayoutRectangle } from 'react-native';
 
-import { SCHEDULE_MIN_HEIGHT, type ParsedCourse } from '@/utils/course';
+import { SCHEDULE_MIN_HEIGHT, type ExtendCourse } from '@/utils/course';
 import { nonCurrentWeekCourses } from '@/utils/random-color';
 
 import EmptyScheduleItem from './empty-schedule-item';
@@ -10,7 +10,7 @@ import ScheduleItem from './schedule-item';
 type ScheduleItemData =
   | {
       type: 'course';
-      schedules: ParsedCourse[];
+      schedules: ExtendCourse[];
       span: number;
       color: string; // 课程的颜色
     }
@@ -20,14 +20,13 @@ type ScheduleItemData =
 
 interface CalendarColProps {
   week: number;
-  schedulesOnDay: ParsedCourse[];
+  schedulesOnDay: ExtendCourse[];
   isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
-  courseColorMap: Record<string, string>; // 课程颜色映射
   flatListLayout: LayoutRectangle;
 }
 
 // 移除重复的课程，之所以需要这个，是因为教务处会莫名其妙安排完全一样的课程在教务处的课程表中，导致大量的重复课程显示
-const removeDuplicateSchedules = (schedules: ParsedCourse[]): ParsedCourse[] => {
+const removeDuplicateSchedules = (schedules: ExtendCourse[]): ExtendCourse[] => {
   const seen = new Set<string>();
   return schedules.filter(schedule => {
     // 将课程的唯一标识组合为一个字符串，例如 "课程名+教师+开始时间+结束时间+开始周数+结束周数"
@@ -44,7 +43,6 @@ const removeDuplicateSchedules = (schedules: ParsedCourse[]): ParsedCourse[] => 
 const CalendarCol: React.FC<CalendarColProps> = ({
   week,
   schedulesOnDay,
-  courseColorMap,
   isShowNonCurrentWeekCourses,
   flatListLayout,
 }) => {
@@ -95,7 +93,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
               primarySchedule.endWeek < week ||
               !((primarySchedule.single && week % 2 === 1) || (primarySchedule.double && week % 2 === 0)))
               ? nonCurrentWeekCourses
-              : courseColorMap[primarySchedule.syllabus],
+              : primarySchedule.color,
         });
 
         i += span - 1; // 跳过当前课程的跨度
@@ -105,7 +103,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     }
 
     return res;
-  }, [schedulesOnDay, week, courseColorMap, isShowNonCurrentWeekCourses]);
+  }, [schedulesOnDay, week, isShowNonCurrentWeekCourses]);
 
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>

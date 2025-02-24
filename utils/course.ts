@@ -6,6 +6,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
   JwchCourseListResponse_CourseScheduleRule;
 
+// 对课程类型的拓展，支持颜色等设计，也允许后期进行不断扩充
+export interface ExtendCourse extends ParsedCourse {
+  color: string;
+}
+
 export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
 export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
 
