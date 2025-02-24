@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -10,7 +10,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
-import type { VersionAndroidResponse_Data } from '@/api/backend';
 import { getApiV1JwchUserInfo, getApiV1LoginAccessToken } from '@/api/generate';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
@@ -24,7 +23,8 @@ import {
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
-import { checkAndroidUpdate, downloadAndInstallApk, showAndroidUpdateDialog } from '@/utils/android-update';
+import { pushToWebViewNormal } from '@/lib/webview';
+import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
 const NAVIGATION_TITLE = '登录';
 const URL_RESET_PASSWORD = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
@@ -46,24 +46,12 @@ const LoginPage: React.FC = () => {
 
   // 打开服务协议
   const openUserAgreement = useCallback(() => {
-    router.push({
-      pathname: '/web',
-      params: {
-        url: URL_USER_AGREEMENT,
-        title: '服务协议',
-      },
-    });
+    pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
   }, []);
 
   // 打开隐私政策
   const openPrivacyPolicy = useCallback(() => {
-    router.push({
-      pathname: '/web',
-      params: {
-        url: URL_PRIVACY_POLICY,
-        title: '隐私政策',
-      },
-    });
+    pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
   }, []);
 
   // 打开重置密码
