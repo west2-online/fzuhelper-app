@@ -10,9 +10,9 @@ import { Text } from '@/components/ui/text';
 import { getApiV1JwchUserInfo } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
+import { fetchJwchLocateDate } from '@/lib/locate-date';
 import { JWCHLocateDateResult } from '@/types/data';
 import { UserInfo } from '@/types/user';
-import { fetchJwchLocateDate } from '@/utils/locate-date';
 
 import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
