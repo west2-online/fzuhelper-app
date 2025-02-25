@@ -1,14 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { View, useColorScheme } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { Icon } from '@/components/Icon';
 import LabelEntry from '@/components/label-entry';
 import LabelSwitch from '@/components/label-switch';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
+import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
@@ -18,7 +20,6 @@ import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
 import { CourseCache, defaultCourseSetting, readCourseSetting } from '@/lib/course';
-import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -90,7 +91,7 @@ export default function AcademicPage() {
       };
 
       await AsyncStorage.setItem([COURSE_DATA_KEY, settings.selectedSemester].join('__'), JSON.stringify(cacheToStore));
-      CourseCache.transferToExtendCourses(data.data.data, colorScheme);
+      CourseCache.setCourses(data.data.data, colorScheme);
       toast.success('刷新成功');
     } catch (error: any) {
       const data = handleError(error);
@@ -155,6 +156,19 @@ export default function AcademicPage() {
     // await exportCourseToNativeCalendar(courseData.data.data, startDate);
   }, [termListData, courseData]);
 
+  // 控制导入考场到课表
+  const handleExportExamToCourseTable = useCallback(() => {
+    setSettings(prevSettings => {
+      if (prevSettings.exportExamToCourseTable) {
+        CourseCache.clearExamData();
+      }
+      return {
+        ...prevSettings,
+        exportExamToCourseTable: !prevSettings.exportExamToCourseTable,
+      };
+    });
+  }, []);
+
   return (
     <>
       <Stack.Screen options={{ title: '课程表设置' }} />
@@ -182,7 +196,7 @@ export default function AcademicPage() {
             <Text className="mb-2 mt-4 text-sm text-text-secondary">开关设置</Text>
 
             <LabelSwitch
-              label="导出到本地日历(正在开发)"
+              label="导出到本地日历(正在升级)"
               value={settings.calendarExportEnabled}
               onValueChange={handleExportToCalendar}
               disabled
@@ -193,6 +207,37 @@ export default function AcademicPage() {
               value={settings.showNonCurrentWeekCourses}
               onValueChange={handleShowNonCurrentWeekCourses}
             />
+
+            <LabelSwitch
+              label="在课表中显示相同学期的考场"
+              value={settings.exportExamToCourseTable}
+              onValueChange={handleExportExamToCourseTable}
+            />
+            <View className="space-y-4">
+              <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+              <Text className="my-2 text-base text-text-secondary">
+                显示考场功能只会显示在当前学期范围内，且设置好日期时间的考场。补考时间在下一学期开学左右两周，因此不会显示。
+              </Text>
+              <Text className="my-2 text-base text-text-secondary">
+                考试时间可能非标准上课时间，请在考场详情中查看具体考试时间，或以授课教师通知为准。
+              </Text>
+            </View>
+
+            <View className="mt-4 flex flex-row items-center justify-center">
+              <Icon name="time-outline" size={16} className="mr-2" />
+              <Text className="text-sm leading-5 text-text-primary">
+                课表同步时间：{CourseCache.getLastCourseUpdateTime()}
+              </Text>
+            </View>
+
+            {settings.exportExamToCourseTable && (
+              <View className="my-4 flex flex-row items-center justify-center">
+                <Icon name="time-outline" size={16} className="mr-2" />
+                <Text className="text-sm leading-5 text-text-primary">
+                  考场同步时间：{CourseCache.getLastExamUpdateTime()}
+                </Text>
+              </View>
+            )}
 
             <PickerModal
               visible={isPickerVisible}

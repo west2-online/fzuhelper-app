@@ -37,7 +37,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ isOpen, o
 
   const setPriority = (index: number) => {
     CourseCache.setPriority(index);
-    toast.success('设置成功，重新打开课程表生效');
+    toast.success('设置完毕，重新打开课程表生效');
   };
 
   return (
@@ -106,13 +106,17 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ isOpen, o
                   </DescriptionListRow>
                 </DescriptionList>
                 <View className="flex flex-row justify-evenly">
-                  <Button variant="link" onPress={handleSyllabusPress}>
-                    <Text className="text-primary">教学大纲</Text>
-                  </Button>
-                  <Button variant="link" onPress={handleLessonplanPress}>
-                    <Text className="text-primary">授课计划</Text>
-                  </Button>
-                  {schedules.length > 1 && (
+                  {schedule.syllabus.length > 0 && (
+                    <Button variant="link" onPress={handleSyllabusPress}>
+                      <Text className="text-primary">教学大纲</Text>
+                    </Button>
+                  )}
+                  {schedule.lessonplan.length > 0 && (
+                    <Button variant="link" onPress={handleLessonplanPress}>
+                      <Text className="text-primary">授课计划</Text>
+                    </Button>
+                  )}
+                  {schedules.length > 1 && scheduleIndex > 0 && (
                     <Button
                       variant="link"
                       onPress={() => {

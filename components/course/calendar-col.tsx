@@ -1,11 +1,11 @@
 import { memo, useMemo } from 'react';
 import { View, type LayoutRectangle } from 'react-native';
 
-import { SCHEDULE_MIN_HEIGHT, type ExtendCourse } from '@/lib/course';
-import { nonCurrentWeekCourses } from '@/utils/random-color';
-
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
+
+import { EXAM_TYPE, SCHEDULE_MIN_HEIGHT, type ExtendCourse } from '@/lib/course';
+import { nonCurrentWeekCourses } from '@/utils/random-color';
 
 type ScheduleItemData =
   | {
@@ -22,6 +22,7 @@ interface CalendarColProps {
   week: number;
   schedulesOnDay: ExtendCourse[];
   isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
+  showExam: boolean; // 是否显示考试
   flatListLayout: LayoutRectangle;
 }
 
@@ -44,6 +45,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   week,
   schedulesOnDay,
   isShowNonCurrentWeekCourses,
+  showExam,
   flatListLayout,
 }) => {
   // 根据当前周数和星期几，筛选出当天的课程
@@ -82,6 +84,10 @@ const CalendarCol: React.FC<CalendarColProps> = ({
         : [];
 
       let scheduleOnTime = currentWeekSchedules.length > 0 ? currentWeekSchedules : nonCurrentWeekSchedules;
+      scheduleOnTime = scheduleOnTime.sort((a, b) => b.priority - a.priority); // 降序排序，优先级高的排在前面
+
+      // 如果不显示考试，则过滤掉考试
+      if (!showExam) scheduleOnTime = scheduleOnTime.filter(s => s.type !== EXAM_TYPE);
 
       if (scheduleOnTime.length > 0) {
         const primarySchedule = scheduleOnTime[0]; // 默认取第一个课程为主课程（此时已按长度排序）
@@ -89,7 +95,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
 
         res.push({
           type: 'course',
-          schedules: scheduleOnTime.sort((a, b) => b.priority - a.priority), // 按优先级排序，优先级大的排在前面
+          schedules: scheduleOnTime, // 按优先级排序，优先级大的排在前面
           span,
           color:
             isShowNonCurrentWeekCourses &&
@@ -107,7 +113,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     }
 
     return res;
-  }, [schedulesOnDay, week, isShowNonCurrentWeekCourses]);
+  }, [schedulesOnDay, week, isShowNonCurrentWeekCourses, showExam]);
 
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>

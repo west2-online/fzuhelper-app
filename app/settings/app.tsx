@@ -33,6 +33,7 @@ export default function AcademicPage() {
         text: '清除',
         style: 'destructive',
         onPress: async () => {
+          CourseCache.clear();
           await AsyncStorage.clear();
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
