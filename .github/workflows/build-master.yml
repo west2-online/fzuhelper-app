@@ -52,3 +52,40 @@ jobs:
           name: outputs
           path: android/app/build/outputs
           retention-days: 0
+
+      - name: Extract Version Info
+        run: |
+          VERSION_CODE=$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')
+          VERSION_NAME=$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')
+          echo "APP_VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+          echo "APP_VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+
+      - name: Get Upload Params
+        run: |
+          RESPONSE=$(curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload-params' \
+          --form "password=${{ secrets.ANDROID_UPDATE_PWD }}")
+          echo "UPYUN_POLICY=$(echo $RESPONSE | jq -r .policy)" >> $GITHUB_ENV
+          echo "UPYUN_AUTH=$(echo $RESPONSE | jq -r .authorization)" >> $GITHUB_ENV
+
+      - name: Upload to UPYUN
+        run: |
+          cd android/app/build/outputs/apk/release
+          mv app-arm64-v8a-release.apk "FzuHelper_${{ env.APP_VERSION_NAME }}(${{ env.APP_VERSION_CODE }}).apk"
+          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \
+          -F "file=@FzuHelper_${{ env.APP_VERSION_NAME }}(${{ env.APP_VERSION_CODE }}).apk" \
+          -F "policy=${{ env.UPYUN_POLICY }}" \
+          -F "authorization=${{ env.UPYUN_AUTH }}")
+          DOWNLOAD_URL="https://download.w2fzu.com$(echo $RESPONSE | jq -r .url)"
+          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
+
+      - name: Submit Version Info
+        run: |
+          CHANGELOG=$(git log -3 --pretty=format:"%s")
+          curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload' \
+          --form "version=${{ env.APP_VERSION_NAME }}" \
+          --form "code=${{ env.APP_VERSION_CODE }}" \
+          --form "url=${{ env.DOWNLOAD_URL }}" \
+          --form "feature=$CHANGELOG" \
+          --form "type=beta" \
+          --form "password=${{ secrets.ANDROID_UPDATE_PWD }}" \
+          --form "force=true"
