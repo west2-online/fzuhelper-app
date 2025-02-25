@@ -96,7 +96,7 @@ export default function AcademicPage() {
             {/* 菜单列表 */}
             <Text className="mb-2 text-sm text-text-secondary">基本</Text>
 
-            <LabelEntry leftText="通知推送" onPress={handleNotification} />
+            <LabelEntry leftText="推送通知" onPress={handleNotification} />
             <LabelEntry leftText="清除数据" onPress={handleClearData} />
             <LabelEntry leftText="退出登录" onPress={handleLogout} />
 
