@@ -80,7 +80,7 @@ export default function AcademicPage() {
     if (Platform.OS === 'android') {
       openNotificationSettings();
     } else if (Platform.OS === 'ios') {
-      if (isAllowCalendar) {
+      if (isAllowNotification) {
         openNotificationSettings();
         return;
       }
@@ -121,7 +121,7 @@ export default function AcademicPage() {
 
   const handleCalendarPermission = () => {
     if (Platform.OS === 'ios') {
-      if (isAllowNotification) {
+      if (isAllowCalendar) {
         openApplicationSettings();
         return;
       }
