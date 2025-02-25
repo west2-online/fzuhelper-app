@@ -80,7 +80,7 @@ export default function AcademicPage() {
     if (Platform.OS === 'android') {
       openNotificationSettings();
     } else if (Platform.OS === 'ios') {
-      if (isAllowNotification) {
+      if (isAllowCalendar) {
         openNotificationSettings();
         return;
       }
