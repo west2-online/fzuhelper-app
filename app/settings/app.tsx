@@ -97,7 +97,7 @@ export default function AcademicPage() {
             {/* 菜单列表 */}
             <Text className="mb-2 text-sm text-text-secondary">基本</Text>
 
-            <LabelEntry leftText="通知推送" onPress={handleNotification} />
+            <LabelEntry leftText="推送通知" onPress={handleNotification} />
             <LabelEntry leftText="清除数据" onPress={handleClearData} />
             <LabelEntry leftText="退出登录" onPress={handleLogout} />
 
@@ -106,10 +106,6 @@ export default function AcademicPage() {
             <LabelEntry leftText="隐私权限设置" onPress={handlePrivacyPermission} />
             <LabelEntry leftText="个人信息收集清单" onPress={handlePersonalInfoList} />
             <LabelEntry leftText="第三方信息共享清单" onPress={handleThirdPartyInfoList} />
-
-            <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text>
-
-            <LabelEntry leftText="开发者工具" onPress={handleDeveloperTools} />
           </SafeAreaView>
         </ScrollView>
       </PageContainer>
