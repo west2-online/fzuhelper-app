@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/text';
 import { getApiV1JwchUserInfo, getApiV1LoginAccessToken } from '@/api/generate';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import aegis from '@/lib/aegis';
 import {
   JWCH_COOKIES_KEY,
   JWCH_ID_KEY,
@@ -116,6 +117,8 @@ const LoginPage: React.FC = () => {
         [JWCH_ID_KEY, id],
         [JWCH_COOKIES_KEY, cookies],
       ]);
+      aegis.setConfig({ uin: username });
+      console.log('aegis set uin:', username);
 
       // 通过提供 id和 cookies 获取访问令牌
       await getApiV1LoginAccessToken();
@@ -164,7 +167,7 @@ const LoginPage: React.FC = () => {
             {/* 左上角标题 */}
             <View className="ml-1 mt-14">
               <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
-              <Text className="text-lg text-text-secondary">综合性最强的福大校内APP</Text>
+              <Text className="text-text-secondary text-lg">综合性最强的福大校内APP</Text>
             </View>
 
             {/* 页面内容 */}
@@ -234,7 +237,7 @@ const LoginPage: React.FC = () => {
               onPress={() => setIsAgree(!isAgree)}
             >
               <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-              <Text className="text-center text-text-secondary">
+              <Text className="text-text-secondary text-center">
                 {'  '}
                 阅读并同意{' '}
                 <Text
