@@ -72,6 +72,8 @@ export const CLASS_SCHEDULES_MINUTES = [
   [1195, 1240],
   [1250, 1295],
 ];
+export const CLASS_BREAK_NOON = [720, 840]; // 12:00 - 14:00
+export const CLASS_BREAK_EVENING = [1050, 1140]; // 17:30 - 19:00
 
 // 考场
 export const EXAM_ROOM_KEY = 'exam_room';

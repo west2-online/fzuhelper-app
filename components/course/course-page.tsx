@@ -63,7 +63,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       try {
         // 异步获取联网课程数据
         let hasChanged = false; // 是否有数据变更
-        const hasCache = CourseCache.getCachedData(); // 先判断是否有缓存
+        const hasCache = CourseCache.hasCachedData(); // 先判断是否有缓存
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, term],
           () => getApiV1JwchCourseList({ term }),
@@ -87,7 +87,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
           const mergedExamData = formatExamData(examData.data.data);
           if (mergedExamData.length > 0 && CourseCache.compareDigest(EXAM_TYPE, mergedExamData) === false) {
-            CourseCache.mergeExamCourses(mergedExamData, currentSemester.start_date);
+            CourseCache.mergeExamCourses(mergedExamData, currentSemester.start_date, currentSemester.end_date);
             hasChanged = true;
           }
         }
@@ -104,11 +104,13 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     // 如果有缓存数据，优先使用缓存数据
     setSchedulesByDays(CourseCache.getCachedData() ?? []);
     fetchData();
-  }, [term, colorScheme, exportExamToCourseTable, currentSemester.start_date]);
+  }, [term, colorScheme, exportExamToCourseTable, currentSemester]);
 
   // 确认当前周，如果是历史学期（即和 locateDateResult 给出的学期不符），则默认回退到第一周
   useEffect(() => {
-    setWeek(term === locateDateResult.semester ? locateDateResult.week : 1);
+    if (term === locateDateResult.semester) {
+      setWeek(locateDateResult.week);
+    }
   }, [term, locateDateResult, semesterListMap]);
 
   // 获取当前学期的最大周数
@@ -189,6 +191,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
             startDate={item.firstDate}
             schedulesByDays={schedulesByDays}
             showNonCurrentWeekCourses={showNonCurrentWeekCourses}
+            showExam={exportExamToCourseTable}
             flatListLayout={flatListLayout}
           />
         )}

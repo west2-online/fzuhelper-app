@@ -12,6 +12,7 @@ interface CourseWeekProps {
   startDate: string;
   schedulesByDays: Record<number, ExtendCourse[]>;
   showNonCurrentWeekCourses: boolean;
+  showExam: boolean;
   flatListLayout: LayoutRectangle;
 }
 
@@ -22,6 +23,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
   startDate,
   schedulesByDays,
   showNonCurrentWeekCourses,
+  showExam,
   flatListLayout,
 }) => {
   const month = useMemo(() => new Date(startDate).getMonth() + 1, [startDate]);
@@ -77,6 +79,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
               <CalendarCol
                 key={`${startDate}_${i}`}
                 week={week}
+                showExam={showExam}
                 schedulesOnDay={schedulesByDays[i] || []}
                 isShowNonCurrentWeekCourses={showNonCurrentWeekCourses}
                 flatListLayout={{ ...flatListLayout, width: flatListLayout.width - 32 }} // 32px 时间列宽度

@@ -1,6 +1,12 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
 import type { CourseSetting } from '@/api/interface';
-import { CLASS_SCHEDULES_MINUTES, COURSE_CURRENT_CACHE_KEY, COURSE_SETTINGS_KEY } from '@/lib/constants';
+import {
+  CLASS_BREAK_EVENING,
+  CLASS_BREAK_NOON,
+  CLASS_SCHEDULES_MINUTES,
+  COURSE_CURRENT_CACHE_KEY,
+  COURSE_SETTINGS_KEY,
+} from '@/lib/constants';
 import { MergedExamData } from '@/types/academic';
 import generateRandomColor, { clearColorMapping, getExamColor } from '@/utils/random-color';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,6 +30,8 @@ interface CacheCourseData {
   examDigest: string;
   // DIYData: Record<number, ExtendCourse[]>; // 自定义数据 (未启用)
   // DIYDigest: string;
+  lastCourseUpdateTime: string;
+  lastExamUpdateTime: string;
   priorityCounter: number;
 }
 
@@ -31,6 +39,7 @@ export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
 export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
 export const COURSE_TYPE = 0;
 export const EXAM_TYPE = 1;
+const NO_LOADING_MSG = '未加载';
 const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析时间段
 const MAX_PRIORITY = 10000; // 最大优先级，达到这个优先级后会重新计数
 const EXAM_PRIORITY = 10001; // 考试优先级，我们取巧一下，比最大的优先级还要大
@@ -44,6 +53,31 @@ export class CourseCache {
   private static cachedExamData: Record<number, ExtendCourse[]> | null = null; // 缓存的考试数据
   private static priorityCounter: number = DEFAULT_PRIORITY; // 静态优先级计数器，初始值为 1
   private static startID = DEFAULT_STARTID; // 从 1000 开始分配 ID
+  private static lastCourseUpdateTime: string = NO_LOADING_MSG;
+  private static lastExamUpdateTime: string = NO_LOADING_MSG;
+
+  /**
+   * 获取上次课程数据更新时间，转化为文本
+   * @returns 上次课程数据更新时间
+   */
+  public static getLastCourseUpdateTime(): string {
+    return this.lastCourseUpdateTime;
+  }
+
+  /**
+   * 获取上次课程数据更新时间。
+   * @returns 上次考场数据更新时间
+   */
+  public static getLastExamUpdateTime(): string {
+    return this.lastExamUpdateTime;
+  }
+
+  /**
+   * 判断是否有缓存数据，不需要判断考试缓存
+   */
+  public static hasCachedData(): boolean {
+    return !!this.cachedData && !!this.cachedDigest;
+  }
 
   /**
    * 获取缓存数据
@@ -86,6 +120,8 @@ export class CourseCache {
     this.cachedExamDigest = result.examDigest;
     this.cachedExamData = result.examData;
     this.priorityCounter = result.priorityCounter;
+    this.lastCourseUpdateTime = result.lastCourseUpdateTime;
+    this.lastExamUpdateTime = result.lastExamUpdateTime;
     console.log('Loaded cached course data.');
   }
 
@@ -101,6 +137,8 @@ export class CourseCache {
         examData: this.cachedExamData,
         examDigest: this.cachedExamDigest,
         priorityCounter: this.priorityCounter,
+        lastCourseUpdateTime: this.lastCourseUpdateTime,
+        lastExamUpdateTime: this.lastExamUpdateTime,
       }),
     );
   }
@@ -113,10 +151,21 @@ export class CourseCache {
     this.cachedData = null;
     this.cachedExamData = null;
     this.cachedExamDigest = null;
+    this.lastCourseUpdateTime = NO_LOADING_MSG;
+    this.lastExamUpdateTime = NO_LOADING_MSG;
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
     await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
   }
 
+  /**
+   * 删除考场数据
+   */
+  public static async clearExamData(): Promise<void> {
+    this.cachedExamData = null;
+    this.cachedExamDigest = null;
+    this.lastExamUpdateTime = NO_LOADING_MSG;
+    await this.save();
+  }
   /**
    * 分配一个新的独立 ID
    * @returns 新的 ID
@@ -200,22 +249,26 @@ export class CourseCache {
    * @param exam - 考场数据
    * @returns 导入成功数量
    */
-  public static mergeExamCourses(exam: MergedExamData[], semesterStart: string) {
+  public static mergeExamCourses(exam: MergedExamData[], semesterStart: string, semesterEnd: string) {
+    // 更新时间戳
+    this.lastExamUpdateTime = new Date().toLocaleString();
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(exam);
     // 如果当前 digest 和上一次的 digest 一致，则不再进行后续处理
     if (currentDigest === this.cachedExamDigest && this.cachedExamData) return;
 
     let extendedCourses: ExtendCourse[] = [];
+    const startDate = new Date(semesterStart); // 学期开始日期
+    const endDate = new Date(semesterEnd); // 学期结束日期
 
     // 将 MergedExamData 转化为 ExtendCourse，优先级设置为最高
     for (const examItem of exam) {
       const { time, date } = examItem;
       if (!date) continue; // 如果没有日期，则不安排
       if (!time) continue; // 如果没有时间，则不安排
+      if (date < startDate || date > endDate) continue; // 如果考试日期不在学期范围内，则不安排（这是为了规避补考）
 
-      const weekday = new Date(date).getDay(); // 获取日期所在一周的第几天
-      const startDate = new Date(semesterStart); // 学期开始日期
+      const weekday = date.getDay(); // 获取日期所在一周的第几天
 
       // 我们基于学期开始日期和考试日期，计算中间的周数
       const diffDays = Math.floor((new Date(date).getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -246,8 +299,9 @@ export class CourseCache {
         };
         // 先将考试数据存储在 extendedCourses 中
         extendedCourses.push(course);
+        console.log(`Merged exam course: ${course.name}`);
       } catch (error) {
-        console.error('Failed to parse time range:', error);
+        console.error('Failed to parse time range to:', error);
         continue;
       }
     }
@@ -294,6 +348,8 @@ export class CourseCache {
     tempData: JwchCourseListResponse_Course[],
     colorScheme: 'dark' | 'light' | null | undefined,
   ): Record<number, ExtendCourse[]> {
+    // 更新时间戳
+    this.lastCourseUpdateTime = new Date().toLocaleString();
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(tempData);
 
@@ -364,6 +420,13 @@ const parseTimeToClass = (timeRange: string): { startClass: number; endClass: nu
 
   let startClass = -1;
   let endClass = -1;
+
+  // 特判两个情况：结束时间在 12:00 - 14:00 和 17:30 - 19:00 之间，此时 OVERTIME_THRESHOLD 会失效，使用 CLASS_BREAK_NOON 和 CLASS_BREAK_EVENING
+  if (endTime >= CLASS_BREAK_NOON[0] && endTime <= CLASS_BREAK_NOON[1]) {
+    endClass = 4; // 12:00 - 14:00 为午间休息
+  } else if (endTime >= CLASS_BREAK_EVENING[0] && endTime <= CLASS_BREAK_EVENING[1]) {
+    endClass = 8; // 17:30 - 19:00 为晚间休息
+  }
 
   for (let i = 0; i < CLASS_SCHEDULES_MINUTES.length; i++) {
     const [classStart, classEnd] = CLASS_SCHEDULES_MINUTES[i];
