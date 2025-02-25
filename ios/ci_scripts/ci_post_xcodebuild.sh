@@ -12,16 +12,22 @@ if [[ -d "$CI_APP_STORE_SIGNED_APP_PATH" ]]; then
     GIT_LOG=$(git log -3 --pretty=format:"%s") || { echo "Failed to get git log"; exit 1; }
 
     # 翻译提交信息到中文
-    GIT_LOG_ZH=$(echo "$GIT_LOG" | trans -brief -t zh)
+    GIT_LOG_EN=$(echo "$GIT_LOG" | trans -brief -t en)
+
+    # 翻译提交信息到日文
+    GIT_LOG_JP=$(echo "$GIT_LOG" | trans -brief -t jp)
 
     # 写入 en-US 文件
-    echo "$GIT_LOG" > $TESTFLIGHT_DIR_PATH/WhatToTest.en-US.txt || { echo "Failed to write WhatToTest.en-US file"; exit 1; }
+    echo -e "Non-human translation\n$GIT_LOG_EN" > $TESTFLIGHT_DIR_PATH/WhatToTest.en-US.txt || { echo "Failed to write WhatToTest.en-US file"; exit 1; }
 
     # 写入 zh-Hans 文件
-    echo "$GIT_LOG_ZH" > $TESTFLIGHT_DIR_PATH/WhatToTest.zh-Hans.txt || { echo "Failed to write WhatToTest.zh-Hans file"; exit 1; }
+    echo -e "同步自 Github 最近三条提交记录:\n$GIT_LOG" > $TESTFLIGHT_DIR_PATH/WhatToTest.zh-Hans.txt || { echo "Failed to write WhatToTest.zh-Hans file"; exit 1; }
 
     # 写入 zh-Hant 文件
-    echo "$GIT_LOG_ZH" > $TESTFLIGHT_DIR_PATH/WhatToTest.zh-Hant.txt || { echo "Failed to write WhatToTest.zh-Hant file"; exit 1; }
+    echo -e "同步自 Github 最近三筆提交記錄:\n$GIT_LOG" > $TESTFLIGHT_DIR_PATH/WhatToTest.zh-Hant.txt || { echo "Failed to write WhatToTest.zh-Hant file"; exit 1; }
+
+    # 写入 ja 文件
+    echo -e "人間以外の翻訳\n$GIT_LOG_JP" > $TESTFLIGHT_DIR_PATH/WhatToTest.ja.txt || { echo "Failed to write WhatToTest.ja file"; exit 1; }
 fi
 
 # 这个脚本是在 Xcode Cloud 上运行的，在 Xcode 构建完成后执行
