@@ -39,8 +39,16 @@ const courseColors = [
   '#BBD5B4',
 ];
 
+const examColor = '#FF6347'; // 考试的颜色
+
 let availableColors = [...courseColors]; // 可用颜色数组
 const courseColorMap: Map<string, string> = new Map(); // 存储 courseName 和颜色的对应关系
+
+/**
+ * 返回考试的颜色
+ * @returns 考试的颜色
+ */
+export const getExamColor = (): string => examColor;
 
 /**
  * 为课程生成随机颜色

@@ -90,7 +90,7 @@ export default function AcademicPage() {
       };
 
       await AsyncStorage.setItem([COURSE_DATA_KEY, settings.selectedSemester].join('__'), JSON.stringify(cacheToStore));
-      CourseCache.transferToExtendCourses(data.data.data, colorScheme);
+      CourseCache.setCourses(data.data.data, colorScheme);
       toast.success('刷新成功');
     } catch (error: any) {
       const data = handleError(error);
@@ -155,6 +155,14 @@ export default function AcademicPage() {
     // await exportCourseToNativeCalendar(courseData.data.data, startDate);
   }, [termListData, courseData]);
 
+  // 控制导入考场到课表
+  const handleExportExamToCourseTable = useCallback(() => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      exportExamToCourseTable: !prevSettings.exportExamToCourseTable,
+    }));
+  }, []);
+
   return (
     <>
       <Stack.Screen options={{ title: '课程表设置' }} />
@@ -192,6 +200,12 @@ export default function AcademicPage() {
               label="显示非本周课程"
               value={settings.showNonCurrentWeekCourses}
               onValueChange={handleShowNonCurrentWeekCourses}
+            />
+
+            <LabelSwitch
+              label="在课表中导入相同学期考场"
+              value={settings.exportExamToCourseTable}
+              onValueChange={handleExportExamToCourseTable}
             />
 
             <PickerModal

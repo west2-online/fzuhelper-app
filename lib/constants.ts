@@ -59,6 +59,22 @@ export const CLASS_SCHEDULES = [
   ['19:55', '20:40'],
   ['20:50', '21:35'],
 ];
+export const CLASS_SCHEDULES_MINUTES = [
+  [500, 545],
+  [555, 600],
+  [620, 665],
+  [675, 720],
+  [840, 885],
+  [895, 940],
+  [950, 995],
+  [1005, 1050],
+  [1140, 1185],
+  [1195, 1240],
+  [1250, 1295],
+];
+
+// 考场
+export const EXAM_ROOM_KEY = 'exam_room';
 
 // 历年卷
 export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';
@@ -98,3 +114,5 @@ export const NAV_THEME = {
     text: 'hsl(0 0% 98%)', // foreground
   },
 };
+
+export const EXPIRE_ONE_DAY = 1000 * 60 * 60 * 24; // 一天的毫秒数

@@ -16,10 +16,12 @@ import { toast } from 'sonner-native';
 import CourseWeek from './course-week';
 
 import type { TermsListResponse_Terms } from '@/api/backend';
-import { getApiV1JwchCourseList } from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
-import { COURSE_DATA_KEY } from '@/lib/constants';
-import { CourseCache, getFirstDateByWeek, getWeeksBySemester, type ExtendCourse } from '@/lib/course';
+import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
+import { CourseCache, type ExtendCourse } from '@/lib/course';
+import { formatExamData } from '@/lib/exam-room';
+import { getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 interface CoursePageProps {
@@ -40,7 +42,17 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const flatListRef = useRef<FlatList>(null);
 
   // 从设置中读取相关信息（比如当前选择的学期，是否显示非本周课程），设置项由上级组件传入
-  const { selectedSemester: term, showNonCurrentWeekCourses } = config;
+  const { selectedSemester: term, showNonCurrentWeekCourses, exportExamToCourseTable } = config;
+
+  // 以下是处理学期的数据
+  // 将学期数据转换为 Map，方便后续使用
+  const semesterListMap = useMemo(
+    () => Object.fromEntries(semesterList.map(semester => [semester.term, semester])),
+    [semesterList],
+  );
+
+  // 获取当前学期的开始结束时间（即从 semesterList 中取出当前学期的信息，term 表示当前选择的学期）
+  const currentSemester = useMemo(() => semesterListMap[term], [semesterListMap, term]);
 
   // 【查询课程数据】
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
@@ -49,16 +61,33 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     // 拉取新数据
     const fetchData = async () => {
       try {
+        console.log('获取课程数据');
+        const hasCache = CourseCache.getCachedData(); // 先判断是否有缓存
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, term],
           () => getApiV1JwchCourseList({ term }),
-          1000 * 60 * 60 * 24,
+          EXPIRE_ONE_DAY, // 缓存一天
         );
 
         // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
-        if (!CourseCache.getCachedData() || CourseCache.compareDigest(fetchedData.data.data) === false) {
-          toast.info('检测到课程数据变更，已刷新');
-          setSchedulesByDays(CourseCache.transferToExtendCourses(fetchedData.data.data, colorScheme));
+        if (!hasCache || CourseCache.compareDigest(fetchedData.data.data) === false) {
+          if (hasCache) toast.info('检测到课程数据变更，已刷新');
+          setSchedulesByDays(CourseCache.setCourses(fetchedData.data.data, colorScheme));
+        }
+
+        // 开启导出考场到课程表功能
+        if (exportExamToCourseTable) {
+          const examData = await fetchWithCache(
+            [EXAM_ROOM_KEY, term],
+            () => getApiV1JwchClassroomExam({ term }),
+            EXPIRE_ONE_DAY,
+          );
+
+          const mergedExamData = formatExamData(examData.data.data);
+          if (mergedExamData.length > 0) {
+            setSchedulesByDays(CourseCache.mergeExamCourses(mergedExamData, currentSemester.start_date));
+            toast.info('考场数据已导入到课程表');
+          }
         }
       } catch (error: any) {
         console.error(error);
@@ -71,17 +100,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       setSchedulesByDays(CourseCache.getCachedData());
     }
     fetchData();
-  }, [term, colorScheme]);
-
-  // 以下是处理学期的数据
-  // 将学期数据转换为 Map，方便后续使用
-  const semesterListMap = useMemo(
-    () => Object.fromEntries(semesterList.map(semester => [semester.term, semester])),
-    [semesterList],
-  );
-
-  // 获取当前学期的开始结束时间（即从 semesterList 中取出当前学期的信息，term 表示当前选择的学期）
-  const currentSemester = useMemo(() => semesterListMap[term], [semesterListMap, term]);
+  }, [term, colorScheme, exportExamToCourseTable, currentSemester.start_date]);
 
   // 确认当前周，如果是历史学期（即和 locateDateResult 给出的学期不符），则默认回退到第一周
   useEffect(() => {
