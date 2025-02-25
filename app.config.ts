@@ -20,7 +20,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    package: 'com.helper.west2ol.fzuhelper',
+    package: 'com.helper.west2ol.fzuhelper.dev',
     versionCode: 700001,
   },
   web: {

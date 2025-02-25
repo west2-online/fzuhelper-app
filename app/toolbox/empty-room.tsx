@@ -1,68 +1,81 @@
-import { Stack } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ScrollView, View } from 'react-native';
-import { toast } from 'sonner-native';
-
 import PageContainer from '@/components/page-container';
-import { Button } from '@/components/ui/button';
+import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
+import { type IntRange } from '@/types/int-range';
+import { Stack } from 'expo-router';
+import { CalendarDaysIcon } from 'lucide-react-native';
+import { DateTime } from 'luxon';
+import { useEffect, useState } from 'react';
+import { TouchableOpacity, useColorScheme } from 'react-native';
+import DateTimePicker, { getDefaultClassNames } from 'react-native-ui-datepicker';
 
-import type { JwchAcademicGpaResponse } from '@/api/backend';
-import { getApiV1JwchAcademicGpa } from '@/api/generate';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+const campus = ['旗山', '铜盘', '晋江', '泉港', '怡山', '鼓浪屿', '集美'];
+const TIMEZONE = 'Asia/shanghai';
 
-// TODO: 该页面需要更新为空教室
+interface LessonRange {
+  start: IntRange<1, 12>;
+  end: IntRange<1, 12>;
+}
+
+interface DateNavigatorProps {
+  date: DateTime;
+  onPress: () => void;
+}
+
+function DateNavigator({ date, onPress }: DateNavigatorProps) {
+  const currentColorScheme = useColorScheme();
+  return (
+    <TouchableOpacity className="flex-row items-center" onPress={onPress}>
+      <Text className="pr-2 text-lg">{date.toFormat('yyyy-MM-dd')}</Text>
+      <CalendarDaysIcon size={20} color={currentColorScheme === 'dark' ? 'white' : 'black'} />
+    </TouchableOpacity>
+  );
+}
 
 export default function EmptyRoomPage() {
-  const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const [academicData, setAcademicData] = useState<JwchAcademicGpaResponse | null>(null); // 学术成绩数据
+  const today = DateTime.local({ zone: TIMEZONE });
+  const [selectedRange, setSelectedRange] = useState<LessonRange>({ start: 1, end: 11 });
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [pickerSelectedDate, setPickerSelectedDate] = useState(selectedDate);
+  const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
 
-  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
-
-  // 访问 west2-online 服务器
-  const getAcademicData = useCallback(async () => {
-    if (isRefreshing) return;
-    setIsRefreshing(true);
-    try {
-      const result = await getApiV1JwchAcademicGpa();
-      setAcademicData(result.data.data);
-    } catch (error: any) {
-      const data = handleError(error);
-      if (data) {
-        toast.error(data.msg ? data.msg : '未知错误');
-      }
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [isRefreshing, handleError]);
+  useEffect(() => {}, []);
 
   return (
     <>
-      <Stack.Screen options={{ title: '空教室' }} />
-
+      <Stack.Screen
+        options={{
+          title: '空教室',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: () => <DateNavigator date={selectedDate} onPress={() => setIsDateTimePickerVisible(true)} />,
+        }}
+      />
       <PageContainer>
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
-          {/* 学术成绩数据列表 */}
-          {academicData && (
-            <View className="mt-4">
-              <Text className="mb-2 text-lg font-semibold">上次刷新时间: {academicData.time}</Text>
-              <View className="gap-4">
-                {academicData.data.map((item, index) => (
-                  <View
-                    key={index}
-                    className="mb-2 flex-row items-center justify-between border-b border-gray-300 pb-2"
-                  >
-                    <Text className="capitalize text-gray-500">{item.type}:</Text>
-                    <Text className="font-medium text-black">{item.value}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-          <Button onPress={getAcademicData} disabled={isRefreshing} className="mb-4">
-            <Text>{isRefreshing ? '刷新中...' : '刷新学业情况'}</Text>
-          </Button>
-        </ScrollView>
+        <FloatModal
+          visible={isDateTimePickerVisible}
+          transparent
+          title="选择日期"
+          onClose={() => {
+            setIsDateTimePickerVisible(false);
+          }}
+          onConfirm={() => {
+            setSelectedDate(pickerSelectedDate);
+            setIsDateTimePickerVisible(false);
+          }}
+          contentContainerClassName="h-96"
+        >
+          <DateTimePicker
+            mode="single"
+            date={pickerSelectedDate.toJSDate()}
+            timeZone={TIMEZONE}
+            // react-native-ui-datepicker v3.0.3 后保证所有的返回类型都是 Date，但是对应的类型声明还没有更改
+            onChange={({ date }) => setPickerSelectedDate(DateTime.fromJSDate(date as Date) as DateTime)}
+            locale="zh-cn"
+            classNames={getDefaultClassNames()}
+            minDate={today.toJSDate()} // Set the minimum selectable date to today
+          />
+        </FloatModal>
+        <Text>Test</Text>
       </PageContainer>
     </>
   );
