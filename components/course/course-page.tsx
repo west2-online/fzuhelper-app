@@ -19,7 +19,7 @@ import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
-import { CourseCache, type ExtendCourse } from '@/lib/course';
+import { COURSE_TYPE, CourseCache, EXAM_TYPE, type ExtendCourse } from '@/lib/course';
 import { formatExamData } from '@/lib/exam-room';
 import { getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
@@ -58,10 +58,11 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
   // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
   useEffect(() => {
-    // 拉取新数据
+    // 拉取新数据的函数
     const fetchData = async () => {
       try {
-        console.log('获取课程数据');
+        // 异步获取联网课程数据
+        let hasChanged = false; // 是否有数据变更
         const hasCache = CourseCache.getCachedData(); // 先判断是否有缓存
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, term],
@@ -70,12 +71,13 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         );
 
         // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
-        if (!hasCache || CourseCache.compareDigest(fetchedData.data.data) === false) {
-          if (hasCache) toast.info('检测到课程数据变更，已刷新');
-          setSchedulesByDays(CourseCache.setCourses(fetchedData.data.data, colorScheme));
+        if (!hasCache || CourseCache.compareDigest(COURSE_TYPE, fetchedData.data.data) === false) {
+          console.log('课程数据有变更，已更新');
+          CourseCache.setCourses(fetchedData.data.data, colorScheme);
+          hasChanged = true;
         }
 
-        // 开启导出考场到课程表功能
+        // 若开启导入考场，则再拉取考场数据
         if (exportExamToCourseTable) {
           const examData = await fetchWithCache(
             [EXAM_ROOM_KEY, term],
@@ -84,11 +86,15 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           );
 
           const mergedExamData = formatExamData(examData.data.data);
-          if (mergedExamData.length > 0) {
-            setSchedulesByDays(CourseCache.mergeExamCourses(mergedExamData, currentSemester.start_date));
-            toast.info('考场数据已导入到课程表');
+          if (mergedExamData.length > 0 && CourseCache.compareDigest(EXAM_TYPE, mergedExamData) === false) {
+            CourseCache.mergeExamCourses(mergedExamData, currentSemester.start_date);
+            hasChanged = true;
           }
         }
+        if (!hasCache || hasChanged) {
+          setSchedulesByDays(CourseCache.getCachedData());
+        }
+        if (hasCache && hasChanged) toast.info('检测到课程数据变更，已刷新');
       } catch (error: any) {
         console.error(error);
         toast.error('课程数据获取失败，请检查网络连接，将使用本地缓存');
@@ -96,9 +102,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     };
 
     // 如果有缓存数据，优先使用缓存数据
-    if (CourseCache.getCachedData()) {
-      setSchedulesByDays(CourseCache.getCachedData());
-    }
+    setSchedulesByDays(CourseCache.getCachedData() ?? []);
     fetchData();
   }, [term, colorScheme, exportExamToCourseTable, currentSemester.start_date]);
 

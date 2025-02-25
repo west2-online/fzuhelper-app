@@ -82,6 +82,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
         : [];
 
       let scheduleOnTime = currentWeekSchedules.length > 0 ? currentWeekSchedules : nonCurrentWeekSchedules;
+      scheduleOnTime = scheduleOnTime.sort((a, b) => b.priority - a.priority); // 降序排序，优先级高的排在前面
 
       if (scheduleOnTime.length > 0) {
         const primarySchedule = scheduleOnTime[0]; // 默认取第一个课程为主课程（此时已按长度排序）
@@ -89,7 +90,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
 
         res.push({
           type: 'course',
-          schedules: scheduleOnTime.sort((a, b) => b.priority - a.priority), // 按优先级排序，优先级大的排在前面
+          schedules: scheduleOnTime, // 按优先级排序，优先级大的排在前面
           span,
           color:
             isShowNonCurrentWeekCourses &&

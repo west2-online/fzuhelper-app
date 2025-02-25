@@ -18,15 +18,19 @@ export interface ExtendCourse extends ParsedCourse {
 }
 
 interface CacheCourseData {
-  data: Record<number, ExtendCourse[]>;
+  courseData: Record<number, ExtendCourse[]>; // 课程数据
+  courseDigest: string;
+  examData: Record<number, ExtendCourse[]>; // 考试数据
+  examDigest: string;
+  // DIYData: Record<number, ExtendCourse[]>; // 自定义数据 (未启用)
+  // DIYDigest: string;
   priorityCounter: number;
-  digest: string;
 }
 
 export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
 export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
-const COURSE_TYPE = 0;
-const EXAM_TYPE = 1;
+export const COURSE_TYPE = 0;
+export const EXAM_TYPE = 1;
 const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析时间段
 const MAX_PRIORITY = 10000; // 最大优先级，达到这个优先级后会重新计数
 const EXAM_PRIORITY = 10001; // 考试优先级，我们取巧一下，比最大的优先级还要大
@@ -45,20 +49,42 @@ export class CourseCache {
    * 获取缓存数据
    */
   public static getCachedData(): Record<number, ExtendCourse[]> {
-    return this.cachedData ?? [];
+    const mergedData: Record<number, ExtendCourse[]> = {};
+
+    // 合并课程数据
+    if (this.cachedData) {
+      for (const [day, courses] of Object.entries(this.cachedData)) {
+        const dayIndex = Number(day);
+        if (!mergedData[dayIndex]) mergedData[dayIndex] = [];
+        mergedData[dayIndex].push(...courses);
+      }
+    }
+
+    // 合并考试数据
+    if (this.cachedExamData) {
+      for (const [day, exams] of Object.entries(this.cachedExamData)) {
+        const dayIndex = Number(day);
+        if (!mergedData[dayIndex]) mergedData[dayIndex] = [];
+        mergedData[dayIndex].push(...exams);
+      }
+    }
+
+    return mergedData;
   }
 
   /**
    * 加载缓存数据
    */
   public static async load(): Promise<void> {
+    // 课程数据
     const resp = await AsyncStorage.getItem(COURSE_CURRENT_CACHE_KEY);
-    if (!resp) {
-      return;
-    }
+    if (!resp) return;
+
     const result = JSON.parse(resp) as CacheCourseData;
-    this.cachedDigest = result.digest;
-    this.cachedData = result.data;
+    this.cachedDigest = result.courseDigest;
+    this.cachedData = result.courseData;
+    this.cachedExamDigest = result.examDigest;
+    this.cachedExamData = result.examData;
     this.priorityCounter = result.priorityCounter;
     console.log('Loaded cached course data.');
   }
@@ -70,8 +96,10 @@ export class CourseCache {
     await AsyncStorage.setItem(
       COURSE_CURRENT_CACHE_KEY,
       JSON.stringify({
-        data: this.cachedData,
-        digest: this.cachedDigest,
+        courseData: this.cachedData,
+        courseDigest: this.cachedDigest,
+        examData: this.cachedExamData,
+        examDigest: this.cachedExamDigest,
         priorityCounter: this.priorityCounter,
       }),
     );
@@ -83,6 +111,8 @@ export class CourseCache {
   public static async clear(): Promise<void> {
     this.cachedDigest = null;
     this.cachedData = null;
+    this.cachedExamData = null;
+    this.cachedExamDigest = null;
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
     await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
   }
@@ -97,10 +127,18 @@ export class CourseCache {
 
   /**
    * 设置摘要
+   * @param type - 数据类型 0 = 课程数据，1 = 考试数据
    * @param digest - 数据摘要
    */
-  public static async setDigest(digest: string): Promise<void> {
-    this.cachedDigest = digest;
+  public static async setDigest(type: number, digest: string): Promise<void> {
+    switch (type) {
+      case 0:
+        this.cachedDigest = digest;
+        break;
+      case 1:
+        this.cachedExamDigest = digest;
+        break;
+    }
     await this.save();
   }
 
@@ -109,7 +147,7 @@ export class CourseCache {
    * @param data - 课程数据
    * @returns 数据摘要
    */
-  public static calculateDigest(data: JwchCourseListResponse_Course[]): string {
+  public static calculateDigest(data: any): string {
     return objectHash(data);
   }
 
@@ -118,12 +156,19 @@ export class CourseCache {
    * @param data - 课程数据
    * @returns 是否和当前缓存的数据一致
    */
-  public static compareDigest(data: JwchCourseListResponse_Course[]): boolean {
-    return this.calculateDigest(data) === this.cachedDigest;
+  public static compareDigest(type: number, data: any): boolean {
+    switch (type) {
+      case COURSE_TYPE:
+        return this.calculateDigest(data) === this.cachedDigest;
+      case EXAM_TYPE:
+        return this.calculateDigest(data) === this.cachedExamDigest;
+      default:
+        return false;
+    }
   }
 
   /**
-   * 手动为某门课程设置优先级
+   * 手动为某门课程设置优先级（不含考试）
    * @param courseID - 课程 ID
    * @param priority - 优先级
    */
@@ -155,10 +200,13 @@ export class CourseCache {
    * @param exam - 考场数据
    * @returns 导入成功数量
    */
-  public static mergeExamCourses(exam: MergedExamData[], semesterStart: string): Record<number, ExtendCourse[]> {
-    if (!this.cachedData) {
-      return [];
-    }
+  public static mergeExamCourses(exam: MergedExamData[], semesterStart: string) {
+    // 生成当前 tempData 的 digest
+    const currentDigest = this.calculateDigest(exam);
+    // 如果当前 digest 和上一次的 digest 一致，则不再进行后续处理
+    if (currentDigest === this.cachedExamDigest && this.cachedExamData) return;
+
+    let extendedCourses: ExtendCourse[] = [];
 
     // 将 MergedExamData 转化为 ExtendCourse，优先级设置为最高
     for (const examItem of exam) {
@@ -196,19 +244,27 @@ export class CourseCache {
           syllabus: '',
           lessonplan: '',
         };
-        // 将考试安排到 cachedData 中，cacheData 为按天归类的课程数据
-        // 避免空指针异常，先判断是否存在 weekday
-        if (!this.cachedData[weekday - 1]) {
-          this.cachedData[weekday - 1] = [];
-        }
-        this.cachedData[weekday - 1].push(course);
+        // 先将考试数据存储在 extendedCourses 中
+        extendedCourses.push(course);
       } catch (error) {
         console.error('Failed to parse time range:', error);
         continue;
       }
     }
 
-    return this.cachedData;
+    // 按天归类课程数据
+    const groupedData = extendedCourses.reduce(
+      (result, current) => {
+        const day = current.weekday - 1;
+        if (!result[day]) result[day] = [];
+        result[day].push(current);
+        return result;
+      },
+      {} as Record<number, ExtendCourse[]>,
+    );
+    this.cachedExamData = groupedData;
+    this.cachedExamDigest = currentDigest;
+    this.save(); // 缓存数据
   }
 
   /**
