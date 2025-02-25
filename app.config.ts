@@ -68,6 +68,7 @@ const config: ExpoConfig = {
         android: {
           useLegacyPackaging: true,
           enableProguardInReleaseBuilds: true,
+          usesCleartextTraffic: true,
         },
       },
     ],
