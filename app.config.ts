@@ -59,7 +59,7 @@ const config: ExpoConfig = {
     [
       'react-native-permissions',
       {
-        iosPermissions: ['Camera', 'Calendars'],
+        iosPermissions: ['Camera', 'Calendars', 'Notifications'],
       },
     ],
     [

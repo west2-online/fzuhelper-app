@@ -167,7 +167,7 @@ const LoginPage: React.FC = () => {
             {/* 左上角标题 */}
             <View className="ml-1 mt-14">
               <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
-              <Text className="text-text-secondary text-lg">综合性最强的福大校内APP</Text>
+              <Text className="text-lg text-text-secondary">综合性最强的福大校内APP</Text>
             </View>
 
             {/* 页面内容 */}
@@ -228,6 +228,27 @@ const LoginPage: React.FC = () => {
                   忘记密码
                 </Text>
               </View>
+
+              {/* 公告栏 */}
+              <View className="mt-10 w-full px-1">
+                <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+                <Text className="text-base text-text-secondary">
+                  1. 教务处在夜间(23:00-06:00)例行维护，可能暂时无法登录
+                </Text>
+                <Text className="text-base text-text-secondary">
+                  2. 非校园网访问可能受阻。如果无法登录请尝试连接校园网
+                </Text>
+                {Platform.OS === 'ios' && (
+                  <Text className="text-base text-text-secondary">
+                    3. (仅iOS) 首次使用可能无法显示验证码，可以手动点击刷新
+                  </Text>
+                )}
+                {Platform.OS === 'ios' && (
+                  <Text className="text-base text-text-secondary">
+                    4. (仅iOS) 如果您意外拒绝了网络访问权限，您需要手动在设置中打开，APP 无法二次请求网络权限
+                  </Text>
+                )}
+              </View>
             </View>
 
             {/* 底部协议 */}
@@ -237,7 +258,7 @@ const LoginPage: React.FC = () => {
               onPress={() => setIsAgree(!isAgree)}
             >
               <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-              <Text className="text-text-secondary text-center">
+              <Text className="text-center text-text-secondary">
                 {'  '}
                 阅读并同意{' '}
                 <Text
