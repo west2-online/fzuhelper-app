@@ -80,6 +80,7 @@ jobs:
           DOWNLOAD_URL="https://download.w2fzu.com$(echo $RESPONSE | jq -r .url)"
           echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
 
+      # 测试期间，直接推beta通道并强制更新
       - name: Submit Version Info
         run: |
           CHANGELOG=$(git log -3 --pretty=format:"%s")
@@ -87,7 +88,7 @@ jobs:
           --form "version=${{ env.APP_VERSION_NAME }}" \
           --form "code=${{ env.APP_VERSION_CODE }}" \
           --form "url=${{ env.DOWNLOAD_URL }}" \
-          --form "feature=$CHANGELOG" \
+          --form "feature=$CHANGELOG\n\n此版本为新架构测试版，请提前加入内测群1020036141了解详情" \
           --form "type=beta" \
           --form "password=${{ secrets.ANDROID_UPDATE_PWD }}" \
           --form "force=true"
