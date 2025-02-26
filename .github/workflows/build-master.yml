@@ -83,7 +83,7 @@ jobs:
       # 测试期间，直接推beta通道并强制更新
       - name: Submit Version Info
         run: |
-          CHANGELOG=$(git log -3 --pretty=format:"%s")
+          CHANGELOG=$(git log -3 --pretty=format:"%s%n%b")
           FEATURE="$CHANGELOG"$'\n\n'"此版本为新架构测试版，请提前加入内测群1020036141了解详情"
           curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload' \
           --form "version=${{ env.APP_VERSION_NAME }}" \
