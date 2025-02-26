@@ -52,6 +52,7 @@ const config: ExpoConfig = {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
       backgroundColor: '#FFFFFF',
     },
+    permissions: ['android.permission.REQUEST_INSTALL_PACKAGES'],
   },
   plugins: [
     'expo-localization',
