@@ -46,7 +46,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
   }, [startDate]);
 
   return (
-    <View className="flex flex-1 flex-col">
+    <View className="flex flex-col" style={{ width: flatListLayout.width }}>
       <HeaderContainer>
         {/* （左侧）月份 */}
         <View className="w-[32px] flex-shrink-0 flex-grow-0">
@@ -57,7 +57,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
         </View>
 
         {/* 日期 */}
-        <View className="mt-2 flex flex-shrink flex-grow flex-row">
+        <View className="mt-2 flex flex-row" style={{ width: flatListLayout.width - 32 }}>
           {headerDays.map(item => (
             <DayItem
               key={item.key}
