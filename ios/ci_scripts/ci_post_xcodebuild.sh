@@ -9,7 +9,7 @@ if [[ -d "$CI_APP_STORE_SIGNED_APP_PATH" ]]; then
     TESTFLIGHT_DIR_PATH=../TestFlight
     [[ ! -d $TESTFLIGHT_DIR_PATH ]] && mkdir $TESTFLIGHT_DIR_PATH
     git fetch --deepen 3 || { echo "Failed to fetch git history"; exit 1; }
-    GIT_LOG=$(git log -3 --pretty=format:"%s") || { echo "Failed to get git log"; exit 1; }
+    GIT_LOG=$(git log -3 --pretty=format:"%s%n%b") || { echo "Failed to get git log"; exit 1; }
 
     # 翻译提交信息到中文
     GIT_LOG_EN=$(echo "$GIT_LOG" | trans -brief -t en)
