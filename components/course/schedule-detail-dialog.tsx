@@ -1,3 +1,7 @@
+import React from 'react';
+import { Image, Pressable, View } from 'react-native';
+
+import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
 import {
   DescriptionList,
   DescriptionListDescription,
@@ -7,18 +11,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
-import { type ParsedCourse } from '@/utils/course';
-import React from 'react';
-import { Image, Pressable, View } from 'react-native';
+import { toast } from 'sonner-native';
 
+import { CourseCache, type ExtendCourse } from '@/lib/course';
 import { pushToWebViewJWCH } from '@/lib/webview';
-
-import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
 
 interface ScheduleDetailsDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  schedules: ParsedCourse[];
+  schedules: ExtendCourse[];
 }
 
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ isOpen, onClose, schedules }) => {
@@ -32,6 +33,11 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ isOpen, o
   const handleLessonplanPress = () => {
     onClose();
     pushToWebViewJWCH(schedule.lessonplan, '授课计划');
+  };
+
+  const setPriority = (index: number) => {
+    CourseCache.setPriority(index);
+    toast.success('设置完毕，重新打开课程表生效');
   };
 
   return (
@@ -100,12 +106,26 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ isOpen, o
                   </DescriptionListRow>
                 </DescriptionList>
                 <View className="flex flex-row justify-evenly">
-                  <Button variant="link" onPress={handleSyllabusPress}>
-                    <Text className="text-primary">教学大纲</Text>
-                  </Button>
-                  <Button variant="link" onPress={handleLessonplanPress}>
-                    <Text className="text-primary">授课计划</Text>
-                  </Button>
+                  {schedule.syllabus.length > 0 && (
+                    <Button variant="link" onPress={handleSyllabusPress}>
+                      <Text className="text-primary">教学大纲</Text>
+                    </Button>
+                  )}
+                  {schedule.lessonplan.length > 0 && (
+                    <Button variant="link" onPress={handleLessonplanPress}>
+                      <Text className="text-primary">授课计划</Text>
+                    </Button>
+                  )}
+                  {schedules.length > 1 && scheduleIndex > 0 && (
+                    <Button
+                      variant="link"
+                      onPress={() => {
+                        setPriority(schedule.id); // 调用 setPriority 函数，传入当前 schedule 的 id
+                      }}
+                    >
+                      <Text className="text-primary">优先显示</Text>
+                    </Button>
+                  )}
                 </View>
               </View>
             </View>

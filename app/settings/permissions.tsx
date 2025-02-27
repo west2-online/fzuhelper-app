@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 import {
   NotificationSettings,
   PERMISSIONS,
@@ -8,6 +8,8 @@ import {
   checkMultiple,
   checkNotifications,
   openSettings,
+  request,
+  requestNotifications,
 } from 'react-native-permissions';
 
 import LabelEntry from '@/components/label-entry';
@@ -25,6 +27,18 @@ export default function AcademicPage() {
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(); // 目前允许的通知内容
   const appState = useRef(AppState.currentState);
 
+  const openNotificationSettings = () => {
+    openSettings('notifications').catch(() => {
+      toast.error('程序无法打开设置页面，请手动打开');
+    });
+  };
+
+  const openApplicationSettings = () => {
+    openSettings('application').catch(() => {
+      toast.error('程序无法打开设置页面，请手动打开');
+    });
+  };
+
   const checkPermission = useCallback(async () => {
     if (Platform.OS === 'android') {
       setAllowNotification(ExpoUmengModule.hasPermission()); // 通知权限
@@ -35,19 +49,19 @@ export default function AcademicPage() {
         ); // 日历权限
       });
     } else if (Platform.OS === 'ios') {
-      checkMultiple([PERMISSIONS.IOS.CAMERA, PERMISSIONS.IOS.CALENDARS]).then(statues => {
+      await checkMultiple([PERMISSIONS.IOS.CALENDARS]).then(statues => {
         setAllowCalendar(statues[PERMISSIONS.IOS.CALENDARS] === RESULTS.GRANTED); // 日历权限
       });
 
-      checkNotifications().then(({ status, settings }) => {
+      await checkNotifications().then(({ status, settings }) => {
         setAllowNotification(status === RESULTS.GRANTED); // 通知权限
         setNotificationSettings(settings);
-        console.log('目前允许的通知内容', settings);
       });
     }
   }, []);
 
   useEffect(() => {
+    // 监听应用状态变化
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         checkPermission();
@@ -60,18 +74,90 @@ export default function AcademicPage() {
     return () => {
       subscription.remove();
     };
-  });
+  }, []); // 放空使得只加载一次
 
   const handleNotificationPermission = () => {
-    openSettings('notifications').catch(() => {
-      toast.error('程序无法打开设置页面，请手动打开');
-    });
+    if (Platform.OS === 'android') {
+      openNotificationSettings();
+    } else if (Platform.OS === 'ios') {
+      if (isAllowNotification) {
+        openNotificationSettings();
+        return;
+      }
+      requestNotifications(['alert', 'badge', 'sound']).then(({ status, settings }) => {
+        console.log('通知权限: ', status);
+        console.log('目前允许的通知内容', settings);
+        switch (status) {
+          case RESULTS.DENIED:
+            toast.error('您已拒绝了通知权限');
+            break;
+          case RESULTS.UNAVAILABLE:
+            toast.error('当前设备不支持通知权限');
+            break;
+          case RESULTS.BLOCKED:
+            Alert.alert(
+              '提示',
+              '通知权限被手动关闭，需要您手动打开。点击确认跳转设置页',
+              [
+                {
+                  text: '取消',
+                  style: 'cancel', // iOS 上会显示为取消按钮样式
+                },
+                {
+                  text: '去设置',
+                  onPress: openNotificationSettings,
+                },
+              ],
+              { cancelable: true },
+            );
+            break;
+          case RESULTS.GRANTED:
+            setAllowNotification(true);
+            break;
+        }
+      });
+    }
   };
 
   const handleCalendarPermission = () => {
-    openSettings('application').catch(() => {
-      toast.error('程序无法打开设置页面，请手动打开');
-    });
+    if (Platform.OS === 'ios') {
+      if (isAllowCalendar) {
+        openApplicationSettings();
+        return;
+      }
+      request(PERMISSIONS.IOS.CALENDARS).then(result => {
+        switch (result) {
+          case RESULTS.DENIED:
+            toast.error('您已拒绝了日历权限');
+            break;
+          case RESULTS.UNAVAILABLE:
+            toast.error('当前设备不支持日历权限');
+            break;
+          case RESULTS.BLOCKED:
+            Alert.alert(
+              '提示',
+              '日历权限被手动关闭，需要您手动打开。点击确认跳转设置页',
+              [
+                {
+                  text: '取消',
+                  style: 'cancel', // iOS 上会显示为取消按钮样式
+                },
+                {
+                  text: '去设置',
+                  onPress: openApplicationSettings,
+                },
+              ],
+              { cancelable: true },
+            );
+            break;
+          case RESULTS.GRANTED:
+            setAllowCalendar(true);
+            break;
+        }
+      });
+    } else if (Platform.OS === 'android') {
+      openApplicationSettings();
+    }
   };
 
   return (
@@ -87,16 +173,17 @@ export default function AcademicPage() {
             </Text>
 
             <LabelEntry
-              leftText="通知权限"
-              onPress={handleNotificationPermission}
-              description="用于推送成绩更新、教务处通知等内容"
-              rightText={isAllowNotification ? '已开启' : '未开启'}
-            />
-            <LabelEntry
               leftText="日历权限"
               onPress={handleCalendarPermission}
               description="用于导出课表、考场安排等内容到日历"
               rightText={isAllowCalendar ? '已开启' : '未开启'}
+            />
+
+            <LabelEntry
+              leftText="通知权限"
+              onPress={handleNotificationPermission}
+              description="用于推送成绩更新、教务处通知等内容"
+              rightText={isAllowNotification ? '已开启' : '未开启'}
             />
           </SafeAreaView>
         </ScrollView>

@@ -1,13 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
+import { View, useColorScheme } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { Icon } from '@/components/Icon';
 import LabelEntry from '@/components/label-entry';
 import LabelSwitch from '@/components/label-switch';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
+import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
@@ -16,15 +19,16 @@ import { useUpdateEffect } from '@/hooks/use-update-effect';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
-import { defaultCourseSetting, readCourseSetting } from '@/utils/course';
-import { ScrollView } from 'react-native-gesture-handler';
+import { CourseCache, defaultCourseSetting, readCourseSetting } from '@/lib/course';
 
 export default function AcademicPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
   const [semesters, setSemesters] = useState<string[]>([]);
   const { handleError } = useSafeResponseSolve();
   const [isLoadingSemester, setLoadingSemester] = useState(false);
+  const colorScheme = useColorScheme();
 
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
@@ -48,17 +52,19 @@ export default function AcademicPage() {
     saveSettingsToStorage(settings);
   }, [settings, saveSettingsToStorage]);
 
+  // 获取课程数据
   const { data: courseData } = usePersistedQuery({
     queryKey: [COURSE_DATA_KEY, settings.selectedSemester],
     queryFn: () => getApiV1JwchCourseList({ term: settings.selectedSemester }),
   });
 
+  // 获取完整学期数据
   const { data: termListData } = usePersistedQuery({
     queryKey: [COURSE_TERMS_LIST_KEY],
     queryFn: getApiV1TermsList,
   });
 
-  // 获取学期数据
+  // 获取用户就读学期数据
   const getTermsData = useCallback(async () => {
     try {
       const result = await getApiV1JwchTermList(); // 数据格式样例： ['202401', '202402']
@@ -74,6 +80,29 @@ export default function AcademicPage() {
       }
     }
   }, [semesters, handleError]);
+
+  // 强制刷新数据（即不使用本地缓存）
+  const forceRefreshCourseData = useCallback(async () => {
+    try {
+      const data = await getApiV1JwchCourseList({ term: settings.selectedSemester });
+      const cacheToStore = {
+        data: data,
+        timestamp: Date.now(),
+      };
+
+      await AsyncStorage.setItem([COURSE_DATA_KEY, settings.selectedSemester].join('__'), JSON.stringify(cacheToStore));
+      CourseCache.setCourses(data.data.data, colorScheme);
+      toast.success('刷新成功');
+    } catch (error: any) {
+      const data = handleError(error);
+      console.log(data);
+      if (data) {
+        toast.error(data.msg ? data.msg : '未知错误');
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [settings.selectedSemester, handleError, colorScheme]);
 
   // 选择学期开关
   const handleOpenTermSelectPicker = useCallback(async () => {
@@ -97,12 +126,18 @@ export default function AcademicPage() {
     }));
   }, []);
 
+  const handleForceRefresh = useCallback(() => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    forceRefreshCourseData();
+  }, [isRefreshing, forceRefreshCourseData]);
+
   // 控制导出到本地日历
   const handleExportToCalendar = useCallback(async () => {
-    setSettings(prevSettings => ({
-      ...prevSettings,
-      calendarExportEnabled: !prevSettings.calendarExportEnabled,
-    }));
+    // setSettings(prevSettings => ({
+    //   ...prevSettings,
+    //   calendarExportEnabled: !prevSettings.calendarExportEnabled,
+    // }));
 
     if (!courseData) {
       toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
@@ -121,6 +156,19 @@ export default function AcademicPage() {
     // await exportCourseToNativeCalendar(courseData.data.data, startDate);
   }, [termListData, courseData]);
 
+  // 控制导入考场到课表
+  const handleExportExamToCourseTable = useCallback(() => {
+    setSettings(prevSettings => {
+      if (prevSettings.exportExamToCourseTable) {
+        CourseCache.clearExamData();
+      }
+      return {
+        ...prevSettings,
+        exportExamToCourseTable: !prevSettings.exportExamToCourseTable,
+      };
+    });
+  }, []);
+
   return (
     <>
       <Stack.Screen options={{ title: '课程表设置' }} />
@@ -131,7 +179,12 @@ export default function AcademicPage() {
             {/* 菜单列表 */}
             <Text className="mb-2 text-sm text-text-secondary">课程数据</Text>
 
-            <LabelEntry leftText="刷新数据" />
+            <LabelEntry
+              leftText="刷新数据"
+              onPress={handleForceRefresh}
+              disabled={isRefreshing}
+              rightText={isRefreshing ? '加载中...' : ''}
+            />
 
             <LabelEntry
               leftText="切换学期"
@@ -143,9 +196,10 @@ export default function AcademicPage() {
             <Text className="mb-2 mt-4 text-sm text-text-secondary">开关设置</Text>
 
             <LabelSwitch
-              label="导出到本地日历"
+              label="导出到本地日历(正在升级)"
               value={settings.calendarExportEnabled}
               onValueChange={handleExportToCalendar}
+              disabled
             />
 
             <LabelSwitch
@@ -153,6 +207,37 @@ export default function AcademicPage() {
               value={settings.showNonCurrentWeekCourses}
               onValueChange={handleShowNonCurrentWeekCourses}
             />
+
+            <LabelSwitch
+              label="在课表中显示相同学期的考场"
+              value={settings.exportExamToCourseTable}
+              onValueChange={handleExportExamToCourseTable}
+            />
+            <View className="space-y-4">
+              <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+              <Text className="my-2 text-base text-text-secondary">
+                显示考场功能只会显示在当前学期范围内，且设置好日期时间的考场。补考时间在下一学期开学左右两周，因此不会显示。
+              </Text>
+              <Text className="my-2 text-base text-text-secondary">
+                考试时间可能非标准上课时间，请在考场详情中查看具体考试时间，或以授课教师通知为准。
+              </Text>
+            </View>
+
+            <View className="mt-4 flex flex-row items-center justify-center">
+              <Icon name="time-outline" size={16} className="mr-2" />
+              <Text className="text-sm leading-5 text-text-primary">
+                课表同步时间：{CourseCache.getLastCourseUpdateTime()}
+              </Text>
+            </View>
+
+            {settings.exportExamToCourseTable && (
+              <View className="my-4 flex flex-row items-center justify-center">
+                <Icon name="time-outline" size={16} className="mr-2" />
+                <Text className="text-sm leading-5 text-text-primary">
+                  考场同步时间：{CourseCache.getLastExamUpdateTime()}
+                </Text>
+              </View>
+            )}
 
             <PickerModal
               visible={isPickerVisible}

@@ -6,12 +6,13 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 import { Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import { CourseCache } from '@/lib/course';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { clearUserStorage } from '@/utils/user';
 import { ScrollView } from 'react-native-gesture-handler';
-import { toast } from 'sonner-native';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
@@ -32,6 +33,7 @@ export default function AcademicPage() {
         text: '清除',
         style: 'destructive',
         onPress: async () => {
+          CourseCache.clear();
           await AsyncStorage.clear();
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
@@ -53,6 +55,7 @@ export default function AcademicPage() {
         style: 'destructive',
         onPress: async () => {
           try {
+            CourseCache.clear();
             await clearUserStorage();
             redirect('/(guest)/academic-login');
           } catch (error) {
@@ -79,10 +82,10 @@ export default function AcademicPage() {
     pushToWebViewNormal('https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#third-party', '第三方信息共享清单');
   };
 
-  // 进入开发者工具
-  const handleDeveloperTools = () => {
-    router.push('/devtools');
-  };
+  // // 进入开发者工具
+  // const handleDeveloperTools = () => {
+  //   router.push('/devtools');
+  // };
 
   return (
     <>
@@ -104,9 +107,9 @@ export default function AcademicPage() {
             <LabelEntry leftText="个人信息收集清单" onPress={handlePersonalInfoList} />
             <LabelEntry leftText="第三方信息共享清单" onPress={handleThirdPartyInfoList} />
 
-            <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text>
+            {/* <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text> */}
 
-            <LabelEntry leftText="开发者工具" onPress={handleDeveloperTools} />
+            {/* <LabelEntry leftText="开发者工具" onPress={handleDeveloperTools} /> */}
           </SafeAreaView>
         </ScrollView>
       </PageContainer>

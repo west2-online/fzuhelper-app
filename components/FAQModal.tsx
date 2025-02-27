@@ -17,12 +17,12 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
   const renderAnswer = (answer: FAQItem['answer']) => {
     if (typeof answer === 'string') {
       // 如果是纯文本，直接渲染
-      return <Text className="text-text-secondary mb-1 text-sm">{answer}</Text>;
+      return <Text className="mb-1 text-sm text-text-secondary">{answer}</Text>;
     }
 
     // 如果是数组，逐个渲染
     return (
-      <Text className="text-text-secondary mb-1 text-sm">
+      <Text className="mb-1 text-sm text-text-secondary">
         {answer.map((part, index) => {
           if (typeof part === 'string') {
             // 文本部分直接渲染
@@ -64,7 +64,7 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
           <View className="space-y-4">
             {data.map((item, index) => (
               <View key={index}>
-                <Text className="text-text-primary mt-1 text-base font-semibold">{item.question}</Text>
+                <Text className="mt-1 text-base font-semibold text-text-primary">{item.question}</Text>
                 {renderAnswer(item.answer)}
               </View>
             ))}

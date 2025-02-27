@@ -1,57 +1,32 @@
-import { useRouter, type Href, type Router } from 'expo-router';
+import { useRouter, type Router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, Linking } from 'react-native';
-import { toast } from 'sonner-native';
+import { Alert, FlatList } from 'react-native';
 
+import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
+import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
+import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
+import ApplicationIcon from '@/assets/images/toolbox/ic_application.svg';
+import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
+import FileIcon from '@/assets/images/toolbox/ic_file.svg';
+import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
+import GraduationIcon from '@/assets/images/toolbox/ic_graduation.svg';
+import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
+import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
+import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
+import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
+import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
+import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
+import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
+import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
 import Banner, { type BannerContent } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
 import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
-
-import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
-import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
-import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
-import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
-import FileIcon from '@/assets/images/toolbox/ic_file.svg';
-import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
-import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
-import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
-import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
-import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
-import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
-import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
-import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
+import { ToolType, toolOnPress, type Tool } from '@/utils/tools';
 
 // 工具类型的枚举
-enum ToolType {
-  LINK = 'link', // 跳转路由
-  URL = 'URL', // 打开网页
-  FUNCTION = 'function', // 执行函数
-  NULL = 'null', // 空操作
-}
-
-type Tool = {
-  name: string;
-  icon: any;
-} & (
-  | {
-      type: ToolType.LINK;
-      href: Href;
-    }
-  | {
-      type: ToolType.URL;
-      href: string;
-    }
-  | {
-      type: ToolType.FUNCTION;
-      action: (router: ReturnType<typeof useRouter>) => void | Promise<void>;
-    }
-  | {
-      type: ToolType.NULL;
-    }
-);
 
 // 常量：横幅数据
 const DEFAULT_BANNERS: BannerContent[] = [
@@ -93,12 +68,29 @@ const DEFAULT_TOOLS: Tool[] = [
       Alert.alert('暂未开放', '新版一键评议正在设计中，预计学期结束前（即评议开始前）上线，敬请期待');
     },
   },
-
   {
     name: '选课',
     icon: XuankeIcon,
     type: ToolType.LINK,
     href: '/toolbox/xuanke',
+  },
+  {
+    name: '各类申请',
+    icon: ApplicationIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/application',
+  },
+  {
+    name: '学生证',
+    icon: IDCardIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/id-card',
+  },
+  {
+    name: '毕业设计',
+    icon: GraduationIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/graduation',
   },
   {
     name: '校园指南',
@@ -163,26 +155,6 @@ const useToolsPageData = () => {
   return { bannerList, toolList };
 };
 
-// 工具按钮的点击事件
-const toolOnPress = (tool: Tool, router: ReturnType<typeof useRouter>) => {
-  switch (tool.type) {
-    case ToolType.NULL: // 空操作
-      break;
-    case ToolType.LINK: // 跳转路由
-      router.push(tool.href);
-      break;
-    case ToolType.URL: // 打开网页
-      Linking.openURL(tool.href).catch(err => Alert.alert('错误', '无法打开链接 (' + err + ')'));
-      break;
-    case ToolType.FUNCTION: // 执行函数，并传入 router 参数
-      tool.action(router);
-      break;
-    default:
-      toast.error('未知工具类型');
-      console.error('未知工具类型', tool);
-  }
-};
-
 // 工具按钮的渲染函数
 const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
   <Button
@@ -192,7 +164,7 @@ const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
   >
     {item.icon ? <item.icon width="42px" height="42px" /> : null}
     <Text
-      className="text-text-secondary w-[50px] text-center align-middle"
+      className="w-[50px] text-center align-middle text-text-secondary"
       // eslint-disable-next-line react-native/no-inline-styles
       style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
       numberOfLines={1}

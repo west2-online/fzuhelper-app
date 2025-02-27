@@ -3,7 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 指定学期课表 数据源：我的选课 GET /api/v1/jwch/course/list https://apifox.com/web/project/3275694/apis/api-109631154-run */
+/** 指定学期课表 数据源：我的选课 GET /api/v1/jwch/course/list */
 export async function getApiV1JwchCourseList(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1JwchCourseListParams,
@@ -41,7 +41,7 @@ export async function getApiV1JwchCourseList(
   });
 }
 
-/** 就读学期列表 GET /api/v1/jwch/term/list https://apifox.com/web/project/3275694/apis/api-257606812-run */
+/** 就读学期列表 GET /api/v1/jwch/term/list */
 export async function getApiV1JwchTermList(options?: {
   [key: string]: unknown;
 }) {

@@ -1,6 +1,6 @@
 import { Href, router, Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, ImageSourcePropType, View } from 'react-native';
+import { Image, ImageSourcePropType, Linking, Platform, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import LabelIconEntry from '@/components/label-icon-entry';
@@ -10,9 +10,9 @@ import { Text } from '@/components/ui/text';
 import { getApiV1JwchUserInfo } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
+import { fetchJwchLocateDate } from '@/lib/locate-date';
 import { JWCHLocateDateResult } from '@/types/data';
 import { UserInfo } from '@/types/user';
-import { fetchJwchLocateDate } from '@/utils/locate-date';
 
 import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
@@ -42,7 +42,8 @@ export default function HomePage() {
   interface MenuItem {
     icon: ImageSourcePropType;
     name: string; // 菜单项名称
-    link: Href; // 跳转链接
+    link?: Href; // 跳转链接
+    operation?: () => void; // 点击操作
   }
 
   // 菜单项数据
@@ -55,7 +56,22 @@ export default function HomePage() {
     {
       icon: HelpIcon,
       name: '帮助与反馈',
-      link: '/common/feedback' as Href,
+      operation: () => {
+        // 此为测试群，后续可改正式反馈群
+        if (Platform.OS === 'android') {
+          Linking.openURL(
+            'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3DgJSPzSlxdONFl8CMwAMEeYvZLnR4Dfu4',
+          );
+        } else if (Platform.OS === 'ios') {
+          Linking.openURL(
+            'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
+          );
+        } else {
+          Linking.openURL(
+            'https://qm.qq.com/cgi-bin/qm/qr?k=Y3PcAhYPFADOcJF-WWTuiBOJCHEstmLd&jump_from=webapi&authKey=ZPnno2EaNogLOiafRzJnXUYLOAmZqmxKaN3ZVPMrOAmiyND35o6dxm4CYOjN2Sx+',
+          );
+        }
+      },
     },
     {
       icon: EcardIcon,
@@ -123,11 +139,21 @@ export default function HomePage() {
           {/* 菜单列表 */}
           <View className="mt-4 space-y-4">
             {menuItems.map((item, index) => (
-              <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => router.push(item.link)} />
+              <LabelIconEntry
+                key={index}
+                icon={item.icon}
+                label={item.name}
+                onPress={() => {
+                  if (item.link) {
+                    router.push(item.link);
+                  } else {
+                    item.operation && item.operation();
+                  }
+                }}
+              />
             ))}
           </View>
         </View>
-        {/* </RefreshControl> */}
       </PageContainer>
     </>
   );

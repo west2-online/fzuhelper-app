@@ -1,7 +1,7 @@
 import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
 import { Text } from '@/components/ui/text';
-import type { ParsedCourse } from '@/utils/course';
+import type { ExtendCourse } from '@/lib/course';
 import { memo, useMemo } from 'react';
 import { ScrollView, View, type LayoutRectangle } from 'react-native';
 import CalendarCol from './calendar-col';
@@ -10,9 +10,9 @@ import TimeCol from './time-col';
 interface CourseWeekProps {
   week: number;
   startDate: string;
-  schedulesByDays: Record<number, ParsedCourse[]>;
-  courseColorMap: Record<string, string>;
+  schedulesByDays: Record<number, ExtendCourse[]>;
   showNonCurrentWeekCourses: boolean;
+  showExam: boolean;
   flatListLayout: LayoutRectangle;
 }
 
@@ -22,8 +22,8 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
   week,
   startDate,
   schedulesByDays,
-  courseColorMap,
   showNonCurrentWeekCourses,
+  showExam,
   flatListLayout,
 }) => {
   const month = useMemo(() => new Date(startDate).getMonth() + 1, [startDate]);
@@ -46,7 +46,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
   }, [startDate]);
 
   return (
-    <View className="flex flex-1 flex-col">
+    <View className="flex flex-col" style={{ width: flatListLayout.width }}>
       <HeaderContainer>
         {/* （左侧）月份 */}
         <View className="w-[32px] flex-shrink-0 flex-grow-0">
@@ -57,7 +57,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
         </View>
 
         {/* 日期 */}
-        <View className="mt-2 flex flex-shrink flex-grow flex-row">
+        <View className="mt-2 flex flex-row" style={{ width: flatListLayout.width - 32 }}>
           {headerDays.map(item => (
             <DayItem
               key={item.key}
@@ -79,8 +79,8 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
               <CalendarCol
                 key={`${startDate}_${i}`}
                 week={week}
+                showExam={showExam}
                 schedulesOnDay={schedulesByDays[i] || []}
-                courseColorMap={courseColorMap}
                 isShowNonCurrentWeekCourses={showNonCurrentWeekCourses}
                 flatListLayout={{ ...flatListLayout, width: flatListLayout.width - 32 }} // 32px 时间列宽度
               />

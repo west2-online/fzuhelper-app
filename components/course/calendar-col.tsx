@@ -1,16 +1,16 @@
 import { memo, useMemo } from 'react';
 import { View, type LayoutRectangle } from 'react-native';
 
-import { SCHEDULE_MIN_HEIGHT, type ParsedCourse } from '@/utils/course';
-import { nonCurrentWeekCourses } from '@/utils/random-color';
-
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
+
+import { EXAM_TYPE, SCHEDULE_MIN_HEIGHT, type ExtendCourse } from '@/lib/course';
+import { nonCurrentWeekCourses } from '@/utils/random-color';
 
 type ScheduleItemData =
   | {
       type: 'course';
-      schedules: ParsedCourse[];
+      schedules: ExtendCourse[];
       span: number;
       color: string; // 课程的颜色
     }
@@ -20,14 +20,14 @@ type ScheduleItemData =
 
 interface CalendarColProps {
   week: number;
-  schedulesOnDay: ParsedCourse[];
+  schedulesOnDay: ExtendCourse[];
   isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
-  courseColorMap: Record<string, string>; // 课程颜色映射
+  showExam: boolean; // 是否显示考试
   flatListLayout: LayoutRectangle;
 }
 
 // 移除重复的课程，之所以需要这个，是因为教务处会莫名其妙安排完全一样的课程在教务处的课程表中，导致大量的重复课程显示
-const removeDuplicateSchedules = (schedules: ParsedCourse[]): ParsedCourse[] => {
+const removeDuplicateSchedules = (schedules: ExtendCourse[]): ExtendCourse[] => {
   const seen = new Set<string>();
   return schedules.filter(schedule => {
     // 将课程的唯一标识组合为一个字符串，例如 "课程名+教师+开始时间+结束时间+开始周数+结束周数"
@@ -44,8 +44,8 @@ const removeDuplicateSchedules = (schedules: ParsedCourse[]): ParsedCourse[] => 
 const CalendarCol: React.FC<CalendarColProps> = ({
   week,
   schedulesOnDay,
-  courseColorMap,
   isShowNonCurrentWeekCourses,
+  showExam,
   flatListLayout,
 }) => {
   // 根据当前周数和星期几，筛选出当天的课程
@@ -58,36 +58,44 @@ const CalendarCol: React.FC<CalendarColProps> = ({
 
     for (let i = 1; i <= 11; i++) {
       // 找出当前时间段且为当前周的课程
-      let currentWeekSchedules = schedules.filter(
-        s =>
-          s.startClass === i &&
-          s.endClass >= i && // 当前时间段是否在课程时间范围内
-          s.startWeek <= week &&
-          s.endWeek >= week &&
-          ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)), // 是否符合周数条件
-      );
+      let currentWeekSchedules = schedules
+        .filter(
+          s =>
+            s.startClass === i &&
+            s.endClass >= i && // 当前时间段是否在课程时间范围内
+            s.startWeek <= week &&
+            s.endWeek >= week &&
+            ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)), // 是否符合周数条件
+        )
+        .sort((a, b) => a.endClass - a.startClass - (b.endClass - b.startClass)); // 升序排序，优先安排短课程
 
       // 找出当前时间段但不是当前周的课程
       let nonCurrentWeekSchedules = isShowNonCurrentWeekCourses
-        ? schedules.filter(
-            s =>
-              s.startClass === i &&
-              s.endClass >= i && // 当前时间段是否在课程时间范围内
-              (s.startWeek > week ||
-                s.endWeek < week ||
-                !((s.single && week % 2 === 1) || (s.double && week % 2 === 0))), // 是否不符合周数条件
-          )
+        ? schedules
+            .filter(
+              s =>
+                s.startClass === i &&
+                s.endClass >= i && // 当前时间段是否在课程时间范围内
+                (s.startWeek > week ||
+                  s.endWeek < week ||
+                  !((s.single && week % 2 === 1) || (s.double && week % 2 === 0))), // 是否不符合周数条件
+            )
+            .sort((a, b) => a.endClass - a.startClass - (b.endClass - b.startClass)) // 按课程长度升序排序
         : [];
 
       let scheduleOnTime = currentWeekSchedules.length > 0 ? currentWeekSchedules : nonCurrentWeekSchedules;
+      scheduleOnTime = scheduleOnTime.sort((a, b) => b.priority - a.priority); // 降序排序，优先级高的排在前面
+
+      // 如果不显示考试，则过滤掉考试
+      if (!showExam) scheduleOnTime = scheduleOnTime.filter(s => s.type !== EXAM_TYPE);
 
       if (scheduleOnTime.length > 0) {
-        const primarySchedule = scheduleOnTime[0]; // 默认取第一个课程为主课程
+        const primarySchedule = scheduleOnTime[0]; // 默认取第一个课程为主课程（此时已按长度排序）
         const span = primarySchedule.endClass - primarySchedule.startClass + 1;
 
         res.push({
           type: 'course',
-          schedules: scheduleOnTime,
+          schedules: scheduleOnTime, // 按优先级排序，优先级大的排在前面
           span,
           color:
             isShowNonCurrentWeekCourses &&
@@ -95,7 +103,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
               primarySchedule.endWeek < week ||
               !((primarySchedule.single && week % 2 === 1) || (primarySchedule.double && week % 2 === 0)))
               ? nonCurrentWeekCourses
-              : courseColorMap[primarySchedule.syllabus],
+              : primarySchedule.color,
         });
 
         i += span - 1; // 跳过当前课程的跨度
@@ -105,7 +113,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     }
 
     return res;
-  }, [schedulesOnDay, week, courseColorMap, isShowNonCurrentWeekCourses]);
+  }, [schedulesOnDay, week, isShowNonCurrentWeekCourses, showExam]);
 
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>

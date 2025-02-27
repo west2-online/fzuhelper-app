@@ -1,3 +1,4 @@
+import { execSync } from 'child_process';
 import { type ExpoConfig } from 'expo/config';
 import { withAppBuildGradle } from 'expo/config-plugins';
 
@@ -6,13 +7,31 @@ function insertAfter(s: string, searchString: string, content: string): string {
   return s.slice(0, index) + searchString + content + s.slice(index + searchString.length);
 }
 
-// 比较 dirty 的解决方法，多次 prebuild:android 会破坏 build.gradle 文件
-// 需要清除并重新生成项目
-// 可能使用正则会更好？
-function withAndroidSign(config: ExpoConfig): ExpoConfig {
+function extractVersionNumber(input: string): string | null {
+  const match = input.match(/versionName\s+"([^"]+)"/);
+  if (match && match[1]) {
+    // 去掉小数点并返回结果
+    return match[1].replace(/\./g, '');
+  }
+  return null;
+}
+
+function getCommitCountString(): string {
+  try {
+    const stdout = execSync('git rev-list --count HEAD').toString().trim();
+    // 如果长度小于 3，则在前面补充 '0'
+    return stdout.length < 3 ? stdout.padStart(3, '0') : stdout;
+  } catch (err) {
+    console.error('Error executing git command:', err);
+    return '000';
+  }
+}
+
+function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   return withAppBuildGradle(config, config => {
     let contents = config.modResults.contents;
+    // 签名配置
     contents = insertAfter(
       contents,
       'signingConfigs {',
@@ -31,6 +50,7 @@ function withAndroidSign(config: ExpoConfig): ExpoConfig {
       `// Caution! In production, you need to generate your own keystore file.\n            // see https://reactnative.dev/docs/signed-apk-android.\n            signingConfig signingConfigs.debug`,
       'signingConfig signingConfigs.release',
     );
+    // abi配置
     contents = insertAfter(
       contents,
       'android {',
@@ -44,9 +64,15 @@ function withAndroidSign(config: ExpoConfig): ExpoConfig {
         }
     }`,
     );
+    // versionCode根据commit次数设置
+    // 前三位对应版本名，后三位或更多对应commit次数
+    contents = contents.replace(
+      'versionCode 700001',
+      'versionCode ' + extractVersionNumber(contents) + getCommitCountString(),
+    );
     config.modResults.contents = contents;
     return config;
   });
 }
 
-export default withAndroidSign;
+export default withAndroidBuildConfig;

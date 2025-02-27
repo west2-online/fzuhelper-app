@@ -2,6 +2,7 @@ export interface CourseSetting {
   selectedSemester: string;
   calendarExportEnabled: boolean;
   showNonCurrentWeekCourses: boolean;
+  exportExamToCourseTable: boolean;
 }
 
 export interface LocateDateResult {
@@ -9,5 +10,4 @@ export interface LocateDateResult {
   week: number;
   day: number;
   semester: string;
-  semesterStart: string;
 }
