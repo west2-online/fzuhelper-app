@@ -10,7 +10,7 @@ type Section = {
 
 const ListItem = memo(function ListItem({ item }: { item: Classroom }) {
   return (
-    <View className="border-b border-gray-200 px-4 py-3 dark:border-gray-600">
+    <View className="h-16 justify-center border-b border-gray-200 px-4 dark:border-gray-600">
       <View className="flex-row justify-between">
         <Text className="text-base font-medium dark:text-gray-200">{item.location}</Text>
         <Text className="text-gray-500 dark:text-gray-400">{item.capacity}人</Text>
@@ -90,6 +90,14 @@ export default function ClassroomList({ data }: { data: Classroom[] }) {
         }}
         onScrollAnimationEnd={() => {
           isAutoScrolling.current = false;
+        }}
+        getItemLayout={(_, index) => {
+          if (index === -1) return { index, length: 0, offset: 0 };
+          return {
+            index: index,
+            length: 56, // h-16
+            offset: 56 * index,
+          };
         }}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
         className="mr-20 bg-white dark:bg-gray-900"
