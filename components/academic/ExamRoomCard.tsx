@@ -1,7 +1,6 @@
-import { Icon } from '@/components/Icon';
-import React from 'react';
 import { View } from 'react-native';
 
+import { Icon } from '@/components/Icon';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
@@ -31,15 +30,20 @@ interface CourseCardProps {
 const ExamRoomCard: React.FC<CourseCardProps> = ({ item }) => (
   <Card className={cn('m-1 p-3', item.isFinished && 'opacity-50')}>
     {/* 考试课程 */}
-    <View className="m-1 flex flex-row items-center">
-      <Icon name={item.isFinished ? 'checkmark-circle' : 'alert-circle'} size={16} className="mr-2" />
-      <Text className="flex-1 font-bold">
-        {getCourseName(item.name)}
+    <View className="m-1 flex flex-row items-center justify-start">
+      <View className="flex flex-shrink-0 flex-grow flex-row items-center">
+        <Icon name={item.isFinished ? 'checkmark-circle' : 'alert-circle'} size={16} className="mr-2" />
+        <Text className="mr-1 font-bold" numberOfLines={1}>
+          {getCourseName(item.name)}
+        </Text>
         {item.credit !== undefined && item.credit !== '0' && (
-          <Text className="text-sm text-muted-foreground"> （{item.credit} 学分）</Text>
+          <Text className="mr-2 text-sm text-muted-foreground"> ({item.credit} 学分)</Text>
         )}
+      </View>
+
+      <Text className="flex-shrink flex-grow-0 justify-self-end text-ellipsis" numberOfLines={1}>
+        {item.teacher}
       </Text>
-      <Text>{item.teacher.length > 10 ? item.teacher.slice(0, 10) + '...' : item.teacher}</Text>
     </View>
 
     {/* 分割线 */}
