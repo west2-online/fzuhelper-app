@@ -57,7 +57,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
         </View>
 
         {/* 日期 */}
-        <View className="mt-2 flex flex-row" style={{ width: flatListLayout.width - 32 }}>
+        <View className="mt-2 flex h-[64px] flex-row" style={{ width: flatListLayout.width - 32 }}>
           {headerDays.map(item => (
             <DayItem
               key={item.key}
@@ -82,7 +82,11 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
                 showExam={showExam}
                 schedulesOnDay={schedulesByDays[i] || []}
                 isShowNonCurrentWeekCourses={showNonCurrentWeekCourses}
-                flatListLayout={{ ...flatListLayout, width: flatListLayout.width - 32 }} // 32px 时间列宽度
+                flatListLayout={{
+                  ...flatListLayout,
+                  width: flatListLayout.width - 32, // 32px - 时间列宽度
+                  height: flatListLayout.height - 64, // 64px - 日期头部高度
+                }}
               />
             ))}
           </View>
