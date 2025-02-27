@@ -32,7 +32,7 @@ const GradeCard: React.FC<GradeCardProps> = ({ item }) => {
         <View className="flex w-2/5 flex-row justify-between">
           {/* 应获学分 */}
           <View className="flex flex-col items-start">
-            <Text className="text-xs text-text-secondary">{item.gpa ? '应得' : '获得'}学分</Text>
+            <Text className="text-xs text-text-secondary">{item.gpa ? '获得' : '应得'}学分</Text>
             <Text className="text-lg font-bold">{item.credit}</Text>
           </View>
           {/* 获得绩点 */}

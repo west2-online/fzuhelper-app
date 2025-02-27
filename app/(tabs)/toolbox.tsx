@@ -51,10 +51,8 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '空教室',
     icon: RoomIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      Alert.alert('暂未开放', '开发组正在紧锣密鼓地开发中，敬请期待');
-    },
+    type: ToolType.LINK,
+    href: '/toolbox/empty-room',
   },
   {
     name: '考场查询',
