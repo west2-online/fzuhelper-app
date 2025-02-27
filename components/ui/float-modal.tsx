@@ -14,6 +14,9 @@ interface FloatModalProps {
   contentContainerClassName?: string;
 }
 
+/**
+ * 悬浮提示框
+ */
 export default function FloatModal({
   visible,
   transparent = true,

@@ -1,4 +1,5 @@
 import {
+  getApiV1CommonClassroomEmpty,
   getApiV1JwchAcademicCredit,
   getApiV1JwchAcademicGpa,
   getApiV1JwchAcademicPlan,
@@ -60,3 +61,7 @@ export type JwchAcademicPlanResponse = AsyncReturnType<typeof getApiV1JwchAcadem
 // getApiV1JwchClassroomExam
 export type JwchClassroomExamResponse = AsyncReturnType<typeof getApiV1JwchClassroomExam>['data']['data'];
 export type JwchClassroomExamResponse_ClassroomExam = JwchClassroomExamResponse[0];
+
+// === 空教室 ===
+export type CommonClassroomEmptyResponse = AsyncReturnType<typeof getApiV1CommonClassroomEmpty>['data']['data'];
+export type CommonClassroomEmptyResponse_Classroom = CommonClassroomEmptyResponse[0];

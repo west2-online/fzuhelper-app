@@ -6,16 +6,16 @@ import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import { Text } from '@/components/ui/text';
 
-interface PickerModalProps {
+interface PickerModalProps<T> {
   visible: boolean;
   title: string;
-  data: { value: string; label: string }[];
-  value: string;
+  data: { value: T; label: string }[];
+  value: T;
   onClose: () => void;
-  onConfirm: (value: string) => void;
+  onConfirm: (value: T) => void;
 }
 
-export default function PickerModal({ visible, title, data, value, onClose, onConfirm }: PickerModalProps) {
+export default function PickerModal<T>({ visible, title, data, value, onClose, onConfirm }: PickerModalProps<T>) {
   const [tempValue, setTempValue] = useState(value);
   const colorScheme = useColorScheme();
   const adaptiveColor = colorScheme === 'dark' ? 'white' : 'black';
