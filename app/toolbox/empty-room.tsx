@@ -173,7 +173,9 @@ export default function EmptyRoomPage() {
             onChange={({ date }) => setPickerSelectedDate(DateTime.fromJSDate(date as Date) as DateTime)}
             locale="zh-cn"
             classNames={getDefaultClassNames()}
+            // 选择范围为从今天开始的一周内
             minDate={today.toJSDate()}
+            maxDate={today.plus({ day: 6 }).toJSDate()}
           />
         </FloatModal>
 
