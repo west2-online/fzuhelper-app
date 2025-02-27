@@ -36,8 +36,8 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ isOpen, o
   };
 
   const setPriority = (index: number) => {
+    onClose();
     CourseCache.setPriority(index);
-    toast.success('设置完毕，重新打开课程表生效');
   };
 
   return (

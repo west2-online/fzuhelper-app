@@ -94,7 +94,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         if (!hasCache || hasChanged) {
           setSchedulesByDays(CourseCache.getCachedData());
         }
-        if (hasCache && hasChanged) toast.info('检测到课程数据变更，已刷新');
+        if (hasCache && hasChanged) toast.info('课程数据已刷新');
       } catch (error: any) {
         console.error(error);
         toast.error('课程数据获取失败，请检查网络连接，将使用本地缓存');
@@ -105,6 +105,17 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     setSchedulesByDays(CourseCache.getCachedData() ?? []);
     fetchData();
   }, [term, colorScheme, exportExamToCourseTable, currentSemester]);
+
+  // 订阅刷新事件，触发时更新课程数据状态
+  useEffect(() => {
+    const refreshHandler = () => {
+      setSchedulesByDays(CourseCache.getCachedData());
+    };
+    CourseCache.addRefreshListener(refreshHandler);
+    return () => {
+      CourseCache.removeRefreshListener(refreshHandler);
+    };
+  }, []);
 
   // 确认当前周，如果是历史学期（即和 locateDateResult 给出的学期不符），则默认回退到第一周
   useEffect(() => {

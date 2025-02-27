@@ -56,6 +56,24 @@ export class CourseCache {
   private static lastCourseUpdateTime: string = NO_LOADING_MSG;
   private static lastExamUpdateTime: string = NO_LOADING_MSG;
 
+  // 刷新回调列表
+  private static refreshListeners: (() => void)[] = [];
+
+  // 注册刷新回调
+  public static addRefreshListener(listener: () => void): void {
+    this.refreshListeners.push(listener);
+  }
+
+  // 移除刷新回调
+  public static removeRefreshListener(listener: () => void): void {
+    this.refreshListeners = this.refreshListeners.filter(l => l !== listener);
+  }
+
+  // 触发刷新事件
+  public static refresh(): void {
+    this.refreshListeners.forEach(listener => listener());
+  }
+
   /**
    * 获取上次课程数据更新时间，转化为文本
    * @returns 上次课程数据更新时间
@@ -242,6 +260,8 @@ export class CourseCache {
 
     this.cachedData = updatedData;
     await this.save();
+    // 调用 refresh 方法触发页面刷新
+    this.refresh();
   }
 
   /**
