@@ -21,10 +21,9 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, height, span, co
   return (
     <>
       <Pressable
-        className="m-[1px] flex flex-shrink-0 flex-grow-0 basis-0 flex-col items-center justify-center rounded-lg p-[1px]"
+        className="m-[1px] flex flex-col items-center justify-center rounded-lg p-[1px]"
         style={{
-          flexGrow: span,
-          height: span * (height / 11) + (span - 1) * 2, // 补充2px, 使得跨多个的课程的纵向高度包含了原有的margin，达到对齐
+          height: span * (height / 11) + (span - 1) * 2, // 补充 2px, 使得跨多个的课程的纵向高度包含了原有的margin，达到对齐
           backgroundColor: color,
         }}
         onPress={() => setDetailsDialogOpen(true)}
