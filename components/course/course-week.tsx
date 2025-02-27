@@ -49,7 +49,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
     <View className="flex flex-col" style={{ width: flatListLayout.width }}>
       <HeaderContainer>
         {/* （左侧）月份 */}
-        <View className="w-[32px] flex-shrink-0 flex-grow-0">
+        <View className="h-[64px] w-[32px] flex-shrink-0 flex-grow-0">
           <View className="flex flex-shrink-0 flex-col items-center justify-center px-2 py-3">
             <Text>{month}</Text>
             <Text>月</Text>
@@ -71,7 +71,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} overScrollMode="never">
         <View className="flex flex-row">
           {/* （左侧）时间列 */}
-          <TimeCol />
+          <TimeCol height={flatListLayout.height - 64} />
 
           {/* 课程内容 */}
           <View className="flex flex-1 flex-row bg-background">
