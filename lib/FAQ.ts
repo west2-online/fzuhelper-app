@@ -1,4 +1,4 @@
-// 考表
+// 课表
 export const FAQ_COURSE = [
   {
     question: '课表数据的准确性如何？',
@@ -15,6 +15,22 @@ export const FAQ_COURSE = [
   {
     question: '我的课表已经很久没有刷新了',
     answer: '您可以在设置页面强制刷新',
+  },
+];
+
+// 空教室
+export const FAQ_EMPTY_ROOM = [
+  {
+    question: '空教室数据准吗？',
+    answer: '我们保证数据和教务处的数据一致。但教务系统本身可能存在数据不一致性，请以实际情况为准。',
+  },
+  {
+    question: '这个人数是什么意思？',
+    answer: '教室可容纳数量。不是剩余空位的意思哦。',
+  },
+  {
+    question: '为什么有时候没有部分教学楼的信息？',
+    answer: '教务系统没有提供这个教学楼的数据。',
   },
 ];
 
