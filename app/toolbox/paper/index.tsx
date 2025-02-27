@@ -4,16 +4,11 @@ import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { LoadingState } from '@/types/loading-state';
 import { useFocusEffect } from '@react-navigation/native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
-
-enum LoadingState {
-  UNINIT = 'uninit',
-  PENDING = 'pending',
-  FINISH = 'finish', // success or fail
-}
 
 interface PaperPageParam {
   path?: string;
@@ -78,10 +73,10 @@ export default function PaperPage() {
       const folders: Paper[] = result.data.folders.map(name => ({ name, type: PaperType.FOLDER }));
       const files: Paper[] = result.data.files.map(name => ({ name, type: PaperType.FILE }));
       setCurrentPapers([...folders, ...files]);
+      setLoadingState(LoadingState.SUCCESS);
     } catch (error: any) {
       handleError(error);
-    } finally {
-      setLoadingState(LoadingState.FINISH);
+      setLoadingState(LoadingState.FAILED);
     }
   }, [currentPath, handleError]);
 
