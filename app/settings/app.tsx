@@ -67,26 +67,6 @@ export default function AcademicPage() {
     ]);
   };
 
-  // 隐私权限设置
-  const handlePrivacyPermission = () => {
-    router.push('/settings/permissions');
-  };
-
-  // 个人信息收集清单
-  const handlePersonalInfoList = () => {
-    router.push('/settings/personal-info-list');
-  };
-
-  // 第三方信息共享清单
-  const handleThirdPartyInfoList = () => {
-    pushToWebViewNormal('https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#third-party', '第三方信息共享清单');
-  };
-
-  // // 进入开发者工具
-  // const handleDeveloperTools = () => {
-  //   router.push('/devtools');
-  // };
-
   return (
     <>
       <Stack.Screen options={{ title: '设置' }} />
@@ -103,13 +83,24 @@ export default function AcademicPage() {
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">隐私</Text>
 
-            <LabelEntry leftText="隐私权限设置" onPress={handlePrivacyPermission} />
-            <LabelEntry leftText="个人信息收集清单" onPress={handlePersonalInfoList} />
-            <LabelEntry leftText="第三方信息共享清单" onPress={handleThirdPartyInfoList} />
+            <LabelEntry leftText="隐私权限设置" onPress={() => router.push('/settings/permissions')} />
+            <LabelEntry leftText="个人信息收集清单" onPress={() => router.push('/settings/personal-info-list')} />
+            <LabelEntry
+              leftText="第三方信息共享清单"
+              onPress={() =>
+                pushToWebViewNormal(
+                  'https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#third-party',
+                  '第三方信息共享清单',
+                )
+              }
+            />
 
             {/* <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text> */}
+            {/* <LabelEntry leftText="开发者工具" onPress={() => router.push('/devtools')} /> */}
 
-            {/* <LabelEntry leftText="开发者工具" onPress={handleDeveloperTools} /> */}
+            <Text className="mb-2 mt-4 text-sm text-text-secondary">关于</Text>
+
+            <LabelEntry leftText="关于" onPress={() => router.push('/common/about')} />
           </SafeAreaView>
         </ScrollView>
       </PageContainer>

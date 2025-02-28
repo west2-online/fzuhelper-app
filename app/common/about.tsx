@@ -125,24 +125,29 @@ export default function AboutPage() {
               <Text className="text-primary" onPress={handlePrivacyPolicy}>
                 服务协议
               </Text>
-              <Text className="mx-5 text-primary">|</Text>
+              <Text className="mx-5 text-secondary">|</Text>
               <Text className="text-primary" onPress={handleUserAgreement}>
                 隐私政策
               </Text>
             </View>
             <View className="flex-row">
-              <Text className="text-sm text-text-secondary">本APP由</Text>
+              <Text className="text-center text-sm text-text-secondary">
+                已通过福州大学网络安全和信息化办公室安全质量检测
+              </Text>
+            </View>
+            <View className="flex-row">
+              <Text className="text-sm text-text-secondary">由</Text>
               <Text className="text-sm text-primary" onPress={handleUpyun}>
                 又拍云
               </Text>
-              <Text className="text-sm text-text-secondary">提供CDN加速/云存储服务</Text>
+              <Text className="text-sm text-text-secondary">提供 CDN 加速、云存储服务</Text>
             </View>
             <Pressable className="flex-row items-center" onPress={handleBeian}>
-              <Text className="mr-1 text-sm text-text-secondary">ICP备案号：闽ICP备19020557号-4A</Text>
+              <Text className="mr-1 text-sm text-text-secondary">闽ICP备19020557号-4A</Text>
               <Icon name="chevron-forward" size={10} />
             </Pressable>
-            <Text className="mb-6 text-sm text-text-tertiary">
-              Copyright © 2017-{new Date().getFullYear()} west2-online. All Rights Reserved
+            <Text className="mb-6 text-center text-sm text-text-tertiary">
+              Copyright &copy; 2017-{new Date().getFullYear()} west2-online. All Rights Reserved.
             </Text>
           </SafeAreaView>
         </View>
