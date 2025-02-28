@@ -4,19 +4,18 @@ import { View, type LayoutRectangle } from 'react-native';
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
 
-import { EXAM_TYPE, SCHEDULE_MIN_HEIGHT, type ExtendCourse } from '@/lib/course';
+import { COURSE_TYPE, EXAM_TYPE, SCHEDULE_MIN_HEIGHT, type ExtendCourse } from '@/lib/course';
 import { nonCurrentWeekCourses } from '@/utils/random-color';
 
-type ScheduleItemData =
-  | {
-      type: 'course';
-      schedules: ExtendCourse[];
-      span: number;
-      color: string; // 课程的颜色
-    }
-  | {
-      type: 'empty';
-    };
+type CourseScheduleItemData = {
+  schedules: ExtendCourse[];
+  span: number;
+  color: string; // 课程的颜色
+};
+
+type EmptyScheduleItemData = object;
+
+type ScheduleItemData = CourseScheduleItemData | EmptyScheduleItemData;
 
 interface CalendarColProps {
   week: number;
@@ -54,71 +53,119 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     // 对课程进行去重
     let schedules = removeDuplicateSchedules(schedulesOnDay);
 
-    const res: ScheduleItemData[] = [];
+    const tempRes: CourseScheduleItemData[] = [];
 
-    for (let i = 1; i <= 11; i++) {
-      // 找出当前时间段且为当前周的课程
-      let currentWeekSchedules = schedules
+    // 先按优先级排本周的课和考试，重叠的不管
+    const today = schedules
+      .filter(
+        s =>
+          s.startWeek <= week &&
+          s.endWeek >= week &&
+          ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)) &&
+          (s.type === COURSE_TYPE || (showExam && s.type === EXAM_TYPE)),
+      )
+      .sort((a, b) => b.priority - a.priority);
+
+    const occupied = new Array(11).fill(false); // 0~10 对应 1~11 节课
+
+    let left = []; // 因重叠未能排放的课程
+
+    for (let s of today) {
+      // 检查是否有重叠
+      let hasOverlap = false;
+      for (let i = s.startClass; i <= s.endClass; i++) {
+        if (occupied[i - 1]) {
+          hasOverlap = true;
+          left.push(s);
+          break;
+        }
+      }
+      if (hasOverlap) continue;
+      // 没有重叠，排入
+      const span = s.endClass - s.startClass + 1;
+      tempRes.push({
+        schedules: [s],
+        span,
+        color: s.color,
+      });
+      // 标记已占用
+      for (let i = s.startClass; i <= s.endClass; i++) {
+        occupied[i - 1] = true;
+      }
+    }
+
+    // 标记是否有重叠，根据已排课程的每一个时间段，检查是否有重叠课程，如有则补充进去
+    for (let s of tempRes) {
+      // 在left里面找到重叠的课程
+      let overlap = left.filter(
+        l => l.startClass <= s.schedules[0].endClass && l.endClass >= s.schedules[0].startClass,
+      );
+      if (overlap.length > 0) {
+        s.schedules.push(...overlap);
+      }
+    }
+
+    // 再按优先级去排非本周课（不含考试等），重叠的也不管
+    if (isShowNonCurrentWeekCourses) {
+      const nonCurrentWeek = schedules
         .filter(
           s =>
-            s.startClass === i &&
-            s.endClass >= i && // 当前时间段是否在课程时间范围内
-            s.startWeek <= week &&
-            s.endWeek >= week &&
-            ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)), // 是否符合周数条件
+            !(
+              s.startWeek <= week &&
+              s.endWeek >= week &&
+              ((s.single && week % 2 === 1) || (s.double && week % 2 === 0))
+            ) && s.type === COURSE_TYPE,
         )
-        .sort((a, b) => a.endClass - a.startClass - (b.endClass - b.startClass)); // 升序排序，优先安排短课程
+        .sort((a, b) => b.priority - a.priority);
 
-      // 找出当前时间段但不是当前周的课程
-      let nonCurrentWeekSchedules = isShowNonCurrentWeekCourses
-        ? schedules
-            .filter(
-              s =>
-                s.startClass === i &&
-                s.endClass >= i && // 当前时间段是否在课程时间范围内
-                (s.startWeek > week ||
-                  s.endWeek < week ||
-                  !((s.single && week % 2 === 1) || (s.double && week % 2 === 0))), // 是否不符合周数条件
-            )
-            .sort((a, b) => a.endClass - a.startClass - (b.endClass - b.startClass)) // 按课程长度升序排序
-        : [];
-
-      let scheduleOnTime = currentWeekSchedules.length > 0 ? currentWeekSchedules : nonCurrentWeekSchedules;
-      scheduleOnTime = scheduleOnTime.sort((a, b) => b.priority - a.priority); // 降序排序，优先级高的排在前面
-
-      // 如果不显示考试，则过滤掉考试
-      if (!showExam) scheduleOnTime = scheduleOnTime.filter(s => s.type !== EXAM_TYPE);
-
-      if (scheduleOnTime.length > 0) {
-        const primarySchedule = scheduleOnTime[0]; // 默认取第一个课程为主课程（此时已按长度排序）
-        const span = primarySchedule.endClass - primarySchedule.startClass + 1;
-
-        res.push({
-          type: 'course',
-          schedules: scheduleOnTime, // 按优先级排序，优先级大的排在前面
+      for (let s of nonCurrentWeek) {
+        // 检查是否有重叠
+        let hasOverlap = false;
+        for (let i = s.startClass; i <= s.endClass; i++) {
+          if (occupied[i - 1]) {
+            hasOverlap = true;
+            break;
+          }
+        }
+        if (hasOverlap) continue;
+        // 没有重叠，排入
+        const span = s.endClass - s.startClass + 1;
+        tempRes.push({
+          schedules: [s],
           span,
-          color:
-            isShowNonCurrentWeekCourses &&
-            (primarySchedule.startWeek > week ||
-              primarySchedule.endWeek < week ||
-              !((primarySchedule.single && week % 2 === 1) || (primarySchedule.double && week % 2 === 0)))
-              ? nonCurrentWeekCourses
-              : primarySchedule.color,
+          color: nonCurrentWeekCourses,
         });
+        // 标记已占用
+        for (let i = s.startClass; i <= s.endClass; i++) {
+          occupied[i - 1] = true;
+        }
+      }
 
-        i += span - 1; // 跳过当前课程的跨度
+      // 如果是非本周课程，暂不显示与其重叠的课程
+    }
+
+    const res: ScheduleItemData[] = [];
+    // 按照顺序排列，并补充空白格
+    for (let i = 0; i < 11; ) {
+      if (!occupied[i]) {
+        res.push({});
+        i++;
       } else {
-        res.push({ type: 'empty' });
+        const current = tempRes.find(s => s.schedules[0].startClass === i + 1);
+        if (current) {
+          res.push(current);
+          i += current.span;
+        }
       }
     }
 
     return res;
-  }, [schedulesOnDay, week, isShowNonCurrentWeekCourses, showExam]);
+  }, [schedulesOnDay, isShowNonCurrentWeekCourses, week, showExam]);
 
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>
       {scheduleData.map((item, index) =>
-        item.type === 'course' ? (
+        'schedules' in item ? (
           <ScheduleItem
             key={index}
             height={Math.max(SCHEDULE_MIN_HEIGHT, flatListLayout.height)}
