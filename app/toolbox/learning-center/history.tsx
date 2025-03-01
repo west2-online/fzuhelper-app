@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation, useRouter } from 'expo-router';
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -8,6 +8,7 @@ import HistoryAppointmentCard, { AppointmentCardProps } from '@/components/learn
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
+
 import ApiService from '@/utils/learning-center/api_service';
 
 import { TOKEN_STORAGE_KEY } from './token';
@@ -16,7 +17,6 @@ const NAVIGATION_TITLE = '预约历史';
 const PAGE_SIZE = 10;
 
 export default function HistoryPage() {
-  const navigation = useNavigation();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -25,11 +25,6 @@ export default function HistoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasToken, setHasToken] = useState(false);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: NAVIGATION_TITLE });
-  }, [navigation]);
-
   useEffect(() => {
     const checkTokenAndFetchData = async () => {
       try {
@@ -156,27 +151,31 @@ export default function HistoryPage() {
   }
 
   return (
-    <PageContainer className="flex-1 bg-background">
-      <FlatList
-        data={appointments}
-        renderItem={({ item }) => <HistoryAppointmentCard {...item} />}
-        keyExtractor={generateUniqueKey}
-        contentContainerClassName="px-4 py-4"
-        ListHeaderComponent={
-          <View className="mb-4">
-            <Text className="text-lg font-bold">预约历史</Text>
-          </View>
-        }
-        ListEmptyComponent={
-          <View className="flex items-center justify-center py-8">
-            <Text className="text-base text-text-secondary">暂无预约记录</Text>
-          </View>
-        }
-        ListFooterComponent={renderFooter}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.2}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
-      />
-    </PageContainer>
+    <>
+      <Stack.Screen options={{ title: '预约历史' }} />
+
+      <PageContainer className="flex-1 bg-background">
+        <FlatList
+          data={appointments}
+          renderItem={({ item }) => <HistoryAppointmentCard {...item} />}
+          keyExtractor={generateUniqueKey}
+          contentContainerClassName="px-4 py-4"
+          ListHeaderComponent={
+            <View className="mb-4">
+              <Text className="text-lg font-bold">预约历史</Text>
+            </View>
+          }
+          ListEmptyComponent={
+            <View className="flex items-center justify-center py-8">
+              <Text className="text-base text-text-secondary">暂无预约记录</Text>
+            </View>
+          }
+          ListFooterComponent={renderFooter}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.2}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+        />
+      </PageContainer>
+    </>
   );
 }
