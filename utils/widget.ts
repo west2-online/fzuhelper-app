@@ -1,52 +1,45 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApiV1TermsList } from '@/api/generate';
+import { COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
+import { CourseCache, ExtendCourse, readCourseSetting } from '@/lib/course';
+import locateDate, { getWeeksBySemester } from '@/lib/locate-date';
+import { fetchWithCache } from './fetch-with-cache';
 
-import { COURSE_DATA_KEY, COURSE_TERMS_LIST_KEY, COURSE_SETTINGS_KEY } from '@/lib/constants';
-import { getWeeksBySemester, parseCourses, readCourseSetting } from '@/utils/course';
-
-export async function sendWidgetDate(): Promise<ClassInfo | null> {
-  const selectedSemester = JSON.parse(await AsyncStorage.getItem(COURSE_SETTINGS_KEY) || '{}').selectedSemester;
-  const courseTermsList = JSON.parse(await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY) || '{}').data?.data;
-
-  if (!courseTermsList) return;
-  if (!selectedSemester  || selectedSemester == "") {
-    selectedSemester = courseTermsList.current_term;
-    };
-
-  const courseData = JSON.parse(await AsyncStorage.getItem(`${COURSE_DATA_KEY}__${selectedSemester}`)).data?.data;
-  if (!courseData) return;
-
-  const jsonArray = courseTermsList.terms;
-  let startDate: number = 0;
-  let endDate: number = 0;
-  let endWeek: number = 0;
-
-  for (let i = 0; i < jsonArray.length; i++) {
-      const item = jsonArray[i];
-      if (item.term === selectedSemester) {
-          startDate = Date.parse(item.start_date);  // Converting to seconds
-          endDate = Date.parse(item.end_date);      // Converting to seconds
-          endWeek = getWeeks(startDate, endDate);
-          break;
-    }
-  }
-
-    const week = getWeeks(startDate, Math.floor(Date.now())); // Current time in seconds
-    const classTime = getNextClassTime(startDate);
-
-    return searchNextClassIterative(week, classTime, courseData, endWeek);
+// 定义课程信息返回类型
+export interface ClassInfo {
+  week: number;
+  courseInfo: ExtendCourse;
 }
 
-function getNextClassTime(startTime: number): ClassTime {
-  // 当还未开学时，设置当前为周一第1节
-  if (startTime > Math.floor(Date.now())) {
-    return { weekday: 1, time: 1 };
+// 获取下一节课数据
+export async function getNextClass(): Promise<ClassInfo | null> {
+  // 加载缓存的课程数据
+  await CourseCache.load();
+
+  // 如果没有缓存数据，返回 null
+  if (!CourseCache.hasCachedData()) {
+    return null;
   }
 
+  // 获取当前日期、周次和星期几
+  const { week } = await locateDate();
+
+  // 获取所有课程数据（包括考试）
+  const allCourseData = CourseCache.getCachedData();
+
+  // 获取当前时间，用于判断下一节课
+  const currentClassTime = getNextClassTime();
+
+  // 调用查找下一节课的函数
+  return findNextClass(week, currentClassTime, allCourseData);
+}
+
+// 获取当前/下一节课时间
+function getNextClassTime(): ClassTime {
   const d = new Date();
   const hour = d.getHours();
   const minute = d.getMinutes();
 
-  const weekday = (d.getDay() + 6) % 7 + 1; // JavaScript 中的 getDay 返回值是 0-6, 转换成 1-7
+  const weekday = ((d.getDay() + 6) % 7) + 1; // JavaScript 中的 getDay 返回值是 0-6, 转换成 1-7
 
   let time: number;
 
@@ -76,130 +69,75 @@ function getNextClassTime(startTime: number): ClassTime {
     time = 12;
   }
 
-  return { weekday, time };
+  return { weekday, section: time };
 }
 
-function getWeekChinese(i: number): string {
-    switch (i) {
-        case 0: return "日";
-        case 1: return "一";
-        case 2: return "二";
-        case 3: return "三";
-        case 4: return "四";
-        case 5: return "五";
-        case 6: return "六";
-        case 7: return "日";
-        default: return "无";
-    }
-}
+// 查找下一节课
+async function findNextClass(
+  currentWeek: number,
+  classTime: ClassTime,
+  coursesData: Record<number, ExtendCourse[]>,
+): Promise<ClassInfo | null> {
+  let week = currentWeek;
+  let weekday = classTime.weekday;
+  let section = classTime.section;
 
-function getWeeks(startTime: number, endTime: number): number {
-    if (endTime < startTime) {
-        return 1;
-    }
-    const res = Math.floor((endTime - startTime) / (7 * 24 * 60 * 60 * 1000) + 1); // 1000 为毫秒换算
-    return res <= 0 ? 1 : res;
-}
-
-function searchNextClassIterative(
-    week: number,
-    classTime: ClassTime,
-    coursesData: any[],
-    endWeek: number
-): ClassInfo | null {
-    let currentWeek = week;
-    let currentWeekday = classTime.weekday;
-    let currentSection = classTime.section;
-
-    while (currentWeek <= endWeek) {
-        let foundExam: CourseBean | null = null;
-        let foundCustom: CourseBean | null = null;
-        let foundOrdinary: CourseBean | null = null;
-
-        for (let i = 0; i < coursesData.length; i++) {
-            const rawCourse = coursesData[i];
-            const courseDetailList = rawCourse.scheduleRules;
-
-            for (let j = 0; j < courseDetailList.length; j++) {
-                const courseDetail = courseDetailList[j];
-
-                if (
-                    currentWeek >= courseDetail.startWeek &&
-                    currentWeek <= courseDetail.endWeek &&
-                    (
-                        (courseDetail.single && currentWeek % 2 === 1) ||
-                        (courseDetail.double && currentWeek % 2 === 0)
-                    ) &&
-                    currentWeekday === courseDetail.weekday &&
-                    currentSection === courseDetail.startClass
-                ) {
-                    const course: CourseBean = {
-                        kcName: rawCourse.name,
-                        kcLocation: courseDetail.location,
-                        kcStartTime: courseDetail.startClass,
-                        kcEndTime: courseDetail.endClass,
-                        kcWeekend: courseDetail.weekday,
-                        kcNote: rawCourse.remark,
-                        type: rawCourse.type // Assuming `type` is directly available here
-                    };
-
-                    switch (course.type) {
-                        case 1:
-                            foundExam = course;
-                            break;
-                        case 0:
-                            foundCustom = course;
-                            break;
-                        default:
-                            foundOrdinary = course;
-                            break;
-                    }
-                }
-            }
-        }
-
-        // 优先级：考试 > 自定义课程 > 教务处导入课程
-        if (foundExam) {
-            return { week: currentWeek, courseBean: foundExam };
-        } else if (foundCustom) {
-            return { week: currentWeek, courseBean: foundCustom };
-        } else if (foundOrdinary) {
-            return { week: currentWeek, courseBean: foundOrdinary };
-        }
-
-        // Move to the next section, day or week
-        if (currentSection < 11) {
-            currentSection++;
-        } else if (currentWeekday < 7) {
-            currentWeekday++;
-            currentSection = 1;
-        } else {
-            currentWeek++;
-            currentWeekday = 1;
-            currentSection = 1;
-        }
-    }
-
+  const { data: termsData } = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), EXPIRE_ONE_DAY);
+  const terms = termsData.data.terms;
+  const { selectedSemester } = await readCourseSetting();
+  const currentTerm = terms.find(term => term.term === selectedSemester);
+  if (!currentTerm) {
     return null;
+  }
+  const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+
+  // 循环查找下一节课
+  while (week <= maxWeek) {
+    // 一天的索引为 weekday - 1
+    const dayIndex = weekday - 1;
+    const dayClasses = coursesData[dayIndex] || [];
+
+    // 按优先级排序（考试优先级最高）
+    const sortedClasses = [...dayClasses].sort((a, b) => b.priority - a.priority);
+
+    for (const course of sortedClasses) {
+      // 检查周次是否匹配
+      if (
+        week < course.startWeek ||
+        week > course.endWeek ||
+        (course.single && week % 2 !== 1) ||
+        (course.double && week % 2 !== 0)
+      ) {
+        continue;
+      }
+
+      // 检查节次是否匹配
+      if (course.startClass === section) {
+        return {
+          week,
+          courseInfo: course,
+        };
+      }
+    }
+
+    // 移动到下一节课、下一天或下一周
+    if (section < 12) {
+      section++;
+    } else if (weekday < 7) {
+      weekday++;
+      section = 1;
+    } else {
+      week++;
+      weekday = 1;
+      section = 1;
+    }
+  }
+
+  return null;
 }
 
-
-interface CourseBean {
-    kcName: string;
-    kcLocation: string;
-    kcStartTime: number;
-    kcEndTime: number;
-    kcWeekend: number;
-    kcNote: string;
-    type: number;
-}
-
-interface ClassInfo {
-    week: number;
-    courseBean: CourseBean;
-}
-
+// 时间类型定义
 interface ClassTime {
-  weekday: number;
-  time: number;
+  weekday: number; // 1-7 表示周一到周日
+  section: number; // 1-12 表示第1节到第12节课
 }
