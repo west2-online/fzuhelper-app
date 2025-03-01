@@ -57,6 +57,7 @@ const config: ExpoConfig = {
   plugins: [
     'expo-localization',
     'expo-router',
+    'expo-barcode-scanner',
     [
       'react-native-permissions',
       {

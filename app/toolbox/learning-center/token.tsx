@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRouter } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { toast } from 'sonner-native';
@@ -93,10 +93,6 @@ export default function LearningCenterTokenPage() {
       webView.clearFormData?.();
     }
     setShowWebView(true);
-  };
-
-  const handleWebViewCompletion = () => {
-    setShowWebView(false);
   };
 
   const handleSaveAndNavigate = async () => {

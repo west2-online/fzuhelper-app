@@ -5380,6 +5380,13 @@ expo-asset@~11.0.2:
     invariant "^2.2.4"
     md5-file "^3.2.3"
 
+expo-barcode-scanner@^13.0.1:
+  version "13.0.1"
+  resolved "https://registry.npmmirror.com/expo-barcode-scanner/-/expo-barcode-scanner-13.0.1.tgz#c7218c78f9e3d27086473a9826756bbcacd7f117"
+  integrity sha512-xBGLT1An2gpAMIQRTLU3oHydKohX8r8F9/ait1Fk9Vgd0GraFZbP4IiT7nHMlaw4H6E7Muucf7vXpGV6u7d4HQ==
+  dependencies:
+    expo-image-loader "~4.7.0"
+
 expo-build-properties@~0.13.2:
   version "0.13.2"
   resolved "https://registry.yarnpkg.com/expo-build-properties/-/expo-build-properties-0.13.2.tgz#c9cef927fc8236551d940da4fd8dc1332e2d052d"
@@ -5421,6 +5428,11 @@ expo-font@~13.0.3:
   integrity sha512-9IdYz+A+b3KvuCYP7DUUXF4VMZjPU+IsvAnLSVJ2TfP6zUD2JjZFx3jeo/cxWRkYk/aLj5+53Te7elTAScNl4Q==
   dependencies:
     fontfaceobserver "^2.1.0"
+
+expo-image-loader@~4.7.0:
+  version "4.7.0"
+  resolved "https://registry.npmmirror.com/expo-image-loader/-/expo-image-loader-4.7.0.tgz#d403106822de80bda12d644c82b7a3b7983c0f0b"
+  integrity sha512-cx+MxxsAMGl9AiWnQUzrkJMJH4eNOGlu7XkLGnAXSJrRoIiciGaKqzeaD326IyCTV+Z1fXvIliSgNW+DscvD8g==
 
 expo-image@~2.0.4:
   version "2.0.4"

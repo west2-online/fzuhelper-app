@@ -40,6 +40,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "expo": "^52.0.28",
+    "expo-barcode-scanner": "^13.0.1",
     "expo-build-properties": "~0.13.2",
     "expo-calendar": "~14.0.6",
     "expo-constants": "~17.0.5",
@@ -106,5 +107,6 @@
     "react-test-renderer": "18.2.0",
     "typescript": "~5.3.3"
   },
-  "private": true
+  "private": true,
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

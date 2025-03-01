@@ -1,6 +1,8 @@
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { useRouter } from 'expo-router';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
@@ -33,6 +35,7 @@ export default function HistoryAppointmentCard({
   sign = false, // 是否已签到
   onRefresh, // 刷新回调函数
 }: AppointmentCardProps) {
+  const router = useRouter();
   const appointment = new Appointment(
     id.toString(),
     floor.toString(),
@@ -80,15 +83,13 @@ export default function HistoryAppointmentCard({
 
   const handleSignIn = async () => {
     try {
-      const response = await ApiService.signIn(id.toString());
-      if (response.code === '0') {
-        toast.success('签到成功');
-        onRefresh?.();
-      } else {
-        toast.error(`签到失败: ${response.msg}`);
-      }
+      // 跳转到二维码扫描页面并传递预约ID
+      router.push({
+        pathname: '/toolbox/learning-center/qr-scanner',
+        params: { appointmentId: id.toString() },
+      });
     } catch (error: any) {
-      toast.error(`签到时出错: ${error.message}`);
+      toast.error(`打开扫码页面失败: ${error.message}`);
     }
   };
 
@@ -118,7 +119,7 @@ export default function HistoryAppointmentCard({
       case '待签到':
         return (
           <Button variant="default" className="w-full" onPress={handleSignIn}>
-            <Text>签到</Text>
+            <Text>扫码签到</Text>
           </Button>
         );
       case '已签到':
