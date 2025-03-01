@@ -1,12 +1,6 @@
 import { getApiV1LoginAccessToken } from '@/api/generate';
-import {
-  ACCESS_TOKEN_KEY,
-  JWCH_COOKIES_KEY,
-  JWCH_ID_KEY,
-  JWCH_USER_ID_KEY,
-  JWCH_USER_INFO_KEY,
-  REFRESH_TOKEN_KEY,
-} from '@/lib/constants';
+import { ACCESS_TOKEN_KEY, JWCH_USER_INFO_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
+import { LocalUser } from '@/lib/user';
 import UserLogin from '@/lib/user-login';
 import { get } from '@/modules/native-request';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,7 +8,7 @@ import { Buffer } from 'buffer';
 
 // 清空 AsyncStorage 中的所有用户信息
 export async function clearUserStorage() {
-  AsyncStorage.multiRemove([JWCH_ID_KEY, JWCH_COOKIES_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, JWCH_USER_INFO_KEY]);
+  AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, JWCH_USER_INFO_KEY]);
 }
 
 // 进行用户登录操作，由于这个函数本身就是由 axios 的响应拦截器调用的，所以我们不能直接使用 oneapi 中的请求函数
@@ -26,10 +20,7 @@ export async function userLogin(data: { id: string; password: string }) {
     const captchaImage = await login.getCaptcha();
     const { id, cookies } = await login.login(data.id, data.password, captchaImage);
 
-    await AsyncStorage.multiSet([
-      [JWCH_ID_KEY, id],
-      [JWCH_COOKIES_KEY, cookies],
-    ]);
+    await LocalUser.setCredentials(id, cookies);
 
     try {
       await getApiV1LoginAccessToken();
@@ -47,22 +38,21 @@ export async function userLogin(data: { id: string; password: string }) {
 // 检查 JWCH 的 Cookie 是否有效，如果无效，重新自动登录
 export async function checkCookieJWCH() {
   const COOKIE_CHECK_URL = 'https://jwcjwxt2.fzu.edu.cn:81/jcxx/xsxx/StudentInformation.aspx?id='; // 尝试访问学生个人信息页面
-  const id = await AsyncStorage.getItem(JWCH_ID_KEY);
-  const cookies = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
-  if (!id || !cookies) {
+  const credentials = LocalUser.getCredentials();
+  if (!credentials.identifier || !credentials.cookies) {
     return false;
   }
-  const resp = await get(COOKIE_CHECK_URL + id, {
+  const resp = await get(COOKIE_CHECK_URL + credentials.identifier, {
     Referer: 'https://jwch.fzu.edu.cn',
     ORIGIN: 'https://jwch.fzu.edu.cn',
     'X-Requested-With': 'XMLHttpRequest',
-    Cookie: cookies,
+    Cookie: credentials.cookies,
   });
 
   const str = Buffer.from(resp.data).toString('utf-8').replace(/\s+/g, '');
   const schoolid = /id="ContentPlaceHolder1_LB_xh">(\d+)/.exec(str)?.[1];
 
-  const userid = await AsyncStorage.getItem(JWCH_USER_ID_KEY);
+  const userid = LocalUser.getUser().userid;
   if (!schoolid || !userid) {
     return false;
   }

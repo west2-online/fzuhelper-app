@@ -1,5 +1,6 @@
 import { RejectEnum } from '@/api/enum';
-import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { LocalUser } from '@/lib/user';
 import { get, post } from '@/modules/native-request';
 import { base64, md5 } from '@/utils/crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -192,16 +193,15 @@ class UserLogin {
   // (本科生教务系统) 自动验证码识别
   async autoVerifyCaptcha(data: Uint8Array) {
     const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
-    const localId = await AsyncStorage.getItem(JWCH_ID_KEY);
-    const localCookies = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+    const credentials = LocalUser.getCredentials();
     const response = await axios.request({
       url: URL_AUTO_VALIDATE,
       method: 'POST',
       headers: {
         'Access-Token': accessToken,
         Authorization: accessToken,
-        Id: localId,
-        Cookies: localCookies,
+        Id: credentials.identifier,
+        Cookies: credentials.cookies,
       },
       data: {
         image: `data:image/png;base64,${btoa(String.fromCharCode(...data))}`,

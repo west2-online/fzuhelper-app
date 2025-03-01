@@ -107,14 +107,8 @@ const LoginPage: React.FC = () => {
       const { id, cookies } = await loginRef.current!.login(username, password, captcha, isPostGraduate);
       // 到此处即视为登录成功
       // 存储所需的信息，这里存储了学号、密码、ID 和 Cookies（后两位负责请求时发送）
-      LocalUser.setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
-      LocalUser.setCredentials(id, cookies); // 设置登录凭据
-      // await AsyncStorage.multiSet([
-      //   [JWCH_USER_ID_KEY, username],
-      //   [JWCH_USER_PASSWORD_KEY, password],
-      //   [JWCH_ID_KEY, id],
-      //   [JWCH_COOKIES_KEY, cookies],
-      // ]);
+      await LocalUser.setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
+      await LocalUser.setCredentials(id, cookies); // 设置登录凭据
       aegis.setConfig({ uin: username });
       console.log('aegis set uin:', username);
 

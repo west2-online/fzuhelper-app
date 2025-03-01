@@ -20,10 +20,6 @@ export const LOCAL_USER_CREDENTIAL_KEY = 'local_user_credential'; // 本地用�
 
 // 本科生教务系统
 // 以 JWCH_ 开头
-export const JWCH_ID_KEY = 'jwch_id'; // JWCH 识别身份用的 Identifier
-export const JWCH_COOKIES_KEY = 'jwch_cookies'; // JWCH 识别身份用的 Cookies
-export const JWCH_USER_ID_KEY = 'jwch_user_id'; // 用户名
-export const JWCH_USER_PASSWORD_KEY = 'jwch_user_password'; // 密码
 export const JWCH_USER_INFO_KEY = 'jwch_user_info'; // 用户信息
 export const JWCH_COOKIES_DOMAIN = 'https://jwcjwxt2.fzu.edu.cn:81'; // JWCH Cookies 域名
 export const JWCH_LOCATE_DATE_URL = 'https://jwcjwxt2.fzu.edu.cn:82/week.asp'; // JWCH 定位日期 URL

@@ -1,21 +1,14 @@
 import CookieManager from '@react-native-cookies/cookies';
 import { Stack, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform, RefreshControl, ScrollView } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
 
 import Loading from '@/components/loading';
-import {
-  JWCH_COOKIES_DOMAIN,
-  JWCH_COOKIES_KEY,
-  JWCH_ID_KEY,
-  JWCH_USER_ID_KEY,
-  JWCH_USER_PASSWORD_KEY,
-} from '@/lib/constants';
-import { checkCookieJWCH, userLogin } from '@/utils/user';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { JWCH_COOKIES_DOMAIN } from '@/lib/constants';
+import { LocalUser } from '@/lib/user';
 import { toast } from 'sonner-native';
 
 export interface WebParams {
@@ -50,36 +43,32 @@ export default function Web() {
         // 上面代码在安卓平台有问题，会导致过期 cookie 也被发送
         await CookieManager.clearAll();
 
-        // 取出并检查 cookie 有效性
-        let jwchCookie = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
-
-        const cookieValid = await checkCookieJWCH();
+        const cookieValid = await LocalUser.checkCredentials();
         if (!cookieValid) {
-          // 如果 JWCH Cookie 无效，则重新登录
-          const jwch_userid = await AsyncStorage.getItem(JWCH_USER_ID_KEY);
-          const jwch_passwd = await AsyncStorage.getItem(JWCH_USER_PASSWORD_KEY);
-          if (!jwch_userid || !jwch_passwd) {
+          // 如果 Cookie 无效，则重新登录
+          const userInfo = LocalUser.getUser();
+          if (!userInfo.password || !userInfo.userid) {
             toast.error('登录失效，请重新登录');
             return;
           } else {
-            // toast.info('正在登录');
-            await userLogin({ id: jwch_userid, password: jwch_passwd }); // 自动重新登录
+            await LocalUser.login();
           }
         }
-        const id = await AsyncStorage.getItem(JWCH_ID_KEY);
-        jwchCookie = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+        const credentials = LocalUser.getCredentials();
 
-        if (!jwchCookie) {
+        if (!credentials.cookies) {
           toast.error('登录失败，请稍后再试');
           return;
         }
 
         // 根据 URL 是否已有查询参数来决定连接符
         const separator = url.includes('?') ? '&' : '?';
-        setCurrentUrl(`${url}${separator}id=${id}`);
+        setCurrentUrl(`${url}${separator}id=${credentials.identifier}`);
 
         // 设置 JWCH Cookie
-        await Promise.all(jwchCookie.split(';').map(c => CookieManager.setFromResponse(JWCH_COOKIES_DOMAIN, c)));
+        await Promise.all(
+          credentials.cookies.split(';').map(c => CookieManager.setFromResponse(JWCH_COOKIES_DOMAIN, c)),
+        );
       }
       setCookiesSet(true);
     };
