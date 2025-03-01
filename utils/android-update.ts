@@ -67,6 +67,11 @@ const showAndroidUpdateDialog = (data: VersionAndroidResponse_Data) => {
 };
 
 const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: UpdateCallbacks) => {
+  // 判断是否为调试版，是则跳过
+  if (__DEV__) {
+    console.log('skip update check in debug mode');
+    return;
+  }
   try {
     const result = await getApiV2VersionAndroid();
     const config = result.data.data.beta; // 测试期间仅在beta通道更新
