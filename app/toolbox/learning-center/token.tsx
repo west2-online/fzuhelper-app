@@ -77,7 +77,7 @@ export default function LearningCenterTokenPage() {
           saveToken(extractedToken).then(success => {
             if (success) {
               setShowWebView(false);
-              router.push('/toolbox/learning-center');
+              router.replace('/toolbox/learning-center/token');
             }
           });
         }
@@ -87,6 +87,11 @@ export default function LearningCenterTokenPage() {
   );
 
   const handleGetToken = () => {
+    const webView = webViewRef.current;
+    if (webView) {
+      webView.clearCache?.(true);
+      webView.clearFormData?.();
+    }
     setShowWebView(true);
   };
 
@@ -98,7 +103,7 @@ export default function LearningCenterTokenPage() {
     if (token) {
       const success = await saveToken(token);
       if (success) {
-        router.push('/toolbox/learning-center');
+        router.replace('/toolbox/learning-center');
       }
     }
   };
@@ -114,13 +119,7 @@ export default function LearningCenterTokenPage() {
 
   if (showWebView) {
     return (
-      <SafeAreaView className="flex-1">
-        <View className="flex-row items-center bg-[#f5f5f5] p-2.5">
-          <TouchableOpacity onPress={handleWebViewCompletion}>
-            <Text className="font-bold text-primary">完成登录</Text>
-          </TouchableOpacity>
-          <Text className="flex-1 text-center font-semibold">登录获取令牌</Text>
-        </View>
+      <SafeAreaView className="flex-1" edges={['bottom', 'left', 'right']}>
         <WebView
           ref={webViewRef}
           source={{ uri: TOKEN_URL }}
@@ -129,6 +128,9 @@ export default function LearningCenterTokenPage() {
             setTimeout(() => toast.error('网页加载失败'), 100);
             setShowWebView(false);
           }}
+          cacheEnabled={false}
+          incognito={true}
+          thirdPartyCookiesEnabled={false}
         />
       </SafeAreaView>
     );

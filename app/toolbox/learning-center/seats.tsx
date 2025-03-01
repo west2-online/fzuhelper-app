@@ -46,8 +46,6 @@ export default function SeatsPage() {
 
       <PageContainer className="bg-background px-8 pt-4">
         <View className="space-y-4">
-          {/* header 里面有了标题以后页面上不用再显示一次了，记得删掉 -- @renbaoshuo */}
-          <Text className="text-lg font-bold">预约座位</Text>
           <Text className="text-base text-text-secondary">此功能正在开发中</Text>
           <Text className="text-sm text-text-secondary">当前令牌: {token ? `${token.substring(0, 10)}...` : '无'}</Text>
         </View>

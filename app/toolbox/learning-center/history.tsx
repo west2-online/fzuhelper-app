@@ -160,11 +160,6 @@ export default function HistoryPage() {
           renderItem={({ item }) => <HistoryAppointmentCard {...item} onRefresh={handleRefresh} />}
           keyExtractor={generateUniqueKey}
           contentContainerClassName="px-4 py-4"
-          ListHeaderComponent={
-            <View className="mb-4">
-              <Text className="text-lg font-bold">预约历史</Text>
-            </View>
-          }
           ListEmptyComponent={
             <View className="flex items-center justify-center py-8">
               <Text className="text-base text-text-secondary">暂无预约记录</Text>
