@@ -78,7 +78,6 @@ const config: ExpoConfig = {
               resourceName: '@xml/next_class_widget_provider',
             },
           ],
-          distPlaceholder: 'optional.placeholder',
         },
       },
     ],

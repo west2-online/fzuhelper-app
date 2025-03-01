@@ -976,10 +976,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@bittingz/expo-widgets@^2.4.0":
-  version "2.4.0"
-  resolved "https://registry.npmmirror.com/@bittingz/expo-widgets/-/expo-widgets-2.4.0.tgz#98b2536909845bad62d90878fa6f73e2b76ae7c9"
-  integrity sha512-Cg8eldfhRC1OQf/CzFfn4Kgw1TrP7IqlVXd8s3FEQmRxS3YjAVhBJZut95dV0W3Cd+UJDxtnqSrPv+hivZL3Tg==
+"@bittingz/expo-widgets@^2.5.0":
+  version "2.5.0"
+  resolved "https://registry.npmjs.org/@bittingz/expo-widgets/-/expo-widgets-2.5.0.tgz#618eeab6e38cc7f71301a5c2eac0100710e18b98"
+  integrity sha512-wMUO0ASn0fjo/5IQtGYiRSaE5xjV27kElfZR9r+ixaxHndZMhe9gB8NZkkppkwIuQkcZMRiuqcqqT+0D6p0QPQ==
   dependencies:
     plist "^3.1.0"
 
