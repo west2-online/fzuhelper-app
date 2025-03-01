@@ -157,7 +157,7 @@ export default function HistoryPage() {
       <PageContainer className="flex-1 bg-background">
         <FlatList
           data={appointments}
-          renderItem={({ item }) => <HistoryAppointmentCard {...item} />}
+          renderItem={({ item }) => <HistoryAppointmentCard {...item} onRefresh={handleRefresh} />}
           keyExtractor={generateUniqueKey}
           contentContainerClassName="px-4 py-4"
           ListHeaderComponent={

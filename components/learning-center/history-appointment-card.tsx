@@ -1,7 +1,11 @@
 import { View } from 'react-native';
+import { toast } from 'sonner-native';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+
+import ApiService from '@/utils/learning-center/api_service';
 import { Appointment } from '@/utils/learning-center/history-appointment-status';
 
 export interface AppointmentCardProps {
@@ -15,6 +19,7 @@ export interface AppointmentCardProps {
   seatCode: string;
   auditStatus: number;
   sign?: boolean;
+  onRefresh?: () => void;
 }
 
 export default function HistoryAppointmentCard({
@@ -26,6 +31,7 @@ export default function HistoryAppointmentCard({
   endTime,
   auditStatus, // 预约状态
   sign = false, // 是否已签到
+  onRefresh, // 刷新回调函数
 }: AppointmentCardProps) {
   const appointment = new Appointment(
     id.toString(),
@@ -58,6 +64,74 @@ export default function HistoryAppointmentCard({
     }
   };
 
+  const handleCancel = async () => {
+    try {
+      const response = await ApiService.cancelAppointment(id);
+      if (response.code === '0') {
+        toast.success('取消预约成功');
+        onRefresh?.();
+      } else {
+        toast.error(`取消预约失败: ${response.msg}`);
+      }
+    } catch (error: any) {
+      toast.error(`取消预约时出错: ${error.message}`);
+    }
+  };
+
+  const handleSignIn = async () => {
+    try {
+      const response = await ApiService.signIn(id.toString());
+      if (response.code === '0') {
+        toast.success('签到成功');
+        onRefresh?.();
+      } else {
+        toast.error(`签到失败: ${response.msg}`);
+      }
+    } catch (error: any) {
+      toast.error(`签到时出错: ${error.message}`);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const response = await ApiService.signOut(id.toString());
+      if (response.code === '0') {
+        toast.success('签退成功');
+        onRefresh?.();
+      } else {
+        toast.error(`签退失败: ${response.msg}`);
+      }
+    } catch (error: any) {
+      toast.error(`签退时出错: ${error.message}`);
+    }
+  };
+
+  const renderActionButtons = () => {
+    const statusText = appointment.getStatusText();
+    switch (statusText) {
+      case '未开始':
+        return (
+          <Button variant="destructive" className="w-full" onPress={handleCancel}>
+            <Text>取消预约</Text>
+          </Button>
+        );
+      case '待签到':
+        return (
+          <Button variant="default" className="w-full" onPress={handleSignIn}>
+            <Text>签到</Text>
+          </Button>
+        );
+      case '已签到':
+        return (
+          <Button variant="default" className="w-full" onPress={handleSignOut}>
+            <Text>签退</Text>
+          </Button>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Card className="mb-4 overflow-hidden rounded-xl border border-border">
       <CardHeader className="flex-row items-center justify-between pb-2 pt-4">
@@ -78,6 +152,9 @@ export default function HistoryAppointmentCard({
           </View>
         </View>
       </CardContent>
+      {renderActionButtons() && (
+        <CardFooter className="border-t border-border px-6 py-4">{renderActionButtons()}</CardFooter>
+      )}
     </Card>
   );
 }
