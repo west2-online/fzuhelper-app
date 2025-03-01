@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 
-import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/utils/course';
+import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
 
 interface EmptySlotProps {
   height: number;

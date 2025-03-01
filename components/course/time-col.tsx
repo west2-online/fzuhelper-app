@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { CLASS_SCHEDULES } from '@/lib/constants';
+import { SCHEDULE_MIN_HEIGHT } from '@/lib/course';
 import { cn } from '@/lib/utils';
-import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/utils/course';
 
 // 判断当前时间是否在指定时间段内
 const isTimeInRange = (currentTime: string, startTime: string, endTime: string): boolean => {
@@ -27,9 +27,15 @@ const getCurrentTime = () => {
   return `${hours}:${minutes}`;
 };
 
+interface TimeColProps {
+  height: number;
+}
+
 // 课程表的左侧时间段列
-const TimeCol: React.FC = () => {
+const TimeCol: React.FC<TimeColProps> = ({ height }) => {
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
+
+  const displayHeight = useMemo(() => Math.max(SCHEDULE_MIN_HEIGHT, height) / 11, [height]);
 
   // 定时更新当前时间
   useEffect(() => {
@@ -49,16 +55,26 @@ const TimeCol: React.FC = () => {
           <View
             key={index}
             className={cn(
-              'flex w-[32px] flex-grow flex-col items-center justify-center py-1',
+              'flex w-[32px] flex-grow flex-col items-center justify-center overflow-hidden py-1',
               isActive && 'border border-primary',
             )}
-            style={{ minHeight: SCHEDULE_ITEM_MIN_HEIGHT }}
+            style={{ height: displayHeight }}
           >
-            <Text className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-text-secondary')}>
+            <Text
+              className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-text-secondary')}
+              numberOfLines={1}
+            >
               {index + 1}
             </Text>
-            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-text-secondary')}>{time[0]}</Text>
-            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-text-secondary')}>{time[1]}</Text>
+            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-text-secondary')} numberOfLines={1}>
+              {time[0]}
+            </Text>
+            <Text
+              className={cn('overflow-clip text-[8px]', isActive ? 'text-primary' : 'text-text-secondary')}
+              numberOfLines={1}
+            >
+              {time[1]}
+            </Text>
           </View>
         );
       })}

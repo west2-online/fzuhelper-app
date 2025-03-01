@@ -1,208 +1,159 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Href, Link, Tabs } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, ImageSourcePropType, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Href, router, Tabs } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Image, ImageSourcePropType, Linking, Platform, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
+import LabelIconEntry from '@/components/label-icon-entry';
 import PageContainer from '@/components/page-container';
-import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchUserInfo } from '@/api/generate';
-import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { JWCH_USER_INFO_KEY } from '@/lib/constants';
-import { clearUserStorage } from '@/utils/user';
+import usePersistedQuery from '@/hooks/usePersistedQuery';
+import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
+import { fetchJwchLocateDate } from '@/lib/locate-date';
+import { JWCHLocateDateResult } from '@/types/data';
+import { UserInfo } from '@/types/user';
 
-import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
 import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
 import EcardIcon from '@/assets/images/my/ic_ecard.png';
 import HelpIcon from '@/assets/images/my/ic_help.png';
-import HomeworkIcon from '@/assets/images/my/ic_homework.png';
-import NoteIcon from '@/assets/images/my/ic_note.png';
+
+const defaultUserInfo: UserInfo = {
+  stu_id: '未知',
+  name: '未知',
+  birthday: '未知',
+  sex: '未知',
+  college: '未知',
+  grade: '未知',
+  major: '未知',
+};
+
+const defaultTermInfo: JWCHLocateDateResult = {
+  week: -1,
+  year: -1,
+  term: -1,
+};
 
 export default function HomePage() {
-  const { handleError } = useSafeResponseSolve();
-  const redirect = useRedirectWithoutHistory();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [userInfo, setUserInfo] = useState({
-    stu_id: '', // 学号
-    birthday: '', // 生日
-    name: '', // 姓名
-    sex: '', // 性别
-    college: '', // 所属学院
-    grade: '', // 所属年级
-    major: '', // 所属专业
-  });
+  const [userInfo, setUserInfo] = useState<UserInfo>(defaultUserInfo);
+  const [termInfo, setTermInfo] = useState<JWCHLocateDateResult>(defaultTermInfo);
 
   interface MenuItem {
     icon: ImageSourcePropType;
     name: string; // 菜单项名称
-    link: Href; // 跳转链接
+    link?: Href; // 跳转链接
+    operation?: () => void; // 点击操作
   }
 
   // 菜单项数据
   const menuItems: MenuItem[] = [
     {
-      icon: HomeworkIcon,
-      name: '我的作业',
-      link: '/my/grades' as Href,
-    },
-    {
-      icon: NoteIcon,
-      name: '备忘录',
-      link: '/my/gpa' as Href,
-    },
-    {
       icon: CalendarIcon,
       name: '校历',
-      link: '/my/credits' as Href,
-    },
-    {
-      icon: EcardIcon,
-      name: '一卡通',
-      link: '/my/unified-exam' as Href,
+      link: '/common/academic-calendar' as Href,
     },
     {
       icon: HelpIcon,
       name: '帮助与反馈',
-      link: '/my/plan' as Href,
+      operation: () => {
+        // 此为测试群，后续可改正式反馈群
+        if (Platform.OS === 'android') {
+          Linking.openURL(
+            'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3DgJSPzSlxdONFl8CMwAMEeYvZLnR4Dfu4',
+          );
+        } else if (Platform.OS === 'ios') {
+          Linking.openURL(
+            'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
+          );
+        } else {
+          Linking.openURL(
+            'https://qm.qq.com/cgi-bin/qm/qr?k=Y3PcAhYPFADOcJF-WWTuiBOJCHEstmLd&jump_from=webapi&authKey=ZPnno2EaNogLOiafRzJnXUYLOAmZqmxKaN3ZVPMrOAmiyND35o6dxm4CYOjN2Sx+',
+          );
+        }
+      },
+    },
+    {
+      icon: EcardIcon,
+      name: '关于我们',
+      link: '/common/about' as Href,
     },
   ];
 
-  // 从 AsyncStorage 加载用户信息
-  const loadUserInfoFromStorage = useCallback(async () => {
-    try {
-      const storedData = await AsyncStorage.getItem(JWCH_USER_INFO_KEY);
-      if (storedData) {
-        setUserInfo(JSON.parse(storedData));
-      }
-    } catch (error) {
-      console.error('Failed to load user info from AsyncStorage:', error);
-    }
-  }, []);
+  const { data: userData } = usePersistedQuery({
+    queryKey: [JWCH_USER_INFO_KEY],
+    queryFn: () => getApiV1JwchUserInfo(),
+    cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
+  });
 
-  // 将用户信息保存到 AsyncStorage
-  const saveUserInfoToStorage = useCallback(async (info: typeof userInfo) => {
-    try {
-      await AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(info));
-    } catch (error) {
-      console.error('Failed to save user info to AsyncStorage:', error);
-    }
-  }, []);
-
-  // 访问服务器获取用户信息
-  const getUserInfo = useCallback(async () => {
-    if (isRefreshing) return; // 防止重复点击
-    setIsRefreshing(true); // 禁用按钮
-    try {
-      const result = await getApiV1JwchUserInfo();
-      const fetchedInfo = result.data.data;
-      setUserInfo(fetchedInfo);
-      await saveUserInfoToStorage(fetchedInfo); // 同步到 AsyncStorage
-    } catch (error: any) {
-      const data = handleError(error);
-      if (data) {
-        Alert.alert('请求失败', data.code + ': ' + data.message);
-      }
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [handleError, saveUserInfoToStorage, isRefreshing]);
-
-  // 登出
-  const logout = useCallback(async () => {
-    Alert.alert('确认退出', '确认要退出账号吗？', [
-      {
-        text: '取消',
-        style: 'cancel',
-      },
-      {
-        text: '退出',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await clearUserStorage();
-            redirect('/(guest)/academic-login');
-          } catch (error) {
-            console.error('Error clearing storage:', error);
-            Alert.alert('清理用户数据失败', '无法清理用户数据');
-          }
-        },
-      },
-    ]);
-  }, [redirect]);
+  // 获取当前学期信息
+  const { data: termData } = usePersistedQuery({
+    queryKey: [JWCH_CURRENT_SEMESTER_KEY],
+    queryFn: fetchJwchLocateDate,
+    cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
+  });
 
   // 在组件加载时初始化数据
   useEffect(() => {
-    loadUserInfoFromStorage();
-  }, [loadUserInfoFromStorage]);
+    if (userData) {
+      setUserInfo(userData.data.data);
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    if (termData) {
+      setTermInfo(termData);
+    }
+  }, [termData]);
 
   return (
     <>
       <Tabs.Screen
         options={{
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => <Icon href="/(guest)/about" name="settings-outline" size={24} className="mr-4" />,
+          headerRight: () => <Icon href="/settings/app" name="settings-outline" size={24} className="mr-4" />,
         }}
       />
 
       <PageContainer>
-        <ScrollView>
-          <View className="flex-row items-center p-8">
-            <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
-            <View>
-              <Text className="text-xl font-bold">{userInfo.name}</Text>
-              <Text className="text-text-secondary mt-2 text-sm">这是一条签名</Text>
+        {/* 用户信息 */}
+        <View className="flex flex-row items-center p-8">
+          <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
+          <View>
+            <Text className="text-xl font-bold">{userInfo.name}</Text>
+            <Text className="mt-2 text-sm text-text-secondary">这是一条签名</Text>
+          </View>
+        </View>
+        <View className="h-full rounded-tr-4xl bg-card px-8">
+          <View className="mt-6">
+            <View className="w-full flex-row justify-between">
+              <Text>{userInfo.college}</Text>
+              <Text>{userInfo.stu_id}</Text>
+            </View>
+            <View className="mt-2 w-full flex-row justify-between">
+              <Text className="text-text-secondary">{termInfo.year + '学年第' + termInfo.term + '学期'}</Text>
+              <Text className="text-text-secondary">第 {termInfo.week} 周</Text>
             </View>
           </View>
 
-          <View className="h-full rounded-tr-4xl bg-card px-8">
-            <View className="mt-6">
-              <View className="w-full flex-row justify-between">
-                <Text>{userInfo.college}</Text>
-                <Text>{userInfo.stu_id}</Text>
-              </View>
-              <View className="mt-2 w-full flex-row justify-between">
-                <Text className="text-text-secondary">2024年1学期</Text>
-                <Text className="text-text-secondary">第 22 周</Text>
-              </View>
-            </View>
-
-            {/* 菜单列表 */}
-            <View className="mt-4 space-y-4">
-              {menuItems.map((item, index) => (
-                <Link key={index} href={item.link} asChild>
-                  <TouchableOpacity className="flex-row items-center justify-between py-4">
-                    {/* 图标和名称 */}
-                    <View className="flex-row items-center space-x-4">
-                      <Image source={item.icon} className="h-7 w-7" />
-                      <Text className="ml-5 text-lg">{item.name}</Text>
-                    </View>
-                    {/* 右侧箭头 */}
-                    <Image source={ArrowRightIcon} className="h-5 w-5" />
-                  </TouchableOpacity>
-                </Link>
-              ))}
-            </View>
-
-            {/* 按钮部分，调试用，后续移除 */}
-            <View className="mt-6">
-              <Button onPress={getUserInfo} disabled={isRefreshing} className="mb-4">
-                <Text className="text-white">{isRefreshing ? '刷新中...' : '刷新个人信息'}</Text>
-              </Button>
-              <Button onPress={logout} className="mb-4">
-                <Text className="text-white">退出当前账户</Text>
-              </Button>
-              <Link href="/devtools" asChild>
-                <Button>
-                  <Text className="text-white">开发者选项</Text>
-                </Button>
-              </Link>
-            </View>
+          {/* 菜单列表 */}
+          <View className="mt-4 space-y-4">
+            {menuItems.map((item, index) => (
+              <LabelIconEntry
+                key={index}
+                icon={item.icon}
+                label={item.name}
+                onPress={() => {
+                  if (item.link) {
+                    router.push(item.link);
+                  } else {
+                    item.operation && item.operation();
+                  }
+                }}
+              />
+            ))}
           </View>
-        </ScrollView>
+        </View>
       </PageContainer>
     </>
   );

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/text';
 import { getApiV1JwchUserInfo, getApiV1LoginAccessToken } from '@/api/generate';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import aegis from '@/lib/aegis';
 import {
   JWCH_COOKIES_KEY,
   JWCH_ID_KEY,
@@ -23,6 +24,8 @@ import {
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
 import UserLogin from '@/lib/user-login';
+import { pushToWebViewNormal } from '@/lib/webview';
+import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
 const NAVIGATION_TITLE = '登录';
 const URL_RESET_PASSWORD = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
@@ -44,24 +47,12 @@ const LoginPage: React.FC = () => {
 
   // 打开服务协议
   const openUserAgreement = useCallback(() => {
-    router.push({
-      pathname: '/web',
-      params: {
-        url: URL_USER_AGREEMENT,
-        title: '服务协议',
-      },
-    });
+    pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
   }, []);
 
   // 打开隐私政策
   const openPrivacyPolicy = useCallback(() => {
-    router.push({
-      pathname: '/web',
-      params: {
-        url: URL_PRIVACY_POLICY,
-        title: '隐私政策',
-      },
-    });
+    pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
   }, []);
 
   // 打开重置密码
@@ -126,6 +117,8 @@ const LoginPage: React.FC = () => {
         [JWCH_ID_KEY, id],
         [JWCH_COOKIES_KEY, cookies],
       ]);
+      aegis.setConfig({ uin: username });
+      console.log('aegis set uin:', username);
 
       // 通过提供 id和 cookies 获取访问令牌
       await getApiV1LoginAccessToken();
@@ -148,6 +141,17 @@ const LoginPage: React.FC = () => {
       setIsLoggingIn(false);
     }
   }, [isAgree, captcha, username, password, redirect, handleError, refreshCaptcha]);
+
+  useEffect(() => {
+    // 安卓检查更新
+    if (Platform.OS === 'android') {
+      checkAndroidUpdate(handleError, {
+        onUpdate: data => {
+          showAndroidUpdateDialog(data);
+        },
+      });
+    }
+  }, [handleError]);
 
   return (
     <>
@@ -223,6 +227,27 @@ const LoginPage: React.FC = () => {
                 <Text className="text-primary" onPress={openResetPassword}>
                   忘记密码
                 </Text>
+              </View>
+
+              {/* 公告栏 */}
+              <View className="mt-10 w-full px-1">
+                <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+                <Text className="text-base text-text-secondary">
+                  1. 教务处在夜间(23:00-06:00)例行维护，可能暂时无法登录
+                </Text>
+                <Text className="text-base text-text-secondary">
+                  2. 非校园网访问可能受阻。如果无法登录请尝试连接校园网
+                </Text>
+                {Platform.OS === 'ios' && (
+                  <Text className="text-base text-text-secondary">
+                    3. (仅iOS) 首次使用可能无法显示验证码，可以手动点击刷新
+                  </Text>
+                )}
+                {Platform.OS === 'ios' && (
+                  <Text className="text-base text-text-secondary">
+                    4. (仅iOS) 如果您意外拒绝了网络访问权限，您需要手动在设置中打开，APP 无法二次请求网络权限
+                  </Text>
+                )}
               </View>
             </View>
 

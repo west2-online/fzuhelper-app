@@ -18,8 +18,7 @@ export type SemesterSummary = {
   GPA: number; // GPA
 };
 
-// 合并后列表项结构 由于考试数据和选课数据的字段不同，需要合并后再展示
-// 存在考试的科目，优先使用考试数据，否则使用选课数据
+// 考场数据
 export type MergedExamData = {
   name: string; // 课程名
   credit: string; // 学分

@@ -12,16 +12,17 @@ import {
 
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
+import { toast } from 'sonner-native';
+import CourseWeek from './course-week';
 
 import type { TermsListResponse_Terms } from '@/api/backend';
-import { getApiV1JwchCourseList } from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting, LocateDateResult } from '@/api/interface';
-import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { COURSE_DATA_KEY } from '@/lib/constants';
-import { getFirstDateByWeek, getWeeksBySemester, parseCourses, type ParsedCourse } from '@/utils/course';
-import generateRandomColor, { clearColorMapping } from '@/utils/random-color';
-
-import CourseWeek from './course-week';
+import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
+import { COURSE_TYPE, CourseCache, EXAM_TYPE, type ExtendCourse } from '@/lib/course';
+import { formatExamData } from '@/lib/exam-room';
+import { getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
+import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 interface CoursePageProps {
   config: CourseSetting;
@@ -29,38 +30,98 @@ interface CoursePageProps {
   semesterList: TermsListResponse_Terms;
 }
 
-// 课程表页面，
+// 课程表页面
 const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semesterList }) => {
   const [week, setWeek] = useState(1); // 当前周数
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
-  const colorScheme = useColorScheme();
+  const [schedulesByDays, setSchedulesByDays] = useState<Record<number, ExtendCourse[]>>([]); // 目前的课程数据，按天归类
 
+  const colorScheme = useColorScheme();
   const flatListRef = useRef<FlatList>(null);
 
   // 从设置中读取相关信息（比如当前选择的学期，是否显示非本周课程），设置项由上级组件传入
-  const { selectedSemester: term, showNonCurrentWeekCourses } = config;
+  const { selectedSemester: term, showNonCurrentWeekCourses, exportExamToCourseTable } = config;
 
-  // 【查询课程数据】
-  // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
-  // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
-  const { data } = usePersistedQuery({
-    queryKey: [COURSE_DATA_KEY, term],
-    queryFn: () => getApiV1JwchCourseList({ term }),
-  });
-
+  // 以下是处理学期的数据
   // 将学期数据转换为 Map，方便后续使用
   const semesterListMap = useMemo(
     () => Object.fromEntries(semesterList.map(semester => [semester.term, semester])),
     [semesterList],
   );
 
-  // 获取当前学期的开始结束时间（即从 semesterList 中取出当前学期的信息）
+  // 获取当前学期的开始结束时间（即从 semesterList 中取出当前学期的信息，term 表示当前选择的学期）
   const currentSemester = useMemo(() => semesterListMap[term], [semesterListMap, term]);
 
+  // 【查询课程数据】
+  // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
+  // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
   useEffect(() => {
-    setWeek(term === locateDateResult.semester ? locateDateResult.week : 1);
+    // 拉取新数据的函数
+    const fetchData = async () => {
+      try {
+        // 异步获取联网课程数据
+        let hasChanged = false; // 是否有数据变更
+        const hasCache = CourseCache.hasCachedData(); // 先判断是否有缓存
+        const fetchedData = await fetchWithCache(
+          [COURSE_DATA_KEY, term],
+          () => getApiV1JwchCourseList({ term }),
+          EXPIRE_ONE_DAY, // 缓存一天
+        );
+
+        // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
+        if (!hasCache || CourseCache.compareDigest(COURSE_TYPE, fetchedData.data.data) === false) {
+          console.log('课程数据有变更，已更新');
+          CourseCache.setCourses(fetchedData.data.data, colorScheme);
+          hasChanged = true;
+        }
+
+        // 若开启导入考场，则再拉取考场数据
+        if (exportExamToCourseTable) {
+          const examData = await fetchWithCache(
+            [EXAM_ROOM_KEY, term],
+            () => getApiV1JwchClassroomExam({ term }),
+            EXPIRE_ONE_DAY,
+          );
+
+          const mergedExamData = formatExamData(examData.data.data);
+          if (mergedExamData.length > 0 && CourseCache.compareDigest(EXAM_TYPE, mergedExamData) === false) {
+            CourseCache.mergeExamCourses(mergedExamData, currentSemester.start_date, currentSemester.end_date);
+            hasChanged = true;
+          }
+        }
+        if (!hasCache || hasChanged) {
+          setSchedulesByDays(CourseCache.getCachedData());
+        }
+        if (hasCache && hasChanged) toast.info('课程数据已刷新');
+      } catch (error: any) {
+        console.error(error);
+        toast.error('课程数据获取失败，请检查网络连接，将使用本地缓存');
+      }
+    };
+
+    // 如果有缓存数据，优先使用缓存数据
+    setSchedulesByDays(CourseCache.getCachedData() ?? []);
+    fetchData();
+  }, [term, colorScheme, exportExamToCourseTable, currentSemester]);
+
+  // 订阅刷新事件，触发时更新课程数据状态
+  useEffect(() => {
+    const refreshHandler = () => {
+      setSchedulesByDays(CourseCache.getCachedData());
+    };
+    CourseCache.addRefreshListener(refreshHandler);
+    return () => {
+      CourseCache.removeRefreshListener(refreshHandler);
+    };
+  }, []);
+
+  // 确认当前周，如果是历史学期（即和 locateDateResult 给出的学期不符），则默认回退到第一周
+  useEffect(() => {
+    if (term === locateDateResult.semester) {
+      setWeek(locateDateResult.week);
+    }
   }, [term, locateDateResult, semesterListMap]);
 
   // 获取当前学期的最大周数
@@ -68,6 +129,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     () => getWeeksBySemester(currentSemester.start_date, currentSemester.end_date),
     [currentSemester],
   );
+
   // 生成一周的日期数据
   const weekArray = useMemo(
     () =>
@@ -77,41 +139,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       })),
     [maxWeek, currentSemester],
   );
-
-  // 通过这里可以看到，schedules 表示的是全部的课程数据，而不是某一天的课程数据
-  // schedules 是一个数组，每个元素是一个课程数据，包含了课程的详细信息
-
-  // 这个 useMemo 用于将课程数据转换为适合展示的格式，在这里我们会先清空显示颜色的索引
-  const schedules = useMemo(() => (data ? parseCourses(data.data.data) : []), [data]);
-  const schedulesByDays = useMemo(
-    () =>
-      schedules
-        ? schedules.reduce(
-            (result, current) => {
-              const day = current.weekday - 1;
-              if (!result[day]) result[day] = [];
-              result[day].push(current);
-              return result;
-            },
-            {} as Record<number, ParsedCourse[]>,
-          )
-        : {},
-    [schedules],
-  );
-
-  // 用于存储课程名称和颜色的对应关系，这里我们移入到 useMemo 中，避免每次渲染都重新生成
-  const courseColorMap = useMemo(() => {
-    clearColorMapping(); // 先清空先前的颜色映射
-
-    const map: Record<string, string> = {};
-
-    schedules.forEach(schedule => {
-      if (!map[schedule.syllabus]) {
-        map[schedule.syllabus] = generateRandomColor(schedule.name, colorScheme === 'dark'); // 基于课程名称生成颜色
-      }
-    });
-    return map;
-  }, [colorScheme, schedules]);
 
   // 通过 viewability 回调获取当前周
   const handleViewableItemsChanged = useCallback(
@@ -149,7 +176,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
             </Pressable>
           ),
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => <Icon href="/course/course-settings" name="settings-outline" size={24} className="mr-4" />,
+          headerRight: () => <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />,
         }}
       />
 
@@ -174,8 +201,8 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
             week={item.week}
             startDate={item.firstDate}
             schedulesByDays={schedulesByDays}
-            courseColorMap={courseColorMap}
             showNonCurrentWeekCourses={showNonCurrentWeekCourses}
+            showExam={exportExamToCourseTable}
             flatListLayout={flatListLayout}
           />
         )}

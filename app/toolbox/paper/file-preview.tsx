@@ -166,7 +166,7 @@ export default function FilePreviewPage() {
       <PageContainer className="flex-1 items-center justify-between bg-background px-10 py-6">
         <View className="mt-24 items-center">
           <FileIcon width={80} height={80} />
-          <Text className="text-text-primary my-8 text-center text-lg font-semibold">{filename}</Text>
+          <Text className="my-8 text-center text-lg font-semibold text-text-primary">{filename}</Text>
         </View>
         <View className="w-full space-y-3">
           {/* 已下载，仅安卓展示打开按钮 */}
@@ -215,7 +215,7 @@ export default function FilePreviewPage() {
             </>
           )}
         </View>
-        <Text className="text-text-secondary mx-2 mb-6 text-center text-sm">
+        <Text className="mx-2 mb-6 text-center text-sm text-text-secondary">
           文件来自第三方，对于出现文件不准确导致挂科后果，不予负责，请谨慎下载
         </Text>
       </PageContainer>

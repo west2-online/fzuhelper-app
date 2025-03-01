@@ -16,34 +16,8 @@ import { ResultEnum } from '@/api/enum';
 import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FAQ_EXAM_ROOM } from '@/lib/FAQ';
+import { formatExamData } from '@/lib/exam-room';
 import type { MergedExamData } from '@/types/academic';
-
-// 将日期字符串(xxxx年xx月xx日)转换为 Date 对象，如转换失败返回 undefined
-const parseDate = (dateStr: string): Date | undefined => {
-  const match = dateStr.match(/(\d{4})年(\d{2})月(\d{2})日/);
-  return match ? new Date(`${match[1]}-${match[2]}-${match[3]}`) : undefined;
-};
-
-// 格式化考试数据
-const formatExamData = (examData: ExamData): MergedExamData[] => {
-  const now = new Date();
-
-  return examData
-    .map(exam => ({
-      name: exam.name,
-      credit: exam.credit || '0',
-      teacher: exam.teacher || '',
-      date: parseDate(exam.date),
-      location: exam.location || undefined,
-      time: exam.time || undefined,
-      isFinished: exam.date ? now > parseDate(exam.date)! : false,
-    }))
-    .sort((a, b) => {
-      // 按照日期排序，未知日期的排在最后
-      if (a.date && b.date) return b.date.getTime() - a.date.getTime();
-      return a.date ? -1 : 1;
-    });
-};
 
 export default function ExamRoomPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
@@ -155,7 +129,7 @@ export default function ExamRoomPage() {
               </View>
             ))
           ) : (
-            <Text className="text-text-secondary text-center">{isRefreshing ? '正在刷新中' : '暂无考试数据'}</Text>
+            <Text className="text-center text-text-secondary">{isRefreshing ? '正在刷新中' : '暂无考试数据'}</Text>
           )}
         </SafeAreaView>
 
@@ -163,7 +137,7 @@ export default function ExamRoomPage() {
         {lastUpdated && (
           <View className="my-4 flex flex-row items-center justify-center">
             <Icon name="time-outline" size={16} className="mr-2" />
-            <Text className="text-text-primary text-sm leading-5">数据同步时间：{lastUpdated.toLocaleString()}</Text>
+            <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
           </View>
         )}
       </ScrollView>

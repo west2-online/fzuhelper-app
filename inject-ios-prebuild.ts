@@ -1,39 +1,10 @@
 import { ExpoConfig } from 'expo/config';
-import { withDangerousMod, withInfoPlist } from 'expo/config-plugins';
+import { withDangerousMod } from 'expo/config-plugins';
 import { promises as fs } from 'fs';
 import { join, resolve } from 'path';
 
 function withIOSInject(config: ExpoConfig): ExpoConfig {
-  config = withInfoPlist(config, infoPlist => {
-    // 如果需要修改 Info.plist，可以在这里添加逻辑
-    // 注：在一些 nativemodule 中，可能也会修改这个内容，例如 umeng-bridge
-
-    // // 指定 WKWebView 允许加载的域名
-    // infoPlist.modResults.WKAppBoundDomains = [
-    //   'jwcjwxt2.fzu.edu.cn',
-    //   'jwcjwxt.fzu.edu.cn',
-    //   'yjsy.fzu.edu.cn',
-    //   'jwch.fzu.edu.cn',
-    //   'fzu.edu.cn',
-    //   'west2.online',
-    //   'w2fzu.com',
-    // ];
-
-    // 添加出口合规设置
-    // 详见 docs：https://developer.apple.com/documentation/Security/complying-with-encryption-export-regulations
-    infoPlist.modResults.ITSAppUsesNonExemptEncryption = false; // 设置为 NO
-    infoPlist.modResults.ITSEncryptionExportComplianceCode = ''; // 不需要出口合规文档，保持为空
-
-    // 允许访问非 HTTPS 的内容
-    infoPlist.modResults.NSAppTransportSecurity = {
-      NSAllowsArbitraryLoads: true,
-    };
-
-    // 历年卷权限申请描述
-    infoPlist.modResults.NSFileProviderDomainUsageDescription = '我们需要使用文件拓展来保存和上传历年卷文件';
-
-    return infoPlist;
-  });
+  // 修改 Info.plist 文件可以直接通过 app.config.ts 完成
   // 通过 withDangerousMod 注入 iOS 脚本
   config = withDangerousMod(config, [
     'ios',

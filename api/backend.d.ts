@@ -1,4 +1,5 @@
 import {
+  getApiV1CommonClassroomEmpty,
   getApiV1JwchAcademicCredit,
   getApiV1JwchAcademicGpa,
   getApiV1JwchAcademicPlan,
@@ -6,6 +7,7 @@ import {
   getApiV1JwchClassroomExam,
   getApiV1JwchCourseList,
   getApiV1TermsList,
+  getApiV2VersionAndroid,
 } from '@/api/generate';
 
 // 推断异步函数返回值类型的类型体操
@@ -60,3 +62,13 @@ export type JwchAcademicPlanResponse = AsyncReturnType<typeof getApiV1JwchAcadem
 // getApiV1JwchClassroomExam
 export type JwchClassroomExamResponse = AsyncReturnType<typeof getApiV1JwchClassroomExam>['data']['data'];
 export type JwchClassroomExamResponse_ClassroomExam = JwchClassroomExamResponse[0];
+
+// === 空教室 ===
+export type CommonClassroomEmptyResponse = AsyncReturnType<typeof getApiV1CommonClassroomEmpty>['data']['data'];
+export type CommonClassroomEmptyResponse_Classroom = CommonClassroomEmptyResponse[0];
+
+// === 安卓更新检测 ===
+// getApiV2VersionAndroid
+export type VersionAndroidResponse = AsyncReturnType<typeof getApiV2VersionAndroid>['data']['data'];
+export type VersionAndroidResponse_Data = VersionAndroidResponse['release'];
+

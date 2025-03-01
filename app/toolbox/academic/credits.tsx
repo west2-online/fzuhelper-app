@@ -4,6 +4,7 @@ import { RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
+import { DescriptionList } from '@/components/DescriptionList';
 import { Icon } from '@/components/Icon';
 import { CreditCard } from '@/components/academic/CreditCard';
 import Loading from '@/components/loading';
@@ -46,7 +47,7 @@ export default function CreditsPage() {
       setCreditData([]); // 清空数据
       fetchCreditData();
     }
-  }, [setCreditData, fetchCreditData, isRefreshing]);
+  }, [fetchCreditData, isRefreshing]);
 
   return (
     <>
@@ -62,14 +63,17 @@ export default function CreditsPage() {
             {creditData && creditData.length > 0 && (
               <>
                 <SafeAreaView className="flex-1" edges={['bottom']}>
-                  {creditData.map((credit, index) => (
-                    <CreditCard key={index} item={credit} />
-                  ))}
+                  <DescriptionList className="gap-6">
+                    {creditData.map((credit, index) => (
+                      <CreditCard key={index} type={credit.type} gain={credit.gain} total={credit.total} />
+                    ))}
+                  </DescriptionList>
+
                   {/* 显示最后更新时间 */}
                   {lastUpdated && (
                     <View className="my-4 flex flex-row items-center justify-center rounded-lg p-2">
                       <Icon name="time-outline" size={16} className="mr-2" />
-                      <Text className="text-l text-text-primary leading-5">
+                      <Text className="text-l leading-5 text-text-primary">
                         数据同步时间：{lastUpdated.toLocaleString()}
                       </Text>
                     </View>
