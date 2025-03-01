@@ -14,15 +14,8 @@ import { getApiV1JwchUserInfo, getApiV1LoginAccessToken } from '@/api/generate';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import aegis from '@/lib/aegis';
-import {
-  JWCH_COOKIES_KEY,
-  JWCH_ID_KEY,
-  JWCH_USER_ID_KEY,
-  JWCH_USER_INFO_KEY,
-  JWCH_USER_PASSWORD_KEY,
-  URL_PRIVACY_POLICY,
-  URL_USER_AGREEMENT,
-} from '@/lib/constants';
+import { JWCH_USER_INFO_KEY, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import { LocalUser, USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
@@ -43,6 +36,7 @@ const LoginPage: React.FC = () => {
   const [captcha, setCaptcha] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
+  const [isPostGraduate, setIsPostGraduate] = useState(false);
   const { handleError } = useSafeResponseSolve();
 
   // 打开服务协议
@@ -92,7 +86,8 @@ const LoginPage: React.FC = () => {
       toast.error('请先阅读并同意服务协议和隐私政策');
       return;
     }
-    if (!captcha) {
+    // 研究生不需要输入验证码
+    if (!isPostGraduate && !captcha) {
       toast.error('请输入验证码');
       return;
     }
@@ -109,24 +104,29 @@ const LoginPage: React.FC = () => {
 
     try {
       // 尝试进行登录
-      const { id, cookies } = await loginRef.current!.login(username, password, captcha);
+      const { id, cookies } = await loginRef.current!.login(username, password, captcha, isPostGraduate);
+      // 到此处即视为登录成功
       // 存储所需的信息，这里存储了学号、密码、ID 和 Cookies（后两位负责请求时发送）
-      await AsyncStorage.multiSet([
-        [JWCH_USER_ID_KEY, username],
-        [JWCH_USER_PASSWORD_KEY, password],
-        [JWCH_ID_KEY, id],
-        [JWCH_COOKIES_KEY, cookies],
-      ]);
+      LocalUser.setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
+      LocalUser.setCredentials(id, cookies); // 设置登录凭据
+      // await AsyncStorage.multiSet([
+      //   [JWCH_USER_ID_KEY, username],
+      //   [JWCH_USER_PASSWORD_KEY, password],
+      //   [JWCH_ID_KEY, id],
+      //   [JWCH_COOKIES_KEY, cookies],
+      // ]);
       aegis.setConfig({ uin: username });
       console.log('aegis set uin:', username);
 
       // 通过提供 id和 cookies 获取访问令牌
       await getApiV1LoginAccessToken();
 
-      // 获取个人信息
-      const result = await getApiV1JwchUserInfo();
-      // 存储个人信息到本地
-      AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
+      if (!isPostGraduate) {
+        // 获取个人信息
+        const result = await getApiV1JwchUserInfo();
+        // 存储个人信息到本地
+        AsyncStorage.setItem(JWCH_USER_INFO_KEY, JSON.stringify(result.data.data));
+      }
 
       // 跳转到首页
       redirect('/(tabs)');
@@ -140,7 +140,7 @@ const LoginPage: React.FC = () => {
       // 恢复按钮状态
       setIsLoggingIn(false);
     }
-  }, [isAgree, captcha, username, password, redirect, handleError, refreshCaptcha]);
+  }, [isAgree, captcha, username, password, redirect, handleError, refreshCaptcha, isPostGraduate]);
 
   useEffect(() => {
     // 安卓检查更新
@@ -166,7 +166,7 @@ const LoginPage: React.FC = () => {
           <View className="flex-1 justify-between px-6 py-3">
             {/* 左上角标题 */}
             <View className="ml-1 mt-14">
-              <Text className="mb-2 text-4xl font-bold">本科生登录</Text>
+              <Text className="mb-2 text-4xl font-bold">{isPostGraduate ? '研究生' : '本科生'}登录</Text>
               <Text className="text-lg text-text-secondary">综合性最强的福大校内APP</Text>
             </View>
 
@@ -190,25 +190,27 @@ const LoginPage: React.FC = () => {
               />
 
               {/* 验证码输入框和图片 */}
-              <View className="mb-12 w-full flex-row items-center justify-between">
-                <Input
-                  value={captcha}
-                  onChangeText={setCaptcha}
-                  placeholder="请输入验证码"
-                  className="mr-4 flex-1 px-1 py-3"
-                />
-                <TouchableOpacity onPress={refreshCaptcha}>
-                  {captchaImage ? (
-                    // 显示验证码图片
-                    <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
-                  ) : (
-                    // 显示灰色占位框
-                    <View className="h-8 w-40 items-center justify-center bg-gray-200">
-                      <Text className="text-xs text-gray-500">加载中...</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </View>
+              {!isPostGraduate && (
+                <View className="mb-12 w-full flex-row items-center justify-between">
+                  <Input
+                    value={captcha}
+                    onChangeText={setCaptcha}
+                    placeholder="请输入验证码"
+                    className="mr-4 flex-1 px-1 py-3"
+                  />
+                  <TouchableOpacity onPress={refreshCaptcha}>
+                    {captchaImage ? (
+                      // 显示验证码图片
+                      <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
+                    ) : (
+                      // 显示灰色占位框
+                      <View className="h-8 w-40 items-center justify-center bg-gray-200">
+                        <Text className="text-xs text-gray-500">加载中...</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              )}
 
               {/* 登录按钮 */}
               <TouchableOpacity
@@ -223,7 +225,14 @@ const LoginPage: React.FC = () => {
 
               {/* 其他操作 */}
               <View className="w-full flex-row justify-between px-2">
-                <Text className="text-text-secondary">研究生登录</Text>
+                <TouchableOpacity
+                  className="flex-row items-center"
+                  onPress={() => setIsPostGraduate(!isPostGraduate)}
+                  activeOpacity={0.5}
+                >
+                  <Checkbox checked={isPostGraduate} onCheckedChange={setIsPostGraduate} />
+                  <Text className="text-center text-text-secondary">{'  '}我是研究生</Text>
+                </TouchableOpacity>
                 <Text className="text-primary" onPress={openResetPassword}>
                   忘记密码
                 </Text>
@@ -253,7 +262,7 @@ const LoginPage: React.FC = () => {
 
             {/* 底部协议 */}
             <TouchableOpacity
-              activeOpacity={1}
+              activeOpacity={0.5}
               className="mb-4 mt-12 w-full flex-row justify-center py-2"
               onPress={() => setIsAgree(!isAgree)}
             >

@@ -14,6 +14,10 @@ export const REFRESH_TOKEN_KEY = 'refresh_token';
 // 推送管理
 export const ALLOW_PUSH_EVENT_KEYS = 'allow_push_event';
 
+// 用户模型
+export const LOCAL_USER_INFO_KEY = 'local_user_info'; // 本地用户信息
+export const LOCAL_USER_CREDENTIAL_KEY = 'local_user_credential'; // 本地用户凭证
+
 // 本科生教务系统
 // 以 JWCH_ 开头
 export const JWCH_ID_KEY = 'jwch_id'; // JWCH 识别身份用的 Identifier
