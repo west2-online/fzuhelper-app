@@ -1,3 +1,4 @@
+import { DownloadProgress } from '@/components/download-progress';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
@@ -48,6 +49,7 @@ export default function RootLayout() {
               <Toaster cn={cn} position="top-center" duration={2500} offset={100} />
               <PortalHost />
               <SystemBars style="auto" />
+              <DownloadProgress />
             </GestureHandlerRootView>
           </KeyboardProvider>
         </ThemeProvider>

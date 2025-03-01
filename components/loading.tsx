@@ -23,9 +23,9 @@ interface LoadingDialogProps {
 
 const LoadingDialog: React.FC<LoadingDialogProps> = ({ open, message }) => (
   <AlertDialog open={open}>
-    <AlertDialogContent className="m-2 flex-row items-center">
+    <AlertDialogContent className={cn('m-2 flex-row items-center', message ? 'w-[80vw]' : '')}>
       <Loading className="flex-none" size={60} />
-      {message && <Text className="text-center">{message ?? '加载中...'}</Text>}
+      {message && <Text className="ml-2 text-center">{message}</Text>}
     </AlertDialogContent>
   </AlertDialog>
 );

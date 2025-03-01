@@ -3,6 +3,7 @@ import { getApiV2VersionAndroid } from '@/api/generate';
 import { Alert } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
+import { useDownloadStore } from './download-manager';
 
 interface UpdateCallbacks {
   onUpdate?: (data: VersionAndroidResponse_Data) => void;
@@ -10,21 +11,38 @@ interface UpdateCallbacks {
   onError?: (error: string) => void;
 }
 
-const downloadAndInstallApk = (url: string) => {
-  // 阻断用户操作，后续优化
-  Alert.alert('正在下载更新', '请稍候', []);
-  console.log('download');
+const downloadAndInstallApk = (url: string, force: boolean) => {
+  const downloadStore = useDownloadStore.getState();
+
+  // 显示下载进度对话框
+  downloadStore.setDownloading(true);
+  downloadStore.setMessage('正在下载更新');
+  downloadStore.updateProgress(0);
+
   ReactNativeBlobUtil.config({
     fileCache: true,
     path: ReactNativeBlobUtil.fs.dirs.CacheDir + '/update.apk',
   })
     .fetch('GET', url)
+    .progress({ interval: 10 }, (received, total) => {
+      const progress = received / total;
+      downloadStore.updateProgress(progress);
+    })
     .then(
       value => {
-        console.log(value.path());
-        ReactNativeBlobUtil.android.actionViewIntent(value.path(), 'application/vnd.android.package-archive');
+        downloadStore.updateProgress(1);
+        downloadStore.setMessage('下载完成，正在安装...');
+        setTimeout(() => {
+          if (!force) {
+            // 短暂延迟后关闭下载对话框，以便用户看到下载完成信息
+            downloadStore.reset();
+          }
+          ReactNativeBlobUtil.android.actionViewIntent(value.path(), 'application/vnd.android.package-archive');
+        }, 1000);
       },
       reason => {
+        downloadStore.reset();
+        Alert.alert('下载失败', '无法下载更新，请稍后重试。');
         throw reason;
       },
     );
@@ -35,14 +53,14 @@ const showAndroidUpdateDialog = (data: VersionAndroidResponse_Data) => {
     ? [
         {
           text: '更新',
-          onPress: () => downloadAndInstallApk(data.url),
+          onPress: () => downloadAndInstallApk(data.url, data.force),
         },
       ]
     : [
         { text: '取消' },
         {
           text: '更新',
-          onPress: () => downloadAndInstallApk(data.url),
+          onPress: () => downloadAndInstallApk(data.url, data.force),
         },
       ];
   Alert.alert(`发现新版本 ${data.version_name}`, `更新内容：\n\n${data.changelog}`, buttons);
