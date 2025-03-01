@@ -16,6 +16,7 @@ const NAVIGATION_TITLE = '获取访问令牌';
 export const TOKEN_STORAGE_KEY = 'learning_center_token';
 const TOKEN_URL = 'https://aiot.fzu.edu.cn/api/ibs';
 
+// token 格式:8-4-4-4-12
 const isTokenValid = (token: string): boolean => {
   const tokenPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
   return tokenPattern.test(token);

@@ -45,7 +45,6 @@ export default function LearningCenterPage() {
       try {
         const token = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
         setHasToken(!!token);
-        // 如果没有令牌，重定向到令牌获取页面
         if (!token) {
           router.push('/toolbox/learning-center/token');
         }
@@ -85,7 +84,6 @@ export default function LearningCenterPage() {
     );
   };
 
-  // 添加清除令牌的菜单项
   const allMenuItems = [
     ...menuItems,
     {
@@ -105,7 +103,6 @@ export default function LearningCenterPage() {
 
   return (
     <PageContainer className="bg-background px-8 pt-4">
-      {/* 菜单列表 */}
       <View className="space-y-4">
         {allMenuItems.map((item, index) => (
           <LabelEntry
