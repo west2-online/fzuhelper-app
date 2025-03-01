@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation, useRouter } from 'expo-router';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -10,17 +10,10 @@ import { Text } from '@/components/ui/text';
 
 import { TOKEN_STORAGE_KEY } from './token';
 
-const NAVIGATION_TITLE = '预约座位';
-
 export default function SeatsPage() {
-  const navigation = useNavigation();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState('');
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: NAVIGATION_TITLE });
-  }, [navigation]);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -48,12 +41,17 @@ export default function SeatsPage() {
   }
 
   return (
-    <PageContainer className="bg-background px-8 pt-4">
-      <View className="space-y-4">
-        <Text className="text-lg font-bold">预约座位</Text>
-        <Text className="text-base text-text-secondary">此功能正在开发中</Text>
-        <Text className="text-sm text-text-secondary">当前令牌: {token ? `${token.substring(0, 10)}...` : '无'}</Text>
-      </View>
-    </PageContainer>
+    <>
+      <Stack.Screen options={{ title: '预约座位' }} />
+
+      <PageContainer className="bg-background px-8 pt-4">
+        <View className="space-y-4">
+          {/* header 里面有了标题以后页面上不用再显示一次了，记得删掉 -- @renbaoshuo */}
+          <Text className="text-lg font-bold">预约座位</Text>
+          <Text className="text-base text-text-secondary">此功能正在开发中</Text>
+          <Text className="text-sm text-text-secondary">当前令牌: {token ? `${token.substring(0, 10)}...` : '无'}</Text>
+        </View>
+      </PageContainer>
+    </>
   );
 }

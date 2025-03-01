@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation, useRouter } from 'expo-router';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -9,8 +9,6 @@ import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 
 import { TOKEN_STORAGE_KEY } from './token';
-
-const NAVIGATION_TITLE = '学习中心预约';
 
 const menuItems: {
   name: string;
@@ -31,14 +29,9 @@ const menuItems: {
 ];
 
 export default function LearningCenterPage() {
-  const navigation = useNavigation();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [hasToken, setHasToken] = useState(false);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: NAVIGATION_TITLE });
-  }, [navigation]);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -102,17 +95,21 @@ export default function LearningCenterPage() {
   }
 
   return (
-    <PageContainer className="bg-background px-8 pt-4">
-      <View className="space-y-4">
-        {allMenuItems.map((item, index) => (
-          <LabelEntry
-            key={index}
-            leftText={item.name}
-            description={item.description}
-            onPress={item.action || (item.route ? () => router.push(item.route!) : undefined)}
-          />
-        ))}
-      </View>
-    </PageContainer>
+    <>
+      <Stack.Screen options={{ title: '学习中心预约' }} />
+
+      <PageContainer className="bg-background px-8 pt-4">
+        <View className="space-y-4">
+          {allMenuItems.map((item, index) => (
+            <LabelEntry
+              key={index}
+              leftText={item.name}
+              description={item.description}
+              onPress={item.action || (item.route ? () => router.push(item.route!) : undefined)}
+            />
+          ))}
+        </View>
+      </PageContainer>
+    </>
   );
 }
