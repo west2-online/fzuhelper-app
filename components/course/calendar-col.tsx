@@ -25,20 +25,6 @@ interface CalendarColProps {
   flatListLayout: LayoutRectangle;
 }
 
-// 移除重复的课程，之所以需要这个，是因为教务处会莫名其妙安排完全一样的课程在教务处的课程表中，导致大量的重复课程显示
-const removeDuplicateSchedules = (schedules: ExtendCourse[]): ExtendCourse[] => {
-  const seen = new Set<string>();
-  return schedules.filter(schedule => {
-    // 将课程的唯一标识组合为一个字符串，例如 "课程名+教师+开始时间+结束时间+开始周数+结束周数"
-    const identifier = `${schedule.name}-${schedule.teacher}-${schedule.startClass}-${schedule.endClass}-${schedule.startWeek}-${schedule.endWeek}`;
-    if (seen.has(identifier)) {
-      return false; // 如果已经存在，则过滤掉
-    }
-    seen.add(identifier); // 如果不存在，则添加到集合中
-    return true;
-  });
-};
-
 // 课程表的一列，即一天的课程
 const CalendarCol: React.FC<CalendarColProps> = ({
   week,
@@ -52,15 +38,11 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   // 根据当前周数和星期几，筛选出当天的课程
   // 并进行整合，生成一个用于渲染的数据结构
   const scheduleData = useMemo(() => {
-    // 对课程进行去重
-    // TODO: move this logic to backend
-    const schedules = removeDuplicateSchedules(schedulesOnDay);
-
     // 主要的课程
     const mainCourses: CourseScheduleItemDataBase[] = [];
 
     // 先按优先级排本周的课和考试，重叠的不管
-    const today = schedules
+    const today = schedulesOnDay
       .filter(
         s =>
           s.startWeek <= week && // 卡起始时间范围
@@ -114,7 +96,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
 
     // 再按优先级去排非本周课（不含考试等），重叠的也不管
     if (isShowNonCurrentWeekCourses) {
-      const nonCurrentWeek = schedules
+      const nonCurrentWeek = schedulesOnDay
         .filter(
           s =>
             !(
