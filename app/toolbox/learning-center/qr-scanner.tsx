@@ -1,4 +1,4 @@
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -19,13 +19,19 @@ export default function QrScannerPage() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
 
   useEffect(() => {
     (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
+      if (!permission) return;
+      if (!permission.granted) {
+        const { status } = await requestPermission();
+        setHasPermission(status === 'granted');
+      } else {
+        setHasPermission(true);
+      }
     })();
-  }, []);
+  }, [permission, requestPermission]);
 
   const validateQrCode = (data: string): boolean => {
     try {
@@ -57,7 +63,7 @@ export default function QrScannerPage() {
     }
   };
 
-  const handleBarCodeScanned = async ({ data }: { type: string; data: string }) => {
+  const handleBarcodeScanned = async ({ data }: { type: string; data: string }) => {
     setScanned(true);
     setScanning(true);
     if (!appointmentId) {
@@ -76,9 +82,7 @@ export default function QrScannerPage() {
       const response = await ApiService.signIn(appointmentId);
       if (response.code === '0') {
         toast.success('签到成功');
-        // 设置需要刷新的标记
         await AsyncStorage.setItem(REFRESH_FLAG_KEY, 'true');
-        // 使用router.back()保持导航栈完整
         router.back();
       } else {
         toast.error(`签到失败: ${response.msg}`);
@@ -92,7 +96,7 @@ export default function QrScannerPage() {
 
   const handleScanAgain = () => setScanned(false);
 
-  if (hasPermission === null) {
+  if (hasPermission === null || !permission) {
     return (
       <PageContainer className="flex-1 items-center justify-center bg-background">
         <Text>请求相机权限中...</Text>
@@ -114,8 +118,11 @@ export default function QrScannerPage() {
       <Stack.Screen options={{ title: '扫码签到' }} />
       <PageContainer className="flex-1 bg-background">
         <View className="flex-1">
-          <BarCodeScanner
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+          <CameraView
+            onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+            barcodeScannerSettings={{
+              barcodeTypes: ['qr'],
+            }}
             style={StyleSheet.absoluteFillObject}
           />
           <View className="absolute bottom-0 left-0 right-0 bg-black/50 p-4">

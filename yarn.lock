@@ -5380,13 +5380,6 @@ expo-asset@~11.0.2:
     invariant "^2.2.4"
     md5-file "^3.2.3"
 
-expo-barcode-scanner@^13.0.1:
-  version "13.0.1"
-  resolved "https://registry.npmmirror.com/expo-barcode-scanner/-/expo-barcode-scanner-13.0.1.tgz#c7218c78f9e3d27086473a9826756bbcacd7f117"
-  integrity sha512-xBGLT1An2gpAMIQRTLU3oHydKohX8r8F9/ait1Fk9Vgd0GraFZbP4IiT7nHMlaw4H6E7Muucf7vXpGV6u7d4HQ==
-  dependencies:
-    expo-image-loader "~4.7.0"
-
 expo-build-properties@~0.13.2:
   version "0.13.2"
   resolved "https://registry.yarnpkg.com/expo-build-properties/-/expo-build-properties-0.13.2.tgz#c9cef927fc8236551d940da4fd8dc1332e2d052d"
@@ -5399,6 +5392,13 @@ expo-calendar@~14.0.6:
   version "14.0.6"
   resolved "https://registry.yarnpkg.com/expo-calendar/-/expo-calendar-14.0.6.tgz#b72194e231f0ccdd0425f39ee08b93b1efcefbe7"
   integrity sha512-aOby7ueR8lB9sWTHXkECZiPDZNVRsGQYhJTe05puNZicMWCV4c53Z/LRiCTTq3LBXV4zpBOB5rXiCyA1f082yA==
+
+expo-camera@~16.0.17:
+  version "16.0.17"
+  resolved "https://registry.npmmirror.com/expo-camera/-/expo-camera-16.0.17.tgz#c8dc56ff15a31c8faa7957dfffc34645f19867d1"
+  integrity sha512-V7yBcjQSx65ySKEN8NpCPaFQRL6haGW/hNFvlRuD3+e98sxwQQtcni/EkfTUmZDw81OuURO1c6vTr2oI33WM4Q==
+  dependencies:
+    invariant "^2.2.4"
 
 expo-constants@~17.0.5:
   version "17.0.5"
