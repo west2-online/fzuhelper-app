@@ -5393,6 +5393,13 @@ expo-calendar@~14.0.6:
   resolved "https://registry.yarnpkg.com/expo-calendar/-/expo-calendar-14.0.6.tgz#b72194e231f0ccdd0425f39ee08b93b1efcefbe7"
   integrity sha512-aOby7ueR8lB9sWTHXkECZiPDZNVRsGQYhJTe05puNZicMWCV4c53Z/LRiCTTq3LBXV4zpBOB5rXiCyA1f082yA==
 
+expo-camera@~16.0.17:
+  version "16.0.17"
+  resolved "https://registry.npmmirror.com/expo-camera/-/expo-camera-16.0.17.tgz#c8dc56ff15a31c8faa7957dfffc34645f19867d1"
+  integrity sha512-V7yBcjQSx65ySKEN8NpCPaFQRL6haGW/hNFvlRuD3+e98sxwQQtcni/EkfTUmZDw81OuURO1c6vTr2oI33WM4Q==
+  dependencies:
+    invariant "^2.2.4"
+
 expo-constants@~17.0.5:
   version "17.0.5"
   resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-17.0.5.tgz#b5deb4a4242cd6ef1f6c68e745664f69d41a0ffb"
@@ -5421,6 +5428,11 @@ expo-font@~13.0.3:
   integrity sha512-9IdYz+A+b3KvuCYP7DUUXF4VMZjPU+IsvAnLSVJ2TfP6zUD2JjZFx3jeo/cxWRkYk/aLj5+53Te7elTAScNl4Q==
   dependencies:
     fontfaceobserver "^2.1.0"
+
+expo-image-loader@~4.7.0:
+  version "4.7.0"
+  resolved "https://registry.npmmirror.com/expo-image-loader/-/expo-image-loader-4.7.0.tgz#d403106822de80bda12d644c82b7a3b7983c0f0b"
+  integrity sha512-cx+MxxsAMGl9AiWnQUzrkJMJH4eNOGlu7XkLGnAXSJrRoIiciGaKqzeaD326IyCTV+Z1fXvIliSgNW+DscvD8g==
 
 expo-image@~2.0.4:
   version "2.0.4"

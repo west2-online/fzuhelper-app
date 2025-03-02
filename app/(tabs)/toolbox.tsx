@@ -124,6 +124,12 @@ const DEFAULT_TOOLS: Tool[] = [
       pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
     },
   },
+  {
+    name: '学习中心',
+    icon: GraduationIcon, // TODO: 还没图标，随便放了一个
+    type: ToolType.LINK,
+    href: '/toolbox/learning-center',
+  },
 ];
 
 // 工具函数：处理工具数据，按 5 的倍数填充占位符
