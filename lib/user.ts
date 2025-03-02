@@ -91,9 +91,6 @@ export class LocalUser {
     await AsyncStorage.setItem(
       LOCAL_USER_CREDENTIAL_KEY,
       JSON.stringify({
-        type: this.type,
-        username: this.userid,
-        password: this.password,
         identifier: this.identifier,
         cookies: this.cookies,
       }),
