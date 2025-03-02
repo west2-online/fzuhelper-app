@@ -66,7 +66,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         const hasCache = CourseCache.hasCachedData(); // 先判断是否有缓存
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, term],
-          () => getApiV1JwchCourseList({ term }),
+          () => getApiV1JwchCourseList({ term, is_refresh: false }),
           EXPIRE_ONE_DAY, // 缓存一天
         );
 
@@ -119,10 +119,16 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
   // 确认当前周，如果是历史学期（即和 locateDateResult 给出的学期不符），则默认回退到第一周
   useEffect(() => {
+    let currentWeek = 1;
     if (term === locateDateResult.semester) {
-      setWeek(locateDateResult.week);
+      currentWeek = locateDateResult.week;
     }
-  }, [term, locateDateResult, semesterListMap]);
+    setWeek(currentWeek);
+    flatListRef.current?.scrollToIndex({
+      index: currentWeek - 1,
+      animated: false,
+    });
+  }, [locateDateResult.semester, locateDateResult.week, term]);
 
   // 获取当前学期的最大周数
   const maxWeek = useMemo(

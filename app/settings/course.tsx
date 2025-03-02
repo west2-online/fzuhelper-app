@@ -55,7 +55,7 @@ export default function AcademicPage() {
   // 获取课程数据
   const { data: courseData } = usePersistedQuery({
     queryKey: [COURSE_DATA_KEY, settings.selectedSemester],
-    queryFn: () => getApiV1JwchCourseList({ term: settings.selectedSemester }),
+    queryFn: () => getApiV1JwchCourseList({ term: settings.selectedSemester, is_refresh: false }),
   });
 
   // 获取完整学期数据
@@ -84,7 +84,7 @@ export default function AcademicPage() {
   // 强制刷新数据（即不使用本地缓存）
   const forceRefreshCourseData = useCallback(async () => {
     try {
-      const data = await getApiV1JwchCourseList({ term: settings.selectedSemester });
+      const data = await getApiV1JwchCourseList({ term: settings.selectedSemester, is_refresh: true });
       const cacheToStore = {
         data: data,
         timestamp: Date.now(),
