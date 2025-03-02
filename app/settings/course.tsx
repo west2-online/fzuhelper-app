@@ -54,12 +54,6 @@ export default function AcademicPage() {
     saveSettingsToStorage(settings);
   }, [settings, saveSettingsToStorage]);
 
-  // 获取课程数据
-  const { data: courseData } = usePersistedQuery({
-    queryKey: [COURSE_DATA_KEY, settings.selectedSemester],
-    queryFn: () => getApiV1JwchCourseList({ term: settings.selectedSemester }),
-  });
-
   // 获取完整学期数据
   const { data: termListData } = usePersistedQuery({
     queryKey: [COURSE_TERMS_LIST_KEY],
@@ -91,7 +85,7 @@ export default function AcademicPage() {
       if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
         queryTerm = deConvertSemester(queryTerm);
       }
-      const data = await getApiV1JwchCourseList({ term: queryTerm });
+      const data = await getApiV1JwchCourseList({ term: queryTerm, is_refresh: true });
       const cacheToStore = {
         data: data,
         timestamp: Date.now(),
@@ -152,10 +146,10 @@ export default function AcademicPage() {
     //   calendarExportEnabled: !prevSettings.calendarExportEnabled,
     // }));
 
-    if (!courseData) {
-      toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
-      return;
-    }
+    // if (!courseData) {
+    //   toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
+    //   return;
+    // }
     if (!termListData) {
       toast.error('学期数据为空，无法导出到日历'); // 这个理论上也不可能触发
       return;
@@ -167,7 +161,7 @@ export default function AcademicPage() {
     // }
 
     // await exportCourseToNativeCalendar(courseData.data.data, startDate);
-  }, [termListData, courseData]);
+  }, [termListData]);
 
   // 控制导入考场到课表
   const handleExportExamToCourseTable = useCallback(() => {

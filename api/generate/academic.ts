@@ -3,7 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 学分统计 注意这里可能涉及到辅修 GET /api/v1/jwch/academic/credit */
+/** 学分统计 注意这里可能涉及到辅修 GET /api/v1/jwch/academic/credit https://apifox.com/web/project/3275694/apis/api-109631159-run */
 export async function getApiV1JwchAcademicCredit(options?: {
   [key: string]: unknown;
 }) {
@@ -17,7 +17,7 @@ export async function getApiV1JwchAcademicCredit(options?: {
   });
 }
 
-/** 绩点排名 GET /api/v1/jwch/academic/gpa */
+/** 绩点排名 GET /api/v1/jwch/academic/gpa https://apifox.com/web/project/3275694/apis/api-109631157-run */
 export async function getApiV1JwchAcademicGpa(options?: {
   [key: string]: unknown;
 }) {
@@ -31,7 +31,7 @@ export async function getApiV1JwchAcademicGpa(options?: {
   });
 }
 
-/** 培养计划 GET /api/v1/jwch/academic/plan */
+/** 培养计划 GET /api/v1/jwch/academic/plan https://apifox.com/web/project/3275694/apis/api-109631160-run */
 export async function getApiV1JwchAcademicPlan(options?: {
   [key: string]: unknown;
 }) {
@@ -44,10 +44,29 @@ export async function getApiV1JwchAcademicPlan(options?: {
   );
 }
 
-/** 成绩详情 GET /api/v1/jwch/academic/scores */
-export async function getApiV1JwchAcademicScores(options?: {
-  [key: string]: unknown;
-}) {
+/** 成绩详情 GET /api/v1/jwch/academic/scores https://apifox.com/web/project/3275694/apis/api-109631158-run */
+export async function getApiV1JwchAcademicScores(
+  body: {},
+  options?: { [key: string]: unknown }
+) {
+  const formData = new FormData();
+
+  Object.keys(body).forEach((ele) => {
+    const item = (body as { [key: string]: any })[ele];
+
+    if (item !== undefined && item !== null) {
+      if (typeof item === 'object' && !(item instanceof File)) {
+        if (item instanceof Array) {
+          item.forEach((f) => formData.append(ele, f || ''));
+        } else {
+          formData.append(ele, JSON.stringify(item));
+        }
+      } else {
+        formData.append(ele, item);
+      }
+    }
+  });
+
   return request<{
     code: string;
     message: string;
@@ -63,11 +82,15 @@ export async function getApiV1JwchAcademicScores(options?: {
     }[];
   }>('/api/v1/jwch/academic/scores', {
     method: 'GET',
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    data: formData,
     ...(options || {}),
   });
 }
 
-/** 统考成绩 CET、省计算机 GET /api/v1/jwch/academic/unified-exam */
+/** 统考成绩 CET、省计算机 GET /api/v1/jwch/academic/unified-exam https://apifox.com/web/project/3275694/apis/api-109631161-run */
 export async function getApiV1JwchAcademicUnifiedExam(options?: {
   [key: string]: unknown;
 }) {

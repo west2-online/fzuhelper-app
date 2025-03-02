@@ -76,7 +76,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         console.log('queryTerm:', queryTerm);
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, term],
-          () => getApiV1JwchCourseList({ term: queryTerm }),
+          () => getApiV1JwchCourseList({ term: queryTerm, is_refresh: false }),
           EXPIRE_ONE_DAY, // 缓存一天
         );
 
