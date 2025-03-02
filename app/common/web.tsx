@@ -7,8 +7,8 @@ import { WebView } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
 
 import Loading from '@/components/loading';
-import { JWCH_COOKIES_DOMAIN } from '@/lib/constants';
-import { LocalUser } from '@/lib/user';
+import { JWCH_COOKIES_DOMAIN, YJSY_COOKIES_DOMAIN } from '@/lib/constants';
+import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { toast } from 'sonner-native';
 
 export interface WebParams {
@@ -67,12 +67,17 @@ export default function Web() {
 
         // 设置 JWCH Cookie
         await Promise.all(
-          credentials.cookies.split(';').map(c => CookieManager.setFromResponse(JWCH_COOKIES_DOMAIN, c)),
+          credentials.cookies.split(';').map(c =>
+            CookieManager.setFromResponse(
+              // 依据用户类型置入不同的域名 Cookie
+              LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? YJSY_COOKIES_DOMAIN : JWCH_COOKIES_DOMAIN,
+              c,
+            ),
+          ),
         );
       }
       setCookiesSet(true);
     };
-    // TODO: 添加研究生Cookie
     setCookies();
   }, [jwch, url]);
 
