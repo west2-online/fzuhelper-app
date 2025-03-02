@@ -75,7 +75,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
         console.log('queryTerm:', queryTerm);
         const fetchedData = await fetchWithCache(
-          [COURSE_DATA_KEY, term],
+          [COURSE_DATA_KEY, queryTerm],
           () => getApiV1JwchCourseList({ term: queryTerm, is_refresh: false }),
           EXPIRE_ONE_DAY, // 缓存一天
         );
@@ -88,11 +88,10 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         }
 
         // 若开启导入考场，则再拉取考场数据
-        // FIXME: 临时屏蔽研究生，后端考场还没写
-        if (exportExamToCourseTable && LocalUser.getUser().type !== USER_TYPE_POSTGRADUATE) {
+        if (exportExamToCourseTable) {
           const examData = await fetchWithCache(
-            [EXAM_ROOM_KEY, term],
-            () => getApiV1JwchClassroomExam({ term }),
+            [EXAM_ROOM_KEY, queryTerm],
+            () => getApiV1JwchClassroomExam({ term: queryTerm }),
             EXPIRE_ONE_DAY,
           );
 
