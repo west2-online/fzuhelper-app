@@ -10,8 +10,8 @@ import { toast } from 'sonner-native';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { CourseCache } from '@/lib/course';
-import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
+import { clearUserStorage } from '@/utils/user';
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
@@ -33,9 +33,8 @@ export default function AcademicPage() {
         text: '清除',
         style: 'destructive',
         onPress: async () => {
-          CourseCache.clear(); // 清除课程缓存
-          LocalUser.clear(); // 清除本地用户
-          await AsyncStorage.clear(); // 清空 AsyncStorage
+          CourseCache.clear();
+          await AsyncStorage.clear();
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
             redirect('/(guest)');
@@ -57,9 +56,8 @@ export default function AcademicPage() {
         onPress: async () => {
           try {
             CourseCache.clear();
-            LocalUser.clear();
-            await AsyncStorage.clear(); // 清空 AsyncStorage
-            redirect('/(guest)');
+            await clearUserStorage();
+            redirect('/(guest)/academic-login');
           } catch (error) {
             console.error('Error clearing storage:', error);
             Alert.alert('清理用户数据失败', '无法清理用户数据');

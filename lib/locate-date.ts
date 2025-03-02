@@ -117,26 +117,3 @@ export function getWeeksBySemester(semesterStart: string, semesterEnd: string): 
 
   return Math.ceil(diffDays / 7);
 }
-
-// （研究生）将研究生学期和本科生学期进行转换
-// e.g. 2023-2024-1 => 202301
-export function convertSemester(semester: string): string {
-  console.log('Converting semester:', semester);
-  // 先判断格式是否符合 202401，如果是的话则不做任何转化直接返回
-  if (/^\d{6}$/.test(semester)) {
-    return semester;
-  }
-  const [startYear, , term] = semester.split('-'); // 只需要起始年份和学期
-  const formattedTerm = term.padStart(2, '0'); // 将学期转换为两位数
-  return `${startYear}${formattedTerm}`;
-}
-
-// （研究生）将本科生学期转化为研究生学期
-// e.g. 202401 => 2023-2024-1
-export function deConvertSemester(semester: string): string {
-  console.log('De-converting semester:', semester);
-  const year = semester.slice(0, 4); // 提取前四位作为起始年份
-  const term = semester.slice(4); // 提取后两位作为学期编号
-  const endYear = (Number(year) + 1).toString(); // 计算结束年份
-  return `${year}-${endYear}-${Number(term)}`; // 拼接成 startYear-endYear-term 的格式
-}

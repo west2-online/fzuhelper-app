@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
@@ -13,7 +14,7 @@ import { Toaster } from 'sonner-native';
 import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
 import aegis from '@/lib/aegis';
-import { LocalUser } from '@/lib/user';
+import { JWCH_USER_ID_KEY } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 import '../global.css';
@@ -28,7 +29,7 @@ export default function RootLayout() {
   useEffect(() => {
     (async () => {
       aegis.setConfig({
-        uin: LocalUser.getUser().userid,
+        uin: await AsyncStorage.getItem(JWCH_USER_ID_KEY),
       });
     })();
   }, []);

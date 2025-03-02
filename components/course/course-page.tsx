@@ -21,8 +21,7 @@ import type { CourseSetting, LocateDateResult } from '@/api/interface';
 import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, EXAM_TYPE, type ExtendCourse } from '@/lib/course';
 import { formatExamData } from '@/lib/exam-room';
-import { deConvertSemester, getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 interface CoursePageProps {
@@ -53,9 +52,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   );
 
   // 获取当前学期的开始结束时间（即从 semesterList 中取出当前学期的信息，term 表示当前选择的学期）
-  // 需要注意的是，不论本科生还是研究生，term 的格式均遵循本科生数据格式，即 202401 这样的
-  // 对于研究生，locate-date 需要依赖本科教务系统（即使研究生院教务系统也是这样的），所以我们只选择在查询研究生课表的时候进行一个转化即可，不在这里做转化
-  // 相关转化逻辑请参考 @/lib/locate-date.ts 中相关函数
   const currentSemester = useMemo(() => semesterListMap[term], [semesterListMap, term]);
 
   // 【查询课程数据】
@@ -68,15 +64,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         // 异步获取联网课程数据
         let hasChanged = false; // 是否有数据变更
         const hasCache = CourseCache.hasCachedData(); // 先判断是否有缓存
-        let queryTerm = term;
-        if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
-          queryTerm = deConvertSemester(term);
-        }
-
-        console.log('queryTerm:', queryTerm);
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, term],
-          () => getApiV1JwchCourseList({ term: queryTerm, is_refresh: false }),
+          () => getApiV1JwchCourseList({ term, is_refresh: false }),
           EXPIRE_ONE_DAY, // 缓存一天
         );
 
@@ -88,8 +78,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         }
 
         // 若开启导入考场，则再拉取考场数据
-        // FIXME: 临时屏蔽研究生，后端考场还没写
-        if (exportExamToCourseTable && LocalUser.getUser().type !== USER_TYPE_POSTGRADUATE) {
+        if (exportExamToCourseTable) {
           const examData = await fetchWithCache(
             [EXAM_ROOM_KEY, term],
             () => getApiV1JwchClassroomExam({ term }),

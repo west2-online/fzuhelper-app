@@ -1,7 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { parseScoreToColor } from '@/lib/grades';
-import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { CourseGradesData } from '@/types/academic';
 import React from 'react';
 import { View } from 'react-native';
@@ -37,12 +36,10 @@ const GradeCard: React.FC<GradeCardProps> = ({ item }) => {
             <Text className="text-lg font-bold">{item.credit}</Text>
           </View>
           {/* 获得绩点 */}
-          {LocalUser.getUser().type === USER_TYPE_UNDERGRADUATE && (
-            <View className="flex flex-col items-start">
-              <Text className="text-xs text-text-secondary">获得绩点</Text>
-              <Text className="text-lg font-bold text-primary">{item.gpa || '—'}</Text>
-            </View>
-          )}
+          <View className="flex flex-col items-start">
+            <Text className="text-xs text-text-secondary">获得绩点</Text>
+            <Text className="text-lg font-bold text-primary">{item.gpa || '—'}</Text>
+          </View>
         </View>
         {/* 右侧：成绩 */}
         <View className="items-right flex w-1/2 flex-col items-end">
