@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -14,6 +14,9 @@ import { Text } from '@/components/ui/text';
 
 import ApiService from '@/utils/learning-center/api_service';
 import { TOKEN_STORAGE_KEY } from './token';
+
+// 用于存储选中的座位号的键
+const SELECTED_SEAT_KEY = 'learning_center_selected_seat';
 
 function formatDate(date: Date, formatStr: string): string {
   const year = date.getFullYear();
@@ -68,6 +71,7 @@ function calculateHoursDifference(startTime: string, endTime: string): number {
 
 export default function SeatsPage() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ selectedSeat?: string }>();
   const scrollViewRef = useRef<ScrollView>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [, setToken] = useState<string | null>(null); // 修改此处，初始化为 null 并明确类型
@@ -267,6 +271,57 @@ export default function SeatsPage() {
     }
   };
 
+  // 添加导航到可用座位页面的函数
+  const navigateToAvailableSeats = () => {
+    if (!selectedDate || !startTime || !endTime) {
+      toast.error('请先选择日期和时间');
+      return;
+    }
+
+    // 格式化日期
+    const formattedDate = formatDate(selectedDate, 'yyyy-MM-dd');
+
+    // 导航到可用座位页面，传递选择的日期和时间
+    router.push({
+      pathname: '/toolbox/learning-center/available-seats',
+      params: {
+        date: formattedDate,
+        startTime,
+        endTime,
+      },
+    });
+  };
+
+  // 监听从座位查询页面返回的参数
+  useEffect(() => {
+    // 替换原有的 router.getState() 逻辑，直接使用 useLocalSearchParams
+    if (params.selectedSeat) {
+      setSeatNumber(params.selectedSeat);
+    }
+  }, [params.selectedSeat]);
+
+  // 使用useFocusEffect来检查并获取从座位查询页面返回的座位号
+  useFocusEffect(
+    useCallback(() => {
+      const checkSelectedSeat = async () => {
+        try {
+          const selectedSeat = await AsyncStorage.getItem(SELECTED_SEAT_KEY);
+          if (selectedSeat) {
+            console.log('从存储中获取选中的座位号:', selectedSeat);
+            setSeatNumber(selectedSeat);
+
+            // 清除存储的座位号，防止下次进入页面时仍然被填充
+            await AsyncStorage.removeItem(SELECTED_SEAT_KEY);
+          }
+        } catch (error) {
+          console.error('获取选中的座位号时出错:', error);
+        }
+      };
+
+      checkSelectedSeat();
+    }, []),
+  );
+
   if (isLoading) {
     return <Loading />;
   }
@@ -369,13 +424,7 @@ export default function SeatsPage() {
               <Card className="p-4">
                 <Text className="mb-3 font-medium">座位选择</Text>
                 <View className="space-y-4">
-                  <Button
-                    onPress={() => {
-                      // 跳转到可用座位查询页面
-                      router.push('/toolbox/learning-center/available-seats');
-                    }}
-                    className="w-full"
-                  >
+                  <Button onPress={navigateToAvailableSeats} className="w-full" disabled={!startTime || !endTime}>
                     <Text className="text-button-foreground">查询可用座位</Text>
                   </Button>
 

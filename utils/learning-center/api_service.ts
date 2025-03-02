@@ -2,6 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { SeatMappingUtil } from './seat-mapping';
 
+interface SeatModel {
+  id: string;
+  spaceName: string;
+  spaceId: string;
+  status: number;
+}
+
 class ApiService {
   private static readonly baseUrl = 'https://aiot.fzu.edu.cn/api/ibs';
 
@@ -122,6 +129,146 @@ class ApiService {
       return response.data;
     } catch (error: any) {
       throw new Error(`Cancel appointment failed: ${error.message}`);
+    }
+  }
+
+  // 查询座位状态
+  static async querySeatStatus({
+    beginTime,
+    endTime,
+    floor,
+  }: {
+    beginTime: string;
+    endTime: string;
+    floor: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: SeatModel[] | null;
+  }> {
+    const token = await AsyncStorage.getItem('token');
+
+    if (!token) {
+      throw new Error('Token invalid, please login again');
+    }
+
+    try {
+      console.log(`查询座位状态参数: beginTime=${beginTime}, endTime=${endTime}, floor=${floor}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/spaceAppoint/app/queryStationStatusByTime`,
+        {
+          beginTime,
+          endTime,
+          floorLike: floor,
+          parentId: null,
+          region: 1,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            token,
+          },
+        },
+      );
+
+      const { code, dataList, msg } = response.data;
+      console.log(`${floor}楼座位状态查询结果: code=${code}, msg=${msg}, 数据条数=${dataList?.length || 0}`);
+
+      if (code === '0') {
+        const seats = dataList
+          ? dataList
+              .filter((item: any) => !item.spaceName.toString().includes('-'))
+              .map((item: any) => ({
+                id: item.id,
+                spaceName: item.spaceName,
+                spaceId: item.id.toString(), // 使用 id 作为 spaceId
+                status: item.spaceStatus, // 使用 spaceStatus 字段
+              }))
+          : [];
+
+        console.log(`${floor}楼查询成功，处理后获取到${seats.length}个座位`);
+        return { success: true, message: msg || '查询成功', data: seats };
+      }
+
+      return { success: false, message: msg || '查询失败', data: null };
+    } catch (error: any) {
+      console.error(`${floor}楼查询座位状态错误:`, error);
+      return {
+        success: false,
+        message: `查询座位状态失败: ${error.message}`,
+        data: null,
+      };
+    }
+  }
+
+  // 查询所有楼层座位
+  static async queryAllFloorSeats({
+    date,
+    beginTime,
+    endTime,
+  }: {
+    date: string;
+    beginTime: string;
+    endTime: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: SeatModel[] | null;
+  }> {
+    try {
+      console.log(`查询所有座位参数: date=${date}, beginTime=${beginTime}, endTime=${endTime}`);
+
+      const allSeats: SeatModel[] = [];
+
+      // 构建完整的日期时间字符串
+      const formattedBeginTime = `${date} ${beginTime}`;
+      const formattedEndTime = `${date} ${endTime}`;
+
+      console.log(`格式化后的时间: begin=${formattedBeginTime}, end=${formattedEndTime}`);
+
+      for (const floor of ['4', '5']) {
+        console.log(`开始查询${floor}楼座位`);
+
+        const result = await this.querySeatStatus({
+          beginTime: formattedBeginTime,
+          endTime: formattedEndTime,
+          floor,
+        });
+
+        if (result.success) {
+          const seatsCount = result.data?.length || 0;
+          console.log(`${floor}楼查询成功，添加${seatsCount}个座位`);
+
+          if (result.data && result.data.length > 0) {
+            allSeats.push(...result.data);
+          }
+        } else {
+          console.log(`${floor}楼查询失败: ${result.message}`);
+        }
+      }
+
+      console.log(`总共获取到${allSeats.length}个座位`);
+
+      // 按座位号排序
+      if (allSeats.length > 0) {
+        allSeats.sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10));
+        return { success: true, message: '查询成功', data: allSeats };
+      } else {
+        // 如果两个楼层都查询成功但都没有座位，我们也应当认为这是成功的查询，只是结果为空
+        return {
+          success: true,
+          message: '查询成功，但未找到可用座位',
+          data: [],
+        };
+      }
+    } catch (error: any) {
+      console.error('查询所有楼层座位错误:', error);
+      return {
+        success: false,
+        message: `查询座位失败: ${error.message}`,
+        data: null,
+      };
     }
   }
 
