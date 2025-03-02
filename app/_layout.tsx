@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
@@ -11,9 +10,10 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Toaster } from 'sonner-native';
 
+import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
 import aegis from '@/lib/aegis';
-import { JWCH_USER_ID_KEY } from '@/lib/constants';
+import { LocalUser } from '@/lib/user';
 import { cn } from '@/lib/utils';
 
 import '../global.css';
@@ -28,7 +28,7 @@ export default function RootLayout() {
   useEffect(() => {
     (async () => {
       aegis.setConfig({
-        uin: await AsyncStorage.getItem(JWCH_USER_ID_KEY),
+        uin: LocalUser.getUser().userid,
       });
     })();
   }, []);
@@ -48,6 +48,7 @@ export default function RootLayout() {
               <Toaster cn={cn} position="top-center" duration={2500} offset={100} />
               <PortalHost />
               <SystemBars style="auto" />
+              <DownloadProgress />
             </GestureHandlerRootView>
           </KeyboardProvider>
         </ThemeProvider>

@@ -25,13 +25,13 @@ import SplashLogoIcon from '@/assets/images/splash_logo.png';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import {
   IS_PRIVACY_POLICY_AGREED,
-  JWCH_USER_ID_KEY,
   SPLASH_DATE,
   SPLASH_DISPLAY_COUNT,
   SPLASH_ID,
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
+import { LocalUser } from '@/lib/user';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
 
@@ -72,8 +72,7 @@ export default function SplashScreen() {
     try {
       const result = await getApiV1LaunchScreenScreen({
         type: 1,
-        // TODO: 研究生学号
-        student_id: (await AsyncStorage.getItem(JWCH_USER_ID_KEY)) || '',
+        student_id: LocalUser.getUser().userid || '',
         device: Platform.OS,
       });
       if (result.data.data.length === 0) {

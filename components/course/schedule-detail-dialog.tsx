@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
-import { toast } from 'sonner-native';
 
 import { CourseCache, type ExtendCourse } from '@/lib/course';
 import { pushToWebViewJWCH } from '@/lib/webview';
@@ -25,23 +24,29 @@ interface ScheduleDetailsDialogProps {
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ isOpen, onClose, schedules }) => {
   const [scheduleIndex, setScheduleIndex] = React.useState(0);
   const schedule = schedules[scheduleIndex];
-  const handleSyllabusPress = () => {
+
+  const closeDialog = () => {
     onClose();
+    setScheduleIndex(0);
+  };
+
+  const handleSyllabusPress = () => {
+    closeDialog();
     pushToWebViewJWCH(schedule.syllabus, '教学大纲');
   };
 
   const handleLessonplanPress = () => {
-    onClose();
+    closeDialog();
     pushToWebViewJWCH(schedule.lessonplan, '授课计划');
   };
 
   const setPriority = (index: number) => {
+    closeDialog();
     CourseCache.setPriority(index);
-    toast.success('设置完毕，重新打开课程表生效');
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={closeDialog}>
       <DialogContent className="flex w-[90vw] flex-col justify-center pb-6 pt-10 sm:max-w-[425px]">
         <View className="flex flex-row items-center justify-between">
           {/* 向左按钮 */}

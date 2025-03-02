@@ -3,7 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 个人信息 后面如果有别的需求的话在返回字段接着添加，目前这些够了 GET /api/v1/jwch/user/info */
+/** 个人信息 后面如果有别的需求的话在返回字段接着添加，目前这些够了 GET /api/v1/jwch/user/info https://apifox.com/web/project/3275694/apis/api-109631149-run */
 export async function getApiV1JwchUserInfo(options?: {
   [key: string]: unknown;
 }) {
@@ -25,7 +25,7 @@ export async function getApiV1JwchUserInfo(options?: {
   });
 }
 
-/** 修改密码 PUT /api/v1/jwch/user/info */
+/** 修改密码 PUT /api/v1/jwch/user/info https://apifox.com/web/project/3275694/apis/api-109631150-run */
 export async function putApiV1JwchUserInfo(
   body: {
     /** 原密码 */
@@ -63,7 +63,7 @@ export async function putApiV1JwchUserInfo(
   });
 }
 
-/** 验证码自动识别 POST /api/v1/user/validate-code */
+/** 验证码自动识别 POST /api/v1/user/validate-code https://apifox.com/web/project/3275694/apis/api-215763225-run */
 export async function postApiV1UserValidateCode(
   body: {
     /** 验证码图片的base64 */

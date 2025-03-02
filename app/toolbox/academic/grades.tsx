@@ -110,7 +110,7 @@ export default function GradesPage() {
           />
         }
       >
-        {academicData.length > 0 && summary && (
+        {filteredData.length > 0 && summary && (
           <View className="mx-4">
             <SemesterSummaryCard summary={summary} />
           </View>
@@ -128,7 +128,7 @@ export default function GradesPage() {
           ) : (
             <Text className="text-center text-gray-500">暂无成绩数据</Text>
           )}
-          {filteredData.length > 0 && (
+          {academicData.length > 0 && (
             <View className="my-4 flex flex-row items-center justify-center">
               <Icon name="time-outline" size={16} className="mr-2" />
               <Text className="text-sm leading-5 text-text-primary">
