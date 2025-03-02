@@ -45,28 +45,9 @@ export async function getApiV1JwchAcademicPlan(options?: {
 }
 
 /** 成绩详情 GET /api/v1/jwch/academic/scores https://apifox.com/web/project/3275694/apis/api-109631158-run */
-export async function getApiV1JwchAcademicScores(
-  body: {},
-  options?: { [key: string]: unknown }
-) {
-  const formData = new FormData();
-
-  Object.keys(body).forEach((ele) => {
-    const item = (body as { [key: string]: any })[ele];
-
-    if (item !== undefined && item !== null) {
-      if (typeof item === 'object' && !(item instanceof File)) {
-        if (item instanceof Array) {
-          item.forEach((f) => formData.append(ele, f || ''));
-        } else {
-          formData.append(ele, JSON.stringify(item));
-        }
-      } else {
-        formData.append(ele, item);
-      }
-    }
-  });
-
+export async function getApiV1JwchAcademicScores(options?: {
+  [key: string]: unknown;
+}) {
   return request<{
     code: string;
     message: string;
@@ -82,10 +63,6 @@ export async function getApiV1JwchAcademicScores(
     }[];
   }>('/api/v1/jwch/academic/scores', {
     method: 'GET',
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-    data: formData,
     ...(options || {}),
   });
 }

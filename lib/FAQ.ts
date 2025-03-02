@@ -1,3 +1,7 @@
+import { LocalUser, USER_TYPE_UNDERGRADUATE } from './user';
+
+const isUndergraduate = LocalUser.getUser().type === USER_TYPE_UNDERGRADUATE;
+
 // 课表
 export const FAQ_COURSE = [
   {
