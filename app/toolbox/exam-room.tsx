@@ -69,7 +69,32 @@ export default function ExamRoomPage() {
 
     try {
       const newExamData = await getApiV1JwchClassroomExam({ term: currentTerm });
-      const formattedData = formatExamData(newExamData.data.data as ExamData);
+      const formattedData = formatExamData(newExamData.data.data as ExamData).sort((a, b) => {
+        const now = new Date(); // 当前日期
+
+        // 如果只有一个有 date，优先排序有 date 的
+        if (!a.date && b.date) return 1; // a 没有 date，b 有 date，b 优先
+        if (a.date && !b.date) return -1; // a 有 date，b 没有 date，a 优先
+
+        // 如果两个都没有 date，保持原顺序
+        if (!a.date && !b.date) return 0;
+
+        // 两者都有 date，确保 date 是有效的
+        const dateA = new Date(a.date!); // 使用非空断言（!）告诉 TypeScript 这里一定有值
+        const dateB = new Date(b.date!);
+
+        // 如果一个未完成一个已完成，未完成优先
+        if (a.isFinished && !b.isFinished) return 1; // a 已完成，b 未完成，b 优先
+
+        // 计算与当前日期的时间差
+        const diffA = Math.abs(dateA.getTime() - now.getTime());
+        const diffB = Math.abs(dateB.getTime() - now.getTime());
+
+        // 时间差小的优先
+        return diffA - diffB;
+      });
+
+      console.log('Exam data refreshed:', formattedData);
 
       setExamDataMap(prev => ({
         ...prev,
