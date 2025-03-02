@@ -30,10 +30,10 @@ export class LocalUser {
   private static type: string; // 用户类型
   private static userid: string; // 学号
   private static password: string; // 密码
-
-  private static identifier: string; // (仅本科生) 身份识别用 id，研究生不需要
+  private static identifier: string; // (仅本科生) 身份识别用 id，研究生会设置前导 0
   private static cookies: string; // 传递给教务系统的 Cookies
   private static loginObject = new UserLogin();
+  private static isLoaded = false; // 是否已经加载过用户信息
 
   /**
    * 从 AsyncStorage 中加载用户信息和登录凭证
@@ -52,6 +52,7 @@ export class LocalUser {
       this.identifier = credentials.identifier;
       this.cookies = credentials.cookies;
     }
+    this.isLoaded = true;
   }
 
   /**
@@ -63,6 +64,7 @@ export class LocalUser {
     this.password = '';
     this.identifier = '';
     this.cookies = '';
+    this.isLoaded = false;
     await AsyncStorage.multiRemove([
       LOCAL_USER_INFO_KEY,
       LOCAL_USER_CREDENTIAL_KEY,
@@ -79,6 +81,9 @@ export class LocalUser {
    * @param password 登录的密码
    */
   public static async setUser(type: string, username: string, password: string): Promise<void> {
+    if (!this.isLoaded) {
+      await this.load();
+    }
     this.type = type;
     this.userid = username;
     this.password = password;
@@ -86,7 +91,7 @@ export class LocalUser {
       LOCAL_USER_INFO_KEY,
       JSON.stringify({
         type: this.type,
-        username: this.userid,
+        userid: this.userid,
         password: this.password,
       }),
     );
@@ -98,6 +103,9 @@ export class LocalUser {
    * @param cookie 传递给教务系统的 Cookie
    */
   public static async setCredentials(identifier: string, cookie: string): Promise<void> {
+    if (!this.isLoaded) {
+      await this.load();
+    }
     this.identifier = identifier;
     this.cookies = cookie;
     await AsyncStorage.setItem(
@@ -114,6 +122,9 @@ export class LocalUser {
    * @returns 返回用户信息
    */
   public static getUser(): LocalUserInfo {
+    if (!this.isLoaded) {
+      this.load();
+    }
     return {
       type: this.type,
       userid: this.userid,
@@ -126,6 +137,9 @@ export class LocalUser {
    * @returns 返回登录凭证
    */
   public static getCredentials(): LoginCredentials {
+    if (!this.isLoaded) {
+      this.load();
+    }
     return {
       identifier: this.identifier,
       cookies: this.cookies,
@@ -137,6 +151,9 @@ export class LocalUser {
    * @param captcha （可选）验证码，研究生完全不需要
    */
   public static async login(captcha?: string): Promise<void> {
+    if (!this.isLoaded) {
+      await this.load();
+    }
     let newIdentifier: string = '';
     let newCookies: string = '';
     switch (this.type) {
@@ -181,12 +198,20 @@ export class LocalUser {
    * @returns 返回过期状态，失败或过期均返回 false
    */
   public static async checkCredentials(): Promise<boolean> {
+    if (!this.isLoaded) {
+      await this.load();
+    }
     switch (this.type) {
       case USER_TYPE_UNDERGRADUATE:
-        return await checkCookieJWCH();
+        return await checkCookieJWCH({
+          identifier: this.identifier,
+          cookies: this.cookies,
+        });
       case USER_TYPE_POSTGRADUATE:
-        // 研究生登录
-        break;
+        return await checkCookieYJSY({
+          identifier: this.identifier,
+          cookies: this.cookies,
+        });
       default:
         break; // 不做任何事情
     }
@@ -195,9 +220,8 @@ export class LocalUser {
 }
 
 // （本科生教务系统）检查 JWCH 的 Cookie 是否有效，如果无效，重新自动登录
-async function checkCookieJWCH() {
+async function checkCookieJWCH(credentials: LoginCredentials) {
   const COOKIE_CHECK_URL = 'https://jwcjwxt2.fzu.edu.cn:81/jcxx/xsxx/StudentInformation.aspx?id='; // 尝试访问学生个人信息页面
-  const credentials = LocalUser.getCredentials();
   if (!credentials.identifier || !credentials.cookies) {
     return false;
   }
@@ -217,4 +241,22 @@ async function checkCookieJWCH() {
   }
 
   return (schoolid && userid && schoolid === userid) || false;
+}
+
+// （研究生教务系统）检查 JWCH 的 Cookie 是否有效，如果无效，重新自动登录
+async function checkCookieYJSY(credentials: LoginCredentials) {
+  const COOKIE_CHECK_URL = 'https://yjsglxt.fzu.edu.cn/xsgl/xsxx_show.aspx'; // 尝试访问学生个人信息页面
+  if (!credentials.cookies) {
+    return false;
+  }
+  const resp = await get(COOKIE_CHECK_URL, {
+    REFERER: 'https://yjsy.fzu.edu.cn',
+    Cookie: credentials.cookies,
+  });
+  const decodedText = Buffer.from(resp.data).toString('utf-8');
+  if (decodedText.includes('当前登录用户已过期') || decodedText.includes('系统错误')) {
+    return false;
+  }
+
+  return true;
 }

@@ -58,7 +58,8 @@ export default function AcademicPage() {
           try {
             CourseCache.clear();
             LocalUser.clear();
-            redirect('/(guest)/academic-login');
+            await AsyncStorage.clear(); // 清空 AsyncStorage
+            redirect('/(guest)');
           } catch (error) {
             console.error('Error clearing storage:', error);
             Alert.alert('清理用户数据失败', '无法清理用户数据');

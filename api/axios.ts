@@ -143,7 +143,7 @@ request.interceptors.response.use(
       return Promise.reject({ type: RejectEnum.NetworkError });
     }
 
-    return Promise.reject({ type: RejectEnum.InternalFailed });
+    return Promise.reject({ type: RejectEnum.InternalFailed, data: error });
   },
 );
 

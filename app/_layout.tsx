@@ -26,7 +26,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     (async () => {
-      LocalUser.load(); // 在加载开屏页前加载用户信息
       aegis.setConfig({
         uin: LocalUser.getUser().userid,
       });

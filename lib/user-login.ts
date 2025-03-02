@@ -48,7 +48,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 // (本科生教务系统) 自动验证码识别服务地址
 const URL_AUTO_VALIDATE = 'https://fzuhelper.west2.online/api/v1/user/validate-code';
 // (研究生教务系统) 自动填充 ID 前缀，因为用不到，服务端默认 5 个前导 0，避免问题直接设置为 10个 0
-const GRADUATE_ID_PREFIX = '0000000000';
+const GRADUATE_ID_PREFIX = '00000';
 
 // 这个 UserLogin 同时支持本科生和研究生的登录逻辑。其中本科生登录逻辑较为复杂，研究生的比较简单
 class UserLogin {
@@ -266,7 +266,7 @@ class UserLogin {
     // 研究生和本科生进行区分
     if (isGraduate) {
       await this.#graduateLogin(username, password);
-      identifier = GRADUATE_ID_PREFIX;
+      identifier = GRADUATE_ID_PREFIX + username; // 采用前导 0 拼接
     } else {
       const { token, id: id0, num } = await this.#loginCheck(username, password, captcha);
       await this.#ssoLogin(token);
