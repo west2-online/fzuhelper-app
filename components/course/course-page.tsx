@@ -66,7 +66,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         const hasCache = CourseCache.hasCachedData(); // 先判断是否有缓存
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, term],
-          () => getApiV1JwchCourseList({ term }),
+          () => getApiV1JwchCourseList({ term, is_refresh: false }),
           EXPIRE_ONE_DAY, // 缓存一天
         );
 
