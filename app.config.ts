@@ -56,6 +56,31 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-localization',
+    [
+      '@bittingz/expo-widgets',
+      {
+        //             ios: {
+        //                 src: "./native_widget/ios",
+        //                 devTeamId: "your apple dev team ID",
+        //                 mode: "production",
+        //                 moduleDependencies: [],
+        //                 useLiveActivities: false,
+        //                 frequentUpdates: false,
+        //                 entitlements: {
+        //                     "any xcode entitlement the widget needs": "entitlement value"
+        //                 }
+        //             },
+        android: {
+          src: './modules/native-widget/android',
+          widgets: [
+            {
+              name: 'NextClassWidgetProvider',
+              resourceName: '@xml/next_class_widget_provider',
+            },
+          ],
+        },
+      },
+    ],
     'expo-router',
     [
       'react-native-permissions',
