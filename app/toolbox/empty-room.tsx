@@ -116,45 +116,43 @@ export default function EmptyRoomPage() {
           headerRight: () => <DateNavigator date={selectedDate} onPress={() => setIsDateTimePickerVisible(true)} />,
         }}
       />
-      {/* 选择器区域 */}
-      <View
-        className={`w-full flex-row items-center justify-between px-4 py-2 ${currentColorScheme === 'dark' ? 'bg-black' : 'bg-white'}`}
-      >
-        {/* 左侧按钮 */}
-        <TouchableOpacity
-          className="flex-1 flex-row items-center justify-center px-2 py-2"
-          onPressIn={() => setIsRangeStartPickerVisible(true)}
-        >
-          <Text className="pr-1">第{selectedRange.start}节</Text>
-          <Icon name={isRangeStartPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
-        </TouchableOpacity>
-
-        {/* 中间的“至” */}
-        <Text className={`mx-3`}>至</Text>
-
-        {/* 右侧按钮 */}
-        <TouchableOpacity
-          className="flex-1 flex-row items-center justify-center px-2 py-2"
-          onPressIn={() => setIsRangeEndPickerVisible(true)}
-        >
-          <Text className="pr-1">第{selectedRange.end}节</Text>
-          <Icon name={isRangeEndPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
-        </TouchableOpacity>
-
-        {/* 校区按钮 */}
-        <TouchableOpacity
-          className="ml-3 flex-1 flex-row items-center justify-center px-2 py-2"
-          onPressIn={() => setCampusPickerVisible(true)}
-        >
-          <Text className="pr-1">{selectedCampus}</Text>
-          <Icon name={isCampusPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
-        </TouchableOpacity>
-
-        <Pressable onPress={handleModalVisible} className="flex-right flex-row items-center">
-          <Icon name="help-circle-outline" size={26} className="mr-4" />
-        </Pressable>
-      </View>
       <PageContainer>
+        {/* 选择器区域 */}
+        <View className={`w-full flex-row items-center justify-between px-4 py-2`}>
+          {/* 左侧按钮 */}
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center px-2 py-2"
+            onPressIn={() => setIsRangeStartPickerVisible(true)}
+          >
+            <Text className="pr-1">第 {selectedRange.start} 节</Text>
+            <Icon name={isRangeStartPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+          </TouchableOpacity>
+
+          {/* 中间的“至” */}
+          <Text className={`mx-3`}>至</Text>
+
+          {/* 右侧按钮 */}
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center px-2 py-2"
+            onPressIn={() => setIsRangeEndPickerVisible(true)}
+          >
+            <Text className="pr-1">第 {selectedRange.end} 节</Text>
+            <Icon name={isRangeEndPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+          </TouchableOpacity>
+
+          {/* 校区按钮 */}
+          <TouchableOpacity
+            className="ml-3 flex-1 flex-row items-center justify-center px-2 py-2"
+            onPressIn={() => setCampusPickerVisible(true)}
+          >
+            <Text className="pr-1">{selectedCampus}</Text>
+            <Icon name={isCampusPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+          </TouchableOpacity>
+
+          <Pressable onPress={handleModalVisible} className="flex-right flex-row items-center">
+            <Icon name="help-circle-outline" size={26} className="mr-4" />
+          </Pressable>
+        </View>
         {loadingState === LoadingState.PENDING ? (
           <Loading className="flex-1" />
         ) : loadingState === LoadingState.FAILED ? (
