@@ -7,7 +7,6 @@ import locateDate from '@/lib/locate-date';
 import { LocalUser } from '@/lib/user';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewJWCH } from '@/lib/webview';
-import { checkCookieJWCH } from '@/utils/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { Link, Stack } from 'expo-router';
@@ -67,7 +66,7 @@ export default function HomePage() {
 
   // 判断 Cookie 是否有效
   const isCookieValid = async () => {
-    const resp = await checkCookieJWCH();
+    const resp = await LocalUser.checkCredentials();
     toast.info('Cookie 检查结果' + resp);
   };
 

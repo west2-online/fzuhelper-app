@@ -12,7 +12,6 @@ import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { CourseCache } from '@/lib/course';
 import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
-import { clearUserStorage } from '@/utils/user';
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
@@ -58,7 +57,7 @@ export default function AcademicPage() {
         onPress: async () => {
           try {
             CourseCache.clear();
-            await clearUserStorage();
+            LocalUser.clear();
             redirect('/(guest)/academic-login');
           } catch (error) {
             console.error('Error clearing storage:', error);

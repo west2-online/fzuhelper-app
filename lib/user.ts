@@ -1,7 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { checkCookieJWCH, userLogin } from '@/utils/user';
+import { getApiV1LoginAccessToken } from '@/api/generate';
+import { ACCESS_TOKEN_KEY, JWCH_USER_INFO_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
+import { get } from '@/modules/native-request';
+import { Buffer } from 'buffer';
 import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
+import UserLogin from './user-login';
 
 // 本地用户信息
 interface LocalUserInfo {
@@ -21,6 +25,7 @@ export const USER_TYPE_POSTGRADUATE = 'graduate'; // 研究生
 
 // LocalUser 维护了本地的用户模型，这样可以同时兼容研究生和本科生
 // 同时，通过这个 Class 屏蔽了页面中对于用户的直接操作（如登录和检查 Cookie），这样可以不必在页面中判断用户类型
+// 具体的登录逻辑，我们放在的 @/lib/user-login.ts 中做
 export class LocalUser {
   private static type: string; // 用户类型
   private static userid: string; // 学号
@@ -28,6 +33,7 @@ export class LocalUser {
 
   private static identifier: string; // (仅本科生) 身份识别用 id，研究生不需要
   private static cookies: string; // 传递给教务系统的 Cookies
+  private static loginObject = new UserLogin();
 
   /**
    * 从 AsyncStorage 中加载用户信息和登录凭证
@@ -57,7 +63,13 @@ export class LocalUser {
     this.password = '';
     this.identifier = '';
     this.cookies = '';
-    await AsyncStorage.multiRemove([LOCAL_USER_INFO_KEY, LOCAL_USER_CREDENTIAL_KEY]);
+    await AsyncStorage.multiRemove([
+      LOCAL_USER_INFO_KEY,
+      LOCAL_USER_CREDENTIAL_KEY,
+      ACCESS_TOKEN_KEY,
+      REFRESH_TOKEN_KEY,
+      JWCH_USER_INFO_KEY,
+    ]);
   }
 
   /**
@@ -125,23 +137,42 @@ export class LocalUser {
    * @param captcha （可选）验证码，研究生完全不需要
    */
   public static async login(captcha?: string): Promise<void> {
+    let newIdentifier: string = '';
+    let newCookies: string = '';
     switch (this.type) {
       case USER_TYPE_UNDERGRADUATE:
-        // 本科生登录
         try {
-          await userLogin({
-            id: this.userid,
-            password: this.password,
-          });
+          // 本科生登录
+          const captchaImage = await this.loginObject.getCaptcha();
+          const result = await this.loginObject.login(this.identifier, this.cookies, captchaImage, false);
+          newIdentifier = result.id;
+          newCookies = result.cookies;
         } catch (err: any) {
           throw new Error(err);
         }
         break;
       case USER_TYPE_POSTGRADUATE:
-        // 研究生登录
+        try {
+          // 研究生登录
+          const result = await this.loginObject.login(this.userid, this.password, '', true);
+          newIdentifier = result.id;
+          newCookies = result.cookies;
+        } catch (err: any) {
+          throw new Error(err);
+        }
         break;
       default:
-        break; // 不做任何事情
+        return; // 不做任何事情，直接返回
+    }
+
+    // 通用逻辑，存储登录凭证并获取 AccessToken
+    await this.setCredentials(newIdentifier, newCookies);
+    try {
+      await getApiV1LoginAccessToken();
+      return Promise.resolve();
+    } catch (e) {
+      // accessToken 获取失败
+      return Promise.reject(e);
     }
   }
 
@@ -161,4 +192,29 @@ export class LocalUser {
     }
     return false;
   }
+}
+
+// （本科生教务系统）检查 JWCH 的 Cookie 是否有效，如果无效，重新自动登录
+async function checkCookieJWCH() {
+  const COOKIE_CHECK_URL = 'https://jwcjwxt2.fzu.edu.cn:81/jcxx/xsxx/StudentInformation.aspx?id='; // 尝试访问学生个人信息页面
+  const credentials = LocalUser.getCredentials();
+  if (!credentials.identifier || !credentials.cookies) {
+    return false;
+  }
+  const resp = await get(COOKIE_CHECK_URL + credentials.identifier, {
+    Referer: 'https://jwch.fzu.edu.cn',
+    ORIGIN: 'https://jwch.fzu.edu.cn',
+    'X-Requested-With': 'XMLHttpRequest',
+    Cookie: credentials.cookies,
+  });
+
+  const str = Buffer.from(resp.data).toString('utf-8').replace(/\s+/g, '');
+  const schoolid = /id="ContentPlaceHolder1_LB_xh">(\d+)/.exec(str)?.[1];
+
+  const userid = LocalUser.getUser().userid;
+  if (!schoolid || !userid) {
+    return false;
+  }
+
+  return (schoolid && userid && schoolid === userid) || false;
 }

@@ -1,6 +1,7 @@
 import { RejectEnum } from '@/api/enum';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { clearUserStorage } from '@/utils/user';
+import { CourseCache } from '@/lib/course';
+import { LocalUser } from '@/lib/user';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import { toast } from 'sonner-native';
@@ -41,7 +42,8 @@ export const useSafeResponseSolve = () => {
               {
                 text: '确认',
                 onPress: async () => {
-                  await clearUserStorage();
+                  LocalUser.clear();
+                  CourseCache.clear();
                   redirect('/(guest)/academic-login');
                 },
               },
@@ -60,7 +62,8 @@ export const useSafeResponseSolve = () => {
                 {
                   text: '确认',
                   onPress: async () => {
-                    await clearUserStorage();
+                    LocalUser.clear();
+                    CourseCache.clear();
                     redirect('/(guest)/academic-login');
                   },
                 },
