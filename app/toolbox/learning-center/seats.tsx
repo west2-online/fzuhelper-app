@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
+
+import { Input } from '@/components/ui/input';
 
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
@@ -10,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 
+import ApiService from '@/utils/learning-center/api_service';
 import { TOKEN_STORAGE_KEY } from './token';
 
 function formatDate(date: Date, formatStr: string): string {
@@ -65,14 +68,17 @@ function calculateHoursDifference(startTime: string, endTime: string): number {
 
 export default function SeatsPage() {
   const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [, setToken] = useState<string | null>(null); // 修改此处，初始化为 null 并明确类型
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 日期和时间选择状态
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [startTime, setStartTime] = useState<string | null>(null);
   const [endTime, setEndTime] = useState<string | null>(null);
   const [selectedTimeStep, setSelectedTimeStep] = useState<'start' | 'end'>('start');
+  const [seatNumber, setSeatNumber] = useState<string>('');
 
   // 生成未来7天的日期
   const dates = useMemo(() => {
@@ -208,6 +214,59 @@ export default function SeatsPage() {
     checkToken();
   }, [router]);
 
+  // 添加键盘显示/隐藏事件监听
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      // 键盘显示时滚动到输入框
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+
+    return () => {
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
+  // 处理预约提交
+  const handleSubmitAppointment = async () => {
+    // 验证所有必要信息是否填写
+    if (!selectedDate || !startTime || !endTime || !seatNumber.trim()) {
+      toast.error('请填写完整的预约信息');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // 格式化日期为YYYY-MM-DD格式
+      const formattedDate = formatDate(selectedDate, 'yyyy-MM-dd');
+
+      // 调用API进行预约
+      await ApiService.makeAppointment({
+        spaceName: seatNumber.trim(),
+        beginTime: startTime,
+        endTime: endTime,
+        date: formattedDate,
+      });
+
+      // 预约成功
+      toast.success('座位预约成功！');
+
+      // 重置表单
+      setStartTime(null);
+      setEndTime(null);
+      setSeatNumber('');
+      setSelectedTimeStep('start');
+
+      // 可选：跳转到预约历史页面
+      router.push('/toolbox/learning-center/history');
+    } catch (error: any) {
+      // 显示预约失败的具体原因
+      toast.error(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (isLoading) {
     return <Loading />;
   }
@@ -217,105 +276,146 @@ export default function SeatsPage() {
       <Stack.Screen options={{ title: '预约座位' }} />
 
       <PageContainer className="bg-background px-4 pt-4">
-        <View className="space-y-6">
-          {/* 日期选择  */}
-          <Card className="p-4">
-            <Text className="mb-3 font-medium">选择日期</Text>
-            <View className="flex-row justify-between">
-              {dates.map((date, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() => setSelectedDate(date)}
-                  className={`rounded-lg p-3 ${
-                    formatDate(selectedDate, 'yyyy-MM-dd') === formatDate(date, 'yyyy-MM-dd')
-                      ? 'bg-primary'
-                      : 'bg-secondary'
-                  }`}
-                >
-                  <Text
-                    className={`text-center font-medium ${
-                      formatDate(selectedDate, 'yyyy-MM-dd') === formatDate(date, 'yyyy-MM-dd')
-                        ? 'text-primary-foreground'
-                        : 'text-foreground'
-                    }`}
-                  >
-                    {date.getDate()}
-                  </Text>
-                  <Text
-                    className={`text-center text-xs ${
-                      formatDate(selectedDate, 'yyyy-MM-dd') === formatDate(date, 'yyyy-MM-dd')
-                        ? 'text-primary-foreground'
-                        : 'text-text-secondary'
-                    }`}
-                  >
-                    {formatDate(date, 'EEE')}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </Card>
-
-          {/* 时间段选择 */}
-          <Card className="p-4">
-            <Text className="mb-3 font-medium">
-              选择时间段 - {selectedTimeStep === 'start' ? '点击选择开始时间' : '点击选择结束时间'}
-            </Text>
-
-            <View className="space-y-10">
-              {timeSlotsRows.map((row, rowIndex) => (
-                <View key={rowIndex} className="mb-2 flex-row justify-between">
-                  {row.map(time => {
-                    const disabled = isTimeSlotDisabled(time);
-                    const endTimeDisabled = selectedTimeStep === 'end' && startTime && time <= startTime;
-                    const isDisabled = disabled || endTimeDisabled;
-
-                    return (
-                      <Pressable
-                        key={time}
-                        onPress={() => !isDisabled && handleTimeSelection(time)}
-                        className={`mx-1 flex-1 rounded-lg p-3 ${getTimeSlotClassName(time)} ${isDisabled ? 'opacity-40' : ''}`}
-                        disabled={Boolean(isDisabled)}
-                      >
-                        <Text className={`text-center ${getTimeSlotTextClassName(time)}`}>{time}</Text>
-                      </Pressable>
-                    );
-                  })}
-
-                  {/* 填充空白位置保持每行4个的布局 */}
-                  {Array(4 - row.length)
-                    .fill(0)
-                    .map((_, index) => (
-                      <View key={`filler-${index}`} className="mx-1 flex-1 rounded-lg p-3 opacity-0">
-                        <Text className="invisible text-center">00:00</Text>
-                      </View>
-                    ))}
-                </View>
-              ))}
-            </View>
-          </Card>
-
-          {/* 预约摘要 */}
-          {startTime && (
-            <Text className="text-text text-center text-sm">
-              {startTime && !endTime
-                ? `已选择开始时间：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${startTime}`
-                : startTime && endTime
-                  ? `已选择：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${startTime} - ${endTime}`
-                  : ''}
-            </Text>
-          )}
-
-          {/* 选座按钮 */}
-          <Button
-            disabled={!startTime || !endTime}
-            onPress={() => {
-              // TODO: 座位选择
-            }}
-            className="mt-4"
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 as number }}
+          keyboardVerticalOffset={50}
+          // TODO: 键盘弹出后，有时候会闪一下
+        >
+          <ScrollView
+            ref={scrollViewRef}
+            className="flex-1"
+            showsVerticalScrollIndicator={true}
+            keyboardShouldPersistTaps="handled"
           >
-            <Text className="text-button-foreground">选座</Text>
-          </Button>
-        </View>
+            <View className="space-y-6 pb-6">
+              {/* 日期选择 */}
+              <Card className="p-4">
+                <Text className="mb-3 font-medium">选择日期</Text>
+                <View className="flex-row justify-between">
+                  {dates.map((date, index) => (
+                    <Pressable
+                      key={index}
+                      onPress={() => setSelectedDate(date)}
+                      className={`rounded-lg p-3 ${
+                        formatDate(selectedDate, 'yyyy-MM-dd') === formatDate(date, 'yyyy-MM-dd')
+                          ? 'bg-primary'
+                          : 'bg-secondary'
+                      }`}
+                    >
+                      <Text
+                        className={`text-center font-medium ${
+                          formatDate(selectedDate, 'yyyy-MM-dd') === formatDate(date, 'yyyy-MM-dd')
+                            ? 'text-primary-foreground'
+                            : 'text-foreground'
+                        }`}
+                      >
+                        {date.getDate()}
+                      </Text>
+                      <Text
+                        className={`text-center text-xs ${
+                          formatDate(selectedDate, 'yyyy-MM-dd') === formatDate(date, 'yyyy-MM-dd')
+                            ? 'text-primary-foreground'
+                            : 'text-text-secondary'
+                        }`}
+                      >
+                        {formatDate(date, 'EEE')}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </Card>
+
+              {/* 时间段选择 */}
+              <Card className="p-4">
+                <Text className="mb-3 font-medium">
+                  选择时间段 - {selectedTimeStep === 'start' ? '点击选择开始时间' : '点击选择结束时间'}
+                </Text>
+
+                <View className="space-y-10">
+                  {timeSlotsRows.map((row, rowIndex) => (
+                    <View key={rowIndex} className="mb-2 flex-row justify-between">
+                      {row.map(time => {
+                        const disabled = isTimeSlotDisabled(time);
+                        const endTimeDisabled = selectedTimeStep === 'end' && startTime && time <= startTime;
+                        const isDisabled = disabled || endTimeDisabled;
+
+                        return (
+                          <Pressable
+                            key={time}
+                            onPress={() => !isDisabled && handleTimeSelection(time)}
+                            className={`mx-1 flex-1 rounded-lg p-3 ${getTimeSlotClassName(time)} ${isDisabled ? 'opacity-40' : ''}`}
+                            disabled={Boolean(isDisabled)}
+                          >
+                            <Text className={`text-center ${getTimeSlotTextClassName(time)}`}>{time}</Text>
+                          </Pressable>
+                        );
+                      })}
+
+                      {/* 填充空白位置保持每行4个的布局 */}
+                      {Array(4 - row.length)
+                        .fill(0)
+                        .map((_, index) => (
+                          <View key={`filler-${index}`} className="mx-1 flex-1 rounded-lg p-3 opacity-0">
+                            <Text className="invisible text-center">00:00</Text>
+                          </View>
+                        ))}
+                    </View>
+                  ))}
+                </View>
+              </Card>
+
+              {/* 座位选择 */}
+              <Card className="p-4">
+                <Text className="mb-3 font-medium">座位选择</Text>
+                <View className="space-y-4">
+                  <Button
+                    onPress={() => {
+                      // 跳转到可用座位查询页面
+                      router.push('/toolbox/learning-center/available-seats');
+                    }}
+                    className="w-full"
+                  >
+                    <Text className="text-button-foreground">查询可用座位</Text>
+                  </Button>
+
+                  <View>
+                    <Text className="mb-2 text-sm">座位号</Text>
+                    <Input
+                      value={seatNumber}
+                      onChangeText={setSeatNumber}
+                      placeholder="请输入座位号"
+                      className="w-full"
+                    />
+                  </View>
+                </View>
+              </Card>
+
+              {/* 预约摘要 */}
+              {startTime && (
+                <Text className="text-text text-center text-sm">
+                  {startTime && !endTime
+                    ? `已选择开始时间：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${startTime}`
+                    : startTime && endTime
+                      ? `已选择：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${startTime} - ${endTime}${seatNumber ? ` 座位号：${seatNumber}` : ''}`
+                      : ''}
+                </Text>
+              )}
+
+              {/* 预约按钮 */}
+              <Button
+                disabled={!startTime || !endTime || !seatNumber.trim() || isSubmitting}
+                onPress={handleSubmitAppointment}
+                className="mt-4"
+              >
+                <Text className="text-button-foreground">{isSubmitting ? '预约中...' : '预约'}</Text>
+              </Button>
+
+              {/* 添加额外的底部空间，确保键盘弹出时内容可见 */}
+              <View style={{ height: 50 as number }} />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </PageContainer>
     </>
   );
