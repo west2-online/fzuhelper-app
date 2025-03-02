@@ -6,8 +6,6 @@ import { ResultEnum } from '@/api/enum';
 
 const aegis = new Aegis({
   id: 'VD0m3Sd9r0180Pjd2W', // 上报 id
-  // TODO: 在学号发生变化以后填充 uin 字段，等待 #42, #104 合并后使用 useEffect + setConfig 方法动态设置，assigned to @renbaoshuo.
-  // uin: '102401339', // 用户唯一 ID（可选）
   reportApiSpeed: true, // 开启接口测速
   hostUrl: 'https://rumt-zh.com',
   whiteListUrl: '', // 关闭白名单接口请求，减少金钱花销

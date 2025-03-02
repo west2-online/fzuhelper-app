@@ -1,6 +1,7 @@
 import { RejectEnum } from '@/api/enum';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { clearUserStorage } from '@/utils/user';
+import { CourseCache } from '@/lib/course';
+import { LocalUser } from '@/lib/user';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import { toast } from 'sonner-native';
@@ -9,7 +10,7 @@ import { toast } from 'sonner-native';
 
 interface RejectError {
   type: RejectEnum; // Type 被精简为只有 6 种，具体查看 api/enum.ts
-  data?: any; // 仅当 type 为 RejectEnum.BizFailed 和 RejectEnum.NativeLoginFailed 时存在
+  data?: any; // 仅当 type 为 RejectEnum.BizFailed/RejectEnum.NativeLoginFailed/RejectEnum.InternalFailed 时存在
   // 其中 RejectEnum.NativeLoginFailed 返回的是一个字符串，表示错误信息
 }
 
@@ -41,7 +42,8 @@ export const useSafeResponseSolve = () => {
               {
                 text: '确认',
                 onPress: async () => {
-                  await clearUserStorage();
+                  LocalUser.clear();
+                  CourseCache.clear();
                   redirect('/(guest)/academic-login');
                 },
               },
@@ -60,7 +62,8 @@ export const useSafeResponseSolve = () => {
                 {
                   text: '确认',
                   onPress: async () => {
-                    await clearUserStorage();
+                    LocalUser.clear();
+                    CourseCache.clear();
                     redirect('/(guest)/academic-login');
                   },
                 },
@@ -81,7 +84,7 @@ export const useSafeResponseSolve = () => {
           return error.data;
 
         case RejectEnum.InternalFailed:
-          console.error('内部异常:', error);
+          console.error('内部异常:', error.data);
           toast.error(`网络错误或服务器异常，请稍后再试（${RejectEnum.InternalFailed}）`);
           // 这里可以触发一些额外的错误处理逻辑
           break;

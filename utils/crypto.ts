@@ -1,6 +1,7 @@
+import { Buffer } from 'buffer';
 import * as Crypto from 'expo-crypto';
 
-export default async function md5(text: string, bit: 16 | 32) {
+export async function md5(text: string, bit: 16 | 32) {
   const digest = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.MD5, text);
 
   if (bit === 16) {
@@ -8,4 +9,8 @@ export default async function md5(text: string, bit: 16 | 32) {
   }
 
   return digest; // return full 32-bit hash
+}
+
+export function base64(text: string) {
+  return Buffer.from(text).toString('base64');
 }

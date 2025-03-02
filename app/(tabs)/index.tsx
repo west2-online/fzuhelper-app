@@ -18,7 +18,7 @@ export default function HomePage() {
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
 
   // 这个学期数据（不是课程数据，是学期的开始结束时间等信息）存本地就可以了，本地做个长时间的缓存，这玩意一学期变一次，保守一点缓 7 天把
-  // 使用含 hooks 的自动缓存逻辑
+  // 即使是研究生，也是用这个接口获取学期数据。
   const { data: termsData } = usePersistedQuery({
     queryKey: [COURSE_TERMS_LIST_KEY],
     queryFn: () => getApiV1TermsList(),
