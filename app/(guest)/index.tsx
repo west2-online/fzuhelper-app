@@ -153,7 +153,7 @@ export default function SplashScreen() {
 
     // 在此处开始加载 AEGIS 符合逻辑，同时不需要额外的再 load 一次
     console.log('set AEGIS config for', LocalUser.getUser().userid);
-    Alert.alert('AEGIS', 'set config for ' + LocalUser.getUser().userid);
+    // Alert.alert('AEGIS', 'set config for ' + LocalUser.getUser().userid);
     aegis.setConfig({
       uin: LocalUser.getUser().userid,
     });
