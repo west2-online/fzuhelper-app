@@ -1,3 +1,4 @@
+import { USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { Href, useRouter } from 'expo-router';
 import { Alert, Linking } from 'react-native';
 import { toast } from 'sonner-native';
@@ -8,10 +9,12 @@ export enum ToolType {
   FUNCTION = 'function', // 执行函数
   NULL = 'null', // 空操作
 }
+export type UserType = typeof USER_TYPE_UNDERGRADUATE | typeof USER_TYPE_POSTGRADUATE;
 
 export type Tool = {
   name: string;
   icon: any;
+  userTypes?: UserType[]; // 可选属性，用于指定适用的用户类型
 } & (
   | {
       type: ToolType.LINK;

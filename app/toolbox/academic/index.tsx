@@ -14,8 +14,9 @@ import { Text } from '@/components/ui/text';
 import { getApiV1JwchAcademicPlan } from '@/api/generate';
 import { LoadingDialog } from '@/components/loading';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { pushToWebViewJWCH } from '@/lib/webview';
-import { ToolType, toolOnPress, type Tool } from '@/utils/tools';
+import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '学业状况';
@@ -44,18 +45,21 @@ export default function AcademicPage() {
       name: '绩点排名',
       type: ToolType.LINK,
       href: '/toolbox/academic/gpa',
+      userTypes: [USER_TYPE_UNDERGRADUATE],
     },
     {
       icon: CreditIcon,
       name: '学分统计',
       type: ToolType.LINK,
       href: '/toolbox/academic/credits',
+      userTypes: [USER_TYPE_UNDERGRADUATE],
     },
     {
       icon: UnifiedIcon,
       name: '统考成绩',
       type: ToolType.LINK,
       href: '/toolbox/academic/unified-exam',
+      userTypes: [USER_TYPE_UNDERGRADUATE],
     },
     {
       icon: PlanIcon,
@@ -66,6 +70,7 @@ export default function AcademicPage() {
         setIsRefreshing(true);
         handlePlanData();
       },
+      userTypes: [USER_TYPE_UNDERGRADUATE],
     },
   ];
 
@@ -88,7 +93,9 @@ export default function AcademicPage() {
     <PageContainer className="bg-background p-4">
       {/* 菜单列表 */}
       <View className="mx-4 space-y-4">
-        {MENU_ITEMS.map((item, index) => (
+        {MENU_ITEMS.filter(
+          item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType),
+        ).map((item, index) => (
           <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => toolOnPress(item, router)} />
         ))}
       </View>
