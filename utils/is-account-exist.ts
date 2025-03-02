@@ -1,8 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { JWCH_ID_KEY } from '@/lib/constants';
+import { LocalUser } from '@/lib/user';
 
 export async function isAccountExist() {
-  const id = await AsyncStorage.getItem(JWCH_ID_KEY);
-  return !!id;
+  const userInfo = LocalUser.getUser();
+  console.log('userInfo:', userInfo);
+  return !!userInfo.userid;
 }
