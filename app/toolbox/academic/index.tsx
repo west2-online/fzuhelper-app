@@ -12,6 +12,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchAcademicPlan } from '@/api/generate';
+import { LoadingDialog } from '@/components/loading';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { pushToWebViewJWCH } from '@/lib/webview';
@@ -107,6 +108,7 @@ export default function AcademicPage() {
           统考成绩采集自教务系统数据，数据更新时间会晚于官方统考成绩公布渠道
         </Text>
       </View>
+      <LoadingDialog open={isRefreshing} />
     </PageContainer>
   );
 }

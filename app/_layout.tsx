@@ -10,6 +10,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Toaster } from 'sonner-native';
 
+import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
 import aegis from '@/lib/aegis';
 import { LocalUser } from '@/lib/user';
@@ -47,6 +48,7 @@ export default function RootLayout() {
               <Toaster cn={cn} position="top-center" duration={2500} offset={100} />
               <PortalHost />
               <SystemBars style="auto" />
+              <DownloadProgress />
             </GestureHandlerRootView>
           </KeyboardProvider>
         </ThemeProvider>
