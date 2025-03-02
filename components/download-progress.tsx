@@ -1,6 +1,6 @@
 import { LoadingDialog } from '@/components/loading';
+
 import { useDownloadStore } from '@/utils/download-manager';
-import React from 'react';
 
 export const DownloadProgress: React.FC = () => {
   const { isDownloading, progress, message } = useDownloadStore();

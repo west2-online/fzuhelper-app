@@ -1,9 +1,10 @@
 import { View } from 'react-native';
 import { Circle } from 'react-native-animated-spinkit';
 
+import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog';
+import { Text } from '@/components/ui/text';
+
 import { cn } from '@/lib/utils';
-import { AlertDialog, AlertDialogContent } from './ui/alert-dialog';
-import { Text } from './ui/text';
 
 interface LoadingProps {
   className?: string;
