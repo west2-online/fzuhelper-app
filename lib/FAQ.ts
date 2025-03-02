@@ -1,7 +1,3 @@
-import { LocalUser, USER_TYPE_UNDERGRADUATE } from './user';
-
-const isUndergraduate = LocalUser.getUser().type === USER_TYPE_UNDERGRADUATE;
-
 // 课表
 export const FAQ_COURSE = [
   {
@@ -83,10 +79,6 @@ export const FAQ_COURSE_GRADE = [
       },
       '的规则进行计算，同时不统计校选课课程（自然科学与工程技术类、人文社会科学类、经济管理类、文学与艺术类、工程技术类、劳动教育类、创新创业类、通识选修任选）以及“任意选修”类课程。单学期绩点基于本专业成绩计算，不统计二专业课程。',
     ],
-  },
-  {
-    question: '研究生为什么没有单学期绩点？',
-    answer: ['研究生教务系统没有提供单学期绩点（GPA）数据，只有学分（Credit）数据。'],
   },
   {
     question: '成绩什么时候更新？',

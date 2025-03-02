@@ -20,8 +20,6 @@ import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
 import { CourseCache, defaultCourseSetting, readCourseSetting } from '@/lib/course';
-import { convertSemester, deConvertSemester } from '@/lib/locate-date';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 
 export default function AcademicPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -54,6 +52,12 @@ export default function AcademicPage() {
     saveSettingsToStorage(settings);
   }, [settings, saveSettingsToStorage]);
 
+  // 获取课程数据
+  const { data: courseData } = usePersistedQuery({
+    queryKey: [COURSE_DATA_KEY, settings.selectedSemester],
+    queryFn: () => getApiV1JwchCourseList({ term: settings.selectedSemester, is_refresh: false }),
+  });
+
   // 获取完整学期数据
   const { data: termListData } = usePersistedQuery({
     queryKey: [COURSE_TERMS_LIST_KEY],
@@ -80,12 +84,7 @@ export default function AcademicPage() {
   // 强制刷新数据（即不使用本地缓存）
   const forceRefreshCourseData = useCallback(async () => {
     try {
-      let queryTerm = settings.selectedSemester;
-      // 如果是研究生的话多一层转换
-      if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
-        queryTerm = deConvertSemester(queryTerm);
-      }
-      const data = await getApiV1JwchCourseList({ term: queryTerm, is_refresh: true });
+      const data = await getApiV1JwchCourseList({ term: settings.selectedSemester, is_refresh: true });
       const cacheToStore = {
         data: data,
         timestamp: Date.now(),
@@ -116,13 +115,7 @@ export default function AcademicPage() {
   // 确认选择学期
   const handleConfirmTermSelectPicker = useCallback((selectedValue: string) => {
     setPickerVisible(false);
-    // 对于研究生，我们只在对外的显示（即 Label 内容等）上显示标准研究生学期，比如 2024-2025-1，但内部存储的永远是和本科生等价的 202401 等字样
-    setSettings(prevSettings => ({
-      ...prevSettings,
-      selectedSemester:
-        LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? convertSemester(selectedValue) : selectedValue,
-      // selectedValue,
-    }));
+    setSettings(prevSettings => ({ ...prevSettings, selectedSemester: selectedValue }));
   }, []);
 
   // 设置是否显示非本周课程
@@ -146,10 +139,10 @@ export default function AcademicPage() {
     //   calendarExportEnabled: !prevSettings.calendarExportEnabled,
     // }));
 
-    // if (!courseData) {
-    //   toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
-    //   return;
-    // }
+    if (!courseData) {
+      toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
+      return;
+    }
     if (!termListData) {
       toast.error('学期数据为空，无法导出到日历'); // 这个理论上也不可能触发
       return;
@@ -161,7 +154,7 @@ export default function AcademicPage() {
     // }
 
     // await exportCourseToNativeCalendar(courseData.data.data, startDate);
-  }, [termListData]);
+  }, [termListData, courseData]);
 
   // 控制导入考场到课表
   const handleExportExamToCourseTable = useCallback(() => {
@@ -195,13 +188,7 @@ export default function AcademicPage() {
 
             <LabelEntry
               leftText="切换学期"
-              rightText={
-                isLoadingSemester
-                  ? '加载中...'
-                  : LocalUser.getUser().type === USER_TYPE_POSTGRADUATE
-                    ? deConvertSemester(settings.selectedSemester)
-                    : settings.selectedSemester
-              }
+              rightText={isLoadingSemester ? '加载中...' : settings.selectedSemester}
               onPress={handleOpenTermSelectPicker}
               disabled={isLoadingSemester}
             />

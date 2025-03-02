@@ -1,14 +1,8 @@
 import type { JwchClassroomExamResponse as ExamData } from '@/api/backend';
 import type { MergedExamData } from '@/types/academic';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
 
 // 将日期字符串(xxxx年xx月xx日)转换为 Date 对象，如转换失败返回 undefined
 const parseDate = (dateStr: string): Date | undefined => {
-  // 研究生的考试日期格式是 2023-12-9 这样的，可以直接转换
-  if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
-    if (dateStr === '') return undefined; // 如果没有还是返回 undefined
-    return new Date(dateStr);
-  }
   const match = dateStr.match(/(\d{4})年(\d{2})月(\d{2})日/);
   return match ? new Date(`${match[1]}-${match[2]}-${match[3]}`) : undefined;
 };
