@@ -3,11 +3,10 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { LoadingState } from '@/types/loading-state';
+import useApiRequest from '@/hooks/useApiRequest';
 import { useFocusEffect } from '@react-navigation/native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
 
 interface PaperPageParam {
@@ -34,11 +33,18 @@ function SearchButton({ currentPath, papers }: SearchButtonProps) {
 }
 
 export default function PaperPage() {
-  const [loadingState, setLoadingState] = useState(LoadingState.UNINIT);
   const { path } = useLocalSearchParams<PaperPageParam>();
   const [currentPath, setCurrentPath] = useState(path !== undefined ? path : '/');
-  const [currentPapers, setCurrentPapers] = useState<Paper[]>([]);
-  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
+  const { data: paperData, status: loadingState, refetch } = useApiRequest(getApiV1PaperList, { path: currentPath });
+  const currentPapers = useMemo(() => {
+    if (paperData) {
+      const folders: Paper[] = paperData.folders.map(name => ({ name, type: PaperType.FOLDER }));
+      const files: Paper[] = paperData.files.map(name => ({ name, type: PaperType.FILE }));
+      return [...folders, ...files];
+    } else {
+      return [];
+    }
+  }, [paperData]);
 
   // 使用 useFocusEffect 替代 useEffect
   useFocusEffect(
@@ -65,25 +71,6 @@ export default function PaperPage() {
     }, [currentPath]),
   );
 
-  // 访问 west2-online 服务器
-  const getPaperData = useCallback(async () => {
-    setLoadingState(LoadingState.PENDING);
-    try {
-      const result = (await getApiV1PaperList({ path: currentPath })).data;
-      const folders: Paper[] = result.data.folders.map(name => ({ name, type: PaperType.FOLDER }));
-      const files: Paper[] = result.data.files.map(name => ({ name, type: PaperType.FILE }));
-      setCurrentPapers([...folders, ...files]);
-      setLoadingState(LoadingState.SUCCESS);
-    } catch (error: any) {
-      handleError(error);
-      setLoadingState(LoadingState.FAILED);
-    }
-  }, [currentPath, handleError]);
-
-  useEffect(() => {
-    getPaperData();
-  }, [getPaperData]);
-
   return (
     <>
       <Stack.Screen
@@ -99,8 +86,8 @@ export default function PaperPage() {
           papers={currentPapers}
           currentPath={currentPath}
           setCurrentPath={setCurrentPath}
-          isRefreshing={loadingState === LoadingState.PENDING || loadingState === LoadingState.UNINIT}
-          onRefresh={getPaperData}
+          isRefreshing={loadingState === 'pending'}
+          onRefresh={refetch}
         />
       </PageContainer>
     </>
