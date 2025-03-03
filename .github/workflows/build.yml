@@ -48,6 +48,12 @@ jobs:
       - name: Prebuild
         run: yarn run prebuild:android
 
+      - name: Cache gradle (local)
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+
       - name: Build Release APK
         run: |
           cd android
@@ -59,7 +65,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
           KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
           SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
-      
+
       - name: Extract Version Info
         shell: bash
         run: |
