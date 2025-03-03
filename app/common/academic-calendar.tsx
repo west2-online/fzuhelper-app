@@ -11,7 +11,7 @@ import { TabFlatList } from '@/components/tab-flatlist';
 import { Text } from '@/components/ui/text';
 
 import { ResultEnum } from '@/api/enum';
-import { getApiV1JwchTermList, getApiV1TermsInfo } from '@/api/generate';
+import { getApiV1TermsInfo, getApiV1TermsList } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { type AcademicCalendar } from '@/types/calendar';
 
@@ -44,8 +44,8 @@ export default function AcademicCalendarPage() {
   // 获取学期列表（当前用户）
   const fetchTermList = useCallback(async () => {
     try {
-      const result = await getApiV1JwchTermList();
-      const terms = result.data.data as string[];
+      const result = await getApiV1TermsList();
+      const terms = result.data.data.terms.map(item => item.term) as string[];
       setTermList(terms);
       if (!currentTerm && terms.length) {
         setCurrentTerm(terms[0]);

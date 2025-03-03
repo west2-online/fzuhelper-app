@@ -16,6 +16,8 @@ export type getApiV1JwchClassroomExamParams = {
 export type getApiV1JwchCourseListParams = {
   /** 学期 */
   term: string;
+  /** 强刷标签 */
+  is_refresh: boolean;
 };
 
 export type getApiV1LaunchScreenImagePointTimeParams = {
