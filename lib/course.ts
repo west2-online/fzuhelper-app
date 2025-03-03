@@ -6,11 +6,15 @@ import {
   CLASS_SCHEDULES_MINUTES,
   COURSE_CURRENT_CACHE_KEY,
   COURSE_SETTINGS_KEY,
+  COURSE_TERMS_LIST_KEY,
 } from '@/lib/constants';
 import { MergedExamData } from '@/types/academic';
 import generateRandomColor, { clearColorMapping, getExamColor } from '@/utils/random-color';
+import * as ExpoWidgetsModule from '@bittingz/expo-widgets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import objectHash from 'object-hash';
+import { getWeeksBySemester } from './locate-date';
 
 export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
   JwchCourseListResponse_CourseScheduleRule;
@@ -163,6 +167,20 @@ export class CourseCache {
         lastExamUpdateTime: this.lastExamUpdateTime,
       }),
     );
+    const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
+    const term = (await readCourseSetting()).selectedSemester;
+    const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
+    const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+    ExpoWidgetsModule.setWidgetData(
+      JSON.stringify({
+        courseData: this.cachedData,
+        examData: this.cachedExamData,
+        startDate: currentTerm.start_date,
+        maxWeek: maxWeek,
+      }),
+      Constants.expoConfig?.android?.package,
+    );
+    console.log('Saved cached course data to widget.');
   }
 
   /**

@@ -11,8 +11,6 @@
         android:id="@+id/next_class_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
         android:background="@drawable/core_bg_dialog_radius"
         android:orientation="vertical">
 
@@ -83,7 +81,6 @@
                 android:textColor="@color/black"
                 android:textSize="14sp" />
         </LinearLayout>
-
 
     </LinearLayout>
 </LinearLayout>

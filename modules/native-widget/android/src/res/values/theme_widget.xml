@@ -1,10 +1,10 @@
 <resources>
 
-    <style name="Theme.Fzuhelper.AppWidgetContainerParent" parent="@android:style/Theme.DeviceDefault">
-        <item name="appWidgetRadius">8dp</item>
-        <item name="appWidgetPadding">4dp</item>
-        <item name="appWidgetInnerRadius">4dp</item>
-    </style>
+  <style name="Theme.Fzuhelper.AppWidgetContainerParent" parent="@android:style/Theme.DeviceDefault">
+    <item name="appWidgetRadius">12dp</item>
+    <item name="appWidgetPadding">4dp</item>
+    <item name="appWidgetInnerRadius">4dp</item>
+  </style>
 
-    <style name="Theme.Fzuhelper.AppWidgetContainer" parent="Theme.Fzuhelper.AppWidgetContainerParent" />
+  <style name="Theme.Fzuhelper.AppWidgetContainer" parent="Theme.Fzuhelper.AppWidgetContainerParent" />
 </resources>
