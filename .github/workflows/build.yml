@@ -59,6 +59,7 @@ jobs:
         run: |
           echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
           echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
+          echo "$(git log -3 --pretty=format:"%s%n%b%n")" > android/app/build/outputs/changelog
 
       - name: Upload outputs
         uses: actions/upload-artifact@v4
@@ -85,6 +86,7 @@ jobs:
         run: |
           echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
           echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
+          echo "CHANGELOG=$(cat $GITHUB_WORKSPACE/outputs/changelog)" >> "$GITHUB_OUTPUT"
 
       - name: Get Upload Params
         id: upload-params
@@ -116,7 +118,6 @@ jobs:
 
       - name: Submit Version Info
         run: |
-          CHANGELOG=$(git log -3 --pretty=format:"%s%n%b%n")
           FEATURE="$CHANGELOG"$'\n\n'"此版本为新架构测试版，请提前加入内测群 1020036141 了解详情"
           curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload' \
             --form "version=$APP_VERSION_NAME" \
@@ -132,4 +133,5 @@ jobs:
           ANDROID_UPDATE_PWD: ${{ secrets.ANDROID_UPDATE_PWD }}
           APP_VERSION_NAME: ${{ steps.version-info.outputs.APP_VERSION_NAME }}
           APP_VERSION_CODE: ${{ steps.version-info.outputs.APP_VERSION_CODE }}
+          CHANGELOG: ${{ steps.version-info.outputs.CHANGELOG }}
           DOWNLOAD_URL: ${{ steps.upload-apk.outputs.DOWNLOAD_URL }}
