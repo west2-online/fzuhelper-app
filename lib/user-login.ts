@@ -106,8 +106,8 @@ class UserLogin {
   }
 
   // 获取验证码（仅限本科生教务系统，研究生教务系统没有验证码）
-  getCaptcha() {
-    return this.#get(JWCH_URLS.VERIFY_CODE, DEFAULT_HEADERS_UNDERGRADUATE);
+  async getCaptcha(): Promise<Uint8Array> {
+    return await this.#get(JWCH_URLS.VERIFY_CODE, DEFAULT_HEADERS_UNDERGRADUATE);
   }
 
   // （本科生教务系统）执行 logincheck.asp 操作
@@ -259,6 +259,7 @@ class UserLogin {
 
     if (typeof _captcha !== 'string') {
       captcha = await this.autoVerifyCaptcha(_captcha);
+      console.log('auto veryfy captcha result:', captcha);
     } else {
       captcha = _captcha;
     }
@@ -273,7 +274,6 @@ class UserLogin {
       const { id } = await this.#finishLogin(id0, num);
       identifier = id;
     }
-
     return {
       id: identifier,
       cookies: this.#getCookies(),

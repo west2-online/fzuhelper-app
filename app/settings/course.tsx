@@ -91,7 +91,7 @@ export default function AcademicPage() {
         timestamp: Date.now(),
       };
 
-      await AsyncStorage.setItem([COURSE_DATA_KEY, settings.selectedSemester].join('__'), JSON.stringify(cacheToStore));
+      await AsyncStorage.setItem([COURSE_DATA_KEY, queryTerm].join('__'), JSON.stringify(cacheToStore));
       CourseCache.setCourses(data.data.data, colorScheme);
       toast.success('刷新成功');
     } catch (error: any) {
@@ -259,7 +259,11 @@ export default function AcademicPage() {
                 value: s,
                 label: s,
               }))}
-              value={settings.selectedSemester}
+              value={
+                LocalUser.getUser().type === USER_TYPE_POSTGRADUATE
+                  ? deConvertSemester(settings.selectedSemester)
+                  : settings.selectedSemester
+              }
               onClose={() => setPickerVisible(false)}
               onConfirm={handleConfirmTermSelectPicker}
             />

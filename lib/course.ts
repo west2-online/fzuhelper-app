@@ -100,8 +100,12 @@ export class CourseCache {
   /**
    * 获取缓存数据
    */
-  public static getCachedData(): Record<number, ExtendCourse[]> {
+  public static getCachedData(): Record<number, ExtendCourse[]> | null {
     const mergedData: Record<number, ExtendCourse[]> = {};
+
+    if (!this.cachedData && !this.cachedExamData) {
+      return null;
+    }
 
     // 合并课程数据
     if (this.cachedData) {

@@ -33,7 +33,7 @@ export class LocalUser {
   private static identifier: string; // (仅本科生) 身份识别用 id，研究生会设置前导 0
   private static cookies: string; // 传递给教务系统的 Cookies
   private static loginObject = new UserLogin();
-  private static isLoaded = false; // 是否已经加载过用户信息
+  public static isLoaded = false; // 是否已经加载过用户信息
 
   /**
    * 从 AsyncStorage 中加载用户信息和登录凭证
@@ -122,9 +122,6 @@ export class LocalUser {
    * @returns 返回用户信息
    */
   public static getUser(): LocalUserInfo {
-    if (!this.isLoaded) {
-      this.load();
-    }
     return {
       type: this.type,
       userid: this.userid,
@@ -137,9 +134,6 @@ export class LocalUser {
    * @returns 返回登录凭证
    */
   public static getCredentials(): LoginCredentials {
-    if (!this.isLoaded) {
-      this.load();
-    }
     return {
       identifier: this.identifier,
       cookies: this.cookies,
@@ -161,7 +155,7 @@ export class LocalUser {
         try {
           // 本科生登录
           const captchaImage = await this.loginObject.getCaptcha();
-          const result = await this.loginObject.login(this.identifier, this.cookies, captchaImage, false);
+          const result = await this.loginObject.login(this.userid, this.password, captchaImage, false);
           newIdentifier = result.id;
           newCookies = result.cookies;
         } catch (err: any) {
@@ -235,7 +229,7 @@ async function checkCookieJWCH(credentials: LoginCredentials) {
   const str = Buffer.from(resp.data).toString('utf-8').replace(/\s+/g, '');
   const schoolid = /id="ContentPlaceHolder1_LB_xh">(\d+)/.exec(str)?.[1];
 
-  const userid = LocalUser.getUser().userid;
+  const userid = (await LocalUser.getUser()).userid;
   if (!schoolid || !userid) {
     return false;
   }

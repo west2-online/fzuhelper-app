@@ -33,8 +33,8 @@ export default function AcademicPage() {
         text: '清除',
         style: 'destructive',
         onPress: async () => {
-          CourseCache.clear(); // 清除课程缓存
-          LocalUser.clear(); // 清除本地用户
+          await CourseCache.clear(); // 清除课程缓存
+          await LocalUser.clear(); // 清除本地用户
           await AsyncStorage.clear(); // 清空 AsyncStorage
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
@@ -56,8 +56,8 @@ export default function AcademicPage() {
         style: 'destructive',
         onPress: async () => {
           try {
-            CourseCache.clear();
-            LocalUser.clear();
+            await CourseCache.clear();
+            await LocalUser.clear();
             await AsyncStorage.clear(); // 清空 AsyncStorage
             redirect('/(guest)');
           } catch (error) {

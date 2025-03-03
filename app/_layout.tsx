@@ -2,7 +2,6 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
 import { colorScheme } from 'nativewind';
-import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -12,8 +11,6 @@ import { Toaster } from 'sonner-native';
 
 import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
-import aegis from '@/lib/aegis';
-import { LocalUser } from '@/lib/user';
 import { cn } from '@/lib/utils';
 
 import '../global.css';
@@ -24,14 +21,6 @@ colorScheme.set('system');
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
 export default function RootLayout() {
   const currentColorScheme = useColorScheme();
-
-  useEffect(() => {
-    (async () => {
-      aegis.setConfig({
-        uin: LocalUser.getUser().userid,
-      });
-    })();
-  }, []);
 
   return (
     <SafeAreaProvider>
