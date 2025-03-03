@@ -86,7 +86,11 @@ jobs:
         run: |
           echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
           echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
-          echo "CHANGELOG=$(cat $GITHUB_WORKSPACE/outputs/changelog)" >> "$GITHUB_OUTPUT"
+          {
+            echo "CHANGELOG<<BSEOF"
+            cat $GITHUB_WORKSPACE/outputs/changelog
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Get Upload Params
         id: upload-params
