@@ -36,8 +36,14 @@ jobs:
         with:
           gradle-version: 8.8
 
+      - name: Cache node_modules
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Prebuild
         run: yarn run prebuild:android
