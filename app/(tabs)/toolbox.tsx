@@ -134,7 +134,7 @@ const DEFAULT_TOOLS: Tool[] = [
   },
   {
     name: '学习中心',
-    icon: StudyCenter, // TODO: 还没图标，随便放了一个
+    icon: StudyCenter,
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
   },
