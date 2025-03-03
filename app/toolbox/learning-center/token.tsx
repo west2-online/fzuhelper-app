@@ -1,3 +1,9 @@
+import Loading from '@/components/loading';
+import PageContainer from '@/components/page-container';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
+import ssoLogin from '@/lib/sso-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRouter } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -5,12 +11,6 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { toast } from 'sonner-native';
-
-import Loading from '@/components/loading';
-import PageContainer from '@/components/page-container';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Text } from '@/components/ui/text';
 
 const NAVIGATION_TITLE = '获取访问令牌';
 export const TOKEN_STORAGE_KEY = 'learning_center_token';
@@ -135,6 +135,22 @@ export default function LearningCenterTokenPage() {
   return (
     <PageContainer className="bg-background px-8 pt-4">
       <View className="space-y-6">
+        <Button
+          onPress={async () => {
+            const sso = new ssoLogin();
+            await sso.login('', ''); // 需要在这里提换你的学号和密码供测试
+          }}
+        >
+          <Text>测试SSOLogin</Text>
+        </Button>
+        <Button
+          onPress={async () => {
+            const sso = new ssoLogin();
+            await sso.getStudyToken();
+          }}
+        >
+          <Text>测试学习空间</Text>
+        </Button>
         <View className="space-y-2">
           <Text className="text-lg font-bold">学习中心令牌</Text>
           <Text className="text-base text-text-secondary">请输入或获取访问令牌</Text>

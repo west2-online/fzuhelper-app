@@ -1,8 +1,25 @@
-import { RejectEnum } from '@/api/enum';
-import { get, postJSON } from '@/modules/native-request';
+import { SSO_LOGIN_COOKIE_KEY, SSO_LOGIN_URL } from '@/lib/constants';
+import { get, post } from '@/modules/native-request';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';
 import CryptoJs from 'crypto-js';
-const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';
+
+// 用于提取 Set-Cookie 中的内容
+function extractKV(raw: string, key: string): string {
+  /**
+   * 适用于提取 Set-Cookie 中的键值对,URL parms中的键值对
+   * @param raw 字符串
+   * @param name 需要提取的键名
+   * @returns 键名对应的值
+   *
+   **/
+  const regex = new RegExp(`${key}=([^;]+)`);
+  const match = raw.match(regex);
+  if (!match || !match[1]) {
+    throw new Error(`无法从cookie中提取${key}`);
+  }
+  return match[1];
+}
 
 class ssoLogin {
   // 公共请求方法，使用 Native-Request 模块
@@ -12,26 +29,12 @@ class ssoLogin {
     headers: Record<string, string> = {},
     formData: Record<string, string> = {},
   ) {
-    let response;
-
-    headers = {
-      ...headers,
-    };
     try {
       if (method === 'GET') {
         return await get(url, headers);
-      } else if (method === 'POST') {
-        response = await postJSON(url, headers, formData);
-        const { data } = response;
-        const parsedData = Buffer.from(data).toString('utf-8');
-        console.log('请求成功:', parsedData);
-
-        return JSON.parse(parsedData);
-      } else
-        throw {
-          type: RejectEnum.NativeLoginFailed,
-          data: 'HTTP请求方法错误',
-        };
+      } else {
+        return await post(url, headers, formData);
+      }
     } catch (error) {
       console.error('请求错误:', error);
       throw error;
@@ -55,8 +58,14 @@ class ssoLogin {
   async #get({ url, headers = {} }: { url: string; headers?: Record<string, string> }) {
     return this.#request('GET', url, headers);
   }
-
+  // 登录, 返回并保存 cookie
   async login(account: string, password: string) {
+    /**
+     * @param account 学号
+     * @param password 密码
+     * @returns 登录成功后的 cookie
+     **/
+
     // 首先请求sso界面获得密钥
     const ssoPage = await this.#get({ url: SSO_LOGIN_URL });
     let html: string;
@@ -68,9 +77,10 @@ class ssoLogin {
     if (!matchCroypto || !matchExecution) {
       throw new Error('无法从页面中提取密钥');
     }
+
     const croypto: string = matchCroypto[1];
     const execution: string = matchExecution[1];
-    const SESSION: string = ssoPage.headers['Set-Cookie'].match(/SESSION=(.*?);/)[1];
+    const SESSION = extractKV(ssoPage.headers['Set-Cookie'], 'SESSION');
 
     // 构建登录数据
     const data = {
@@ -84,17 +94,56 @@ class ssoLogin {
       password: encrypt(password, croypto),
     };
 
-    // TODO 这里不对，应该是302跳转但是返回的是200
     // 发送登录请求
     const resp = await this.#post({
       url: SSO_LOGIN_URL,
       headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
         Cookie: `SESSION=${SESSION}`,
       },
       formData: data,
     });
+    const SOURCEID_TGC = extractKV(resp.headers['Set-Cookie'], 'SOURCEID_TGC');
+    const rg_objectid = extractKV(resp.headers['Set-Cookie'], 'rg_objectid');
 
-    return resp;
+    const cookies = `SOURCEID_TGC=${SOURCEID_TGC}; rg_objectid=${rg_objectid}`;
+
+    await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookies);
+    return cookies;
+  }
+
+  // 获取学习空间的token
+  async getStudyToken() {
+    let cookie: string = (await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY)) ?? '';
+    let resp;
+
+    // 重定向1
+    resp = await this.#get({
+      url: 'https://sso.fzu.edu.cn/oauth2.0/authorize?response_type=code&client_id=wlwxt&redirect_uri=http://aiot.fzu.edu.cn/api/admin/sso/getIbsToken',
+      headers: {
+        Cookie: cookie,
+      },
+    });
+
+    const SESSION = extractKV(resp.headers['Set-Cookie'], 'SESSION');
+    cookie += `; SESSION=${SESSION}`;
+    console.log('重定向1:', resp.headers);
+
+    // 进行后续四次重定向
+    for (let i = 0; i < 4; i++) {
+      resp = await this.#get({
+        url: resp.headers.Location,
+        headers: {
+          Cookie: cookie,
+        },
+      });
+      console.log(`重定向${i + 2}:`, resp.headers);
+    }
+
+    // 从最后一次重定向中提取token
+    const token = extractKV(resp.headers.Location, 'token');
+    console.log('提取到的token:', token);
+    return token;
   }
 }
 
