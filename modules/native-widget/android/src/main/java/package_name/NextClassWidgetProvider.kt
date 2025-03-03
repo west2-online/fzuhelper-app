@@ -1,6 +1,5 @@
 package com.helper.west2ol.fzuhelper.dev
 
-import com.helper.west2ol.fzuhelper.R
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
@@ -48,7 +47,7 @@ internal fun updateNextClassWidget(
 ) {
     val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
 
-    val nextClass : ClassInfo? = null
+    val nextClass = null
     if (nextClass != null) {
         val name = nextClass.courseBean.kcName
             .let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
@@ -63,7 +62,7 @@ internal fun updateNextClassWidget(
 
             setTextViewText(
                 R.id.course_weekday,
-                "周${nextClass.courseBean.kcWeekend}"
+                "周${getWeekChinese(nextClass.courseBean.kcWeekend)}"
             )
             setTextViewText(R.id.course_section, section)
             setTextViewText(R.id.course_week, "第${nextClass.week}周")
@@ -82,17 +81,3 @@ internal fun updateNextClassWidget(
 
     appWidgetManager.updateAppWidget(appWidgetId, views)
 }
-
-data class ClassTime(val weekday: Int, val section: Int)
-
-data class ClassInfo(val week: Int, val courseBean: CourseBean)
-
-data class CourseBean(
-    var kcName: String = "",
-    var kcLocation: String = "",
-    var kcStartTime: Int = 0,
-    var kcEndTime: Int = 0,
-    var kcWeekend: Int = 0,
-    var kcNote: String = "",
-    var type: Int = 0
-)
