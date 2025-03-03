@@ -52,7 +52,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/android/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/yarn.lock') }} # 因为要缓存的主要是 gradle 的依赖，所以这里使用 yarn.lock 作为 hashFiles 的参数
 
       - name: Build Release APK
         run: |
