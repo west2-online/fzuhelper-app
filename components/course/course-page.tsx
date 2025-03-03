@@ -40,6 +40,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
   const [schedulesByDays, setSchedulesByDays] = useState<Record<number, ExtendCourse[]>>([]); // 目前的课程数据，按天归类
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
+  const [neetForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
 
   const colorScheme = useColorScheme();
   const flatListRef = useRef<FlatList>(null);
@@ -106,20 +107,29 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
           setSchedulesByDays(CourseCache.getCachedData() ?? []);
         }
         if (hasCache && hasChanged) toast.info('课程数据已刷新');
+        setNeedForceFetch(false);
       } catch (error: any) {
         console.error(error);
         toast.error('课程数据获取失败，请检查网络连接，将使用本地缓存');
       }
     };
-
-    const localData = CourseCache.getCachedData();
-    if (localData) {
-      setSchedulesByDays(localData);
-    } else {
-      fetchData();
-    }
-    setCacheInitialized(true);
-  }, [term, colorScheme, exportExamToCourseTable, currentSemester]);
+    setSchedulesByDays(CourseCache.getCachedData() ?? []);
+    fetchData();
+    setCacheInitialized(prev => {
+      // 如果先前已经初始化过，说明是切换周数，则需要重置周
+      if (prev) {
+        // 此时再进行滚动到指定周数，添加 NeedForceFetch 标记，强制刷新数据
+        // 此时会让页面进入 Loading 状态
+        setNeedForceFetch(true);
+        flatListRef.current?.scrollToIndex({
+          index: initialWeek - 1,
+          animated: false,
+        });
+        setCurrentWeek(initialWeek);
+      }
+      return true;
+    });
+  }, [term, colorScheme, exportExamToCourseTable, currentSemester, initialWeek]);
 
   // 订阅刷新事件，触发时更新课程数据状态
   useEffect(() => {
@@ -168,7 +178,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
     [maxWeek],
   );
 
-  return !cacheInitialized ? (
+  return !cacheInitialized || neetForceFetch ? (
     <Loading />
   ) : (
     <>

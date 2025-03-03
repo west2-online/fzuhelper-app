@@ -38,13 +38,15 @@ export default function HomePage() {
     const parsedSettings = normalizeCourseSetting({ ...tryParsedSettings, selectedSemester });
     setConfig(parsedSettings);
 
-    // 如果是历史学期（即和 locateDate 给出的学期不符），则默认是第一周，反之则是当前周
-    setCurrentWeek(res.semester === parsedSettings.selectedSemester ? res.week : 1);
-
     // 更新 AsyncStorage，仅在数据变化时写入
     if (JSON.stringify(tryParsedSettings) !== JSON.stringify(parsedSettings)) {
       await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(parsedSettings));
     }
+
+    // 如果是历史学期（即和 locateDate 给出的学期不符），则默认是第一周，反之则是当前周
+    setCurrentWeek(res.semester === parsedSettings.selectedSemester ? res.week : 1);
+
+    console.log('set initial week: ', res.semester === parsedSettings.selectedSemester ? res.week : 1);
     // const endTime = Date.now(); // 记录结束时间
     // const elapsedTime = endTime - startTime; // 计算耗时
     // console.log(`loadData function took ${elapsedTime}ms to complete.`);
