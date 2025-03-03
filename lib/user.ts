@@ -155,7 +155,7 @@ export class LocalUser {
         try {
           // 本科生登录
           const captchaImage = await this.loginObject.getCaptcha();
-          const result = await this.loginObject.login(this.identifier, this.cookies, captchaImage, false);
+          const result = await this.loginObject.login(this.userid, this.password, captchaImage, false);
           newIdentifier = result.id;
           newCookies = result.cookies;
         } catch (err: any) {
