@@ -35,10 +35,11 @@ export default function useApiRequest<TParam, TReturn>(
 ): UseQueryResult<TReturn, any> {
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
   return useQuery({
-    queryKey: [params],
+    // 此处把函数转换为 string 作为查询字符串的一部分，避免不同 api 的返回混在一起
+    queryKey: [params, apiRequest.toString()],
     queryFn: async ({ queryKey }) => {
       try {
-        return (await apiRequest(queryKey[0])).data.data;
+        return (await apiRequest(queryKey[0] as TParam)).data.data;
       } catch (err: any) {
         const errorData = handleError(err);
         if (option.errorHandler) {
