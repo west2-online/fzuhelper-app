@@ -3,7 +3,9 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
-import ssoLogin from '@/lib/sso-login';
+import SSOLogin from '@/lib/sso-login';
+
+import { SSO_LOGIN_COOKIE_KEY } from '@/lib/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRouter } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -137,16 +139,8 @@ export default function LearningCenterTokenPage() {
       <View className="space-y-6">
         <Button
           onPress={async () => {
-            const sso = new ssoLogin();
-            await sso.login('', ''); // 需要在这里提换你的学号和密码供测试
-          }}
-        >
-          <Text>测试SSOLogin</Text>
-        </Button>
-        <Button
-          onPress={async () => {
-            const sso = new ssoLogin();
-            await sso.getStudyToken();
+            const sso = new SSOLogin();
+            await sso.getStudyToken((await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY)) || '');
           }}
         >
           <Text>测试学习空间</Text>

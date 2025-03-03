@@ -1,6 +1,5 @@
-import { SSO_LOGIN_COOKIE_KEY, SSO_LOGIN_URL } from '@/lib/constants';
+import { SSO_LOGIN_URL } from '@/lib/constants';
 import { get, post } from '@/modules/native-request';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';
 import CryptoJs from 'crypto-js';
 
@@ -21,7 +20,7 @@ function extractKV(raw: string, key: string): string {
   return match[1];
 }
 
-class ssoLogin {
+class SSOLogin {
   // 公共请求方法，使用 Native-Request 模块
   async #request(
     method: 'GET' | 'POST',
@@ -104,17 +103,18 @@ class ssoLogin {
       formData: data,
     });
     const SOURCEID_TGC = extractKV(resp.headers['Set-Cookie'], 'SOURCEID_TGC');
-    const rg_objectid = extractKV(resp.headers['Set-Cookie'], 'rg_objectid');
+    const cookies = `SOURCEID_TGC=${SOURCEID_TGC}`;
 
-    const cookies = `SOURCEID_TGC=${SOURCEID_TGC}; rg_objectid=${rg_objectid}`;
-
-    await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookies);
     return cookies;
   }
 
   // 获取学习空间的token
-  async getStudyToken() {
-    let cookie: string = (await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY)) ?? '';
+  async getStudyToken(ssoCookie: string) {
+    /**
+     * @param ssoCookie 登录SSO后的cookie
+     * @returns 学习空间的token
+     **/
+    let cookie = ssoCookie;
     let resp;
 
     // 重定向1
@@ -166,4 +166,4 @@ function encrypt(raw_password: string, keyBase64: string): string {
   return encrypted.toString();
 }
 
-export default ssoLogin;
+export default SSOLogin;

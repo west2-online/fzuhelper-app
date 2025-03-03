@@ -1,3 +1,17 @@
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import {
+  SSO_LOGIN_COOKIE_KEY,
+  URL_PRIVACY_POLICY,
+  URL_USER_AGREEMENT,
+  YMT_ACCESS_TOKEN_KEY,
+  YMT_USERNAME_KEY,
+} from '@/lib/constants';
+import SSOLogin from '@/lib/sso-login';
+import { pushToWebViewNormal } from '@/lib/webview';
+import YMTLogin from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
@@ -5,14 +19,6 @@ import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
-
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Text } from '@/components/ui/text';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
-import { pushToWebViewNormal } from '@/lib/webview';
-import YMTLogin from '@/lib/ymt-login';
 
 const NAVIGATION_TITLE = '统一身份认证';
 const URL_FORGET_PASSWORD = 'https://sso.fzu.edu.cn/public/client/forget-password/qr';
@@ -24,9 +30,48 @@ const UnifiedLoginPage: React.FC = () => {
   const [isAgree, setIsAgree] = useState(false);
   const { handleError } = useSafeResponseSolve();
   const ymtLogin = useRef<YMTLogin | null>(null);
+  const ssoLogin = useRef<SSOLogin | null>(null);
+
   if (!ymtLogin.current) {
     ymtLogin.current = new YMTLogin();
   }
+  if (!ssoLogin.current) {
+    ssoLogin.current = new SSOLogin();
+  }
+  // 处理SSO登录逻辑
+  const handleSSOLogin = useCallback(async () => {
+    try {
+      const cookies = await ssoLogin.current!.login(account, accountPassword);
+      await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookies);
+      console.log('登录SSO成功:', cookies);
+      return true;
+    } catch (error: any) {
+      const data = handleError(error);
+      if (data) {
+        Alert.alert('请求失败', data.code + ': ' + data.msg);
+      }
+      return false;
+    }
+  }, [account, accountPassword, handleError]);
+
+  // 处理一码通登录逻辑
+  const handleYMTLogin = useCallback(async () => {
+    try {
+      const { name, accessToken } = await ymtLogin.current!.login(account, accountPassword);
+      console.log('登录一码通成功:', name, accessToken);
+      await AsyncStorage.multiSet([
+        [YMT_ACCESS_TOKEN_KEY, accessToken],
+        [YMT_USERNAME_KEY, name],
+      ]);
+      return true;
+    } catch (error: any) {
+      const data = handleError(error);
+      if (data) {
+        Alert.alert('请求失败', data.code + ': ' + data.msg);
+      }
+      return false;
+    }
+  }, [account, accountPassword, handleError]);
 
   // 打开服务协议
   const openUserAgreement = useCallback(() => {
@@ -59,30 +104,14 @@ const UnifiedLoginPage: React.FC = () => {
     }
 
     setIsLoggingIn(true); // 禁用按钮
+    // 由于一码通和SSO使用同一套账号密码 所以这里同时进行一码通和SSO登录
+    // 调用统一身份认证登录逻辑
 
-    try {
-      // 调用统一身份认证登录逻辑
-      // !! 注意：此处调用的是一码通登录。后续如有其他需求再进行改进 !!
-      const { name, accessToken } = await ymtLogin.current!.login(account, accountPassword);
-
-      // 存储所需的信息
-      await AsyncStorage.multiSet([
-        [YMT_ACCESS_TOKEN_KEY, accessToken],
-        [YMT_USERNAME_KEY, name],
-      ]);
-
-      console.log('登录成功:', name, accessToken);
-
-      // 跳转到上一页
-      router.back();
-    } catch (error: any) {
-      const data = handleError(error);
-      if (data) {
-        Alert.alert('请求失败', data.code + ': ' + data.msg);
-      }
-    } finally {
-      // 恢复按钮状态
+    const isSSOLogin = handleSSOLogin();
+    const isYMTLogin = handleYMTLogin();
+    if ((await isSSOLogin) && (await isYMTLogin)) {
       setIsLoggingIn(false);
+      router.back();
     }
   }, [isAgree, account, accountPassword, ymtLogin, handleError]);
 
