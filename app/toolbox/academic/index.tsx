@@ -1,5 +1,5 @@
 import { useNavigation, useRouter } from 'expo-router';
-import { useCallback, useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import CreditIcon from '@/assets/images/toolbox/academic/ic_credit.png';
@@ -13,7 +13,7 @@ import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchAcademicPlan } from '@/api/generate';
 import { LoadingDialog } from '@/components/loading';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import useApiRequest from '@/hooks/useApiRequest';
 import { pushToWebViewJWCH } from '@/lib/webview';
 import { ToolType, toolOnPress, type Tool } from '@/utils/tools';
 import { toast } from 'sonner-native';
@@ -29,7 +29,7 @@ export default function AcademicPage() {
 
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
+  const { data: planData, error, refetch } = useApiRequest(getApiV1JwchAcademicPlan, {}, { enabled: false });
 
   // 菜单项数据
   const MENU_ITEMS: Tool[] = [
@@ -64,25 +64,16 @@ export default function AcademicPage() {
       action: async () => {
         if (isRefreshing) return;
         setIsRefreshing(true);
-        handlePlanData();
+        await refetch();
+        setIsRefreshing(false);
+        if (planData) {
+          pushToWebViewJWCH(planData || '', '培养计划');
+        } else if (error) {
+          toast.error(error.msg ? error.msg : '培养计划没有找到');
+        }
       },
     },
   ];
-
-  const handlePlanData = useCallback(async () => {
-    try {
-      const result = await getApiV1JwchAcademicPlan();
-      pushToWebViewJWCH(result.data.data || '', '培养计划');
-    } catch (error: any) {
-      const data = handleError(error);
-      console.log(data);
-      if (data) {
-        toast.error(data.msg ? data.msg : '培养计划没有找到');
-      }
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [handleError]);
 
   return (
     <PageContainer className="bg-background p-4">
