@@ -76,14 +76,8 @@ internal fun updateNextClassWidget(
     val nextClass = getNextClass(cacheCourseData)
     if (nextClass != null) {
 
-        val name = with(nextClass.courseBean) {
-            val prefix = buildString {
-                if (type == 1) append("[考试] ")
-                if (adjust) append("[调课] ")
-            }
-            val fullName = "$prefix$name"
-            if (fullName.length >= 13) fullName.substring(0, 11) + "..." else fullName
-        }
+        val name = nextClass.courseBean.name
+            .let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
 
         views.apply {
             setTextViewText(R.id.course_name, name)
@@ -260,7 +254,7 @@ data class ExtendCourse(
     val weekday: Int,            // 星期几
     val single: Boolean,         // 是否单周
     val double: Boolean,         // 是否双周
-    val adjust: Boolean,         // 是否为调课
+//    val adjust: Boolean,         // 是否为调课
     val remark: String,          // 备注
 //    val syllabus: String,        // 课程大纲
 //    val lessonplan: String       // 教学计划
