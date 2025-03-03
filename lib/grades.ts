@@ -33,9 +33,9 @@ export const parseScoreToColor = (score: string) => {
   }
 
   // 五级制成绩
-  if (score === '优秀') {
+  if (score === '优秀' || score === '优') {
     return GRADE_COLOR_EXCELLENT; // 优秀
-  } else if (score === '良好') {
+  } else if (score === '良好' || score === '良') {
     return GRADE_COLOR_GOOD; // 良好
   } else if (score === '中等') {
     return GRADE_COLOR_MEDIUM; // 中等
@@ -66,10 +66,10 @@ export const parseScore = (score: string) => {
   if (!isNaN(numericScore)) {
     return numericScore;
   }
-  // 五级制和两级制转换为数值进行比较
-  if (score === '优秀') return 89.9;
+  // 五级制和两级制转换为数值进行比较，优和良是研究生院的成绩
+  if (score === '优秀' || score === '优') return 89.9;
   if (score === '合格') return 89.89;
-  if (score === '良好') return 79.9;
+  if (score === '良好' || score === '良') return 79.9;
   if (score === '中等') return 69.9;
   if (score === '及格') return 59.9;
   if (score === '不及格' || score === '不合格') return -1;

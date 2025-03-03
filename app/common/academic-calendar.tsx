@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Dimensions, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';

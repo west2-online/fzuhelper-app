@@ -100,8 +100,12 @@ export class CourseCache {
   /**
    * 获取缓存数据
    */
-  public static getCachedData(): Record<number, ExtendCourse[]> {
+  public static getCachedData(): Record<number, ExtendCourse[]> | null {
     const mergedData: Record<number, ExtendCourse[]> = {};
+
+    if (!this.cachedData && !this.cachedExamData) {
+      return null;
+    }
 
     // 合并课程数据
     if (this.cachedData) {
@@ -172,6 +176,7 @@ export class CourseCache {
     this.lastCourseUpdateTime = NO_LOADING_MSG;
     this.lastExamUpdateTime = NO_LOADING_MSG;
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
+    this.startID = DEFAULT_STARTID; // 重置 ID 计数器
     await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
   }
 
