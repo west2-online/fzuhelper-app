@@ -369,10 +369,7 @@ export class CourseCache {
    * @param colorScheme - 当前的配色方案（'dark' 或 'light'）
    * @returns 按天归类的课程数据
    */
-  public static setCourses(
-    tempData: JwchCourseListResponse_Course[],
-    colorScheme: 'dark' | 'light' | null | undefined,
-  ): Record<number, ExtendCourse[]> {
+  public static setCourses(tempData: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
     // 更新时间戳
     this.lastCourseUpdateTime = new Date().toLocaleString();
     // 生成当前 tempData 的 digest
@@ -392,7 +389,7 @@ export class CourseCache {
     // 为每个课程生成颜色并扩展数据
     const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
       if (!courseColorMap[schedule.name]) {
-        courseColorMap[schedule.name] = generateRandomColor(schedule.name, colorScheme === 'dark');
+        courseColorMap[schedule.name] = generateRandomColor(schedule.name);
       }
       return {
         ...schedule,
