@@ -27,7 +27,7 @@ export default function HomePage() {
 
   // loadData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
   const loadData = useCallback(async () => {
-    const startTime = Date.now(); // 记录开始时间
+    // const startTime = Date.now(); // 记录开始时间
 
     const res = await locateDate();
     setLocateDateResult(res);
@@ -43,10 +43,9 @@ export default function HomePage() {
     if (JSON.stringify(tryParsedSettings) !== JSON.stringify(parsedSettings)) {
       await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(parsedSettings));
     }
-
-    const endTime = Date.now(); // 记录结束时间
-    const elapsedTime = endTime - startTime; // 计算耗时
-    console.log(`loadData function took ${elapsedTime}ms to complete.`);
+    // const endTime = Date.now(); // 记录结束时间
+    // const elapsedTime = endTime - startTime; // 计算耗时
+    // console.log(`loadData function took ${elapsedTime}ms to complete.`);
   }, []);
 
   // 当加载的时候会读取 COURSE_SETTINGS，里面有一个字段会存储当前选择的学期（不一定是最新学期）

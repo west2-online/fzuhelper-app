@@ -82,7 +82,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
 
         // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
         if (!hasCache || CourseCache.compareDigest(COURSE_TYPE, fetchedData.data.data) === false) {
-          console.log('课程数据有变更，已更新');
           CourseCache.setCourses(fetchedData.data.data, colorScheme);
           hasChanged = true;
         }
@@ -138,7 +137,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
       index: currentWeek - 1,
       animated: false,
     });
-  }, [locateDateResult.semester, locateDateResult.week, term]);
+  }, [week, locateDateResult, term]);
 
   // 获取当前学期的最大周数
   const maxWeek = useMemo(
