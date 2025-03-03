@@ -17,27 +17,30 @@ import CourseWeek from './course-week';
 
 import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
-import type { CourseSetting, LocateDateResult } from '@/api/interface';
+import type { CourseSetting } from '@/api/interface';
 import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, EXAM_TYPE, type ExtendCourse } from '@/lib/course';
 import { formatExamData } from '@/lib/exam-room';
 import { deConvertSemester, getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
+import Loading from '../loading';
 
 interface CoursePageProps {
   config: CourseSetting;
-  locateDateResult: LocateDateResult;
+  initialWeek: number;
   semesterList: TermsListResponse_Terms;
 }
 
 // 课程表页面
-const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semesterList }) => {
-  const [week, setWeek] = useState(1); // 当前周数
+const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterList }) => {
+  const [currentWeek, setCurrentWeek] = useState(initialWeek); // 当前周数
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
   const [schedulesByDays, setSchedulesByDays] = useState<Record<number, ExtendCourse[]>>([]); // 目前的课程数据，按天归类
+  const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
+  const [neetForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
 
   const colorScheme = useColorScheme();
   const flatListRef = useRef<FlatList>(null);
@@ -101,43 +104,43 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           }
         }
         if (!hasCache || hasChanged) {
-          setSchedulesByDays(CourseCache.getCachedData());
+          setSchedulesByDays(CourseCache.getCachedData() ?? []);
         }
         if (hasCache && hasChanged) toast.info('课程数据已刷新');
+        setNeedForceFetch(false);
       } catch (error: any) {
         console.error(error);
         toast.error('课程数据获取失败，请检查网络连接，将使用本地缓存');
       }
     };
-
-    // 如果有缓存数据，优先使用缓存数据
     setSchedulesByDays(CourseCache.getCachedData() ?? []);
     fetchData();
-  }, [term, colorScheme, exportExamToCourseTable, currentSemester]);
+    setCacheInitialized(prev => {
+      // 如果先前已经初始化过，说明是切换周数，则需要重置周
+      if (prev) {
+        // 此时再进行滚动到指定周数，添加 NeedForceFetch 标记，强制刷新数据
+        // 此时会让页面进入 Loading 状态
+        setNeedForceFetch(true);
+        flatListRef.current?.scrollToIndex({
+          index: initialWeek - 1,
+          animated: false,
+        });
+        setCurrentWeek(initialWeek);
+      }
+      return true;
+    });
+  }, [term, colorScheme, exportExamToCourseTable, currentSemester, initialWeek]);
 
   // 订阅刷新事件，触发时更新课程数据状态
   useEffect(() => {
     const refreshHandler = () => {
-      setSchedulesByDays(CourseCache.getCachedData());
+      setSchedulesByDays(CourseCache.getCachedData() ?? []);
     };
     CourseCache.addRefreshListener(refreshHandler);
     return () => {
       CourseCache.removeRefreshListener(refreshHandler);
     };
   }, []);
-
-  // 确认当前周，如果是历史学期（即和 locateDateResult 给出的学期不符），则默认回退到第一周
-  useEffect(() => {
-    let currentWeek = 1;
-    if (term === locateDateResult.semester) {
-      currentWeek = locateDateResult.week;
-    }
-    setWeek(currentWeek);
-    flatListRef.current?.scrollToIndex({
-      index: currentWeek - 1,
-      animated: false,
-    });
-  }, [week, locateDateResult, term]);
 
   // 获取当前学期的最大周数
   const maxWeek = useMemo(
@@ -159,7 +162,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
   const handleViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken<(typeof weekArray)[0]>[] }) => {
       if (viewableItems.length > 0) {
-        setWeek(viewableItems[0].item.week);
+        setCurrentWeek(viewableItems[0].item.week);
       }
     },
     [],
@@ -175,7 +178,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
     [maxWeek],
   );
 
-  return (
+  return !cacheInitialized || neetForceFetch ? (
+    <Loading />
+  ) : (
     <>
       {/* 顶部 Tab 导航栏 */}
       <Tabs.Screen
@@ -186,7 +191,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           // eslint-disable-next-line react/no-unstable-nested-components
           headerTitle: () => (
             <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
-              <Text className="mr-1 text-lg">第 {week} 周 </Text>
+              <Text className="mr-1 text-lg">第 {currentWeek} 周 </Text>
               <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
             </Pressable>
           ),
@@ -209,6 +214,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
           offset: flatListLayout.width * index, // 每个项的起始位置
           index, // 当前索引
         })}
+        initialScrollIndex={currentWeek - 1} // 初始滚动位置
         // 渲染列表项（此处一项为一屏的内容）
         renderItem={({ item }) => (
           <CourseWeek
@@ -234,12 +240,12 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, locateDateResult, semes
         visible={showWeekSelector}
         title="选择周数"
         data={weekPickerData}
-        value={String(week)}
+        value={String(currentWeek)}
         onClose={() => setShowWeekSelector(false)}
         onConfirm={selectedValue => {
           setShowWeekSelector(false);
           const selectedWeek = parseInt(selectedValue, 10);
-          setWeek(selectedWeek);
+          setCurrentWeek(selectedWeek);
           flatListRef.current?.scrollToIndex({
             index: selectedWeek - 1,
             animated: false,
