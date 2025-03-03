@@ -110,9 +110,9 @@ const UnifiedLoginPage: React.FC = () => {
     const isSSOLogin = handleSSOLogin();
     const isYMTLogin = handleYMTLogin();
     if ((await isSSOLogin) && (await isYMTLogin)) {
-      setIsLoggingIn(false);
       router.back();
     }
+    setIsLoggingIn(false);
   }, [isAgree, account, accountPassword, ymtLogin, handleError]);
 
   return (
