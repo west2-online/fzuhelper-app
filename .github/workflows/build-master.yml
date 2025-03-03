@@ -1,4 +1,5 @@
-name: Build Release APK
+# 此处的 name 被 publish-beta.yml 引用，请勿修改！！！
+name: Build APK (Release)
 
 on:
   push:
@@ -6,12 +7,16 @@ on:
       - master
   workflow_dispatch:
 
+concurrency:
+  group: build
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout sources
+      - name: Checkout source code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -19,7 +24,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.14.0
+          node-version: 22.12.0
+          cache: yarn
 
       - uses: actions/setup-java@v4
         with:
@@ -40,13 +46,20 @@ jobs:
       - name: Build Release APK
         run: |
           cd android
-          echo ${{ secrets.SIGN_KEYSTORE_BASE64 }} | base64 -d > ./app/keystore.jks
+          echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
           ./gradlew app:packageRelease
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
           KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
+          SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
+      
+      - name: Extract Version Info
+        shell: bash
+        run: |
+          echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
+          echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
 
       - name: Upload outputs
         uses: actions/upload-artifact@v4
@@ -54,42 +67,3 @@ jobs:
           name: outputs
           path: android/app/build/outputs
           retention-days: 0
-
-      - name: Extract Version Info
-        run: |
-          VERSION_CODE=$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')
-          VERSION_NAME=$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')
-          echo "APP_VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
-          echo "APP_VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
-
-      - name: Get Upload Params
-        run: |
-          RESPONSE=$(curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload-params' \
-          --form "password=${{ secrets.ANDROID_UPDATE_PWD }}")
-          echo "UPYUN_POLICY=$(echo $RESPONSE | jq -r .policy)" >> $GITHUB_ENV
-          echo "UPYUN_AUTH=$(echo $RESPONSE | jq -r .authorization)" >> $GITHUB_ENV
-
-      - name: Upload to UPYUN
-        run: |
-          cd android/app/build/outputs/apk/release
-          mv app-arm64-v8a-release.apk "FzuHelper_${{ env.APP_VERSION_NAME }}(${{ env.APP_VERSION_CODE }}).apk"
-          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \
-          -F "file=@FzuHelper_${{ env.APP_VERSION_NAME }}(${{ env.APP_VERSION_CODE }}).apk" \
-          -F "policy=${{ env.UPYUN_POLICY }}" \
-          -F "authorization=${{ env.UPYUN_AUTH }}")
-          DOWNLOAD_URL="https://download.w2fzu.com$(echo $RESPONSE | jq -r .url)"
-          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
-
-      # 测试期间，直接推beta通道并强制更新
-      - name: Submit Version Info
-        run: |
-          CHANGELOG=$(git log -3 --pretty=format:"%s%n%b")
-          FEATURE="$CHANGELOG"$'\n\n'"此版本为新架构测试版，请提前加入内测群1020036141了解详情"
-          curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload' \
-          --form "version=${{ env.APP_VERSION_NAME }}" \
-          --form "code=${{ env.APP_VERSION_CODE }}" \
-          --form "url=${{ env.DOWNLOAD_URL }}" \
-          --form "feature=$FEATURE" \
-          --form "type=beta" \
-          --form "password=${{ secrets.ANDROID_UPDATE_PWD }}" \
-          --form "force=true"
