@@ -15,16 +15,24 @@ const GradeCard: React.FC<GradeCardProps> = ({ item }) => {
     <Card className="p-3">
       <View className="mb-1 flex flex-row items-center justify-between">
         {/* 课程名称 */}
-        <Text className="break-words text-base font-semibold leading-tight text-text-primary">{item.name}</Text>
+        <Text
+          className="flex-shrink flex-grow break-words text-base font-semibold leading-tight text-text-primary"
+          numberOfLines={1}
+        >
+          {item.name}
+        </Text>
+
         {/* 考试类型 */}
-        <Text className="text-sm text-text-secondary">{item.exam_type}</Text>
+        <Text className="flex-shrink-0 flex-grow-0 text-sm text-text-secondary">{item.exam_type}</Text>
       </View>
       {/* 授课教师和课程类型 */}
       <View className="mt-1 flex flex-row justify-between">
         {/* 授课教师 */}
-        <Text className="truncate text-xs text-text-secondary">{item.teacher}</Text>
+        <Text className="flex-shrink flex-grow truncate text-xs text-text-secondary" numberOfLines={1}>
+          {item.teacher}
+        </Text>
         {/* 课程类型 */}
-        <Text className="truncate text-xs text-text-secondary">{item.elective_type}</Text>
+        <Text className="flex-shrink-0 flex-grow-0 truncate text-xs text-text-secondary">{item.elective_type}</Text>
       </View>
       {/* 分割线 */}
       <View className="my-2 border-b border-border" />
