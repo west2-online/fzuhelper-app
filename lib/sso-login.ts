@@ -1,8 +1,8 @@
+import { RejectEnum } from '@/api/enum';
 import { SSO_LOGIN_URL } from '@/lib/constants';
 import { get, post } from '@/modules/native-request';
 import { Buffer } from 'buffer';
 import CryptoJs from 'crypto-js';
-
 // 用于提取 Set-Cookie 中的内容
 function extractKV(raw: string, key: string): string {
   /**
@@ -65,6 +65,13 @@ class SSOLogin {
      * @returns 登录成功后的 cookie
      **/
 
+    if (account === '' || password === '') {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '账号密码不能为空',
+      };
+    }
+
     // 首先请求sso界面获得密钥
     const ssoPage = await this.#get({ url: SSO_LOGIN_URL });
     let html: string;
@@ -114,6 +121,13 @@ class SSOLogin {
      * @param ssoCookie 登录SSO后的cookie
      * @returns 学习空间的token
      **/
+    if (ssoCookie === '') {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: 'SSO登录cookie不能为空,请先登录',
+      };
+    }
+
     let cookie = ssoCookie;
     let resp;
 

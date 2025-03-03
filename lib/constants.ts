@@ -38,6 +38,9 @@ export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 export const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';
 export const SSO_LOGIN_COOKIE_KEY = 'sso_login_cookie';
 
+// 学习空间预约
+export const LEARNING_CENTER_TOKEN_KEY = 'learning_center_token';
+
 // 隐私政策允许情况
 export const IS_PRIVACY_POLICY_AGREED = 'is_privacy_policy_agreed';
 export const URL_USER_AGREEMENT = 'https://fzuhelper.west2.online/onekey/UserAgreement.html';

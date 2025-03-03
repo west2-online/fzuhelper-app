@@ -137,14 +137,6 @@ export default function LearningCenterTokenPage() {
   return (
     <PageContainer className="bg-background px-8 pt-4">
       <View className="space-y-6">
-        <Button
-          onPress={async () => {
-            const sso = new SSOLogin();
-            await sso.getStudyToken((await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY)) || '');
-          }}
-        >
-          <Text>测试学习空间</Text>
-        </Button>
         <View className="space-y-2">
           <Text className="text-lg font-bold">学习中心令牌</Text>
           <Text className="text-base text-text-secondary">请输入或获取访问令牌</Text>

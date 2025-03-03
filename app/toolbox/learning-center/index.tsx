@@ -1,15 +1,15 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
-import { toast } from 'sonner-native';
-
 import LabelEntry from '@/components/label-entry';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
-
-import { TOKEN_STORAGE_KEY } from './token';
-
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
+import SSOLogin from '@/lib/sso-login';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Link, router, Stack, useFocusEffect, useRouter } from 'expo-router';
+import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, View } from 'react-native';
+import { toast } from 'sonner-native';
 const menuItems: {
   name: string;
   route?: '/toolbox/learning-center/seats' | '/toolbox/learning-center/history';
@@ -28,87 +28,83 @@ const menuItems: {
   },
 ];
 
-export default function LearningCenterPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasToken, setHasToken] = useState(false);
-
-  useEffect(() => {
-    const checkToken = async () => {
-      try {
-        const token = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
-        setHasToken(!!token);
-        if (!token) {
-          router.push('/toolbox/learning-center/token');
-        }
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : '未知错误';
-        toast.error('检查令牌时出错：' + errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkToken();
-  }, [router]);
-
-  const handleClearToken = () => {
-    Alert.alert(
-      '确认清除令牌',
-      '清除后需要重新获取令牌才能使用学习中心功能',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '确认',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.removeItem(TOKEN_STORAGE_KEY);
-              toast.success('令牌已清除');
-              router.push('/toolbox/learning-center/token');
-            } catch (error: unknown) {
-              const errorMessage = error instanceof Error ? error.message : '未知错误';
-              toast.error('清除令牌失败: ' + errorMessage);
-            }
-          },
-        },
-      ],
-      { cancelable: true },
-    );
-  };
-
-  const allMenuItems = [
-    ...menuItems,
-    {
-      name: '清除访问令牌',
-      description: '清除当前的访问令牌',
-      action: handleClearToken,
-    },
-  ];
-
-  if (isLoading) {
-    return <Loading />;
+const getToken = async () => {
+  // 首先尝试从本地读取token
+  const tokenStorage = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
+  if (tokenStorage) {
+    console.log('从本地读取到token:', tokenStorage);
+    return tokenStorage;
   }
 
-  if (!hasToken) {
+  // 本地没有就检查SSO是否登录
+  const ssoCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
+  if (!ssoCookie) {
+    console.log('未登录SSO，无法获取token');
     return null;
   }
 
+  // sso登录获取token
+  const ssoLogin = new SSOLogin();
+  const tokenLogin = await ssoLogin.getStudyToken(ssoCookie);
+  if (tokenLogin) {
+    console.log('通过SSO登录获取到token:', tokenLogin);
+    await AsyncStorage.setItem(LEARNING_CENTER_TOKEN_KEY, tokenLogin);
+    return tokenLogin;
+  }
+  return null;
+};
+
+export default function LearningCenterPage() {
+  const [token, setToken] = useState<null | string>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 进入页面时获取token
+  useFocusEffect(
+    useCallback(() => {
+      getToken().then(fetchedToken => {
+        setToken(fetchedToken);
+        setIsLoading(false);
+      });
+    }, []),
+  );
+  if (isLoading) {
+    return <Loading />;
+  }
   return (
     <>
       <Stack.Screen options={{ title: '学习中心预约' }} />
-
       <PageContainer className="bg-background px-8 pt-4">
-        <View className="space-y-4">
-          {allMenuItems.map((item, index) => (
-            <LabelEntry
-              key={index}
-              leftText={item.name}
-              description={item.description}
-              onPress={item.action || (item.route ? () => router.push(item.route!) : undefined)}
-            />
-          ))}
-        </View>
+        {token ? (
+          <View className="space-y-4">
+            {menuItems.map((item, index) => (
+              <LabelEntry
+                key={index}
+                leftText={item.name}
+                description={item.description}
+                onPress={item.action || (item.route ? () => router.push(item.route!) : undefined)}
+              />
+            ))}
+          </View>
+        ) : (
+          <View className="flex-1 items-center justify-center gap-10">
+            <Text className="text-lg">登录统一身份认证平台，享受学习一码通，学习中心预约服务</Text>
+            <Button
+              onPress={() => {
+                router.push('/unified-auth-login');
+                setIsLoading(true);
+              }}
+              className="w-1/2"
+            >
+              <Text>前往登录</Text>
+            </Button>
+
+            {/* <Link href="/toolbox/learning-center/token" asChild>
+              <Button className="w-1/2">
+                <Text className="text-white color-gray-50">使用使用备用方案</Text>
+              </Button>
+            </Link> */}
+          </View>
+        )}
       </PageContainer>
     </>
   );
