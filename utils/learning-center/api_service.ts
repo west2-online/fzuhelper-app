@@ -1,7 +1,7 @@
+import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { SeatMappingUtil } from './seat-mapping';
-
 interface SeatModel {
   id: string;
   spaceName: string;
@@ -22,7 +22,7 @@ class ApiService {
     pageSize: number;
     auditStatus?: string;
   }): Promise<Record<string, any>> {
-    const token = await AsyncStorage.getItem('token');
+    const token = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
 
     if (!token) {
       throw new Error('Token invalid, please login again');
@@ -56,7 +56,7 @@ class ApiService {
   // 二维码每分钟改变一次，前面的时间与后面的时间间隔为一分钟
   // 如果当前的时间在二维码的时间范围内，就可以签到
   static async signIn(appointmentId: string): Promise<Record<string, any>> {
-    const token = await AsyncStorage.getItem('token');
+    const token = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
 
     if (!token) {
       throw new Error('Token invalid, please login again');
@@ -82,7 +82,7 @@ class ApiService {
 
   // 签退
   static async signOut(appointmentId: string): Promise<Record<string, any>> {
-    const token = await AsyncStorage.getItem('token');
+    const token = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
 
     if (!token) {
       throw new Error('Token invalid, please login again');
@@ -108,7 +108,7 @@ class ApiService {
 
   // 取消预约
   static async cancelAppointment(appointmentId: string | number): Promise<Record<string, any>> {
-    const token = await AsyncStorage.getItem('token');
+    const token = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
 
     if (!token) {
       throw new Error('Token invalid, please login again');
@@ -146,7 +146,7 @@ class ApiService {
     message: string;
     data: SeatModel[] | null;
   }> {
-    const token = await AsyncStorage.getItem('token');
+    const token = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
 
     if (!token) {
       throw new Error('Token invalid, please login again');
@@ -286,7 +286,7 @@ class ApiService {
     endTime: string;
     date: string;
   }): Promise<Record<string, any>> {
-    const token = await AsyncStorage.getItem('token');
+    const token = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
 
     if (!token) {
       throw new Error('Token invalid, please login again');

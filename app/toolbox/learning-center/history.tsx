@@ -79,7 +79,7 @@ export default function HistoryPage() {
       try {
         const savedToken = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
         if (savedToken) {
-          await AsyncStorage.setItem('token', savedToken);
+          await AsyncStorage.setItem(LEARNING_CENTER_TOKEN_KEY, savedToken);
           setHasToken(true);
           try {
             const response = await ApiService.fetchAppointments({
