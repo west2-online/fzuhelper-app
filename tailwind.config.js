@@ -41,6 +41,9 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        'text-primary': 'hsl(var(--text-primary))',
+        'text-secondary': 'hsl(var(--text-secondary))',
+        'text-tertiary': 'hsl(var(--text-tertiary))',
       },
       borderRadius: {
         '4xl': '2.5rem',

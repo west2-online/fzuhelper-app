@@ -1,13 +1,17 @@
-import { ThemedView } from '@/components/ThemedView';
+import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, JWCH_ID_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { COURSE_TYPE, CourseCache, EXAM_TYPE } from '@/lib/course';
+import locateDate from '@/lib/locate-date';
+import { LocalUser } from '@/lib/user';
 import UserLogin from '@/lib/user-login';
+import { pushToWebViewJWCH } from '@/lib/webview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Link, Stack, router } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
+import { Link, Stack } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { toast } from 'sonner-native';
-import { WebParams } from '../(guest)/web';
 
 const NAVIGATION_TITLE = 'Developer Tools';
 
@@ -23,12 +27,22 @@ export default function HomePage() {
     }
   };
 
+  // 尝试调用 locate-date.ts 中的获取日期函数
+  const testLocateDate = async () => {
+    try {
+      const result = await locateDate();
+      toast.success('获取到的日期信息：' + JSON.stringify(result));
+    } catch (error) {
+      toast.error('获取日期信息失败：' + error);
+    }
+  };
+
   // 设置过期的 jwch cookie
   const setExpiredCookie = async () => {
-    const cookie = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+    const credentials = LocalUser.getCredentials();
     // 经过验证，每个 cookie 的后几位都是属于 ASP.NET_SessionId 的，删除后 5 个字母，会直接导致 cookie 过期
-    const expiredCookie = cookie?.slice(0, -5);
-    await AsyncStorage.setItem(JWCH_COOKIES_KEY, expiredCookie || '');
+    const expiredCookie = credentials.cookies?.slice(0, -5);
+    await LocalUser.setCredentials(credentials.identifier, expiredCookie);
     toast.success('已经设置过期的 cookie');
   };
 
@@ -50,11 +64,45 @@ export default function HomePage() {
     toast.success('已经为一码通设置无效的 AccessToken');
   };
 
+  // 判断 Cookie 是否有效
+  const isCookieValid = async () => {
+    const resp = await LocalUser.checkCredentials();
+    toast.info('Cookie 检查结果' + resp);
+  };
+
+  const cleanAllCache = async () => {
+    const cacheDir = FileSystem.cacheDirectory;
+    if (cacheDir === null) return;
+    try {
+      await FileSystem.deleteAsync(cacheDir);
+      toast.success('清理缓存目录成功');
+    } catch (error) {
+      toast.error(`清理缓存目录失败：${error}`);
+    }
+  };
+
+  const cleanPaperCache = async () => {
+    const cacheDir = FileSystem.cacheDirectory;
+    if (cacheDir === null) return;
+    try {
+      await FileSystem.deleteAsync(cacheDir + 'paper/');
+      toast.success('清理历年卷缓存目录成功');
+    } catch (error) {
+      toast.error(`清理历年卷缓存目录失败：${error}`);
+    }
+  };
+
+  const SetDifferentCourseCacheDigest = async () => {
+    CourseCache.setDigest(COURSE_TYPE, 'test');
+    CourseCache.setDigest(EXAM_TYPE, 'test');
+    toast.success('已经设置不同的课程缓存摘要');
+  };
+
   return (
     <>
       <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
 
-      <ThemedView>
+      <PageContainer>
         <KeyboardAwareScrollView className="h-full" keyboardShouldPersistTaps="handled">
           {/* 导航相关功能 */}
           <Text className="m-3 my-4 text-lg font-bold">Manager</Text>
@@ -86,19 +134,8 @@ export default function HomePage() {
             </Button>
           </Link>
           <Button
-            onPress={async () => {
-              const params: WebParams = {
-                url:
-                  'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx?id=' +
-                  (await AsyncStorage.getItem(JWCH_ID_KEY)),
-                jwchCookie: (await AsyncStorage.getItem(JWCH_COOKIES_KEY)) ?? undefined, // Cookie（可选）
-                title: '(Web 测试) 选课', // 页面标题（可选）
-              };
-
-              router.push({
-                pathname: '/(guest)/web',
-                params, // 传递参数
-              });
+            onPress={() => {
+              pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '(Web 测试) 选课');
             }}
           >
             <Text>Choose Course (web test)</Text>
@@ -111,8 +148,14 @@ export default function HomePage() {
 
           {/* 功能测试 */}
           <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
+          <Button onPress={testLocateDate}>
+            <Text>Test Locate Date</Text>
+          </Button>
           <Button onPress={testValidateCodeVerify}>
             <Text>Test Code Verify</Text>
+          </Button>
+          <Button onPress={isCookieValid}>
+            <Text>Check Cookie</Text>
           </Button>
           <Button onPress={setExpiredCookie}>
             <Text>Set Expired Cookie</Text>
@@ -123,8 +166,20 @@ export default function HomePage() {
           <Button onPress={setInvalidAccessTokenYmt}>
             <Text>Set Invalid AccessToken (ymt)</Text>
           </Button>
+          <Button onPress={SetDifferentCourseCacheDigest}>
+            <Text>Set Different Course Cache Digest</Text>
+          </Button>
+
+          {/* 缓存清理 */}
+          <Text className="m-3 my-4 text-lg font-bold">Cache clean</Text>
+          <Button onPress={cleanAllCache}>
+            <Text>Clean All Cache (File System)</Text>
+          </Button>
+          <Button onPress={cleanPaperCache}>
+            <Text>Clean Paper Cache (File System)</Text>
+          </Button>
         </KeyboardAwareScrollView>
-      </ThemedView>
+      </PageContainer>
     </>
   );
 }

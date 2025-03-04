@@ -1,10 +1,3 @@
-import { ThemedView } from '@/components/ThemedView';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Text } from '@/components/ui/text';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
-import YMTLogin from '@/lib/ymt-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
@@ -12,6 +5,14 @@ import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
+
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
+import { pushToWebViewNormal } from '@/lib/webview';
+import YMTLogin from '@/lib/ymt-login';
 
 const NAVIGATION_TITLE = '统一身份认证';
 const URL_FORGET_PASSWORD = 'https://sso.fzu.edu.cn/public/client/forget-password/qr';
@@ -29,24 +30,12 @@ const UnifiedLoginPage: React.FC = () => {
 
   // 打开服务协议
   const openUserAgreement = useCallback(() => {
-    router.push({
-      pathname: '/(guest)/web',
-      params: {
-        url: URL_USER_AGREEMENT,
-        title: '服务协议',
-      },
-    });
+    pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
   }, []);
 
   // 打开隐私政策
   const openPrivacyPolicy = useCallback(() => {
-    router.push({
-      pathname: '/(guest)/web',
-      params: {
-        url: URL_PRIVACY_POLICY,
-        title: '隐私政策',
-      },
-    });
+    pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
   }, []);
 
   // 忘记密码
@@ -89,7 +78,7 @@ const UnifiedLoginPage: React.FC = () => {
     } catch (error: any) {
       const data = handleError(error);
       if (data) {
-        Alert.alert('请求失败', data.code + ': ' + data.message);
+        Alert.alert('请求失败', data.code + ': ' + data.msg);
       }
     } finally {
       // 恢复按钮状态
@@ -107,7 +96,7 @@ const UnifiedLoginPage: React.FC = () => {
           contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
         >
-          <ThemedView className="flex-1 justify-between px-6 py-3">
+          <View className="flex-1 justify-between px-6 py-3">
             {/* 左上角标题 */}
             <View className="ml-1 mt-14">
               <Text className="mb-2 text-3xl font-bold">统一身份认证平台登录</Text>
@@ -152,12 +141,12 @@ const UnifiedLoginPage: React.FC = () => {
 
               {/* 公告栏 */}
               <View className="mt-10 w-full px-1">
-                <Text className="my-2 text-lg font-bold text-muted-foreground">友情提示</Text>
-                <Text className="text-base text-muted-foreground">
+                <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+                <Text className="text-base text-text-secondary">
                   1. 统一身份认证平台为福州大学统一登录系统，可用于登录图书馆、一码通、智汇福大等平台。
                 </Text>
-                <Text className="text-base text-muted-foreground">2. 新生可使用身份证号作为登录账号。</Text>
-                <Text className="text-base text-muted-foreground">
+                <Text className="text-base text-text-secondary">2. 新生可使用身份证号作为登录账号。</Text>
+                <Text className="text-base text-text-secondary">
                   3. 福州大学教务处系统独立于统一身份认证平台，需使用专有密码登录。
                 </Text>
               </View>
@@ -170,7 +159,7 @@ const UnifiedLoginPage: React.FC = () => {
               onPress={() => setIsAgree(!isAgree)}
             >
               <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-              <Text className="text-center text-muted-foreground">
+              <Text className="text-center text-text-secondary">
                 {'  '}
                 阅读并同意{' '}
                 <Text
@@ -194,7 +183,7 @@ const UnifiedLoginPage: React.FC = () => {
                 </Text>
               </Text>
             </TouchableOpacity>
-          </ThemedView>
+          </View>
         </KeyboardAwareScrollView>
       </SafeAreaView>
     </>

@@ -7,6 +7,7 @@ import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
 import okhttp3.CookieJar
 import okhttp3.FormBody
+import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -14,6 +15,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.util.TreeMap
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
@@ -98,8 +100,8 @@ class NativeRequestModule : Module() {
             try {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
-                resp.headers = response.headers.toMap()
-                resp.data = response.body.bytes()
+                resp.headers = response.headers.toMergedMapCaseSensitive()
+                resp.data = response.body?.bytes()
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
@@ -128,8 +130,8 @@ class NativeRequestModule : Module() {
             try {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
-                resp.headers = response.headers.toMap()
-                resp.data = response.body.bytes()
+                resp.headers = response.headers.toMergedMapCaseSensitive()
+                resp.data = response.body?.bytes()
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
@@ -157,13 +159,29 @@ class NativeRequestModule : Module() {
             try {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
-                resp.headers = response.headers.toMap()
-                resp.data = response.body.bytes()
+                resp.headers = response.headers.toMergedMapCaseSensitive()
+                resp.data = response.body?.bytes()
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
             return@AsyncFunction resp
         }
+    }
+
+    private fun Headers.toMergedMapCaseSensitive(): Map<String, String> {
+        // 来自okhttp toMultimap方法，但不对name作转小写处理
+        val result = TreeMap<String, MutableList<String>>(String.CASE_INSENSITIVE_ORDER)
+        for (i in 0 until size) {
+            val name = name(i)
+            var values: MutableList<String>? = result[name]
+            if (values == null) {
+                values = ArrayList(2)
+                result[name] = values
+            }
+            values.add(value(i))
+        }
+        // 相同的key，对value作拼接处理
+        return result.mapValues { it.value.joinToString(", ") }
     }
 
 }

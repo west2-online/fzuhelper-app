@@ -1,10 +1,12 @@
 import { Tabs, useNavigation } from 'expo-router';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Alert, AppState } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { Alert, AppState, Platform } from 'react-native';
+
+import { TabBarIcon } from '@/components/TabBarIcon';
 
 import { getApiV1JwchPing } from '@/api/generate';
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
 const NAVIGATION_TITLE = '首页';
 
@@ -30,7 +32,6 @@ export default function TabLayout() {
     try {
       await getApiV1JwchPing(); // 这里是一个 ping 接口，用来测试服务器是否正常
     } catch (error: any) {
-      console.error('pingToServre error', error);
       const data = handleError(error);
       if (data) {
         Alert.alert('服务器连接失败', data.message);
@@ -55,12 +56,23 @@ export default function TabLayout() {
     };
   });
 
+  useEffect(() => {
+    // 安卓检查更新
+    if (Platform.OS === 'android') {
+      checkAndroidUpdate(handleError, {
+        onUpdate: data => {
+          showAndroidUpdateDialog(data);
+        },
+      });
+    }
+  }, [handleError]);
+
   return (
     <Tabs>
       <Tabs.Screen
         name="index"
         options={{
-          title: '主页',
+          title: '课程',
           href: '/',
           // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color, focused }) => (

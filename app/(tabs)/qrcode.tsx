@@ -2,18 +2,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import QRCode from 'react-native-qrcode-svg';
 import { toast } from 'sonner-native';
 
+import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 
+import Loading from '@/components/loading';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
-import { ScrollView } from 'react-native-gesture-handler';
 
 export default function YiMaTongPage() {
   const ymtLogin = useMemo(() => new YMTLogin(), []);
@@ -123,62 +125,77 @@ export default function YiMaTongPage() {
     );
   }, [logoutCleanData]);
 
+  const [qrWidth, setQrWidth] = useState(0);
+
   const renderQRCodeCard = useCallback(
     (title: string, codeContent: string | null, codeColor: string) => (
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>
-            {currentTime.toLocaleDateString() + ' '}
-            {currentTime.toLocaleTimeString()}
-            {name ? ' - ' + name : ''}
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="flex-col items-center justify-center gap-4">
-          {codeContent ? <QRCode value={codeContent} size={320} color={codeColor} /> : <Text>Loading...</Text>}
-          <View className="flex-row gap-4">
-            <Button onPress={logout} className="width-full flex-5">
-              <Text>退出</Text>
-            </Button>
-            <Button onPress={refresh} className="width-full flex-1" disabled={isRefreshing}>
-              <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
-            </Button>
-          </View>
-        </CardContent>
-
-        <CardFooter className="flex-row gap-4">
-          <View className="w-full px-1">
-            <Text className="my-2 text-lg font-bold text-muted-foreground">友情提示</Text>
-            {currentTab === '消费码' ? (
-              <Text className="text-base text-muted-foreground">
-                消费码：适用于福州大学大门、生活区入口及宿舍楼门禁，不可用于桃李园消费。
-              </Text>
+      <Card className="flex-1 rounded-tl-4xl px-1">
+        <ScrollView className="pt-3">
+          <CardHeader>
+            <CardTitle>{title}</CardTitle>
+            <CardDescription className="mt-2">
+              {currentTime.toLocaleDateString() + ' '}
+              {currentTime.toLocaleTimeString()}
+              {name ? ' - ' + name : ''}
+            </CardDescription>
+          </CardHeader>
+          <CardContent
+            className="flex-col items-center justify-center gap-4"
+            onLayout={event => {
+              setQrWidth(event.nativeEvent.layout.width * 0.75);
+            }}
+          >
+            {/* 这里使用 bg-white 来强制在各种颜色模式下的二维码背景都是白色 */}
+            {codeContent ? (
+              <View className="mx-auto bg-white p-4">
+                <QRCode size={qrWidth} value={codeContent} color={codeColor} />
+              </View>
             ) : (
-              <Text className="text-base text-muted-foreground">认证码：目前暂无实际用途。</Text>
+              <Loading className="p-5" />
             )}
-          </View>
-        </CardFooter>
+            <View className="flex-row gap-4">
+              <Button onPress={logout} className="width-full flex-5">
+                <Text className="text-white">退出</Text>
+              </Button>
+              <Button onPress={refresh} className="width-full flex-1" disabled={isRefreshing}>
+                <Text className="text-white">{isRefreshing ? '刷新中...' : '刷新'}</Text>
+              </Button>
+            </View>
+          </CardContent>
+
+          <CardFooter className="flex-row gap-4">
+            <View className="w-full px-1">
+              <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+              {currentTab === '消费码' ? (
+                <Text className="text-base text-text-secondary">
+                  消费码：适用于福州大学大门、生活区入口及宿舍楼门禁，不可用于桃李园消费。
+                </Text>
+              ) : (
+                <Text className="text-base text-text-secondary">认证码：适用于福州大学铜盘校区入口门禁。</Text>
+              )}
+            </View>
+          </CardFooter>
+        </ScrollView>
       </Card>
     ),
-    [currentTime, name, logout, refresh, isRefreshing, currentTab],
+    [currentTime, name, qrWidth, logout, refresh, isRefreshing, currentTab],
   );
 
   return (
-    <View className="flex-1">
+    <PageContainer>
       {accessToken ? (
-        <ScrollView className="flex-1 px-6">
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="my-6 flex-1 items-center">
-            <TabsList className="w-full flex-row">
-              <TabsTrigger value="消费码" className="flex-1">
+        <View className="flex-1">
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="mt-6 flex-1 items-center">
+            <TabsList className="ml-auto w-auto flex-row">
+              <TabsTrigger value="消费码" className="w-auto">
                 <Text className="text-center">消费码</Text>
               </TabsTrigger>
-              <TabsTrigger value="认证码" className="flex-1">
+              <TabsTrigger value="认证码" className="w-auto">
                 <Text className="text-center">认证码</Text>
               </TabsTrigger>
             </TabsList>
 
-            <View className="mt-3 flex-1">
+            <View className="flex-1">
               <TabsContent value="消费码">
                 {payCodes && renderQRCodeCard('消费码', payCodes[0].prePayId, '#000000')}
               </TabsContent>
@@ -188,17 +205,17 @@ export default function YiMaTongPage() {
               </TabsContent>
             </View>
           </Tabs>
-        </ScrollView>
+        </View>
       ) : (
         <View className="flex-1 items-center justify-center gap-10">
           <Text className="text-lg">登录统一身份认证平台，享受一码通服务</Text>
           <Link href="/unified-auth-login" asChild>
             <Button className="w-1/2">
-              <Text>前往登录</Text>
+              <Text className="text-white">前往登录</Text>
             </Button>
           </Link>
         </View>
       )}
-    </View>
+    </PageContainer>
   );
 }

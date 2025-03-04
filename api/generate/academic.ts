@@ -3,7 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 获取学分统计 注意这里可能涉及到辅修 GET /api/v1/jwch/academic/credit https://apifox.com/web/project/3275694/apis/api-109631159-run */
+/** 学分统计 注意这里可能涉及到辅修 GET /api/v1/jwch/academic/credit https://apifox.com/web/project/3275694/apis/api-109631159-run */
 export async function getApiV1JwchAcademicCredit(options?: {
   [key: string]: unknown;
 }) {
@@ -58,7 +58,8 @@ export async function getApiV1JwchAcademicScores(options?: {
       score: string;
       teacher: string;
       term: string;
-      year: string;
+      exam_type: string;
+      elective_type: string;
     }[];
   }>('/api/v1/jwch/academic/scores', {
     method: 'GET',

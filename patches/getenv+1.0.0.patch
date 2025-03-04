@@ -1,0 +1,22 @@
+diff --git a/node_modules/getenv/index.js b/node_modules/getenv/index.js
+index 5e83c8f..ae1efd3 100644
+--- a/node_modules/getenv/index.js
++++ b/node_modules/getenv/index.js
+@@ -54,7 +54,7 @@ const convert = {
+     return +value;
+   },
+   bool: function(value) {
+-    const isBool = value === 'true' || value === 'false';
++    const isBool = value === 'true' || value === 'false' || value === 'TRUE' || value === 'FALSE';
+     if (!isBool) {
+       throw new Error('GetEnv.NoBoolean: ' + value + ' is not a boolean.');
+     }
+@@ -65,7 +65,7 @@ const convert = {
+     try {
+       return convert.bool(value);
+     } catch (err) {
+-      const isBool = value === '1' || value === '0';
++      const isBool = value === 'true' || value === 'false' || value === 'TRUE' || value === 'FALSE' || value === '1' || value === '0';
+       if (!isBool) {
+         throw new Error('GetEnv.NoBoolean: ' + value + ' is not a boolean.');
+       }

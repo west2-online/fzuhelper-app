@@ -1,0 +1,10 @@
+{
+  "name": "fzuhelper",
+  "description": "福州大学の学生向けの便利なアプリ",
+  "CFBundleDisplayName": "FzuHelper",
+  "NSCalendarsFullAccessUsageDescription": "$(PRODUCT_NAME) では、授業スケジュールや試験室の配置などをカレンダーにエクスポートするためにカレンダー権限を申請する必要があります",
+  "NSCameraUsageDescription": "$(PRODUCT_NAME) では、写真の撮影やアバターのアップロードなどの機能を提供するには、カメラの権限を申請する必要があります",
+  "NSPhotoLibraryUsageDescription": "$(PRODUCT_NAME) では、アバターのアップロードなどの機能を提供するにはアルバムの権限を申請する必要があります",
+  "NSPushNotificationUsageDescription": "$(PRODUCT_NAME) は、成績情報と学務課からの最新の通知をプッシュ通知で送信します。通知は福州大学によって監視されており、個人情報は公開されません。",
+  "NSUserTrackingUsageDescription": "$(PRODUCT_NAME) は、より良いサービスを提供し、脆弱性を修正するために、デバイス ID を使用してソフトウェアの使用状況を分析します。"
+}

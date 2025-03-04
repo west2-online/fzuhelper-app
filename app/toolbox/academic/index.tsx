@@ -1,45 +1,23 @@
-import { ThemedView } from '@/components/ThemedView';
-import { Href, Link, useNavigation } from 'expo-router';
-import { useLayoutEffect } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { useNavigation, useRouter } from 'expo-router';
+import { useCallback, useLayoutEffect, useState } from 'react';
+import { View } from 'react-native';
 
-// 定义菜单项的类型
-import { ImageSourcePropType } from 'react-native';
+import CreditIcon from '@/assets/images/toolbox/academic/ic_credit.png';
+import GpaIcon from '@/assets/images/toolbox/academic/ic_gpa.png';
+import PlanIcon from '@/assets/images/toolbox/academic/ic_plan.png';
+import ScoreIcon from '@/assets/images/toolbox/academic/ic_score.png';
+import UnifiedIcon from '@/assets/images/toolbox/academic/ic_unified.png';
+import LabelIconEntry from '@/components/label-icon-entry';
+import PageContainer from '@/components/page-container';
+import { Text } from '@/components/ui/text';
 
-interface MenuItem {
-  icon: ImageSourcePropType;
-  name: string; // 菜单项名称
-  link: Href; // 跳转链接
-}
-
-// 菜单项数据
-const menuItems: MenuItem[] = [
-  {
-    icon: require('assets/images/toolbox/academic/ic_score.png'),
-    name: '成绩查询',
-    link: '/toolbox/academic/grades' as Href,
-  },
-  {
-    icon: require('assets/images/toolbox/academic/ic_gpa.png'),
-    name: '绩点排名',
-    link: '/toolbox/academic/gpa' as Href,
-  },
-  {
-    icon: require('assets/images/toolbox/academic/ic_credit.png'),
-    name: '学分统计',
-    link: '/toolbox/academic/credits' as Href,
-  },
-  {
-    icon: require('assets/images/toolbox/academic/ic_unified.png'),
-    name: '统考成绩',
-    link: '/toolbox/academic/unified-exam' as Href,
-  },
-  {
-    icon: require('assets/images/toolbox/academic/ic_plan.png'),
-    name: '培养计划',
-    link: '/toolbox/academic/plan' as Href,
-  },
-];
+import { getApiV1JwchAcademicPlan } from '@/api/generate';
+import { LoadingDialog } from '@/components/loading';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { pushToWebViewJWCH } from '@/lib/webview';
+import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
+import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '学业状况';
 
@@ -50,24 +28,87 @@ export default function AcademicPage() {
     navigation.setOptions({ title: NAVIGATION_TITLE });
   }, [navigation]);
 
+  const router = useRouter();
+  const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
+  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
+
+  // 菜单项数据
+  const MENU_ITEMS: Tool[] = [
+    {
+      icon: ScoreIcon,
+      name: '成绩查询',
+      type: ToolType.LINK,
+      href: '/toolbox/academic/grades',
+    },
+    {
+      icon: GpaIcon,
+      name: '绩点排名',
+      type: ToolType.LINK,
+      href: '/toolbox/academic/gpa',
+      userTypes: [USER_TYPE_UNDERGRADUATE],
+    },
+    {
+      icon: CreditIcon,
+      name: '学分统计',
+      type: ToolType.LINK,
+      href: '/toolbox/academic/credits',
+      userTypes: [USER_TYPE_UNDERGRADUATE],
+    },
+    {
+      icon: UnifiedIcon,
+      name: '统考成绩',
+      type: ToolType.LINK,
+      href: '/toolbox/academic/unified-exam',
+      userTypes: [USER_TYPE_UNDERGRADUATE],
+    },
+    {
+      icon: PlanIcon,
+      name: '培养计划',
+      type: ToolType.FUNCTION,
+      action: async () => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        handlePlanData();
+      },
+      userTypes: [USER_TYPE_UNDERGRADUATE],
+    },
+  ];
+
+  const handlePlanData = useCallback(async () => {
+    try {
+      const result = await getApiV1JwchAcademicPlan();
+      pushToWebViewJWCH(result.data.data || '', '培养计划');
+    } catch (error: any) {
+      const data = handleError(error);
+      console.log(data);
+      if (data) {
+        toast.error(data.msg ? data.msg : '培养计划没有找到');
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [handleError]);
+
   return (
-    <ThemedView className="flex-1 bg-white p-4">
+    <PageContainer className="bg-background p-4">
       {/* 菜单列表 */}
-      <View className="space-y-4">
-        {menuItems.map((item, index) => (
-          <Link key={index} href={item.link} asChild>
-            <TouchableOpacity className="flex-row items-center justify-between p-4">
-              {/* 图标和名称 */}
-              <View className="flex-row items-center space-x-4">
-                <Image source={item.icon} className="h-7 w-7" />
-                <Text className="ml-5 text-lg text-foreground">{item.name}</Text>
-              </View>
-              {/* 右侧箭头 */}
-              <Image source={require('assets/images/misc/ic_arrow_right.png')} className="h-5 w-5" />
-            </TouchableOpacity>
-          </Link>
+      <View className="mx-4 space-y-4">
+        {MENU_ITEMS.filter(
+          item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType),
+        ).map((item, index) => (
+          <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => toolOnPress(item, router)} />
         ))}
       </View>
-    </ThemedView>
+      <View className="mx-4 space-y-4">
+        <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+        <Text className="my-2 text-base text-text-secondary">
+          在教务系统中可能没有全部专业的培养计划，或没有当前专业当前年级的培养计划
+        </Text>
+        <Text className="text-base text-text-secondary">
+          统考成绩采集自教务系统数据，数据更新时间会晚于官方统考成绩公布渠道
+        </Text>
+      </View>
+      <LoadingDialog open={isRefreshing} />
+    </PageContainer>
   );
 }

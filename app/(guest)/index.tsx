@@ -19,16 +19,20 @@ import {
 import { Text } from '@/components/ui/text';
 
 import { getApiV1LaunchScreenImagePointTime, getApiV1LaunchScreenScreen } from '@/api/generate';
+import SplashImage from '@/assets/images/splash.png';
+import SplashLogoIcon from '@/assets/images/splash_logo.png';
+
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import aegis from '@/lib/aegis';
 import {
   IS_PRIVACY_POLICY_AGREED,
-  JWCH_USER_ID_KEY,
   SPLASH_DATE,
   SPLASH_DISPLAY_COUNT,
   SPLASH_ID,
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
+import { LocalUser } from '@/lib/user';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
 
@@ -69,8 +73,7 @@ export default function SplashScreen() {
     try {
       const result = await getApiV1LaunchScreenScreen({
         type: 1,
-        // TODO: 研究生学号
-        student_id: (await AsyncStorage.getItem(JWCH_USER_ID_KEY)) || '',
+        student_id: LocalUser.getUser().userid || '',
         device: Platform.OS,
       });
       if (result.data.data.length === 0) {
@@ -147,6 +150,14 @@ export default function SplashScreen() {
     // 当 cookie 不可用时，我们会 delay 到下一次需要 cookie 的请求（例如获取课表）时
     // 此时我们按照正常逻辑请求服务端，会获得 cookie 过期的错误，再由我们客户端静态登录
     // 整个逻辑自动化地实现在了 api/axios.ts 中
+
+    // 在此处开始加载 AEGIS 符合逻辑，同时不需要额外的再 load 一次
+    console.log('set AEGIS config for', LocalUser.getUser().userid);
+    // Alert.alert('AEGIS', 'set config for ' + LocalUser.getUser().userid);
+    aegis.setConfig({
+      uin: LocalUser.getUser().userid,
+    });
+
     getSplash(); // 获取开屏页
   }, [getSplash, redirect]);
 
@@ -168,7 +179,7 @@ export default function SplashScreen() {
   }, [onPrivacyAgree]);
 
   useEffect(() => {
-    if (!shouldShowPrivacyAgree) return;
+    ExpoSplashScreen.hideAsync();
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
         if (!shouldShowPrivacyAgree) {
@@ -188,7 +199,9 @@ export default function SplashScreen() {
     return () => {
       subscription.remove();
     };
-  }, [checkAndShowPrivacyAgree, shouldShowPrivacyAgree]);
+    // 仅在页面首次挂载执行此方法
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (showSplashImage) {
@@ -206,23 +219,14 @@ export default function SplashScreen() {
     }
   }, [showSplashImage, navigateToHome]);
 
-  const onLayoutRootView = useCallback(() => {
-    ExpoSplashScreen.hideAsync();
-  }, []);
-
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View onLayout={onLayoutRootView}>
+      <View>
         {!showSplashImage ? (
           // 默认开屏
-          <Image
-            className="h-full w-full"
-            source={require('@/assets/images/splash.png')}
-            fadeDuration={0}
-            resizeMode="cover"
-          />
+          <Image className="h-full w-full bg-background" source={SplashImage} fadeDuration={0} resizeMode="cover" />
         ) : (
           <View className="flex h-full flex-col">
             {/* Splash内容 */}
@@ -243,11 +247,11 @@ export default function SplashScreen() {
             <View className="flex flex-row items-center justify-center pb-11">
               {/* 居中 Image */}
               <View className="flex-1 items-center">
-                <Image className="h-10" source={require('@/assets/images/splash_logo.png')} resizeMode="contain" />
+                <Image className="h-10" source={SplashLogoIcon} resizeMode="contain" />
               </View>
 
               {/* 跳过按钮靠右 */}
-              <View className="absolute bottom-11 right-8 w-24 rounded-full border-gray-400 bg-gray-200 py-2">
+              <View className="absolute bottom-11 right-8 w-20 rounded-full border-gray-400 bg-card py-2">
                 <TouchableOpacity onPress={navigateToHome}>
                   <Text className="mx-auto">跳过 {countdown}</Text>
                 </TouchableOpacity>
@@ -307,11 +311,10 @@ export default function SplashScreen() {
             <AlertDialogAction
               onPress={async () => {
                 await AsyncStorage.setItem(IS_PRIVACY_POLICY_AGREED, 'true');
-                setPrivacyDialogVisible(false);
                 onPrivacyAgree();
               }}
             >
-              <Text>同意并继续</Text>
+              <Text className="text-white">同意并继续</Text>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
