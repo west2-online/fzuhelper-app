@@ -419,7 +419,7 @@ export class CourseCache {
         result[day].push(current);
         return result;
       },
-      { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] } as Record<number, ExtendCourse[]>,
+      Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<number, ExtendCourse[]>,
     );
 
     // 更新缓存
