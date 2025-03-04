@@ -161,11 +161,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   }, [schedulesOnDay, isShowNonCurrentWeekCourses, week, showExam]);
 
   return (
-    <View
-      className="flex flex-shrink-0 flex-grow flex-col"
-      style={{ width: flatListLayout.width / 7 }}
-      onLayout={e => console.log(e.nativeEvent.layout, flatListLayout, itemHeight, itemHeight * 11)}
-    >
+    <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>
       {scheduleData.map((item, index) =>
         item.type === 'course' ? (
           <ScheduleItem
