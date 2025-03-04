@@ -25,7 +25,7 @@ interface ContributorItemProps {
 const ContributorItem: React.FC<ContributorItemProps> = ({ contributor }) => (
   <a
     href={contributor.url}
-    className="flex w-[120px] flex-col items-center justify-start overflow-hidden break-all rounded bg-card px-2 py-4 text-center text-card-foreground no-underline"
+    className="flex w-[120px] flex-col items-center justify-start overflow-hidden break-all rounded-lg border border-border bg-card px-2 py-4 text-center text-card-foreground no-underline shadow-sm"
     target="_blank"
     rel="noopener noreferrer"
   >
@@ -48,7 +48,7 @@ export default function Contributors() {
   }, []);
 
   return response ? (
-    <div className="p-4">
+    <div className="bg-background p-4">
       <section>
         <ContributorTitle>客户端</ContributorTitle>
 
@@ -70,7 +70,7 @@ export default function Contributors() {
       </section>
 
       <section>
-        <ContributorTitle>本科教学管理系统对接</ContributorTitle>
+        <ContributorTitle>本科教学管理系统（对接）</ContributorTitle>
 
         <ContributorContainer>
           {response.jwch.map(contributor => (
@@ -80,7 +80,7 @@ export default function Contributors() {
       </section>
 
       <section>
-        <ContributorTitle>研究生教育管理信息系统对接</ContributorTitle>
+        <ContributorTitle>研究生教育管理信息系统（对接）</ContributorTitle>
 
         <ContributorContainer>
           {response.yjsy.map(contributor => (
