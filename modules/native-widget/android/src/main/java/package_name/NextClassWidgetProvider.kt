@@ -45,18 +45,6 @@ internal fun updateNextClassWidget(
     appWidgetManager: AppWidgetManager,
     appWidgetId: Int
 ) {
-    val cacheCourseData: CacheCourseData
-    try {
-        val jsonData = context
-            .getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
-            .getString("widgetdata", "{}")
-        cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
-//        Log.d("NextClassWidgetProvider", "Loaded widget data: $cacheCourseData")
-    } catch (e: Exception) {
-        Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
-        return
-    }
-
     val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
 
     val intent = Intent()
@@ -73,7 +61,21 @@ internal fun updateNextClassWidget(
     views.setPendingIntentTemplate(R.id.next_class_layout, pendingIntent)
     views.setOnClickPendingIntent(R.id.next_class_layout, pendingIntent)
 
-    val nextClass = getNextClass(cacheCourseData)
+    val cacheCourseData: CacheCourseData
+    var nextClass: ClassInfo? = null
+    try {
+        val jsonData = context
+            .getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
+            .getString("widgetdata", "")
+        if (jsonData != "") {
+            cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
+            nextClass = getNextClass(cacheCourseData)
+//            Log.d("NextClassWidgetProvider", "Loaded widget data: $cacheCourseData")
+        }
+    } catch (e: Exception) {
+        Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
+    }
+
     if (nextClass != null) {
 
         val name = nextClass.courseBean.name

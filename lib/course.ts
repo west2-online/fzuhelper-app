@@ -196,6 +196,7 @@ export class CourseCache {
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
     this.startID = DEFAULT_STARTID; // 重置 ID 计数器
     await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
+    ExpoWidgetsModule.setWidgetData('', Constants.expoConfig?.android?.package);
   }
 
   /**
