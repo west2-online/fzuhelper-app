@@ -4,7 +4,7 @@ import { View, type LayoutRectangle } from 'react-native';
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
 
-import { COURSE_TYPE, EXAM_TYPE, SCHEDULE_MIN_HEIGHT, type ExtendCourse } from '@/lib/course';
+import { COURSE_TYPE, EXAM_TYPE, SCHEDULE_ITEM_MIN_HEIGHT, type ExtendCourse } from '@/lib/course';
 import { nonCurrentWeekCourses } from '@/utils/random-color';
 
 interface CourseScheduleItemDataBase {
@@ -33,7 +33,10 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   showExam,
   flatListLayout,
 }) => {
-  const height = useMemo(() => Math.max(SCHEDULE_MIN_HEIGHT, flatListLayout.height), [flatListLayout.height]);
+  const itemHeight = useMemo(
+    () => Math.max(SCHEDULE_ITEM_MIN_HEIGHT, Math.floor(flatListLayout.height / 11)),
+    [flatListLayout.height],
+  );
 
   // 根据当前周数和星期几，筛选出当天的课程
   // 并进行整合，生成一个用于渲染的数据结构
@@ -161,9 +164,15 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>
       {scheduleData.map((item, index) =>
         item.type === 'course' ? (
-          <ScheduleItem key={index} height={height} span={item.span} color={item.color} schedules={item.schedules} />
+          <ScheduleItem
+            key={index}
+            itemHeight={itemHeight}
+            span={item.span}
+            color={item.color}
+            schedules={item.schedules}
+          />
         ) : (
-          <EmptyScheduleItem key={index} height={height} />
+          <EmptyScheduleItem key={index} itemHeight={itemHeight} />
         ),
       )}
     </View>
