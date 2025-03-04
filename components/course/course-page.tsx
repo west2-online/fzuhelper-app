@@ -1,12 +1,12 @@
-import { Icon } from '@/components/Icon';
 import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
+import { toast } from 'sonner-native';
 
+import { Icon } from '@/components/Icon';
+import Loading from '@/components/loading';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
-import { toast } from 'sonner-native';
-import CourseWeek from './course-week';
 
 import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
@@ -17,7 +17,8 @@ import { formatExamData } from '@/lib/exam-room';
 import { deConvertSemester, getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
-import Loading from '../loading';
+
+import CourseWeek from './course-week';
 
 interface CoursePageProps {
   config: CourseSetting;
