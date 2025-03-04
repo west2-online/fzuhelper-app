@@ -1,11 +1,11 @@
-import { View } from 'react-native';
+import { View, type ViewProps } from 'react-native';
 
-const HeaderContainer: React.FC<React.PropsWithChildren> = ({ children }) => {
-  return (
-    <View className="flex flex-none flex-row items-center bg-card shadow ring-1 ring-black ring-opacity-5">
-      {children}
-    </View>
-  );
-};
+import { cn } from '@/lib/utils';
+
+const HeaderContainer: React.FC<React.PropsWithChildren<ViewProps>> = ({ children, className, ...props }) => (
+  <View className={cn('flex flex-none flex-row items-center bg-card shadow ring-opacity-5', className)} {...props}>
+    {children}
+  </View>
+);
 
 export default HeaderContainer;

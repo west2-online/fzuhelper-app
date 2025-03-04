@@ -1,9 +1,12 @@
+import { memo, useMemo } from 'react';
+import { ScrollView, View, type LayoutRectangle } from 'react-native';
+
 import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
 import { Text } from '@/components/ui/text';
-import type { ExtendCourse } from '@/lib/course';
-import { memo, useMemo } from 'react';
-import { ScrollView, View, type LayoutRectangle } from 'react-native';
+
+import { LEFT_TIME_COLUMN_WIDTH, TOP_CALENDAR_HEIGHT, type ExtendCourse } from '@/lib/course';
+
 import CalendarCol from './calendar-col';
 import TimeCol from './time-col';
 
@@ -47,9 +50,9 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
 
   return (
     <View className="flex flex-col" style={{ width: flatListLayout.width }}>
-      <HeaderContainer>
+      <HeaderContainer style={{ width: flatListLayout.width, height: TOP_CALENDAR_HEIGHT }}>
         {/* （左侧）月份 */}
-        <View className="h-[64px] w-[32px] flex-shrink-0 flex-grow-0">
+        <View className="flex-shrink-0 flex-grow-0" style={{ width: LEFT_TIME_COLUMN_WIDTH }}>
           <View className="flex flex-shrink-0 flex-col items-center justify-center px-2 py-3">
             <Text>{month}</Text>
             <Text>月</Text>
@@ -57,7 +60,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
         </View>
 
         {/* 日期 */}
-        <View className="mt-2 flex h-[64px] flex-row" style={{ width: flatListLayout.width - 32 }}>
+        <View className="mt-2 flex flex-row" style={{ width: flatListLayout.width - LEFT_TIME_COLUMN_WIDTH }}>
           {headerDays.map(item => (
             <DayItem
               key={item.key}
@@ -71,7 +74,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} overScrollMode="never">
         <View className="flex flex-row">
           {/* （左侧）时间列 */}
-          <TimeCol height={flatListLayout.height - 64} />
+          <TimeCol height={flatListLayout.height - TOP_CALENDAR_HEIGHT} />
 
           {/* 课程内容 */}
           <View className="flex flex-1 flex-row bg-background">
@@ -84,8 +87,8 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
                 isShowNonCurrentWeekCourses={showNonCurrentWeekCourses}
                 flatListLayout={{
                   ...flatListLayout,
-                  width: flatListLayout.width - 32, // 32px - 时间列宽度
-                  height: flatListLayout.height - 64, // 64px - 日期头部高度
+                  width: flatListLayout.width - LEFT_TIME_COLUMN_WIDTH,
+                  height: flatListLayout.height - TOP_CALENDAR_HEIGHT,
                 }}
               />
             ))}
