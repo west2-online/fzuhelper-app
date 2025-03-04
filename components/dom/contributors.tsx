@@ -48,7 +48,7 @@ export default function Contributors() {
   }, []);
 
   return response ? (
-    <div className="bg-background p-4">
+    <div className="bg-background px-4 pb-4">
       <section>
         <ContributorTitle>客户端</ContributorTitle>
 

@@ -10,7 +10,7 @@ import ContributorsDOMComponent from '@/components/dom/contributors';
 export default function Contributors() {
   return (
     <>
-      <Stack.Screen options={{ title: '贡献者列表' }} />
+      <Stack.Screen options={{ title: '贡献名录' }} />
 
       <SafeAreaView className="h-full w-full" edges={['bottom']}>
         <ContributorsDOMComponent />
