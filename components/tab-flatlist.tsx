@@ -85,6 +85,7 @@ export function TabFlatList({
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
         renderItem={({ item }) => renderContent(item)}
+        onScrollToIndexFailed={() => {}}
       />
     </>
   );
