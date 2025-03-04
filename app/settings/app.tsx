@@ -100,9 +100,9 @@ export default function AcademicPage() {
             {/* <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text> */}
             {/* <LabelEntry leftText="开发者工具" onPress={() => router.push('/devtools')} /> */}
 
-            <Text className="mb-2 mt-4 text-sm text-text-secondary">关于</Text>
+            <Text className="mb-2 mt-4 text-sm text-text-secondary">其他</Text>
 
-            <LabelEntry leftText="关于" onPress={() => router.push('/common/about')} />
+            <LabelEntry leftText="关于福uu" onPress={() => router.push('/common/about')} />
           </SafeAreaView>
         </ScrollView>
       </PageContainer>
