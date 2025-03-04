@@ -64,8 +64,8 @@ export function TabFlatList({
         <ScrollView horizontal showsHorizontalScrollIndicator={false} ref={tabsScrollViewRef}>
           <TabsList className="flex-row">
             {data.map((item, index) => (
-              <TabsTrigger key={index} value={item} className="items-center">
-                <Text className="w-24 text-center">
+              <TabsTrigger key={index} value={item} className="items-center" style={{ width: tabWidth }}>
+                <Text className="text-center">
                   {LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? convertSemester(item) : item}
                 </Text>
               </TabsTrigger>
