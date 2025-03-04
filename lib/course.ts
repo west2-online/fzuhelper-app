@@ -416,11 +416,10 @@ export class CourseCache {
     const groupedData = extendedCourses.reduce(
       (result, current) => {
         const day = current.weekday - 1;
-        if (!result[day]) result[day] = [];
         result[day].push(current);
         return result;
       },
-      {} as Record<number, ExtendCourse[]>,
+      Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<number, ExtendCourse[]>,
     );
 
     // 更新缓存
