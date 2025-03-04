@@ -1,19 +1,12 @@
-import { Icon } from '@/components/Icon';
 import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  useColorScheme,
-  useWindowDimensions,
-  type LayoutRectangle,
-  type ViewToken,
-} from 'react-native';
+import { FlatList, Pressable, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
+import { toast } from 'sonner-native';
 
+import { Icon } from '@/components/Icon';
+import Loading from '@/components/loading';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
-import { toast } from 'sonner-native';
-import CourseWeek from './course-week';
 
 import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
@@ -24,7 +17,8 @@ import { formatExamData } from '@/lib/exam-room';
 import { deConvertSemester, getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
-import Loading from '../loading';
+
+import CourseWeek from './course-week';
 
 interface CoursePageProps {
   config: CourseSetting;
@@ -42,7 +36,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
   const [neetForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
 
-  const colorScheme = useColorScheme();
   const flatListRef = useRef<FlatList>(null);
 
   // 从设置中读取相关信息（比如当前选择的学期，是否显示非本周课程），设置项由上级组件传入
@@ -85,7 +78,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
 
         // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
         if (!hasCache || CourseCache.compareDigest(COURSE_TYPE, fetchedData.data.data) === false) {
-          CourseCache.setCourses(fetchedData.data.data, colorScheme);
+          CourseCache.setCourses(fetchedData.data.data);
           hasChanged = true;
         }
 
@@ -129,7 +122,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
       }
       return true;
     });
-  }, [term, colorScheme, exportExamToCourseTable, currentSemester, initialWeek]);
+  }, [term, exportExamToCourseTable, currentSemester, initialWeek]);
 
   // 订阅刷新事件，触发时更新课程数据状态
   useEffect(() => {

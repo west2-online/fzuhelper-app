@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, useColorScheme, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 
 import OverlapIcon from '@/assets/images/course/overlap.svg';
 import { SCHEDULE_ITEM_MARGIN, type ExtendCourse } from '@/lib/course';
+import { getCourseColor } from '@/utils/random-color';
 
 import ScheduleDetailsDialog from './schedule-detail-dialog';
 
@@ -18,6 +19,7 @@ interface ScheduleItemProps {
 // ScheduleItem 组件，用于显示课程表中的一节课
 const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color }) => {
   const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const colorScheme = useColorScheme();
 
   return (
     <>
@@ -25,7 +27,7 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
         <Pressable
           className="flex flex-1 flex-col items-center justify-center rounded-lg p-[1px]"
           style={{
-            backgroundColor: color,
+            backgroundColor: getCourseColor(color, colorScheme === 'dark'),
           }}
           onPress={() => setDetailsDialogOpen(true)}
         >
