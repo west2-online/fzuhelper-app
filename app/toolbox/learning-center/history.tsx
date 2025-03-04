@@ -9,9 +9,8 @@ import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
+import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import ApiService from '@/utils/learning-center/api_service';
-
-import { TOKEN_STORAGE_KEY } from './token';
 
 const PAGE_SIZE = 10;
 
@@ -78,7 +77,7 @@ export default function HistoryPage() {
   useEffect(() => {
     const checkTokenAndFetchData = async () => {
       try {
-        const savedToken = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
+        const savedToken = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
         if (savedToken) {
           await AsyncStorage.setItem('token', savedToken);
           setHasToken(true);

@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 
+import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import ApiService from '@/utils/learning-center/api_service';
-import { TOKEN_STORAGE_KEY } from './token';
 
 // 用于存储选中的座位号的键
 const SELECTED_SEAT_KEY = 'learning_center_selected_seat';
@@ -200,7 +200,7 @@ export default function SeatsPage() {
   useEffect(() => {
     const checkToken = async () => {
       try {
-        const savedToken = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
+        const savedToken = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
         if (savedToken) {
           setToken(savedToken);
         } else {

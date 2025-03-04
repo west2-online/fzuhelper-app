@@ -90,7 +90,7 @@ export default function LearningCenterPage() {
             <Text className="text-lg">登录统一身份认证平台，享受学习一码通，学习中心预约服务</Text>
             <Button
               onPress={() => {
-                router.push('/unified-auth-login');
+                router.push('/toolbox/learning-center/webview-login');
                 setIsLoading(true);
               }}
               className="w-1/2"
@@ -98,11 +98,11 @@ export default function LearningCenterPage() {
               <Text>前往登录</Text>
             </Button>
 
-            {/* <Link href="/toolbox/learning-center/token" asChild>
+            <Link href="/toolbox/learning-center/webview-login" asChild>
               <Button className="w-1/2">
-                <Text className="text-white color-gray-50">使用使用备用方案</Text>
+                <Text className="text-white">通过网页登录到学习空间</Text>
               </Button>
-            </Link> */}
+            </Link>
           </View>
         )}
       </PageContainer>
