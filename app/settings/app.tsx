@@ -102,7 +102,8 @@ export default function AcademicPage() {
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">关于</Text>
 
-            <LabelEntry leftText="关于" onPress={() => router.push('/common/about')} />
+            <LabelEntry leftText="贡献者名录" onPress={() => router.push('/contributors')} />
+            <LabelEntry leftText="关于福uu" onPress={() => router.push('/common/about')} />
           </SafeAreaView>
         </ScrollView>
       </PageContainer>
