@@ -129,11 +129,11 @@ export default function AboutPage() {
               <Text className="text-primary" onPress={handlePrivacyPolicy}>
                 服务协议
               </Text>
-              <Text className="mx-3 text-text-secondary">|</Text>
+              <Text className="mx-3 text-primary">|</Text>
               <Text className="text-primary" onPress={handleUserAgreement}>
                 隐私政策
               </Text>
-              <Text className="mx-3 text-text-secondary">|</Text>
+              <Text className="mx-3 text-primary">|</Text>
               <Text className="text-primary" onPress={handleContributors}>
                 贡献名录
               </Text>
