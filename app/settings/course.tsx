@@ -30,7 +30,6 @@ export default function AcademicPage() {
   const [semesters, setSemesters] = useState<string[]>([]);
   const { handleError } = useSafeResponseSolve();
   const [isLoadingSemester, setLoadingSemester] = useState(false);
-  const colorScheme = useColorScheme();
 
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
@@ -92,7 +91,7 @@ export default function AcademicPage() {
       };
 
       await AsyncStorage.setItem([COURSE_DATA_KEY, queryTerm].join('__'), JSON.stringify(cacheToStore));
-      CourseCache.setCourses(data.data.data, colorScheme);
+      CourseCache.setCourses(data.data.data);
       toast.success('刷新成功');
     } catch (error: any) {
       const data = handleError(error);
@@ -103,7 +102,7 @@ export default function AcademicPage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [settings.selectedSemester, handleError, colorScheme]);
+  }, [settings.selectedSemester, handleError]);
 
   // 选择学期开关
   const handleOpenTermSelectPicker = useCallback(async () => {
