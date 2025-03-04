@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import SSOLogin from '@/lib/sso-login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Link, router, Stack, useFocusEffect, useRouter } from 'expo-router';
+import { Link, router, Stack, useFocusEffect } from 'expo-router';
 import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
-import { toast } from 'sonner-native';
+import { useCallback, useState } from 'react';
+import { View } from 'react-native';
 const menuItems: {
   name: string;
   route?: '/toolbox/learning-center/seats' | '/toolbox/learning-center/history';

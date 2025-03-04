@@ -188,7 +188,6 @@ export default function SeatsPage() {
     }
   };
 
-  // 将时间段分组为每行4个
   const timeSlotsRows = useMemo(() => {
     const rows = [];
     for (let i = 0; i < timeSlots.length; i += 4) {
@@ -203,10 +202,6 @@ export default function SeatsPage() {
         const savedToken = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
         if (savedToken) {
           setToken(savedToken);
-        } else {
-          // 如果没有令牌，重定向到令牌获取页面
-          router.push('/toolbox/learning-center/token');
-          return;
         }
       } catch (error) {
         toast.error(`检查令牌时出错: ${error instanceof Error ? error.message : String(error)}`);
@@ -423,19 +418,17 @@ export default function SeatsPage() {
               {/* 座位选择 */}
               <Card className="p-4">
                 <Text className="mb-3 font-medium">座位选择</Text>
-                <View className="space-y-4">
-                  <Button onPress={navigateToAvailableSeats} className="w-full" disabled={!startTime || !endTime}>
-                    <Text className="text-button-foreground">查询可用座位</Text>
-                  </Button>
-
-                  <View>
-                    <Text className="mb-2 text-sm">座位号</Text>
+                <View>
+                  <View className="flex-row items-center space-x-2">
                     <Input
                       value={seatNumber}
                       onChangeText={setSeatNumber}
                       placeholder="请输入座位号"
-                      className="w-full"
+                      className="flex-1"
                     />
+                    <Button onPress={navigateToAvailableSeats} disabled={!startTime || !endTime} size="sm">
+                      <Text className="text-xs text-white">查询座位</Text>
+                    </Button>
                   </View>
                 </View>
               </Card>
@@ -457,7 +450,7 @@ export default function SeatsPage() {
                 onPress={handleSubmitAppointment}
                 className="mt-4"
               >
-                <Text className="text-button-foreground">{isSubmitting ? '预约中...' : '预约'}</Text>
+                <Text className="text-white">{isSubmitting ? '预约中...' : '预约'}</Text>
               </Button>
 
               {/* 添加额外的底部空间，确保键盘弹出时内容可见 */}

@@ -1,6 +1,5 @@
 // 发送请求的座位号并不是我们熟知的座位号，需要通过座位号映射表进行转换
-// TODO: csv 中可能存在现实不存在的座位，需要验证
-// TODO: csv 文件我不知道为什么加载不了，所以我直接写了映射表
+// TODO: 映射表中可能存在现实不存在的座位，需要验证
 
 export class SeatMappingUtil {
   private static _seatMap: { [key: string]: string } = {};

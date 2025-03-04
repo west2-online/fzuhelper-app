@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { toast } from 'sonner-native';
 
@@ -82,7 +82,6 @@ const StatCard = ({
 
 StatCard.displayName = 'StatCard';
 
-// TODO: 切换选项卡速度慢
 const SeatList = React.memo(
   ({
     seats,
@@ -105,22 +104,24 @@ const SeatList = React.memo(
       );
     }
 
-    return (
-      <View className={`flex-row flex-wrap ${columnsCount === 1 ? '' : 'justify-between'}`}>
-        {seats.map(seat => (
-          <View
-            key={seat.spaceName}
-            style={{ width: `${100 / columnsCount - (columnsCount > 1 ? 2 : 0)}%` }}
-            className="px-1"
-          >
-            <SeatChip seat={seat} onSelect={onSelect} />
-          </View>
-        ))}
+    const renderItem = ({ item }: { item: { spaceName: string; status: number } }) => (
+      <View style={{ width: `${100 / columnsCount}%` }} className="px-1">
+        <SeatChip seat={item} onSelect={onSelect} />
       </View>
+    );
+
+    return (
+      <FlatList
+        data={seats}
+        renderItem={renderItem}
+        keyExtractor={item => item.spaceName}
+        numColumns={columnsCount}
+        showsVerticalScrollIndicator={false}
+        className="pb-5"
+      />
     );
   },
   (prevProps, nextProps) => {
-    // 只有当座位数量或座位ID发生变化时才重新渲染
     if (prevProps.seats.length !== nextProps.seats.length) return false;
     return prevProps.seats.every(
       (seat, index) => nextProps.seats[index] && seat.spaceName === nextProps.seats[index].spaceName,
@@ -128,7 +129,6 @@ const SeatList = React.memo(
   },
 );
 
-// Add displayName to fix ESLint issue
 SeatList.displayName = 'SeatList';
 
 export default function AvailableSeatsPage() {
@@ -260,102 +260,109 @@ export default function AvailableSeatsPage() {
     <>
       <Stack.Screen options={{ title: '可用座位查询' }} />
 
-      <PageContainer className="bg-background px-4 pt-4">
-        <ScrollView showsVerticalScrollIndicator={true} className="flex-1">
-          <View className="space-y-6 pb-6">
-            {/* 查询信息卡片 */}
-            <Card className="mb-4 rounded-xl p-4 shadow-sm">
-              <View className="mb-4 flex-row items-center">
-                <Text className="font-medium text-text-secondary">
-                  {date} {startTime}-{endTime}
-                </Text>
-              </View>
+      <PageContainer className="flex-1 bg-background px-4 pt-4">
+        {isLoading && seats.length === 0 ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#666" />
+            <Text className="mt-4 text-text-secondary">正在加载座位数据...（需要一点时间）</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={[{ key: 'content' }]} // 使用单项数据，因为我们只需要渲染一次完整内容
+            renderItem={() => (
+              <View className="space-y-6 pb-6">
+                {/* 查询信息卡片 */}
+                <Card className="mb-4 rounded-xl p-4 shadow-sm">
+                  <View className="mb-4 flex-row items-center">
+                    <Text className="font-medium text-text-secondary">
+                      {date} {startTime}-{endTime}
+                    </Text>
+                  </View>
 
-              <Button
-                onPress={querySeatStatus}
-                disabled={isLoading}
-                className="w-full flex-row items-center justify-center"
-              >
-                {isLoading ? (
-                  <>
-                    <ActivityIndicator size="small" color="#fff" className="mr-2" />
-                    <Text className="text-button-foreground">正在刷新...</Text>
-                  </>
+                  <Button
+                    onPress={querySeatStatus}
+                    disabled={isLoading}
+                    className="w-full flex-row items-center justify-center"
+                  >
+                    {isLoading ? (
+                      <>
+                        <ActivityIndicator size="small" color="#fff" className="mr-2" />
+                        <Text className="text-xs text-white">正在刷新...</Text>
+                      </>
+                    ) : (
+                      <Text className="text-xs text-white">刷新数据</Text>
+                    )}
+                  </Button>
+                </Card>
+
+                {seats.length > 0 ? (
+                  <View>
+                    {/* 统计信息区域 */}
+                    <Animated.View entering={FadeInDown.duration(300).delay(100)} className="mb-6 space-y-4">
+                      <View className="flex-row gap-3">
+                        <View className="flex-1">
+                          <StatCard title="总座位" value={statusSummary.total.toString()} />
+                        </View>
+                        <View className="flex-1">
+                          <StatCard
+                            title="空闲座位"
+                            value={`${statusSummary.free} (${Math.round((statusSummary.free / statusSummary.total) * 100)}%)`}
+                            variant="primary"
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <StatCard
+                            title="空闲单人座位"
+                            value={`${statusSummary.freeSingle} (${Math.round((statusSummary.freeSingle / statusSummary.total) * 100)}%)`}
+                            variant="success"
+                          />
+                        </View>
+                      </View>
+                    </Animated.View>
+
+                    <View className="mb-3 border-b border-border pb-3">
+                      <View className="flex-row items-center">
+                        <Text className="font-medium">空闲座位列表</Text>
+                      </View>
+                    </View>
+
+                    {/* 选项卡切换 */}
+                    <View className="mb-4 flex-row">
+                      <TabButton active={activeTab === 'all'} title="全部" onPress={() => setActiveTab('all')} />
+                      <TabButton
+                        active={activeTab === 'single'}
+                        title="单人座(205-476号)"
+                        onPress={() => setActiveTab('single')}
+                      />
+                    </View>
+
+                    {/* 显示座位数量信息 */}
+                    <View className="mb-3">
+                      <Text className="text-sm text-text-secondary">
+                        {activeTab === 'all'
+                          ? `共 ${allFreeSeats.length} 个空闲座位`
+                          : `共 ${singleFreeSeats.length} 个空闲单人座位`}
+                      </Text>
+                    </View>
+
+                    {/* 空闲座位列表 */}
+                    <SeatList seats={currentTabSeats} columnsCount={columnsCount} onSelect={handleSeatSelect} />
+                  </View>
                 ) : (
-                  // TODO: 控制台已显示查询结果，但页面未刷新，会卡好几秒
-                  <Text className="text-button-foreground">刷新数据</Text>
+                  <View className="items-center justify-center py-16">
+                    <Text className="text-center text-text-secondary">暂无数据，请点击刷新按钮获取座位状态</Text>
+                  </View>
                 )}
-              </Button>
-            </Card>
 
-            {isLoading && seats.length === 0 ? (
-              <View className="items-center justify-center py-16">
-                <ActivityIndicator size="large" color="#666" />
-                <Text className="mt-4 text-text-secondary">正在加载座位数据...（需要一点时间）</Text>
-              </View>
-            ) : seats.length > 0 ? (
-              <View>
-                {/* 统计信息区域 */}
-                <Animated.View entering={FadeInDown.duration(300).delay(100)} className="mb-6 space-y-4">
-                  <View className="flex-row space-x-4">
-                    <View className="flex-1">
-                      <StatCard title="总座位" value={statusSummary.total.toString()} />
-                    </View>
-                    <View className="flex-1">
-                      <StatCard
-                        title="空闲座位"
-                        value={`${statusSummary.free} (${Math.round((statusSummary.free / statusSummary.total) * 100)}%)`}
-                        variant="primary"
-                      />
-                    </View>
-                    <View className="flex-1">
-                      <StatCard
-                        title="空闲单人座位"
-                        value={`${statusSummary.freeSingle} (${Math.round((statusSummary.freeSingle / statusSummary.total) * 100)}%)`}
-                        variant="success"
-                      />
-                    </View>
-                  </View>
-                </Animated.View>
-
-                <View className="mb-3 border-b border-border pb-3">
-                  <View className="flex-row items-center">
-                    <Text className="font-medium">空闲座位列表</Text>
-                  </View>
-                </View>
-
-                {/* 选项卡切换 */}
-                <View className="mb-4 flex-row">
-                  <TabButton active={activeTab === 'all'} title="全部" onPress={() => setActiveTab('all')} />
-                  <TabButton
-                    active={activeTab === 'single'}
-                    title="单人座(205-476号)"
-                    onPress={() => setActiveTab('single')}
-                  />
-                </View>
-
-                {/* 显示座位数量信息 */}
-                <View className="mb-3">
-                  <Text className="text-sm text-text-secondary">
-                    {activeTab === 'all'
-                      ? `共 ${allFreeSeats.length} 个空闲座位`
-                      : `共 ${singleFreeSeats.length} 个空闲单人座位`}
-                  </Text>
-                </View>
-
-                {/* 空闲座位列表 */}
-                <SeatList seats={currentTabSeats} columnsCount={columnsCount} onSelect={handleSeatSelect} />
-              </View>
-            ) : (
-              <View className="items-center justify-center py-16">
-                <Text className="text-center text-text-secondary">暂无数据，请点击刷新按钮获取座位状态</Text>
+                {/* 额外空间确保内容完全可滚动 */}
+                <View className="mb-8 h-[50px]" />
               </View>
             )}
-
-            {/* 额外空间确保内容完全可滚动 */}
-            <View className="mb-8 h-[50px]" />
-          </View>
-        </ScrollView>
+            keyExtractor={item => item.key}
+            showsVerticalScrollIndicator={true}
+            className="pb-5"
+          />
+        )}
       </PageContainer>
     </>
   );

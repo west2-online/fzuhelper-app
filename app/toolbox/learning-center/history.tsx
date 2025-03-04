@@ -100,9 +100,6 @@ export default function HistoryPage() {
             console.error(error);
             toast.error(`获取预约历史时出错: ${error.message}`);
           }
-        } else {
-          toast.error('请先设置学习中心令牌');
-          router.push('/toolbox/learning-center/token');
         }
       } catch (error) {
         console.error(error);
