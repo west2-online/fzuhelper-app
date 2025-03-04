@@ -151,7 +151,7 @@ export default function AvailableSeatsPage() {
   const { date, startTime, endTime } = params;
   const screenWidth = Dimensions.get('window').width;
   const columnsCount = Math.floor((screenWidth - 32) / 110);
-
+  const api = new ApiService();
   // 计算并返回单人座位判断函数
   const isSingleSeat = useCallback((spaceName: string) => {
     const seatNum = parseInt(spaceName.match(/\d+/)?.[0] || '0', 10);
@@ -171,7 +171,7 @@ export default function AvailableSeatsPage() {
       console.log(`开始查询座位: ${date} ${startTime}-${endTime}`);
 
       // 调用API获取所有楼层的座位信息
-      const result = await ApiService.queryAllFloorSeats({
+      const result = await api.queryAllFloorSeats({
         date: date,
         beginTime: startTime,
         endTime: endTime,

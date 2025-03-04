@@ -11,7 +11,7 @@ import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 const menuItems: {
   name: string;
-  route?: '/toolbox/learning-center/seats' | '/toolbox/learning-center/history';
+  route?: '/toolbox/learning-center/seats' | '/toolbox/learning-center/history' | '/toolbox/learning-center/test-api';
   description?: string;
   action?: () => void;
 }[] = [
@@ -24,6 +24,11 @@ const menuItems: {
     name: '预约历史',
     route: '/toolbox/learning-center/history',
     description: '查看过往预约记录',
+  },
+  {
+    name: '测试api',
+    route: '/toolbox/learning-center/test-api',
+    description: '测试api',
   },
 ];
 
@@ -73,36 +78,51 @@ export default function LearningCenterPage() {
     <>
       <Stack.Screen options={{ title: '学习中心预约' }} />
       <PageContainer className="bg-background px-8 pt-4">
-        {token ? (
-          <View className="space-y-4">
-            {menuItems.map((item, index) => (
-              <LabelEntry
-                key={index}
-                leftText={item.name}
-                description={item.description}
-                onPress={item.action || (item.route ? () => router.push(item.route!) : undefined)}
-              />
-            ))}
-          </View>
+        {isLoading ? (
+          <Loading />
         ) : (
-          <View className="flex-1 items-center justify-center gap-10">
-            <Text className="text-lg">登录统一身份认证平台，享受学习一码通，学习中心预约服务</Text>
-            <Button
-              onPress={() => {
-                router.push('/toolbox/learning-center/webview-login');
-                setIsLoading(true);
-              }}
-              className="w-1/2"
-            >
-              <Text>前往登录</Text>
-            </Button>
+          <>
+            {token ? (
+              <View className="space-y-4">
+                {menuItems.map((item, index) => (
+                  <LabelEntry
+                    key={index}
+                    leftText={item.name}
+                    description={item.description}
+                    onPress={
+                      item.action ||
+                      (item.route
+                        ? () =>
+                            router.push({
+                              pathname: item.route!,
+                              params: { token },
+                            })
+                        : undefined)
+                    }
+                  />
+                ))}
+              </View>
+            ) : (
+              <View className="flex-1 items-center justify-center gap-10">
+                <Text className="text-lg">登录统一身份认证平台，享受学习一码通，学习中心预约服务</Text>
+                <Button
+                  onPress={() => {
+                    router.push('/(guest)/unified-auth-login');
+                    setIsLoading(true);
+                  }}
+                  className="w-1/2"
+                >
+                  <Text>前往登录</Text>
+                </Button>
 
-            <Link href="/toolbox/learning-center/webview-login" asChild>
-              <Button className="w-1/2">
-                <Text className="text-white">通过网页登录到学习空间</Text>
-              </Button>
-            </Link>
-          </View>
+                <Link href="/toolbox/learning-center/webview-login" asChild>
+                  <Button className="w-1/2">
+                    <Text className="text-white">通过网页登录到学习空间</Text>
+                  </Button>
+                </Link>
+              </View>
+            )}
+          </>
         )}
       </PageContainer>
     </>

@@ -1,10 +1,9 @@
+import { Input } from '@/components/ui/input';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
-
-import { Input } from '@/components/ui/input';
 
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
@@ -83,6 +82,7 @@ export default function SeatsPage() {
   const [endTime, setEndTime] = useState<string | null>(null);
   const [selectedTimeStep, setSelectedTimeStep] = useState<'start' | 'end'>('start');
   const [seatNumber, setSeatNumber] = useState<string>('');
+  const api = useMemo(() => new ApiService(), []);
 
   // 生成未来7天的日期
   const dates = useMemo(() => {
@@ -240,7 +240,8 @@ export default function SeatsPage() {
       const formattedDate = formatDate(selectedDate, 'yyyy-MM-dd');
 
       // 调用API进行预约
-      await ApiService.makeAppointment({
+
+      await api.makeAppointment({
         spaceName: seatNumber.trim(),
         beginTime: startTime,
         endTime: endTime,
