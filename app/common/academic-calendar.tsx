@@ -142,12 +142,7 @@ export default function AcademicCalendarPage() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerTitleAlign: 'center',
-          headerTitle: '学期校历',
-        }}
-      />
+      <Stack.Screen options={{ title: '学期校历' }} />
 
       <PageContainer>
         <TabFlatList data={termList} value={currentTerm} onChange={setCurrentTerm} renderContent={renderContent} />
