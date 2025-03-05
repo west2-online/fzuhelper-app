@@ -71,7 +71,7 @@ const config: ExpoConfig = {
         //                 }
         //             },
         android: {
-          src: './modules/native-widget/android',
+          src: './targets/android-widget',
           widgets: [
             {
               name: 'NextClassWidgetProvider',
