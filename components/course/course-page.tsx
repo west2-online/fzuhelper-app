@@ -178,7 +178,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
       {/* 顶部 Tab 导航栏 */}
       <Tabs.Screen
         options={{
-          headerTitleAlign: 'center',
           // eslint-disable-next-line react/no-unstable-nested-components
           headerLeft: () => <Text className="ml-4 text-2xl font-medium">课程表</Text>,
           // eslint-disable-next-line react/no-unstable-nested-components
