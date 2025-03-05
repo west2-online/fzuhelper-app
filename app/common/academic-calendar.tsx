@@ -57,7 +57,6 @@ export default function AcademicCalendarPage() {
 
   // 刷新当前学期数据
   const refreshData = useCallback(async () => {
-    console.log('Refreshing exam data...');
     // 清空当前学期的数据，保留对象结构
     setAcademicCalendarMap(prev => ({
       ...prev,
@@ -142,7 +141,7 @@ export default function AcademicCalendarPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '学期校历' }} />
+      <Stack.Screen options={{ title: '校历' }} />
 
       <PageContainer>
         <TabFlatList data={termList} value={currentTerm} onChange={setCurrentTerm} renderContent={renderContent} />
