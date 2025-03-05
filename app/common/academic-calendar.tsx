@@ -80,11 +80,14 @@ const CourseContent: React.FC<CourseContentProps> = ({ term }) => {
 export default function AcademicCalendarPage() {
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
   // 获取学期列表（当前用户）
-  const onSuccess = useCallback((terms: string[]) => {
-    if (!currentTerm && terms.length) {
-      setCurrentTerm(terms[0]);
-    }
-  }, []);
+  const onSuccess = useCallback(
+    (terms: string[]) => {
+      if (!currentTerm && terms.length) {
+        setCurrentTerm(terms[0]);
+      }
+    },
+    [currentTerm],
+  );
   const { data: termList } = useApiRequest(getApiV1JwchTermList, {}, { onSuccess, errorHandler: handleApiError });
 
   return (
