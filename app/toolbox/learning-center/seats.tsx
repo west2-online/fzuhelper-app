@@ -1,7 +1,6 @@
-import { Input } from '@/components/ui/input';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -13,9 +12,6 @@ import { Text } from '@/components/ui/text';
 
 import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import ApiService from '@/utils/learning-center/api_service';
-
-// 用于存储选中的座位号的键
-const SELECTED_SEAT_KEY = 'learning_center_selected_seat';
 
 function formatDate(date: Date, formatStr: string): string {
   const year = date.getFullYear();
@@ -70,18 +66,15 @@ function calculateHoursDifference(startTime: string, endTime: string): number {
 
 export default function SeatsPage() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ selectedSeat?: string }>();
   const scrollViewRef = useRef<ScrollView>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [, setToken] = useState<string | null>(null); // 修改此处，初始化为 null 并明确类型
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setToken] = useState<string | null>(null);
 
   // 日期和时间选择状态
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [startTime, setStartTime] = useState<string | null>(null);
   const [endTime, setEndTime] = useState<string | null>(null);
   const [selectedTimeStep, setSelectedTimeStep] = useState<'start' | 'end'>('start');
-  const [seatNumber, setSeatNumber] = useState<string>('');
   const api = useMemo(() => new ApiService(), []);
 
   // 生成未来7天的日期
@@ -225,49 +218,7 @@ export default function SeatsPage() {
     };
   }, []);
 
-  // 处理预约提交
-  const handleSubmitAppointment = async () => {
-    // 验证所有必要信息是否填写
-    if (!selectedDate || !startTime || !endTime || !seatNumber.trim()) {
-      toast.error('请填写完整的预约信息');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // 格式化日期为YYYY-MM-DD格式
-      const formattedDate = formatDate(selectedDate, 'yyyy-MM-dd');
-
-      // 调用API进行预约
-
-      await api.makeAppointment({
-        spaceName: seatNumber.trim(),
-        beginTime: startTime,
-        endTime: endTime,
-        date: formattedDate,
-      });
-
-      // 预约成功
-      toast.success('座位预约成功！');
-
-      // 重置表单
-      setStartTime(null);
-      setEndTime(null);
-      setSeatNumber('');
-      setSelectedTimeStep('start');
-
-      // 可选：跳转到预约历史页面
-      router.push('/toolbox/learning-center/history');
-    } catch (error: any) {
-      // 显示预约失败的具体原因
-      toast.error(error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // 添加导航到可用座位页面的函数
+  // 导航到可用座位页面，传递日期和时间参数
   const navigateToAvailableSeats = () => {
     if (!selectedDate || !startTime || !endTime) {
       toast.error('请先选择日期和时间');
@@ -288,36 +239,6 @@ export default function SeatsPage() {
     });
   };
 
-  // 监听从座位查询页面返回的参数
-  useEffect(() => {
-    // 替换原有的 router.getState() 逻辑，直接使用 useLocalSearchParams
-    if (params.selectedSeat) {
-      setSeatNumber(params.selectedSeat);
-    }
-  }, [params.selectedSeat]);
-
-  // 使用useFocusEffect来检查并获取从座位查询页面返回的座位号
-  useFocusEffect(
-    useCallback(() => {
-      const checkSelectedSeat = async () => {
-        try {
-          const selectedSeat = await AsyncStorage.getItem(SELECTED_SEAT_KEY);
-          if (selectedSeat) {
-            console.log('从存储中获取选中的座位号:', selectedSeat);
-            setSeatNumber(selectedSeat);
-
-            // 清除存储的座位号，防止下次进入页面时仍然被填充
-            await AsyncStorage.removeItem(SELECTED_SEAT_KEY);
-          }
-        } catch (error) {
-          console.error('获取选中的座位号时出错:', error);
-        }
-      };
-
-      checkSelectedSeat();
-    }, []),
-  );
-
   if (isLoading) {
     return <Loading />;
   }
@@ -331,7 +252,6 @@ export default function SeatsPage() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 as number }}
           keyboardVerticalOffset={50}
-          // TODO: 键盘弹出后，有时候会闪一下
         >
           <ScrollView
             ref={scrollViewRef}
@@ -416,45 +336,23 @@ export default function SeatsPage() {
                 </View>
               </Card>
 
-              {/* 座位选择 */}
-              <Card className="p-4">
-                <Text className="mb-3 font-medium">座位选择</Text>
-                <View>
-                  <View className="flex-row items-center space-x-2">
-                    <Input
-                      value={seatNumber}
-                      onChangeText={setSeatNumber}
-                      placeholder="请输入座位号"
-                      className="flex-1"
-                    />
-                    <Button onPress={navigateToAvailableSeats} disabled={!startTime || !endTime} size="sm">
-                      <Text className="text-xs text-white">查询座位</Text>
-                    </Button>
-                  </View>
-                </View>
-              </Card>
-
-              {/* 预约摘要 */}
+              {/* 时间段选择状态指示 */}
               {startTime && (
                 <Text className="text-text text-center text-sm">
                   {startTime && !endTime
                     ? `已选择开始时间：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${startTime}`
                     : startTime && endTime
-                      ? `已选择：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${startTime} - ${endTime}${seatNumber ? ` 座位号：${seatNumber}` : ''}`
+                      ? `已选择时间段：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${startTime} - ${endTime}`
                       : ''}
                 </Text>
               )}
 
-              {/* 预约按钮 */}
-              <Button
-                disabled={!startTime || !endTime || !seatNumber.trim() || isSubmitting}
-                onPress={handleSubmitAppointment}
-                className="mt-4"
-              >
-                <Text className="text-white">{isSubmitting ? '预约中...' : '预约'}</Text>
+              {/* 查询可用座位按钮 - 替代原有的预约按钮 */}
+              <Button disabled={!startTime || !endTime} onPress={navigateToAvailableSeats} className="mt-4">
+                <Text className="text-white">查询可用座位</Text>
               </Button>
 
-              {/* 添加额外的底部空间，确保键盘弹出时内容可见 */}
+              {/* 添加额外的底部空间，确保内容可见 */}
               <View style={{ height: 50 as number }} />
             </View>
           </ScrollView>

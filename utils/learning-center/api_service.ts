@@ -268,6 +268,7 @@ class ApiService {
 
       console.log(`格式化后的时间: begin=${formattedBeginTime}, end=${formattedEndTime}`);
       // 循环查询4楼和5楼的座位
+      // TODO: 四楼和五楼并发处理
       for (const floor of ['4', '5']) {
         console.log(`开始查询${floor}楼座位`);
 

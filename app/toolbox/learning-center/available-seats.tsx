@@ -1,6 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { toast } from 'sonner-native';
@@ -11,9 +10,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import ApiService from '@/utils/learning-center/api_service';
 import React from 'react';
-
-// 用于存储选中的座位号的键
-const SELECTED_SEAT_KEY = 'learning_center_selected_seat';
 
 // 座位展示选项卡类型
 type TabType = 'all' | 'single';
@@ -95,11 +91,7 @@ const SeatList = React.memo(
     if (seats.length === 0) {
       return (
         <View className="items-center justify-center py-8">
-          <Text className="text-center text-text-secondary">
-            暂无空闲座位
-            {'\n'}
-            （如果你在该时间段已有一个预约则可能无法显示，但仍然可以通过直接输入座位号的方式预约）
-          </Text>
+          <Text className="text-center text-text-secondary">暂无空闲座位</Text>
         </View>
       );
     }
@@ -147,11 +139,18 @@ export default function AvailableSeatsPage() {
     free: 0,
     freeSingle: 0,
   });
+  // 新增选中座位状态和提交状态
+  const [selectedSeat, setSelectedSeat] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSeatsList, setShowSeatsList] = useState(true);
+  // 添加滚动视图引用
+  const scrollViewRef = useRef<FlatList>(null);
 
   const { date, startTime, endTime } = params;
   const screenWidth = Dimensions.get('window').width;
   const columnsCount = Math.floor((screenWidth - 32) / 110);
   const api = new ApiService();
+
   // 计算并返回单人座位判断函数
   const isSingleSeat = useCallback((spaceName: string) => {
     const seatNum = parseInt(spaceName.match(/\d+/)?.[0] || '0', 10);
@@ -239,21 +238,56 @@ export default function AvailableSeatsPage() {
     querySeatStatus();
   }, [date, startTime, endTime, querySeatStatus]);
 
-  const handleSeatSelect = async (seatName: string) => {
-    try {
-      // 将选中的座位号保存到 AsyncStorage
-      await AsyncStorage.setItem(SELECTED_SEAT_KEY, seatName);
-      console.log('座位号已保存:', seatName);
+  // 处理座位选择
+  const handleSeatSelect = (seatName: string) => {
+    setSelectedSeat(seatName);
+    setShowSeatsList(false); // 收起座位列表
+    // 使用React Native的滚动方法
+    scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+  };
 
-      // 显示提示
-      toast.success(`已选择座位: ${seatName}`);
+  // 返回座位列表
+  const handleBackToSeatList = () => {
+    setSelectedSeat('');
+    setShowSeatsList(true);
+  };
 
-      // 返回上一页
-      router.back();
-    } catch (error) {
-      console.error('保存座位号时出错:', error);
-      toast.error('选择座位失败，请重试');
+  // 处理预约提交
+  const handleSubmitAppointment = async () => {
+    if (!date || !startTime || !endTime || !selectedSeat) {
+      toast.error('请选择座位');
+      return;
     }
+
+    setIsSubmitting(true);
+
+    try {
+      // 调用API进行预约
+      await api.makeAppointment({
+        spaceName: selectedSeat,
+        beginTime: startTime,
+        endTime: endTime,
+        date: date,
+      });
+
+      // 预约成功
+      toast.success('座位预约成功！');
+
+      // 跳转到预约历史页面
+      router.push('/toolbox/learning-center/history');
+    } catch (error: any) {
+      // 显示预约失败的具体原因
+      toast.error(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 格式化日期为用户友好格式
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    return `${year}年${month}月${day}日`;
   };
 
   return (
@@ -268,6 +302,7 @@ export default function AvailableSeatsPage() {
           </View>
         ) : (
           <FlatList
+            ref={scrollViewRef}
             data={[{ key: 'content' }]} // 使用单项数据，因为我们只需要渲染一次完整内容
             renderItem={() => (
               <View className="space-y-6 pb-6">
@@ -275,80 +310,119 @@ export default function AvailableSeatsPage() {
                 <Card className="mb-4 rounded-xl p-4 shadow-sm">
                   <View className="mb-4 flex-row items-center">
                     <Text className="font-medium text-text-secondary">
-                      {date} {startTime}-{endTime}
+                      {formatDate(date)} {startTime}-{endTime}
                     </Text>
                   </View>
 
-                  <Button
-                    onPress={querySeatStatus}
-                    disabled={isLoading}
-                    className="w-full flex-row items-center justify-center"
-                  >
-                    {isLoading ? (
-                      <>
-                        <ActivityIndicator size="small" color="#fff" className="mr-2" />
-                        <Text className="text-xs text-white">正在刷新...</Text>
-                      </>
-                    ) : (
-                      <Text className="text-xs text-white">刷新数据</Text>
-                    )}
-                  </Button>
+                  {selectedSeat ? (
+                    <Button onPress={handleBackToSeatList} className="w-full flex-row items-center justify-center">
+                      <Text className="text-xs text-white">返回座位列表</Text>
+                    </Button>
+                  ) : (
+                    <Button
+                      onPress={querySeatStatus}
+                      disabled={isLoading}
+                      className="w-full flex-row items-center justify-center"
+                    >
+                      {isLoading ? (
+                        <>
+                          <ActivityIndicator size="small" color="#fff" className="mr-2" />
+                          <Text className="text-xs text-white">正在刷新...</Text>
+                        </>
+                      ) : (
+                        <Text className="text-xs text-white">刷新数据</Text>
+                      )}
+                    </Button>
+                  )}
                 </Card>
 
-                {seats.length > 0 ? (
-                  <View>
-                    {/* 统计信息区域 */}
-                    <Animated.View entering={FadeInDown.duration(300).delay(100)} className="mb-6 space-y-4">
-                      <View className="flex-row gap-3">
-                        <View className="flex-1">
-                          <StatCard title="总座位" value={statusSummary.total.toString()} />
+                {selectedSeat ? (
+                  // 座位预约确认区域
+                  <View className="space-y-6">
+                    <Card className="p-4">
+                      <Text className="mb-3 font-medium">预约详情</Text>
+                      <View className="space-y-4">
+                        <View className="flex-row justify-between">
+                          <Text className="text-text-secondary">日期</Text>
+                          <Text className="font-medium">{formatDate(date)}</Text>
                         </View>
-                        <View className="flex-1">
-                          <StatCard
-                            title="空闲座位"
-                            value={`${statusSummary.free} (${Math.round((statusSummary.free / statusSummary.total) * 100)}%)`}
-                            variant="primary"
-                          />
+                        <View className="flex-row justify-between">
+                          <Text className="text-text-secondary">时间</Text>
+                          <Text className="font-medium">
+                            {startTime} - {endTime}
+                          </Text>
                         </View>
-                        <View className="flex-1">
-                          <StatCard
-                            title="空闲单人座位"
-                            value={`${statusSummary.freeSingle} (${Math.round((statusSummary.freeSingle / statusSummary.total) * 100)}%)`}
-                            variant="success"
-                          />
+                        <View className="flex-row justify-between">
+                          <Text className="text-text-secondary">座位号</Text>
+                          <Text className="font-medium">{selectedSeat}</Text>
                         </View>
                       </View>
-                    </Animated.View>
+                    </Card>
 
-                    <View className="mb-3 border-b border-border pb-3">
-                      <View className="flex-row items-center">
-                        <Text className="font-medium">空闲座位列表</Text>
-                      </View>
-                    </View>
-
-                    {/* 选项卡切换 */}
-                    <View className="mb-4 flex-row">
-                      <TabButton active={activeTab === 'all'} title="全部" onPress={() => setActiveTab('all')} />
-                      <TabButton
-                        active={activeTab === 'single'}
-                        title="单人座(205-476号)"
-                        onPress={() => setActiveTab('single')}
-                      />
-                    </View>
-
-                    {/* 显示座位数量信息 */}
-                    <View className="mb-3">
-                      <Text className="text-sm text-text-secondary">
-                        {activeTab === 'all'
-                          ? `共 ${allFreeSeats.length} 个空闲座位`
-                          : `共 ${singleFreeSeats.length} 个空闲单人座位`}
-                      </Text>
-                    </View>
-
-                    {/* 空闲座位列表 */}
-                    <SeatList seats={currentTabSeats} columnsCount={columnsCount} onSelect={handleSeatSelect} />
+                    <Button onPress={handleSubmitAppointment} disabled={isSubmitting} className="mt-4">
+                      <Text className="text-white">{isSubmitting ? '预约中...' : '确认预约'}</Text>
+                    </Button>
                   </View>
                 ) : (
+                  // 座位列表区域
+                  showSeatsList &&
+                  seats.length > 0 && (
+                    <View>
+                      {/* 统计信息区域 */}
+                      <Animated.View entering={FadeInDown.duration(300).delay(100)} className="mb-6 space-y-4">
+                        <View className="flex-row gap-3">
+                          <View className="flex-1">
+                            <StatCard title="总座位" value={statusSummary.total.toString()} />
+                          </View>
+                          <View className="flex-1">
+                            <StatCard
+                              title="空闲座位"
+                              value={`${statusSummary.free} (${Math.round((statusSummary.free / statusSummary.total) * 100)}%)`}
+                              variant="primary"
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <StatCard
+                              title="空闲单人座位"
+                              value={`${statusSummary.freeSingle} (${Math.round((statusSummary.freeSingle / statusSummary.total) * 100)}%)`}
+                              variant="success"
+                            />
+                          </View>
+                        </View>
+                      </Animated.View>
+
+                      <View className="mb-3 border-b border-border pb-3">
+                        <View className="flex-row items-center">
+                          <Text className="font-medium">空闲座位列表</Text>
+                        </View>
+                      </View>
+
+                      {/* 选项卡切换 */}
+                      <View className="mb-4 flex-row">
+                        <TabButton active={activeTab === 'all'} title="全部" onPress={() => setActiveTab('all')} />
+                        <TabButton
+                          active={activeTab === 'single'}
+                          title="单人座(205-476号)"
+                          onPress={() => setActiveTab('single')}
+                        />
+                      </View>
+
+                      {/* 显示座位数量信息 */}
+                      <View className="mb-3">
+                        <Text className="text-sm text-text-secondary">
+                          {activeTab === 'all'
+                            ? `共 ${allFreeSeats.length} 个空闲座位`
+                            : `共 ${singleFreeSeats.length} 个空闲单人座位`}
+                        </Text>
+                      </View>
+
+                      {/* 空闲座位列表 */}
+                      <SeatList seats={currentTabSeats} columnsCount={columnsCount} onSelect={handleSeatSelect} />
+                    </View>
+                  )
+                )}
+
+                {!selectedSeat && seats.length === 0 && !isLoading && (
                   <View className="items-center justify-center py-16">
                     <Text className="text-center text-text-secondary">暂无数据，请点击刷新按钮获取座位状态</Text>
                   </View>
