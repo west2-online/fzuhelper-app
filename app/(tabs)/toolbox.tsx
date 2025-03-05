@@ -15,6 +15,7 @@ import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
 import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
+import StudyCenter from '@/assets/images/toolbox/ic_studycenter.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
@@ -130,6 +131,12 @@ const DEFAULT_TOOLS: Tool[] = [
     action: async () => {
       pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
     },
+  },
+  {
+    name: '学习中心',
+    icon: StudyCenter,
+    type: ToolType.LINK,
+    href: '/toolbox/learning-center',
   },
 ];
 
