@@ -27,7 +27,7 @@ const WeekSelector: React.FC<WeekSelectorProps> = ({ currentWeek, maxWeek, onWee
       data={Array.from({ length: maxWeek }, (_, i) => i + 1)}
       renderItem={renderItem}
       keyExtractor={item => item.toString()}
-      contentContainerStyle={{ padding: 10 }}
+      contentContainerClassName="p-3"
       showsVerticalScrollIndicator={false}
     />
   );
