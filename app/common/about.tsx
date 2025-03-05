@@ -1,8 +1,9 @@
 import Constants from 'expo-constants';
-import { Stack, router } from 'expo-router';
-import { useState } from 'react';
+import { Link, Stack, router } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, Linking, Platform, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import {
   DescriptionList,
@@ -19,14 +20,15 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
-import { toast } from 'sonner-native';
+
+const CLICK_TO_SHOW_DEVTOOLS = 7;
 
 export default function AboutPage() {
   const [clickCount, setClickCount] = useState(0);
   const { handleError } = useSafeResponseSolve();
   const [updateCheckState, setUpdateCheckState] = useState('点击检查更新');
 
-  const handleCheckUpdate = async () => {
+  const handleCheckUpdate = useCallback(async () => {
     console.log('check update');
     if (Platform.OS === 'ios') {
       Linking.openURL('itms-apps://itunes.apple.com/app/id866768101');
@@ -47,47 +49,28 @@ export default function AboutPage() {
         },
       });
     }
-  };
+  }, [handleError]);
 
-  const handleOfficialWebsite = () => {
-    Linking.openURL('https://site.west2.online/');
-  };
+  useEffect(() => {
+    if (clickCount > 4) {
+      toast.info(`再点击 ${CLICK_TO_SHOW_DEVTOOLS - clickCount} 次进入开发者工具`, {
+        duration: 200,
+        position: 'bottom-center',
+      });
+    }
 
-  const handlePrivacyPolicy = () => {
-    pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
-  };
-
-  const handleUserAgreement = () => {
-    pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
-  };
-
-  const handleContributors = () => {
-    router.push('/contributors');
-  };
-
-  const handleUpyun = () => {
-    Linking.openURL('https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral');
-  };
-
-  const handleBeian = () => {
-    Linking.openURL('https://beian.miit.gov.cn/');
-  };
+    if (clickCount === CLICK_TO_SHOW_DEVTOOLS) {
+      router.push('/devtools');
+      setClickCount(0);
+    }
+  }, [clickCount]);
 
   return (
     <>
       <Stack.Screen options={{ title: '关于' }} />
 
       <PageContainer>
-        <Pressable
-          className="flex items-center p-12"
-          onPress={() => {
-            setClickCount(clickCount + 1);
-            if (clickCount === 5) {
-              router.push('/devtools');
-              setClickCount(0);
-            }
-          }}
-        >
+        <Pressable className="flex items-center p-12" onPress={() => setClickCount(prev => prev + 1)}>
           <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-card" />
           <View>
             <Text className="text-xl text-primary">{Constants.expoConfig?.version ?? ''}</Text>
@@ -112,7 +95,7 @@ export default function AboutPage() {
               </DescriptionListTerm>
               <DescriptionListDescription>西二在线工作室</DescriptionListDescription>
             </DescriptionListRow>
-            <Pressable onPress={handleOfficialWebsite}>
+            <Pressable onPress={() => Linking.openURL('https://site.west2.online/')}>
               <DescriptionListRow>
                 <DescriptionListTerm>
                   <Text className="text-text-secondary">官方网站</Text>
@@ -126,27 +109,30 @@ export default function AboutPage() {
 
           <SafeAreaView className="flex-1 items-center justify-end gap-2" edges={['bottom']}>
             <View className="flex-row">
-              <Text className="text-primary" onPress={handlePrivacyPolicy}>
+              <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策')}>
                 服务协议
               </Text>
               <Text className="mx-3 text-primary">|</Text>
-              <Text className="text-primary" onPress={handleUserAgreement}>
+              <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议')}>
                 隐私政策
               </Text>
               <Text className="mx-3 text-primary">|</Text>
-              <Text className="text-primary" onPress={handleContributors}>
-                贡献名录
-              </Text>
+              <Link href="/contributors" asChild>
+                <Text className="text-primary">贡献名录</Text>
+              </Link>
             </View>
             <View className="flex-row">
               {/* 标准样式，请勿改动 */}
               <Text className="text-sm text-text-secondary">本APP由</Text>
-              <Text className="text-sm text-primary" onPress={handleUpyun}>
+              <Text
+                className="text-sm text-primary"
+                onPress={() => Linking.openURL('https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral')}
+              >
                 又拍云
               </Text>
               <Text className="text-sm text-text-secondary">提供CDN加速/云存储服务</Text>
             </View>
-            <Pressable className="flex-row items-center" onPress={handleBeian}>
+            <Pressable className="flex-row items-center" onPress={() => Linking.openURL('https://beian.miit.gov.cn/')}>
               <Text className="mr-1 text-sm text-text-secondary">ICP备案号：闽ICP备19020557号-4A</Text>
               <Icon name="chevron-forward" size={10} />
             </Pressable>
