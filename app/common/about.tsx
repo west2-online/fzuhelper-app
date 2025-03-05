@@ -109,11 +109,11 @@ export default function AboutPage() {
 
           <SafeAreaView className="flex-1 items-center justify-end gap-2" edges={['bottom']}>
             <View className="flex-row">
-              <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策')}>
+              <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议')}>
                 服务协议
               </Text>
               <Text className="mx-3 text-primary">|</Text>
-              <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议')}>
+              <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策')}>
                 隐私政策
               </Text>
               <Text className="mx-3 text-primary">|</Text>
