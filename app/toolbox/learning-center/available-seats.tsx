@@ -376,61 +376,68 @@ export default function AvailableSeatsPage() {
                 <LearningCenterMap />
 
                 {/* 查询信息卡片 */}
-                <Card className="mb-4 rounded-xl p-4 shadow-sm">
-                  <View className="mb-4 flex-row items-center">
-                    <Text className="font-medium text-text-secondary">
-                      {formatDate(date)} {startTime}-{endTime}
-                    </Text>
-                  </View>
-
-                  {selectedSeat ? (
-                    <Button onPress={handleBackToSeatList} className="w-full flex-row items-center justify-center">
-                      <Text className="text-xs text-white">返回座位列表</Text>
-                    </Button>
-                  ) : (
-                    <Button
-                      onPress={querySeatStatus}
-                      disabled={isLoading}
-                      className="w-full flex-row items-center justify-center"
-                    >
-                      {isLoading ? (
-                        <>
-                          <ActivityIndicator size="small" color="#fff" className="mr-2" />
-                          <Text className="text-xs text-white">正在刷新...</Text>
-                        </>
-                      ) : (
-                        <Text className="text-xs text-white">刷新数据</Text>
-                      )}
-                    </Button>
-                  )}
-                </Card>
+                {selectedSeat ? null : (
+                  <Card className="mb-4 rounded-xl p-4 shadow-sm">
+                    <View className="mb-4 flex-row items-center">
+                      <Text className="font-medium text-text-secondary">
+                        {formatDate(date)} {startTime}-{endTime}
+                      </Text>
+                    </View>
+                    {selectedSeat ? (
+                      <Button onPress={handleBackToSeatList} className="w-full flex-row items-center justify-center">
+                        <Text className="text-xs text-white">返回座位列表</Text>
+                      </Button>
+                    ) : (
+                      <Button
+                        onPress={querySeatStatus}
+                        disabled={isLoading}
+                        className="w-full flex-row items-center justify-center"
+                      >
+                        {isLoading ? (
+                          <>
+                            <ActivityIndicator size="small" color="#fff" className="mr-2" />
+                            <Text className="text-xs text-white">正在刷新...</Text>
+                          </>
+                        ) : (
+                          <Text className="text-xs text-white">刷新数据</Text>
+                        )}
+                      </Button>
+                    )}
+                  </Card>
+                )}
 
                 {selectedSeat ? (
                   // 座位预约确认区域
                   <View className="space-y-6">
-                    <Card className="p-4">
-                      <Text className="mb-3 font-medium">预约详情</Text>
-                      <View className="space-y-4">
-                        <View className="flex-row justify-between">
-                          <Text className="text-text-secondary">日期</Text>
-                          <Text className="font-medium">{formatDate(date)}</Text>
+                    <View className="space-y-4">
+                      <Card className="mb-4 rounded-xl p-4">
+                        <View>
+                          <Text className="mb-4 text-lg font-semibold">预约详情</Text>
+                          <View className="space-y-4">
+                            <View className="flex-row items-center justify-between rounded-md bg-gray-50 p-3 dark:bg-gray-900">
+                              <Text className="text-text-primary">日期</Text>
+                              <Text className="font-medium">{formatDate(date)}</Text>
+                            </View>
+                            <View className="flex-row items-center justify-between rounded-md bg-gray-50 p-3 dark:bg-gray-900">
+                              <Text className="text-text-primary">时间</Text>
+                              <Text className="font-medium">
+                                {startTime} - {endTime}
+                              </Text>
+                            </View>
+                            <View className="flex-row items-center justify-between rounded-md bg-gray-50 p-3 dark:bg-gray-900">
+                              <Text className="text-text-primary">座位号</Text>
+                              <Text className="font-medium">{selectedSeat}</Text>
+                            </View>
+                          </View>
                         </View>
-                        <View className="flex-row justify-between">
-                          <Text className="text-text-secondary">时间</Text>
-                          <Text className="font-medium">
-                            {startTime} - {endTime}
-                          </Text>
-                        </View>
-                        <View className="flex-row justify-between">
-                          <Text className="text-text-secondary">座位号</Text>
-                          <Text className="font-medium">{selectedSeat}</Text>
-                        </View>
-                      </View>
-                    </Card>
-
-                    <Button onPress={handleSubmitAppointment} disabled={isSubmitting} className="mt-4">
-                      <Text className="text-white">{isSubmitting ? '预约中...' : '确认预约'}</Text>
-                    </Button>
+                        <TouchableOpacity onPress={handleBackToSeatList} className="mt-4 w-full items-center">
+                          <Text className="text-primary underline">重选座位</Text>
+                        </TouchableOpacity>
+                      </Card>
+                      <Button onPress={handleSubmitAppointment} disabled={isSubmitting} className="mt-4">
+                        <Text className="text-white">{isSubmitting ? '预约中...' : '确认预约'}</Text>
+                      </Button>
+                    </View>
                   </View>
                 ) : (
                   // 座位列表区域
