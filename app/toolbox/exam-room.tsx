@@ -173,8 +173,7 @@ export default function ExamRoomPage() {
     <>
       <Stack.Screen
         options={{
-          headerTitleAlign: 'center',
-          headerTitle: '考场查询',
+          title: '考场查询',
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Pressable onPress={handleModalVisible} className="flex flex-row items-center">

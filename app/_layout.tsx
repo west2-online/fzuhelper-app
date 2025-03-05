@@ -29,7 +29,7 @@ export default function RootLayout() {
         <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <KeyboardProvider>
             <GestureHandlerRootView>
-              <Stack screenOptions={{ animation: 'ios_from_right' }}>
+              <Stack screenOptions={{ animation: 'ios_from_right', headerTitleAlign: 'center' }}>
                 <Stack.Screen name="/(guest)" />
                 <Stack.Screen name="+not-found" />
               </Stack>
