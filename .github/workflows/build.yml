@@ -36,11 +36,23 @@ jobs:
         with:
           gradle-version: 8.8
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Prebuild
         run: yarn run prebuild:android
+
+      - name: Cache gradle (local)
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/yarn.lock') }} # 因为要缓存的主要是 gradle 的依赖，所以这里使用 yarn.lock 作为 hashFiles 的参数
 
       - name: Build Release APK
         run: |
@@ -53,7 +65,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
           KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
           SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
-      
+
       - name: Extract Version Info
         shell: bash
         run: |

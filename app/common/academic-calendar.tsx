@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Dimensions, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -80,16 +80,16 @@ const CourseContent: React.FC<CourseContentProps> = ({ term }) => {
 export default function AcademicCalendarPage() {
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
   // 获取学期列表（当前用户）
-  const { data: termList } = useApiRequest(getApiV1JwchTermList, {}, { errorHandler: handleApiError });
+  const onSuccess = useCallback((terms: string[]) => {
+    if (!currentTerm && terms.length) {
+      setCurrentTerm(terms[0]);
+    }
+  }, []);
+  const { data: termList } = useApiRequest(getApiV1JwchTermList, {}, { onSuccess, errorHandler: handleApiError });
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerTitleAlign: 'center',
-          headerTitle: '学期校历',
-        }}
-      />
+      <Stack.Screen options={{ title: '校历' }} />
 
       <PageContainer>
         <TabFlatList

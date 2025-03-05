@@ -2,7 +2,7 @@
 import Aegis from 'aegis-rn-sdk';
 import { Platform } from 'react-native';
 
-import { ResultEnum } from '@/api/enum';
+import { SuccessCodeList } from '@/api/enum';
 
 const aegis = new Aegis({
   id: 'VD0m3Sd9r0180Pjd2W', // 上报 id
@@ -21,7 +21,7 @@ const aegis = new Aegis({
     retCodeHandler(_data: string) {
       try {
         const data = JSON.parse(_data);
-        const isErr = ![ResultEnum.SuccessCode, ResultEnum.SuccessCodePaper].includes(data.code);
+        const isErr = !SuccessCodeList.includes(data.code);
 
         if (__DEV__ && isErr) {
           console.log('aegis api ret code error', data);
