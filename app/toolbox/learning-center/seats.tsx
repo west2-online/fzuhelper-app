@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
@@ -118,7 +118,7 @@ export default function SeatsPage() {
     return false;
   };
 
-  // 处理时间选择 - 优化逻辑
+  // 处理时间选择
   const handleTimeSelection = (time: string) => {
     if (selectedTimeStep === 'start') {
       setStartTime(time);
@@ -205,18 +205,6 @@ export default function SeatsPage() {
 
     checkToken();
   }, [router]);
-
-  // 添加键盘显示/隐藏事件监听
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      // 键盘显示时滚动到输入框
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    });
-
-    return () => {
-      keyboardDidShowListener.remove();
-    };
-  }, []);
 
   // 导航到可用座位页面，传递日期和时间参数
   const navigateToAvailableSeats = () => {

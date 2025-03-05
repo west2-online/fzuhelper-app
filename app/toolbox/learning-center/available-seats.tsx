@@ -1,6 +1,16 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import ImageZoom from 'react-native-image-zoom-viewer';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { toast } from 'sonner-native';
 
@@ -78,6 +88,60 @@ const StatCard = ({
 
 StatCard.displayName = 'StatCard';
 
+// 学习中心地图组件
+// TODO: 地图目前还是半成品
+const LearningCenterMap = () => {
+  const [showFullScreenMap, setShowFullScreenMap] = useState(false);
+  const screenWidth = Dimensions.get('window').width;
+  const imageWidth = screenWidth - 32;
+  const imageHeight = 200;
+
+  return (
+    <Card className="mb-4 w-full overflow-hidden rounded-xl">
+      <CardContent className="p-0">
+        <TouchableOpacity onPress={() => setShowFullScreenMap(true)}>
+          <Image
+            source={require('@/assets/images/toolbox/learning-center/map.jpg')}
+            style={{ width: imageWidth, height: imageHeight }}
+            accessible={true}
+            accessibilityLabel="学习中心地图"
+          />
+        </TouchableOpacity>
+        <Modal visible={showFullScreenMap} transparent={true} onRequestClose={() => setShowFullScreenMap(false)}>
+          <TouchableWithoutFeedback onPress={() => setShowFullScreenMap(false)}>
+            <View className="flex-1 items-center justify-center bg-black/90">
+              <TouchableOpacity
+                className="absolute right-4 top-4 rounded-full bg-white/20 p-2"
+                onPress={() => setShowFullScreenMap(false)}
+              >
+                <Text className="text-white">×</Text>
+              </TouchableOpacity>
+              <View className="h-4/5 w-full" onStartShouldSetResponder={() => true}>
+                <ImageZoom
+                  enableImageZoom={true}
+                  enableSwipeDown
+                  swipeDownThreshold={50}
+                  onSwipeDown={() => setShowFullScreenMap(false)}
+                  onClick={() => {}}
+                  imageUrls={[
+                    {
+                      url: '',
+                      props: {
+                        source: require('@/assets/images/toolbox/learning-center/map.jpg'),
+                      },
+                    },
+                  ]}
+                  renderImage={props => <Image {...props} resizeMode="contain" />}
+                />
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      </CardContent>
+    </Card>
+  );
+};
+
 const SeatList = React.memo(
   ({
     seats,
@@ -139,12 +203,11 @@ export default function AvailableSeatsPage() {
     free: 0,
     freeSingle: 0,
   });
-  // 新增选中座位状态和提交状态
   const [selectedSeat, setSelectedSeat] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSeatsList, setShowSeatsList] = useState(true);
-  // 添加滚动视图引用
   const scrollViewRef = useRef<FlatList>(null);
+  const isInitialRender = useRef(true);
 
   const { date, startTime, endTime } = params;
   const screenWidth = Dimensions.get('window').width;
@@ -235,8 +298,11 @@ export default function AvailableSeatsPage() {
   const currentTabSeats = activeTab === 'single' ? singleFreeSeats : allFreeSeats;
 
   useEffect(() => {
-    querySeatStatus();
-  }, [date, startTime, endTime, querySeatStatus]);
+    if (isInitialRender.current) {
+      querySeatStatus();
+      isInitialRender.current = false;
+    }
+  }, [querySeatStatus]);
 
   // 处理座位选择
   const handleSeatSelect = (seatName: string) => {
@@ -306,6 +372,9 @@ export default function AvailableSeatsPage() {
             data={[{ key: 'content' }]} // 使用单项数据，因为我们只需要渲染一次完整内容
             renderItem={() => (
               <View className="space-y-6 pb-6">
+                {/* 学习中心地图 */}
+                <LearningCenterMap />
+
                 {/* 查询信息卡片 */}
                 <Card className="mb-4 rounded-xl p-4 shadow-sm">
                   <View className="mb-4 flex-row items-center">
@@ -390,12 +459,6 @@ export default function AvailableSeatsPage() {
                           </View>
                         </View>
                       </Animated.View>
-
-                      <View className="mb-3 border-b border-border pb-3">
-                        <View className="flex-row items-center">
-                          <Text className="font-medium">空闲座位列表</Text>
-                        </View>
-                      </View>
 
                       {/* 选项卡切换 */}
                       <View className="mb-4 flex-row">
