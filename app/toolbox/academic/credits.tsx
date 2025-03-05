@@ -51,7 +51,8 @@ export default function CreditsPage() {
 
   return (
     <>
-      <Stack.Screen options={{ headerTitle: '学分统计' }} />
+      <Stack.Screen options={{ title: '学分统计' }} />
+
       {isRefreshing ? (
         <Loading />
       ) : (

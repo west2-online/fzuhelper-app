@@ -68,7 +68,7 @@ export default function TabLayout() {
   }, [handleError]);
 
   return (
-    <Tabs>
+    <Tabs screenOptions={{ headerTitleAlign: 'center' }}>
       <Tabs.Screen
         name="index"
         options={{
