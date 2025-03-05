@@ -59,17 +59,6 @@ const config: ExpoConfig = {
     [
       '@bittingz/expo-widgets',
       {
-        //             ios: {
-        //                 src: "./native_widget/ios",
-        //                 devTeamId: "your apple dev team ID",
-        //                 mode: "production",
-        //                 moduleDependencies: [],
-        //                 useLiveActivities: false,
-        //                 frequentUpdates: false,
-        //                 entitlements: {
-        //                     "any xcode entitlement the widget needs": "entitlement value"
-        //                 }
-        //             },
         android: {
           src: './targets/android-widget',
           widgets: [
