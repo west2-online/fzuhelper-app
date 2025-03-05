@@ -1,3 +1,4 @@
+import { SeatStatusData } from '@/utils/learning-center/api_service';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -148,7 +149,7 @@ const SeatList = React.memo(
     columnsCount,
     onSelect,
   }: {
-    seats: { spaceName: string; status: number }[];
+    seats: SeatStatusData[];
     columnsCount: number;
     onSelect: (seatName: string) => void;
   }) => {
@@ -160,9 +161,9 @@ const SeatList = React.memo(
       );
     }
 
-    const renderItem = ({ item }: { item: { spaceName: string; status: number } }) => (
+    const renderItem = ({ item }: { item: SeatStatusData }) => (
       <View style={{ width: `${100 / columnsCount}%` }} className="px-1">
-        <SeatChip seat={item} onSelect={onSelect} />
+        <SeatChip seat={{ spaceName: item.spaceName, status: item.spaceStatus }} onSelect={onSelect} />
       </View>
     );
 
@@ -196,7 +197,7 @@ export default function AvailableSeatsPage() {
   }>();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [seats, setSeats] = useState<any[]>([]);
+  const [seats, setSeats] = useState<SeatStatusData[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [statusSummary, setStatusSummary] = useState({
     total: 0,
@@ -212,7 +213,8 @@ export default function AvailableSeatsPage() {
   const { date, startTime, endTime } = params;
   const screenWidth = Dimensions.get('window').width;
   const columnsCount = Math.floor((screenWidth - 32) / 110);
-  const api = new ApiService();
+  const { token } = useLocalSearchParams<{ token: string }>(); // 从路由参数中获取token
+  const api = useMemo(() => new ApiService(token), [token]);
 
   // 计算并返回单人座位判断函数
   const isSingleSeat = useCallback((spaceName: string) => {
@@ -220,70 +222,55 @@ export default function AvailableSeatsPage() {
     return seatNum >= 205 && seatNum <= 476;
   }, []);
 
-  // Wrap querySeatStatus in useCallback to fix the dependency issue
+  // 查询所有的座位状态
   const querySeatStatus = useCallback(async () => {
     if (!date || !startTime || !endTime) {
       toast.error('请先选择日期和时间');
       router.back();
       return;
     }
-
     setIsLoading(true);
-    try {
-      console.log(`开始查询座位: ${date} ${startTime}-${endTime}`);
 
-      // 调用API获取所有楼层的座位信息
-      const result = await api.queryAllFloorSeats({
-        date: date,
-        beginTime: startTime,
-        endTime: endTime,
+    try {
+      // 并发请求所有楼层的座位信息
+      const floors = ['4', '5'] as const;
+      const seatPromises = floors.map(floor =>
+        api
+          .querySeatStatus({
+            date,
+            beginTime: startTime,
+            endTime: endTime,
+            floor,
+          })
+          .catch(error => {
+            toast.error(`查询${floor}楼座位失败，请稍后重试`);
+            return [];
+          }),
+      );
+      const seatResult = await Promise.all(seatPromises);
+      const allSeats = seatResult.flat();
+      setSeats(allSeats);
+
+      // 计算统计信息
+      setStatusSummary({
+        total: seats.length,
+        free: seats.filter(seat => seat.spaceStatus === 0).length,
+        freeSingle: seats.filter(seat => seat.spaceStatus === 0 && isSingleSeat(seat.spaceName)).length,
       });
 
-      console.log('查询结果:', result);
-
-      if (result.success) {
-        // 处理座位数据
-        const seatsData = result.data || [];
-
-        // 首先更新状态，快速展示UI
-        setSeats(seatsData);
-
-        // 计算统计信息
-        const total = seatsData.length;
-        const free = seatsData.filter(seat => seat.status === 0).length;
-
-        // 计算单人座位数量
-        const freeSingle = seatsData.filter(seat => seat.status === 0 && isSingleSeat(seat.spaceName)).length;
-
-        console.log(`统计信息: 总座位=${total}, 空闲=${free}, 单人空闲=${freeSingle}`);
-
-        // 更新统计信息
-        setStatusSummary({
-          total,
-          free,
-          freeSingle,
-        });
-
-        if (total === 0) {
-          toast.info('未找到任何座位，也可能是该时段已有一个有效预约了');
-        }
-      } else {
-        console.error('查询失败:', result.message);
-        toast.error(result.message || '获取座位数据失败');
+      if (seats.length === 0) {
+        toast.info('未找到任何座位，也可能是该时段已有一个有效预约了');
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('查询座位出错:', errorMessage);
-      toast.error(`查询失败: ${errorMessage}`);
+    } catch (error: any) {
+      toast.error(`加载数据失败，请稍后重试${error.message}`);
     } finally {
       setIsLoading(false);
     }
-  }, [date, startTime, endTime, router, isSingleSeat]);
-
+  }, []);
   // 提前处理和缓存所有座位数据，避免在切换选项卡时进行计算
   const { allFreeSeats, singleFreeSeats } = useMemo(() => {
     // 筛选所有空闲座位
-    const allFree = seats.filter(seat => seat.status === 0);
+    const allFree = seats.filter(seat => seat.spaceStatus === 0);
 
     // 筛选单人空闲座位
     const singleFree = allFree.filter(seat => isSingleSeat(seat.spaceName));

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
@@ -11,7 +11,6 @@ import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 
 import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
-import ApiService from '@/utils/learning-center/api_service';
 
 function formatDate(date: Date, formatStr: string): string {
   const year = date.getFullYear();
@@ -75,8 +74,7 @@ export default function SeatsPage() {
   const [startTime, setStartTime] = useState<string | null>(null);
   const [endTime, setEndTime] = useState<string | null>(null);
   const [selectedTimeStep, setSelectedTimeStep] = useState<'start' | 'end'>('start');
-  const api = useMemo(() => new ApiService(), []);
-
+  const { token } = useLocalSearchParams<{ token: string }>();
   // 生成未来7天的日期
   const dates = useMemo(() => {
     const result = [];
@@ -223,6 +221,7 @@ export default function SeatsPage() {
         date: formattedDate,
         startTime,
         endTime,
+        token,
       },
     });
   };

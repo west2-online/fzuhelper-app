@@ -1,6 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -9,9 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
 import ApiService from '@/utils/learning-center/api_service';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const REFRESH_FLAG_KEY = 'learning_center_refresh_needed';
 
 export default function QrScannerPage() {
   const router = useRouter();
@@ -20,6 +17,8 @@ export default function QrScannerPage() {
   const [scanned, setScanned] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
+  const { token } = useLocalSearchParams<{ token: string }>();
+  const api = useMemo(() => new ApiService(token), [token]);
 
   useEffect(() => {
     (async () => {
@@ -78,20 +77,18 @@ export default function QrScannerPage() {
       return;
     }
 
-    try {
-      const response = await ApiService.signIn(appointmentId);
-      if (response.code === '0') {
+    // 签到
+    await api
+      .signIn(appointmentId)
+      .then(() => {
         toast.success('签到成功');
-        await AsyncStorage.setItem(REFRESH_FLAG_KEY, 'true');
-        router.back();
-      } else {
-        toast.error(`签到失败: ${response.msg}`);
+      })
+      .catch(error => {
+        toast.error(`签到失败: ${error.message}`);
+      })
+      .finally(() => {
         setScanning(false);
-      }
-    } catch (error: any) {
-      toast.error(`签到时出错: ${error.message}`);
-      setScanning(false);
-    }
+      });
   };
 
   const handleScanAgain = () => setScanned(false);

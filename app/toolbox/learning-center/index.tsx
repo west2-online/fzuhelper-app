@@ -21,7 +21,7 @@ const menuItems: {
     description: '预约空闲自习座位',
   },
   {
-    name: '预约历史',
+    name: '我的预约',
     route: '/toolbox/learning-center/history',
     description: '查看过往预约记录',
   },
@@ -72,57 +72,56 @@ export default function LearningCenterPage() {
     }, []),
   );
   if (isLoading) {
-    return <Loading />;
+    return (
+      <>
+        <Stack.Screen options={{ title: '学习中心预约' }} />
+        <Loading />
+      </>
+    );
   }
   return (
     <>
       <Stack.Screen options={{ title: '学习中心预约' }} />
       <PageContainer className="bg-background px-8 pt-4">
-        {isLoading ? (
-          <Loading />
+        {token ? (
+          <View className="space-y-4">
+            {menuItems.map((item, index) => (
+              <LabelEntry
+                key={index}
+                leftText={item.name}
+                description={item.description}
+                onPress={
+                  item.action ||
+                  (item.route
+                    ? () =>
+                        router.push({
+                          pathname: item.route!,
+                          params: { token },
+                        })
+                    : undefined)
+                }
+              />
+            ))}
+          </View>
         ) : (
-          <>
-            {token ? (
-              <View className="space-y-4">
-                {menuItems.map((item, index) => (
-                  <LabelEntry
-                    key={index}
-                    leftText={item.name}
-                    description={item.description}
-                    onPress={
-                      item.action ||
-                      (item.route
-                        ? () =>
-                            router.push({
-                              pathname: item.route!,
-                              params: { token },
-                            })
-                        : undefined)
-                    }
-                  />
-                ))}
-              </View>
-            ) : (
-              <View className="flex-1 items-center justify-center gap-10">
-                <Text className="text-lg">登录统一身份认证平台，享受学习一码通，学习中心预约服务</Text>
-                <Button
-                  onPress={() => {
-                    router.push('/(guest)/unified-auth-login');
-                    setIsLoading(true);
-                  }}
-                  className="w-1/2"
-                >
-                  <Text>前往登录</Text>
-                </Button>
+          <View className="flex-1 items-center justify-center gap-10">
+            <Text className="text-lg">登录统一身份认证平台，享受学习一码通，学习中心预约服务</Text>
+            <Button
+              onPress={() => {
+                router.push('/(guest)/unified-auth-login');
+                setIsLoading(true);
+              }}
+              className="w-1/2"
+            >
+              <Text>前往登录</Text>
+            </Button>
 
-                <Link href="/toolbox/learning-center/webview-login" asChild>
-                  <Button className="w-1/2">
-                    <Text className="text-white">通过网页登录到学习空间</Text>
-                  </Button>
-                </Link>
-              </View>
-            )}
-          </>
+            <Link href="/toolbox/learning-center/webview-login" asChild>
+              <Button className="w-1/2">
+                <Text className="text-white">通过网页登录到学习空间</Text>
+              </Button>
+            </Link>
+          </View>
         )}
       </PageContainer>
     </>

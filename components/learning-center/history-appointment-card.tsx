@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/text';
 
 import ApiService from '@/utils/learning-center/api_service';
 import { Appointment } from '@/utils/learning-center/history-appointment-status';
+import { useLocalSearchParams } from 'expo-router';
 
 export interface AppointmentCardProps {
   id: number;
@@ -24,6 +25,7 @@ export interface AppointmentCardProps {
   onRefresh?: () => void;
 }
 
+// 渲染卡片
 export default function HistoryAppointmentCard({
   id, // 预约 ID
   spaceName, // 座位号
@@ -36,6 +38,8 @@ export default function HistoryAppointmentCard({
   onRefresh, // 刷新回调函数
 }: AppointmentCardProps) {
   const router = useRouter();
+  const { token } = useLocalSearchParams<{ token: string }>(); // 从路由参数中获取token
+  const api = new ApiService(token);
   const appointment = new Appointment(
     id.toString(),
     floor.toString(),
@@ -67,20 +71,21 @@ export default function HistoryAppointmentCard({
     }
   };
 
+  // 处理取消预约
   const handleCancel = async () => {
-    try {
-      const response = await ApiService.cancelAppointment(id);
-      if (response.code === '0') {
+    // 尝试取消预约，如果失败则显示错误信息
+    await api
+      .cancelAppointment(id.toString())
+      .then(() => {
         toast.success('取消预约成功');
-        onRefresh?.();
-      } else {
-        toast.error(`取消预约失败: ${response.msg}`);
-      }
-    } catch (error: any) {
-      toast.error(`取消预约时出错: ${error.message}`);
-    }
+        onRefresh && onRefresh();
+      })
+      .catch((error: any) => {
+        toast.error(`取消预约失败: ${error.message}`);
+      });
   };
 
+  // 处理签到
   const handleSignIn = async () => {
     try {
       // 跳转到二维码扫描页面并传递预约ID
@@ -93,23 +98,22 @@ export default function HistoryAppointmentCard({
     }
   };
 
+  // 处理签退
   const handleSignOut = async () => {
-    try {
-      const response = await ApiService.signOut(id.toString());
-      if (response.code === '0') {
+    await api
+      .signOut(id.toString())
+      .then(() => {
         toast.success('签退成功');
-        onRefresh?.();
-      } else {
-        toast.error(`签退失败: ${response.msg}`);
-      }
-    } catch (error: any) {
-      toast.error(`签退时出错: ${error.message}`);
-    }
+        onRefresh && onRefresh();
+      })
+      .catch((error: any) => {
+        toast.error(`签退失败: ${error.message}`);
+      });
   };
 
+  // 渲染底部功能按钮
   const renderActionButtons = () => {
-    const statusText = appointment.getStatusText();
-    switch (statusText) {
+    switch (appointment.getStatusText()) {
       case '未开始':
         return (
           <Button variant="destructive" className="w-full" onPress={handleCancel}>
@@ -133,6 +137,7 @@ export default function HistoryAppointmentCard({
     }
   };
 
+  // 渲染卡片
   return (
     <Card className="mb-4 overflow-hidden rounded-xl border border-border">
       <CardHeader className="flex-row items-center justify-between pb-2 pt-4">
@@ -153,6 +158,7 @@ export default function HistoryAppointmentCard({
           </View>
         </View>
       </CardContent>
+
       {renderActionButtons() && (
         <CardFooter className="border-t border-border px-6 py-4">{renderActionButtons()}</CardFooter>
       )}
