@@ -22,6 +22,7 @@ import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/l
 import { CourseCache, defaultCourseSetting, readCourseSetting } from '@/lib/course';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { pushToWebViewNormal } from '@/lib/webview';
 
 export default function AcademicPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -205,10 +206,17 @@ export default function AcademicPage() {
               disabled={isLoadingSemester}
             />
 
+            <LabelEntry
+              leftText="桌面小部件"
+              onPress={() => {
+                pushToWebViewNormal('https://west2-online.feishu.cn/wiki/SitbwKuLriaL5bk7Wbicxdf7nYb');
+              }}
+            />
+
             <Text className="mb-2 mt-4 text-sm text-text-secondary">开关设置</Text>
 
             <LabelSwitch
-              label="导出到本地日历(正在升级)"
+              label="导出到本地日历（正在升级）"
               value={settings.calendarExportEnabled}
               onValueChange={handleExportToCalendar}
               disabled

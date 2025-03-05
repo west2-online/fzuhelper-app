@@ -15,7 +15,7 @@ export function pushToWebViewJWCH(url: string, title: string | undefined = undef
   });
 }
 
-export async function pushToWebViewNormal(url: string, title: string) {
+export async function pushToWebViewNormal(url: string, title: string | undefined = undefined) {
   const params: WebParams = {
     url,
     title: title, // 页面标题（可选）
@@ -27,7 +27,7 @@ export async function pushToWebViewNormal(url: string, title: string) {
   });
 }
 
-export async function replaceToWebViewJWCH(url: string, title: string) {
+export async function replaceToWebViewJWCH(url: string, title: string | undefined = undefined) {
   const params: WebParams = {
     url: url,
     jwch: true,
@@ -40,7 +40,7 @@ export async function replaceToWebViewJWCH(url: string, title: string) {
   });
 }
 
-export async function replaceToWebViewNormal(url: string, title: string) {
+export async function replaceToWebViewNormal(url: string, title: string | undefined = undefined) {
   const params: WebParams = {
     url,
     title: title, // 页面标题（可选）
