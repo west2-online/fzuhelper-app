@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { View, type ViewProps } from 'react-native';
 
 import { cn } from '@/lib/utils';
@@ -8,4 +9,4 @@ const HeaderContainer: React.FC<React.PropsWithChildren<ViewProps>> = ({ childre
   </View>
 );
 
-export default HeaderContainer;
+export default memo(HeaderContainer);

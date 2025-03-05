@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { CLASS_SCHEDULES } from '@/lib/constants';
@@ -82,4 +82,4 @@ const TimeCol: React.FC<TimeColProps> = ({ height }) => {
   );
 };
 
-export default TimeCol;
+export default memo(TimeCol);
