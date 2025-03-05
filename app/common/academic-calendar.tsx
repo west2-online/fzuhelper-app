@@ -24,12 +24,12 @@ const handleApiError = (errorData: any) => {
   }
 };
 
-interface CousreContentProps {
+interface CourseContentProps {
   term: string;
 }
 
 // 每个学期的内容
-const CousreContent: React.FC<CousreContentProps> = ({ term }) => {
+const CourseContent: React.FC<CourseContentProps> = ({ term }) => {
   const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
   // 获取学期数据
   const { data, dataUpdatedAt, isLoading, refetch } = useApiRequest(
@@ -96,7 +96,7 @@ export default function AcademicCalendarPage() {
           data={termList ?? []}
           value={currentTerm}
           onChange={setCurrentTerm}
-          renderContent={term => <CousreContent term={term} />}
+          renderContent={term => <CourseContent term={term} />}
         />
       </PageContainer>
     </>
