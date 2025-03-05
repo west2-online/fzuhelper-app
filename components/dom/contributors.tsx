@@ -1,9 +1,11 @@
 'use dom';
 
 import { useEffect, useState } from 'react';
+import type { ColorSchemeName } from 'react-native';
 
 import type { CommonContributorResponse, CommonContributorResponse_Contributor as Contributor } from '@/api/backend';
 import { getApiV1CommonContributor } from '@/api/generate';
+import { cn } from '@/lib/utils';
 
 import Loading from '@/components/dom/loading';
 
@@ -11,7 +13,7 @@ import Loading from '@/components/dom/loading';
 import '@/global.css';
 
 const ContributorTitle: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <h2 className="mb-4 mt-6 text-2xl font-bold">{children}</h2>
+  <h2 className="mb-4 mt-6 text-2xl font-bold text-foreground">{children}</h2>
 );
 
 const ContributorContainer: React.FC<React.PropsWithChildren> = ({ children }) => (
@@ -25,7 +27,7 @@ interface ContributorItemProps {
 const ContributorItem: React.FC<ContributorItemProps> = ({ contributor }) => (
   <a
     href={contributor.url}
-    className="flex w-[120px] flex-col items-center justify-start overflow-hidden break-all rounded-lg border border-border bg-card px-2 py-4 text-center text-card-foreground no-underline shadow-sm"
+    className="flex w-full flex-col items-center justify-start overflow-hidden break-all rounded-lg border border-border bg-card px-2 py-4 text-center text-card-foreground no-underline shadow-sm"
     target="_blank"
     rel="noopener noreferrer"
   >
@@ -40,58 +42,66 @@ const ContributorItem: React.FC<ContributorItemProps> = ({ contributor }) => (
   </a>
 );
 
-export default function Contributors() {
+interface ContributorsDOMComponentProps {
+  colorScheme: ColorSchemeName;
+}
+
+export default function Contributors({ colorScheme }: ContributorsDOMComponentProps) {
   const [response, setResponse] = useState<CommonContributorResponse | null>(null);
 
   useEffect(() => {
     getApiV1CommonContributor().then(res => setResponse(res.data.data));
   }, []);
 
-  return response ? (
-    <div className="bg-background px-4 pb-4">
-      <section>
-        <ContributorTitle>客户端</ContributorTitle>
+  return (
+    <div className={cn(colorScheme === 'dark' && 'dark')}>
+      {response ? (
+        <div className="bg-background px-4">
+          <section>
+            <ContributorTitle>客户端</ContributorTitle>
 
-        <ContributorContainer>
-          {response.fzuhelper_app.map(contributor => (
-            <ContributorItem key={contributor.name} contributor={contributor} />
-          ))}
-        </ContributorContainer>
-      </section>
+            <ContributorContainer>
+              {response.fzuhelper_app.map(contributor => (
+                <ContributorItem key={contributor.name} contributor={contributor} />
+              ))}
+            </ContributorContainer>
+          </section>
 
-      <section>
-        <ContributorTitle>服务端</ContributorTitle>
+          <section>
+            <ContributorTitle>服务端</ContributorTitle>
 
-        <ContributorContainer>
-          {response.fzuhelper_server.map(contributor => (
-            <ContributorItem key={contributor.name} contributor={contributor} />
-          ))}
-        </ContributorContainer>
-      </section>
+            <ContributorContainer>
+              {response.fzuhelper_server.map(contributor => (
+                <ContributorItem key={contributor.name} contributor={contributor} />
+              ))}
+            </ContributorContainer>
+          </section>
 
-      <section>
-        <ContributorTitle>本科教学管理系统（对接）</ContributorTitle>
+          <section>
+            <ContributorTitle>本科教学管理系统（对接）</ContributorTitle>
 
-        <ContributorContainer>
-          {response.jwch.map(contributor => (
-            <ContributorItem key={contributor.name} contributor={contributor} />
-          ))}
-        </ContributorContainer>
-      </section>
+            <ContributorContainer>
+              {response.jwch.map(contributor => (
+                <ContributorItem key={contributor.name} contributor={contributor} />
+              ))}
+            </ContributorContainer>
+          </section>
 
-      <section>
-        <ContributorTitle>研究生教育管理信息系统（对接）</ContributorTitle>
+          <section>
+            <ContributorTitle>研究生教育管理信息系统（对接）</ContributorTitle>
 
-        <ContributorContainer>
-          {response.yjsy.map(contributor => (
-            <ContributorItem key={contributor.name} contributor={contributor} />
-          ))}
-        </ContributorContainer>
-      </section>
-    </div>
-  ) : (
-    <div className="flex h-screen w-full items-center justify-center">
-      <Loading />
+            <ContributorContainer>
+              {response.yjsy.map(contributor => (
+                <ContributorItem key={contributor.name} contributor={contributor} />
+              ))}
+            </ContributorContainer>
+          </section>
+        </div>
+      ) : (
+        <div className="flex h-screen w-screen items-center justify-center">
+          <Loading />
+        </div>
+      )}
     </div>
   );
 }

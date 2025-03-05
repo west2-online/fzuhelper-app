@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import { useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ContributorsDOMComponent from '@/components/dom/contributors';
@@ -8,12 +9,15 @@ import ContributorsDOMComponent from '@/components/dom/contributors';
 // -- Baoshuo <i@baoshuo.ren>, 2025-02-06
 
 export default function Contributors() {
+  const colorScheme = useColorScheme();
+
   return (
     <>
       <Stack.Screen options={{ title: '贡献名录' }} />
 
       <SafeAreaView className="h-full w-full" edges={['bottom']}>
-        <ContributorsDOMComponent />
+        {/* 在原生端传入 colorScheme，防止出现闪动 */}
+        <ContributorsDOMComponent colorScheme={colorScheme} />
       </SafeAreaView>
     </>
   );
