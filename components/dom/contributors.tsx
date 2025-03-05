@@ -1,13 +1,9 @@
 'use dom';
 
-import { useEffect, useState } from 'react';
-import type { ColorSchemeName } from 'react-native';
-
 import type { CommonContributorResponse, CommonContributorResponse_Contributor as Contributor } from '@/api/backend';
-import { getApiV1CommonContributor } from '@/api/generate';
-import { cn } from '@/lib/utils';
-
 import Loading from '@/components/dom/loading';
+import { cn } from '@/lib/utils';
+import type { ColorSchemeName } from 'react-native';
 
 // 在 DOM Component 中，需要手动再引入一次全局样式才能使用 Tailwind CSS
 import '@/global.css';
@@ -43,25 +39,20 @@ const ContributorItem: React.FC<ContributorItemProps> = ({ contributor }) => (
 );
 
 interface ContributorsDOMComponentProps {
+  data: CommonContributorResponse;
   colorScheme: ColorSchemeName;
 }
 
-export default function Contributors({ colorScheme }: ContributorsDOMComponentProps) {
-  const [response, setResponse] = useState<CommonContributorResponse | null>(null);
-
-  useEffect(() => {
-    getApiV1CommonContributor().then(res => setResponse(res.data.data));
-  }, []);
-
+export default function Contributors({ data, colorScheme }: ContributorsDOMComponentProps) {
   return (
     <div className={cn(colorScheme === 'dark' && 'dark')}>
-      {response ? (
+      {data ? (
         <div className="bg-background px-4">
           <section>
             <ContributorTitle>客户端</ContributorTitle>
 
             <ContributorContainer>
-              {response.fzuhelper_app.map(contributor => (
+              {data.fzuhelper_app.map(contributor => (
                 <ContributorItem key={contributor.name} contributor={contributor} />
               ))}
             </ContributorContainer>
@@ -71,7 +62,7 @@ export default function Contributors({ colorScheme }: ContributorsDOMComponentPr
             <ContributorTitle>服务端</ContributorTitle>
 
             <ContributorContainer>
-              {response.fzuhelper_server.map(contributor => (
+              {data.fzuhelper_server.map(contributor => (
                 <ContributorItem key={contributor.name} contributor={contributor} />
               ))}
             </ContributorContainer>
@@ -81,7 +72,7 @@ export default function Contributors({ colorScheme }: ContributorsDOMComponentPr
             <ContributorTitle>本科教学管理系统（对接）</ContributorTitle>
 
             <ContributorContainer>
-              {response.jwch.map(contributor => (
+              {data.jwch.map(contributor => (
                 <ContributorItem key={contributor.name} contributor={contributor} />
               ))}
             </ContributorContainer>
@@ -91,7 +82,7 @@ export default function Contributors({ colorScheme }: ContributorsDOMComponentPr
             <ContributorTitle>研究生教育管理信息系统（对接）</ContributorTitle>
 
             <ContributorContainer>
-              {response.yjsy.map(contributor => (
+              {data.yjsy.map(contributor => (
                 <ContributorItem key={contributor.name} contributor={contributor} />
               ))}
             </ContributorContainer>
