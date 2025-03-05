@@ -52,13 +52,6 @@ export default function AboutPage() {
   }, [handleError]);
 
   useEffect(() => {
-    if (clickCount > 4) {
-      toast.info(`再点击 ${CLICK_TO_SHOW_DEVTOOLS - clickCount} 次进入开发者工具`, {
-        duration: 200,
-        position: 'bottom-center',
-      });
-    }
-
     if (clickCount === CLICK_TO_SHOW_DEVTOOLS) {
       router.push('/devtools');
       setClickCount(0);
