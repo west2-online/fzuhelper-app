@@ -54,16 +54,19 @@ const teachingProgramScript: StringScript = `
 
 type ColorData = {
   backgroundColor: string;
+  backgroundHighlightColor?: string;
   color: string;
 };
 
 const colors: Record<ParsedColorScheme, ColorData> = {
   light: {
     backgroundColor: '#ffffff',
+    backgroundHighlightColor: '#efefef',
     color: '#000000',
   },
   dark: {
     backgroundColor: '#121212',
+    backgroundHighlightColor: '#1e1e1e',
     color: '#ffffff',
   },
 };
@@ -74,21 +77,40 @@ const darkModeScript: GeneratedScript = colorScheme => `
   document.body.style.backgroundColor = "${colors[colorScheme].backgroundColor}";
   document.body.style.color = "${colors[colorScheme].color}";
 
-  document.querySelectorAll("tr").forEach((tr) => {
-    // 设置表格行的背景颜色
-    tr.style.backgroundColor = "${colors[colorScheme].backgroundColor}";
+  // 删除所有 bgcolor 为 #FFFFFF 或 ffffff 的属性
+  document.querySelectorAll("[bgcolor='#FFFFFF'], [bgcolor='ffffff']").forEach((element) => {
+    element.removeAttribute("bgcolor");
+  });
+
+   document.querySelectorAll("tr").forEach((tr) => {
+    if (!tr.bgColor) {
+      // 设置表格行的背景颜色
+      tr.style.backgroundColor = "${colors[colorScheme].backgroundColor}";
+    } else {
+      tr.style.color = "black";
+    }
+  });
+`;
+
+const pyjhDarkModeScript: GeneratedScript = colorScheme => `
+  document.querySelectorAll("[bgcolor='efefef']").forEach((element) => {
+    element.removeAttribute("bgcolor");
+    element.style.backgroundColor = "${colors[colorScheme].backgroundHighlightColor}";
   });
 `;
 
 // url 与脚本常量对应 map
 const urlToScriptMap: Record<string, Script[]> = {
-  'https://jwcjwxt2.fzu.edu.cn:81/pyfa/skjh/TeachingPlan_view.aspx': [commonScript],
+  // 教学大纲
   'https://jwcjwxt2.fzu.edu.cn:81/pyfa/jxdg/TeachingProgram_view.aspx': [
     commonScript,
     teachingProgramScript,
     darkModeScript,
   ],
-  'https://jwcjwxt2.fzu.edu.cn:81/pyfa/pyjh/pyfa_bzy.aspx': [commonScript],
+  // 授课计划
+  'https://jwcjwxt2.fzu.edu.cn:81/pyfa/skjh/TeachingPlan_view.aspx': [commonScript, darkModeScript],
+  // 培养计划
+  'https://jwcjwxt2.fzu.edu.cn:81/pyfa/pyjh/pyfa_bzy.aspx': [commonScript, darkModeScript, pyjhDarkModeScript],
 };
 
 export const getScriptByURL = (url: string, colorScheme: ColorSchemeName) => {
