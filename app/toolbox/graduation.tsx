@@ -1,12 +1,12 @@
-import { useNavigation } from 'expo-router';
+import { Link, useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
 import { View } from 'react-native';
 
+import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
-import LabelEntry from '@/components/label-entry';
-import { pushToWebViewJWCH } from '@/lib/webview';
+import { getWebViewHrefJWCH } from '@/lib/webview';
 
 interface MenuItem {
   name: string; // 菜单项名称
@@ -31,8 +31,10 @@ export default function GraduationPage() {
     <PageContainer className="bg-background px-8 pt-4">
       {/* 菜单列表 */}
       <View className="space-y-4">
-        {menuItems.map((item, index) => (
-          <LabelEntry key={index} leftText={item.name} onPress={() => pushToWebViewJWCH(item.url, item.name)} />
+        {menuItems.map(item => (
+          <Link key={item.name} href={getWebViewHrefJWCH(item.url, item.name)} asChild>
+            <LabelEntry leftText={item.name} />
+          </Link>
         ))}
       </View>
       <View className="space-y-4">
