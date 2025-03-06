@@ -1,0 +1,8 @@
+<resources>
+
+    <style name="Theme.Fzuhelper.AppWidgetContainerParent" parent="@android:style/Theme.DeviceDefault">
+        <item name="appWidgetPadding">6dp</item>
+    </style>
+
+    <style name="Theme.Fzuhelper.AppWidgetContainer" parent="Theme.Fzuhelper.AppWidgetContainerParent" />
+</resources>
