@@ -23,15 +23,16 @@ import SplashImage from '@/assets/images/splash.png';
 import SplashLogoIcon from '@/assets/images/splash_logo.png';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import aegis from '@/lib/aegis';
 import {
   IS_PRIVACY_POLICY_AGREED,
-  JWCH_USER_ID_KEY,
   SPLASH_DATE,
   SPLASH_DISPLAY_COUNT,
   SPLASH_ID,
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
+import { LocalUser } from '@/lib/user';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
 
@@ -72,8 +73,7 @@ export default function SplashScreen() {
     try {
       const result = await getApiV1LaunchScreenScreen({
         type: 1,
-        // TODO: 研究生学号
-        student_id: (await AsyncStorage.getItem(JWCH_USER_ID_KEY)) || '',
+        student_id: LocalUser.getUser().userid || '',
         device: Platform.OS,
       });
       if (result.data.data.length === 0) {
@@ -150,6 +150,14 @@ export default function SplashScreen() {
     // 当 cookie 不可用时，我们会 delay 到下一次需要 cookie 的请求（例如获取课表）时
     // 此时我们按照正常逻辑请求服务端，会获得 cookie 过期的错误，再由我们客户端静态登录
     // 整个逻辑自动化地实现在了 api/axios.ts 中
+
+    // 在此处开始加载 AEGIS 符合逻辑，同时不需要额外的再 load 一次
+    console.log('set AEGIS config for', LocalUser.getUser().userid);
+    // Alert.alert('AEGIS', 'set config for ' + LocalUser.getUser().userid);
+    aegis.setConfig({
+      uin: LocalUser.getUser().userid,
+    });
+
     getSplash(); // 获取开屏页
   }, [getSplash, redirect]);
 

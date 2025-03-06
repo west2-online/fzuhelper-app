@@ -39,15 +39,23 @@ const courseColors = [
   '#BBD5B4',
 ];
 
+const examColor = '#FF6347'; // 考试的颜色
+
 let availableColors = [...courseColors]; // 可用颜色数组
 const courseColorMap: Map<string, string> = new Map(); // 存储 courseName 和颜色的对应关系
 
 /**
- * 为课程生成随机颜色
+ * 返回考试的颜色
+ * @returns 考试的颜色
+ */
+export const getExamColor = (): string => examColor;
+
+/**
+ * 为课程生成浅色主题下的随机颜色
  * @param courseName 课程名称
  * @returns 分配的颜色
  */
-const generateRandomColor = (courseName: string, darkmode: boolean): string => {
+const generateRandomColor = (courseName: string): string => {
   // 如果已经为这个 courseName 分配了颜色，直接返回
   if (courseColorMap.has(courseName)) {
     return courseColorMap.get(courseName)!;
@@ -66,18 +74,24 @@ const generateRandomColor = (courseName: string, darkmode: boolean): string => {
   // 从可用颜色数组中移除已选择的颜色
   availableColors.splice(randomIndex, 1);
 
+  // 将新颜色与 courseName 的关系存储到映射中
+  courseColorMap.set(courseName, color);
+
+  console.log(`Generated color for course "${courseName}":`, color);
+
+  return color;
+};
+
+/**
+ * 根据颜色模式获取课程颜色
+ */
+export const getCourseColor = (color: string, darkmode: boolean): string => {
   // 深色主题下，对颜色进行按位与 0xC0FFFFFF 的处理，使颜色变得更加柔和
   let processedColor = color;
   if (darkmode) {
     // eslint-disable-next-line no-bitwise
     processedColor = `#${(parseInt(color.slice(1), 16) & 0xc0ffffff).toString(16).padStart(6, '0').toUpperCase()}`;
   }
-
-  // 将新颜色与 courseName 的关系存储到映射中
-  courseColorMap.set(courseName, processedColor);
-
-  console.log(`Generated color for course "${courseName}":`, processedColor);
-
   return processedColor;
 };
 

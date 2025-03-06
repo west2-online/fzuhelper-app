@@ -2,15 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosRequestConfig } from 'axios';
 
 import { RejectEnum, ResultEnum } from '@/api/enum';
-import {
-  ACCESS_TOKEN_KEY,
-  JWCH_COOKIES_KEY,
-  JWCH_ID_KEY,
-  JWCH_USER_ID_KEY,
-  JWCH_USER_PASSWORD_KEY,
-  REFRESH_TOKEN_KEY,
-} from '@/lib/constants';
-import { userLogin } from '@/utils/user';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
+import { LocalUser } from '@/lib/user';
 
 const baseURL = 'https://fzuhelper.west2.online/';
 
@@ -101,34 +94,26 @@ request.interceptors.response.use(
     }
     // 处理jwch cookie异常
     if (data.code === ResultEnum.BizJwchCookieExceptionCode) {
-      console.log('触发教务处 Cookie 过期代码，执行自动重登');
+      console.log('触发教务系统 Cookie 过期，执行自动重登');
       // 尝试重新登录并获取cookies和id
-      const id = await AsyncStorage.getItem(JWCH_USER_ID_KEY);
-      const password = await AsyncStorage.getItem(JWCH_USER_PASSWORD_KEY);
-      // console.log('id:', id, 'password:', password);
-      if (id && password) {
-        refreshing = true;
-        try {
-          await userLogin({
-            id,
-            password,
-          });
-          queue.forEach(({ config: queuedConfig, resolve }) => {
-            resolve(request(queuedConfig));
-          });
-          refreshing = false;
+      refreshing = true;
+      try {
+        await LocalUser.login();
+        queue.forEach(({ config: queuedConfig, resolve }) => {
+          resolve(request(queuedConfig));
+        });
+        refreshing = false;
 
-          queue = [];
-          return request(config);
-        } catch (error: any) {
-          console.log('relogin error:', error); // 此处可以控制台打印一下问题
-          queue.forEach(({ reject }) => {
-            reject();
-          });
-          refreshing = false;
-          queue = [];
-          return Promise.reject({ type: RejectEnum.ReLoginFailed });
-        }
+        queue = [];
+        return request(config);
+      } catch (error: any) {
+        console.log('relogin error:', error); // 此处可以控制台打印一下问题
+        queue.forEach(({ reject }) => {
+          reject();
+        });
+        refreshing = false;
+        queue = [];
+        return Promise.reject({ type: RejectEnum.ReLoginFailed });
       }
     }
 
@@ -158,24 +143,23 @@ request.interceptors.response.use(
       return Promise.reject({ type: RejectEnum.NetworkError });
     }
 
-    return Promise.reject({ type: RejectEnum.InternalFailed });
+    return Promise.reject({ type: RejectEnum.InternalFailed, data: error });
   },
 );
 
 request.interceptors.request.use(async function (config) {
   const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
-  const id = await AsyncStorage.getItem(JWCH_ID_KEY);
-  const cookies = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+  const credentials = LocalUser.getCredentials();
 
   if (accessToken) {
     config.headers.Authorization = accessToken;
     config.headers['Access-Token'] = accessToken;
   }
-  if (id) {
-    config.headers.Id = id;
+  if (credentials.identifier) {
+    config.headers.Id = credentials.identifier;
   }
-  if (cookies) {
-    config.headers.Cookies = cookies;
+  if (credentials.cookies) {
+    config.headers.Cookies = credentials.cookies;
   }
   return config;
 });

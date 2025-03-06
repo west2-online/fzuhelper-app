@@ -1,5 +1,7 @@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
+import { convertSemester } from '@/lib/locate-date';
+import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { JSXElementConstructor, ReactElement, useCallback, useEffect, useRef } from 'react';
 import { Dimensions, FlatList, ScrollView } from 'react-native';
 
@@ -62,8 +64,10 @@ export function TabFlatList({
         <ScrollView horizontal showsHorizontalScrollIndicator={false} ref={tabsScrollViewRef}>
           <TabsList className="flex-row">
             {data.map((item, index) => (
-              <TabsTrigger key={index} value={item} className="items-center">
-                <Text className="w-24 text-center">{item}</Text>
+              <TabsTrigger key={index} value={item} className="items-center" style={{ width: tabWidth }}>
+                <Text className="text-center">
+                  {LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? convertSemester(item) : item}
+                </Text>
               </TabsTrigger>
             ))}
           </TabsList>
@@ -81,6 +85,7 @@ export function TabFlatList({
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
         renderItem={({ item }) => renderContent(item)}
+        onScrollToIndexFailed={() => {}}
       />
     </>
   );

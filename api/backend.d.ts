@@ -1,4 +1,6 @@
 import {
+  getApiV1CommonClassroomEmpty,
+  getApiV1CommonContributor,
   getApiV1JwchAcademicCredit,
   getApiV1JwchAcademicGpa,
   getApiV1JwchAcademicPlan,
@@ -29,6 +31,11 @@ export type AsyncReturnType<
 export type TermsListResponse = AsyncReturnType<typeof getApiV1TermsList>['data']['data'];
 export type TermsListResponse_Terms = TermsListResponse['terms']; // 学期列表
 export type TermsListResponse_Term = TermsListResponse_Terms[0]; // 列表中的元素（一个学期）
+
+// getApiV1CommonContributor
+export type CommonContributorResponse = AsyncReturnType<typeof getApiV1CommonContributor>['data']['data'];
+export type CommonContributorResponse_Contributors = CommonContributorResponse['fzuhelper_app'];
+export type CommonContributorResponse_Contributor = CommonContributorResponse_Contributors[0];
 
 // === 课表 ===
 
@@ -62,8 +69,11 @@ export type JwchAcademicPlanResponse = AsyncReturnType<typeof getApiV1JwchAcadem
 export type JwchClassroomExamResponse = AsyncReturnType<typeof getApiV1JwchClassroomExam>['data']['data'];
 export type JwchClassroomExamResponse_ClassroomExam = JwchClassroomExamResponse[0];
 
-// === 安卓更新检测 ===
+// === 空教室 ===
+export type CommonClassroomEmptyResponse = AsyncReturnType<typeof getApiV1CommonClassroomEmpty>['data']['data'];
+export type CommonClassroomEmptyResponse_Classroom = CommonClassroomEmptyResponse[0];
 
+// === 安卓更新检测 ===
 // getApiV2VersionAndroid
 export type VersionAndroidResponse = AsyncReturnType<typeof getApiV2VersionAndroid>['data']['data'];
 export type VersionAndroidResponse_Data = VersionAndroidResponse['release'];

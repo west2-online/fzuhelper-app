@@ -13,7 +13,7 @@ const LabelIconEntry: React.FC<LabelIconEntryProps> = ({ icon, label, onPress })
     <TouchableOpacity className={'flex-row items-center justify-between py-4'} onPress={onPress}>
       <View className="flex-row items-center space-x-4">
         <Image source={icon} className="h-7 w-7" />
-        <Text className="text-text-primary ml-5 text-lg">{label}</Text>
+        <Text className="ml-5 text-lg text-text-primary">{label}</Text>
       </View>
       <Image source={ArrowRightIcon} className="h-5 w-5" />
     </TouchableOpacity>

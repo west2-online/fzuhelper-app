@@ -1,0 +1,153 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: yarn
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: 17.0
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.8
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Prebuild
+        run: yarn run prebuild:android
+
+      - name: Cache gradle (local)
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/yarn.lock') }} # 因为要缓存的主要是 gradle 的依赖，所以这里使用 yarn.lock 作为 hashFiles 的参数
+
+      - name: Build Release APK
+        run: |
+          cd android
+          echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
+          ./gradlew app:packageRelease
+        env:
+          KEYSTORE_PATH: 'keystore.jks'
+          KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
+          SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
+
+      - name: Extract Version Info
+        shell: bash
+        run: |
+          echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
+          echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
+          echo "$(git log -3 --pretty=format:"%s%n%b%n")" > android/app/build/outputs/changelog
+
+      - name: Upload outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: outputs
+          path: android/app/build/outputs
+          retention-days: 0
+
+  publish:
+    runs-on: ubuntu-latest
+    environment: beta
+    needs:
+      - build
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: outputs
+          path: ${{ github.workspace }}/outputs/
+
+      - name: Extract Version Info
+        id: version-info
+        shell: bash
+        run: |
+          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
+          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
+          {
+            echo "CHANGELOG<<BSEOF"
+            cat $GITHUB_WORKSPACE/outputs/changelog
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Get Upload Params
+        id: upload-params
+        run: |
+          RESPONSE=$(curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload-params' \
+            --form "password=$ANDROID_UPDATE_PWD")
+          echo "UPYUN_POLICY=$(echo $RESPONSE | jq -r .policy)" >> "$GITHUB_OUTPUT"
+          echo "UPYUN_AUTH=$(echo $RESPONSE | jq -r .authorization)" >> "$GITHUB_OUTPUT"
+        env:
+          ANDROID_UPDATE_PWD: ${{ secrets.ANDROID_UPDATE_PWD }}
+
+      - name: Upload to UPYUN
+        id: upload-apk
+        run: |
+          cd $GITHUB_WORKSPACE/outputs/apk/release
+          mv app-arm64-v8a-release.apk $APK_FILENAME
+          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \
+            -F "file=@$APK_FILENAME" \
+            -F "policy=$UPYUN_POLICY" \
+            -F "authorization=$UPYUN_AUTH")
+
+          DOWNLOAD_URL="https://download.w2fzu.com$(echo $RESPONSE | jq -r .url)"
+
+          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_OUTPUT"
+        env:
+          APK_FILENAME: FzuHelper_${{ steps.version-info.outputs.APP_VERSION_NAME }}(${{ steps.version-info.outputs.APP_VERSION_CODE }}).apk
+          UPYUN_POLICY: ${{ steps.upload-params.outputs.UPYUN_POLICY }}
+          UPYUN_AUTH: ${{ steps.upload-params.outputs.UPYUN_AUTH }}
+
+      - name: Submit Version Info
+        run: |
+          FEATURE="$CHANGELOG"$'\n\n'"此版本为新架构测试版，请提前加入内测群 1020036141 了解详情"
+          curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload' \
+            --form "version=$APP_VERSION_NAME" \
+            --form "code=$APP_VERSION_CODE" \
+            --form "url=$DOWNLOAD_URL" \
+            --form "feature=$FEATURE" \
+            --form "type=$CHANNEL" \
+            --form "password=$ANDROID_UPDATE_PWD" \
+            --form "force=$FORCE"
+        env:
+          CHANNEL: beta
+          FORCE: true
+          ANDROID_UPDATE_PWD: ${{ secrets.ANDROID_UPDATE_PWD }}
+          APP_VERSION_NAME: ${{ steps.version-info.outputs.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ steps.version-info.outputs.APP_VERSION_CODE }}
+          CHANGELOG: ${{ steps.version-info.outputs.CHANGELOG }}
+          DOWNLOAD_URL: ${{ steps.upload-apk.outputs.DOWNLOAD_URL }}

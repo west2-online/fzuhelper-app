@@ -1,14 +1,6 @@
-import { useRouter, type Href, type Router } from 'expo-router';
+import { useRouter, type Router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, Linking } from 'react-native';
-import { toast } from 'sonner-native';
-
-import Banner, { type BannerContent } from '@/components/banner';
-import PageContainer from '@/components/page-container';
-import { Button } from '@/components/ui/button';
-import { Text } from '@/components/ui/text';
-
-import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
+import { Alert, FlatList } from 'react-native';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
@@ -26,35 +18,16 @@ import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
+import Banner, { type BannerContent } from '@/components/banner';
+import PageContainer from '@/components/page-container';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
+
+import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
+import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 
 // 工具类型的枚举
-enum ToolType {
-  LINK = 'link', // 跳转路由
-  URL = 'URL', // 打开网页
-  FUNCTION = 'function', // 执行函数
-  NULL = 'null', // 空操作
-}
-
-type Tool = {
-  name: string;
-  icon: any;
-} & (
-  | {
-      type: ToolType.LINK;
-      href: Href;
-    }
-  | {
-      type: ToolType.URL;
-      href: string;
-    }
-  | {
-      type: ToolType.FUNCTION;
-      action: (router: ReturnType<typeof useRouter>) => void | Promise<void>;
-    }
-  | {
-      type: ToolType.NULL;
-    }
-);
 
 // 常量：横幅数据
 const DEFAULT_BANNERS: BannerContent[] = [
@@ -79,10 +52,8 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '空教室',
     icon: RoomIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      Alert.alert('暂未开放', '开发组正在紧锣密鼓地开发中，敬请期待');
-    },
+    type: ToolType.LINK,
+    href: '/toolbox/empty-room',
   },
   {
     name: '考场查询',
@@ -94,6 +65,7 @@ const DEFAULT_TOOLS: Tool[] = [
     name: '一键评议',
     icon: OneKeyIcon,
     type: ToolType.FUNCTION,
+    userTypes: [USER_TYPE_UNDERGRADUATE],
     action: async () => {
       Alert.alert('暂未开放', '新版一键评议正在设计中，预计学期结束前（即评议开始前）上线，敬请期待');
     },
@@ -103,40 +75,37 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: XuankeIcon,
     type: ToolType.LINK,
     href: '/toolbox/xuanke',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '各类申请',
     icon: ApplicationIcon,
     type: ToolType.LINK,
     href: '/toolbox/application',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '学生证',
     icon: IDCardIcon,
     type: ToolType.LINK,
     href: '/toolbox/id-card',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '毕业设计',
     icon: GraduationIcon,
     type: ToolType.LINK,
     href: '/toolbox/graduation',
-  },
-  {
-    name: '校园指南',
-    icon: WikiIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
-    },
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '嘉锡讲坛',
     icon: JiaXiIcon,
     type: ToolType.FUNCTION,
     action: async () => {
-      pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉熙讲坛');
+      pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉锡讲坛');
     },
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '智慧餐厅',
@@ -144,6 +113,14 @@ const DEFAULT_TOOLS: Tool[] = [
     type: ToolType.FUNCTION,
     action: async () => {
       pushToWebViewNormal('http://hqczhct.fzu.edu.cn:8001/html/index.html', '智慧餐厅');
+    },
+  },
+  {
+    name: '校园指南',
+    icon: WikiIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
     },
   },
   {
@@ -179,34 +156,19 @@ const useToolsPageData = () => {
   useEffect(() => {
     // 模拟数据加载
     setBannerList(DEFAULT_BANNERS);
-    setToolList(processTools(DEFAULT_TOOLS));
+    setToolList(
+      // 此处会进行一层过滤，只显示当前用户类型可用的工具
+      processTools(
+        DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType)),
+      ),
+    );
   }, []);
 
   return { bannerList, toolList };
 };
 
-// 工具按钮的点击事件
-const toolOnPress = (tool: Tool, router: ReturnType<typeof useRouter>) => {
-  switch (tool.type) {
-    case ToolType.NULL: // 空操作
-      break;
-    case ToolType.LINK: // 跳转路由
-      router.push(tool.href);
-      break;
-    case ToolType.URL: // 打开网页
-      Linking.openURL(tool.href).catch(err => Alert.alert('错误', '无法打开链接 (' + err + ')'));
-      break;
-    case ToolType.FUNCTION: // 执行函数，并传入 router 参数
-      tool.action(router);
-      break;
-    default:
-      toast.error('未知工具类型');
-      console.error('未知工具类型', tool);
-  }
-};
-
 // 工具按钮的渲染函数
-const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
+const renderToolButton = (item: Tool, router: Router) => (
   <Button
     className="mb-3 h-auto w-auto items-center justify-center bg-transparent"
     size="icon"
@@ -241,7 +203,7 @@ export default function ToolsPage() {
         numColumns={5}
         className="mt-4"
         columnWrapperClassName="justify-between"
-        renderItem={({ item }) => renderToolButton({ item }, router)}
+        renderItem={({ item }) => renderToolButton(item, router)}
       />
     </PageContainer>
   );

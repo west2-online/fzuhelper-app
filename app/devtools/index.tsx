@@ -1,12 +1,12 @@
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { ACCESS_TOKEN_KEY, JWCH_COOKIES_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
-import { CourseCache } from '@/lib/course';
+import { ACCESS_TOKEN_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { COURSE_TYPE, CourseCache, EXAM_TYPE } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
+import { LocalUser } from '@/lib/user';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewJWCH } from '@/lib/webview';
-import { checkCookieJWCH } from '@/utils/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { Link, Stack } from 'expo-router';
@@ -39,10 +39,10 @@ export default function HomePage() {
 
   // 设置过期的 jwch cookie
   const setExpiredCookie = async () => {
-    const cookie = await AsyncStorage.getItem(JWCH_COOKIES_KEY);
+    const credentials = LocalUser.getCredentials();
     // 经过验证，每个 cookie 的后几位都是属于 ASP.NET_SessionId 的，删除后 5 个字母，会直接导致 cookie 过期
-    const expiredCookie = cookie?.slice(0, -5);
-    await AsyncStorage.setItem(JWCH_COOKIES_KEY, expiredCookie || '');
+    const expiredCookie = credentials.cookies?.slice(0, -5);
+    await LocalUser.setCredentials(credentials.identifier, expiredCookie);
     toast.success('已经设置过期的 cookie');
   };
 
@@ -66,7 +66,7 @@ export default function HomePage() {
 
   // 判断 Cookie 是否有效
   const isCookieValid = async () => {
-    const resp = await checkCookieJWCH();
+    const resp = await LocalUser.checkCredentials();
     toast.info('Cookie 检查结果' + resp);
   };
 
@@ -93,7 +93,8 @@ export default function HomePage() {
   };
 
   const SetDifferentCourseCacheDigest = async () => {
-    CourseCache.setDigest('test');
+    CourseCache.setDigest(COURSE_TYPE, 'test');
+    CourseCache.setDigest(EXAM_TYPE, 'test');
     toast.success('已经设置不同的课程缓存摘要');
   };
 

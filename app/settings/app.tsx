@@ -10,8 +10,8 @@ import { toast } from 'sonner-native';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { CourseCache } from '@/lib/course';
+import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
-import { clearUserStorage } from '@/utils/user';
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
@@ -33,7 +33,9 @@ export default function AcademicPage() {
         text: '清除',
         style: 'destructive',
         onPress: async () => {
-          await AsyncStorage.clear();
+          await CourseCache.clear(); // 清除课程缓存
+          await LocalUser.clear(); // 清除本地用户
+          await AsyncStorage.clear(); // 清空 AsyncStorage
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
             redirect('/(guest)');
@@ -54,9 +56,10 @@ export default function AcademicPage() {
         style: 'destructive',
         onPress: async () => {
           try {
-            CourseCache.clear();
-            await clearUserStorage();
-            redirect('/(guest)/academic-login');
+            await CourseCache.clear();
+            await LocalUser.clear();
+            await AsyncStorage.clear(); // 清空 AsyncStorage
+            redirect('/(guest)');
           } catch (error) {
             console.error('Error clearing storage:', error);
             Alert.alert('清理用户数据失败', '无法清理用户数据');
@@ -64,26 +67,6 @@ export default function AcademicPage() {
         },
       },
     ]);
-  };
-
-  // 隐私权限设置
-  const handlePrivacyPermission = () => {
-    router.push('/settings/permissions');
-  };
-
-  // 个人信息收集清单
-  const handlePersonalInfoList = () => {
-    router.push('/settings/personal-info-list');
-  };
-
-  // 第三方信息共享清单
-  const handleThirdPartyInfoList = () => {
-    pushToWebViewNormal('https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#third-party', '第三方信息共享清单');
-  };
-
-  // 进入开发者工具
-  const handleDeveloperTools = () => {
-    router.push('/devtools');
   };
 
   return (
@@ -102,9 +85,24 @@ export default function AcademicPage() {
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">隐私</Text>
 
-            <LabelEntry leftText="隐私权限设置" onPress={handlePrivacyPermission} />
-            <LabelEntry leftText="个人信息收集清单" onPress={handlePersonalInfoList} />
-            <LabelEntry leftText="第三方信息共享清单" onPress={handleThirdPartyInfoList} />
+            <LabelEntry leftText="隐私权限设置" onPress={() => router.push('/settings/permissions')} />
+            <LabelEntry leftText="个人信息收集清单" onPress={() => router.push('/settings/personal-info-list')} />
+            <LabelEntry
+              leftText="第三方信息共享清单"
+              onPress={() =>
+                pushToWebViewNormal(
+                  'https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#third-party',
+                  '第三方信息共享清单',
+                )
+              }
+            />
+
+            {/* <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text> */}
+            {/* <LabelEntry leftText="开发者工具" onPress={() => router.push('/devtools')} /> */}
+
+            <Text className="mb-2 mt-4 text-sm text-text-secondary">其他</Text>
+
+            <LabelEntry leftText="关于福uu" onPress={() => router.push('/common/about')} />
           </SafeAreaView>
         </ScrollView>
       </PageContainer>

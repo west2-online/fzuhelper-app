@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority';
+import { memo } from 'react';
 import { View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
@@ -54,4 +55,4 @@ const DayItem: React.FC<DayItemProps> = ({ day, date, variant }) => (
   </View>
 );
 
-export default DayItem;
+export default memo(DayItem);
