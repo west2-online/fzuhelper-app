@@ -9,6 +9,7 @@ import android.util.Log
 import android.content.ComponentName
 import android.content.Intent
 import android.util.TypedValue.COMPLEX_UNIT_SP
+import androidx.annotation.Keep
 import com.google.gson.Gson
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -241,6 +242,7 @@ data class ClassInfo(val week: Int, val courseBean: ExtendCourse)
 /**
  * 课程扩展类，包含课程基本信息和额外属性
  */
+@Keep
 data class ExtendCourse(
 //    val id: Int,                 // 课程唯一ID
 //    val color: String,           // 课程颜色
@@ -265,6 +267,7 @@ data class ExtendCourse(
 /**
  * 缓存课程数据类
  */
+@Keep
 data class CacheCourseData(
     val courseData: Map<Int, List<ExtendCourse>>?,   // 课程数据：星期几 -> 课程列表
     val examData: Map<Int, List<ExtendCourse>>?,     // 考试数据：星期几 -> 考试列表
