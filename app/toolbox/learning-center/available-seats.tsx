@@ -24,7 +24,10 @@ const SeatCard: React.FC<{
   onPress: () => void;
 }> = React.memo(({ spaceName, onPress }) => {
   return (
-    <TouchableOpacity onPress={onPress} className="m-1 flex h-20 flex-1 items-center justify-center rounded-lg">
+    <TouchableOpacity
+      onPress={onPress}
+      className="m-1 flex h-20 flex-1 items-center justify-center rounded-lg bg-slate-50 shadow-md"
+    >
       <Text>{spaceName}</Text>
     </TouchableOpacity>
   );
@@ -188,7 +191,10 @@ export default function AvailableSeatsPage() {
     setSelectedSpace(spaceName);
     setConfirmVisible(true);
   }, []);
-  const currentTabData = useMemo(() => seats[currentTab] || [], [seats, currentTab]);
+  const currentTabData = useMemo(
+    () => seats[currentTab].sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10)) || [],
+    [seats, currentTab],
+  );
 
   useEffect(() => {
     fetchSeatStatus();
