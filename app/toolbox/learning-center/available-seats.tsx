@@ -2,24 +2,13 @@ import Loading from '@/components/loading';
 import { TabFlatList } from '@/components/tab-flatlist';
 import { Card, CardContent } from '@/components/ui/card';
 import FloatModal from '@/components/ui/float-modal';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
-import ApiService, { SeatStatusData } from '@/utils/learning-center/api_service';
+import ApiService from '@/utils/learning-center/api_service';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Dimensions,
-  FlatList,
-  Image,
-  Modal,
-  ScrollView,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Dimensions, FlatList, Image, Modal, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import ImageZoom from 'react-native-image-zoom-viewer';
 import { toast } from 'sonner-native';
-
 // 座位卡片组件
 const SeatCard: React.FC<{
   spaceName: string;
@@ -36,51 +25,26 @@ const SeatCard: React.FC<{
 });
 SeatCard.displayName = 'SeatCard';
 
-// 根据spaceName对座位进行分区
-// A: 205-268
-// B: 269-368
-// C: 417-476
-// D: 369-416
-// E: 759-804
-// F: 617-640
-// G: 737-758
-// H: 641-736
-// I: 477-616
-// J: 001-204
-// K: 805-837
-// L: 838-870
-// M: 871-919
+const areas: [number, number, string][] = [
+  [1, 204, 'J'],
+  [205, 268, 'A'],
+  [269, 368, 'B'],
+  [369, 416, 'D'],
+  [417, 476, 'C'],
+  [477, 616, 'I'],
+  [617, 640, 'F'],
+  [641, 736, 'H'],
+  [737, 758, 'G'],
+  [759, 804, 'E'],
+  [805, 837, 'K'],
+  [838, 870, 'L'],
+  [871, 919, 'M'],
+];
+
 const getSpaceArea = (spaceName: string) => {
-  const spaceNumber = parseInt(spaceName, 10);
-  if (spaceNumber >= 205 && spaceNumber <= 268) {
-    return 'A';
-  } else if (spaceNumber >= 269 && spaceNumber <= 368) {
-    return 'B';
-  } else if (spaceNumber >= 417 && spaceNumber <= 476) {
-    return 'C';
-  } else if (spaceNumber >= 369 && spaceNumber <= 416) {
-    return 'D';
-  } else if (spaceNumber >= 759 && spaceNumber <= 804) {
-    return 'E';
-  } else if (spaceNumber >= 617 && spaceNumber <= 640) {
-    return 'F';
-  } else if (spaceNumber >= 737 && spaceNumber <= 758) {
-    return 'G';
-  } else if (spaceNumber >= 641 && spaceNumber <= 736) {
-    return 'H';
-  } else if (spaceNumber >= 477 && spaceNumber <= 616) {
-    return 'I';
-  } else if (spaceNumber >= 1 && spaceNumber <= 204) {
-    return 'J';
-  } else if (spaceNumber >= 805 && spaceNumber <= 837) {
-    return 'K';
-  } else if (spaceNumber >= 838 && spaceNumber <= 870) {
-    return 'L';
-  } else if (spaceNumber >= 871 && spaceNumber <= 919) {
-    return 'M';
-  } else {
-    return '其他';
-  }
+  const spaceNumber = Number(spaceName.split('-')[0]);
+  const area = areas.find(([start, end]) => spaceNumber >= start && spaceNumber <= end);
+  return area ? area[2] : '其他';
 };
 
 // 学习中心地图组件
@@ -155,7 +119,7 @@ export default function AvailableSeatsPage() {
     token: string;
   }>();
   const api = useMemo(() => new ApiService(token), [token]);
-  const [seats, setSeats] = useState<Record<string, SeatStatusData[]>>({});
+  const [seats, setSeats] = useState<Record<string, string[]>>({}); // 按区域分组的座位，只需要记录座位名
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentTab, setCurrentTab] = useState('4');
 
@@ -183,13 +147,13 @@ export default function AvailableSeatsPage() {
     const results = (await Promise.all(allPromises)).flat();
 
     // 对座位用getSpaceArea进行分区
-    const newSeats: Record<string, SeatStatusData[]> = {};
+    const newSeats: Record<string, string[]> = {};
     results.forEach(seat => {
       const area = getSpaceArea(seat.spaceName);
       if (!newSeats[area]) {
         newSeats[area] = [];
       }
-      newSeats[area].push(seat);
+      newSeats[area].push(seat.spaceName);
     });
 
     // 更新数据
@@ -203,10 +167,6 @@ export default function AvailableSeatsPage() {
     setSelectedSpace(spaceName);
     setConfirmVisible(true);
   }, []);
-  const currentTabData = useMemo(() => {
-    const tabSeats = seats[currentTab] || [];
-    return tabSeats.sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10)) || [];
-  }, [seats, currentTab]);
 
   useEffect(() => {
     fetchSeatStatus();
@@ -225,16 +185,23 @@ export default function AvailableSeatsPage() {
           data={Object.keys(seats).sort()}
           value={currentTab}
           onChange={setCurrentTab}
+          flatListOptions={{
+            // TabFlatList的配置项
+            initialNumToRender: 3, // 初始化渲染的tab数量
+          }}
           renderContent={area => (
             <View style={{ width: Dimensions.get('window').width }}>
               <FlatList
                 data={seats[area] || []}
                 removeClippedSubviews={true}
-                renderItem={({ item }) => (
-                  <SeatCard spaceName={item.spaceName} onPress={() => handleSeatPress(item.spaceName)} />
-                )}
-                keyExtractor={item => item.spaceName}
+                renderItem={({ item }) => <SeatCard spaceName={item} onPress={() => handleSeatPress(item)} />}
+                keyExtractor={item => item}
                 numColumns={5}
+                // getItemLayout={(data, index) => ({
+                //   length: 70,
+                //   offset: 50 * index,
+                //   index,
+                // })}
                 initialNumToRender={50}
                 ListEmptyComponent={ListEmptySeats}
               />

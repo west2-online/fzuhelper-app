@@ -110,6 +110,24 @@ export default function SeatsPage() {
     return Array.from({ length: 7 }, (_, index) => addHours(new Date(), 24 * index));
   }, []);
 
+  // 判断时间是否已过
+  const isTimePast = useCallback((date: Date, timeStr: string): boolean => {
+    const isToday = formatDate(date, 'yyyy-MM-dd') === formatDate(new Date(), 'yyyy-MM-dd');
+
+    if (!isToday) return false;
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    const [hour, minute] = timeStr.split(':').map(Number);
+
+    if (currentHour > hour) return true;
+    if (currentHour === hour && currentMinute >= minute) return true;
+
+    return false;
+  }, []);
+
   // 生成时间段 8:00 - 22:30 每隔30分钟
   const timeSlots = useMemo(() => {
     const slots = [];
@@ -208,7 +226,9 @@ export default function SeatsPage() {
         renderItem={({ item }) => (
           <TimeCard
             time={item}
-            disabled={selectedDate < new Date() || (beginTime ? calculateHoursDifference(beginTime, item) > 4 : false)}
+            disabled={
+              isTimePast(selectedDate, item) || (beginTime ? calculateHoursDifference(beginTime, item) > 4 : false)
+            }
             isSelected={item === beginTime || item === endTime}
             isInclude={isInclude(item)}
             onPress={() => {
