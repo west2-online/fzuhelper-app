@@ -334,13 +334,9 @@ export default function SeatsPage() {
                 </Text>
               )}
 
-              {/* 查询可用座位按钮 - 替代原有的预约按钮 */}
               <Button disabled={!startTime || !endTime} onPress={navigateToAvailableSeats} className="mt-4">
                 <Text className="text-white">查询可用座位</Text>
               </Button>
-
-              {/* 添加额外的底部空间，确保内容可见 */}
-              <View style={{ height: 50 as number }} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

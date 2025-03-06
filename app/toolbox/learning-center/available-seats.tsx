@@ -63,7 +63,6 @@ const StatCard = ({
   value: string;
   variant?: 'default' | 'primary' | 'success';
 }) => {
-  // 根据变体设置不同的样式
   const getVariantStyles = () => {
     switch (variant) {
       case 'primary':
@@ -161,6 +160,13 @@ const SeatList = React.memo(
       );
     }
 
+    // 对座位进行排序，根据座位号的数字部分
+    const sortedSeats = [...seats].sort((a, b) => {
+      const numA = parseInt(a.spaceName.match(/\d+/)?.[0] || '0', 10);
+      const numB = parseInt(b.spaceName.match(/\d+/)?.[0] || '0', 10);
+      return numA - numB;
+    });
+
     const renderItem = ({ item }: { item: SeatStatusData }) => (
       <View style={{ width: `${100 / columnsCount}%` }} className="px-1">
         <SeatChip seat={{ spaceName: item.spaceName, status: item.spaceStatus }} onSelect={onSelect} />
@@ -169,7 +175,7 @@ const SeatList = React.memo(
 
     return (
       <FlatList
-        data={seats}
+        data={sortedSeats}
         renderItem={renderItem}
         keyExtractor={item => item.spaceName}
         numColumns={columnsCount}
@@ -252,13 +258,17 @@ export default function AvailableSeatsPage() {
       setSeats(allSeats);
 
       // 计算统计信息
+      const totalSeats = allSeats.length;
+      const freeSeats = allSeats.filter(seat => seat.spaceStatus === 0).length;
+      const freeSingleSeats = allSeats.filter(seat => seat.spaceStatus === 0 && isSingleSeat(seat.spaceName)).length;
+
       setStatusSummary({
-        total: seats.length,
-        free: seats.filter(seat => seat.spaceStatus === 0).length,
-        freeSingle: seats.filter(seat => seat.spaceStatus === 0 && isSingleSeat(seat.spaceName)).length,
+        total: totalSeats,
+        free: freeSeats,
+        freeSingle: freeSingleSeats,
       });
 
-      if (seats.length === 0) {
+      if (allSeats.length === 0) {
         toast.info('未找到任何座位，也可能是该时段已有一个有效预约了');
       }
     } catch (error: any) {
@@ -266,7 +276,8 @@ export default function AvailableSeatsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [api, date, endTime, isSingleSeat, router, startTime]);
+
   // 提前处理和缓存所有座位数据，避免在切换选项卡时进行计算
   const { allFreeSeats, singleFreeSeats } = useMemo(() => {
     // 筛选所有空闲座位
@@ -348,6 +359,9 @@ export default function AvailableSeatsPage() {
       <Stack.Screen options={{ title: '可用座位查询' }} />
 
       <PageContainer className="flex-1 bg-background px-4 pt-4">
+        {/* 学习中心地图 */}
+        {!isLoading && <LearningCenterMap />}
+
         {isLoading && seats.length === 0 ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#666" />
@@ -359,9 +373,6 @@ export default function AvailableSeatsPage() {
             data={[{ key: 'content' }]} // 使用单项数据，因为我们只需要渲染一次完整内容
             renderItem={() => (
               <View className="space-y-6 pb-6">
-                {/* 学习中心地图 */}
-                <LearningCenterMap />
-
                 {/* 查询信息卡片 */}
                 {selectedSeat ? null : (
                   <Card className="mb-4 rounded-xl p-4 shadow-sm">
@@ -440,14 +451,14 @@ export default function AvailableSeatsPage() {
                           <View className="flex-1">
                             <StatCard
                               title="空闲座位"
-                              value={`${statusSummary.free} (${Math.round((statusSummary.free / statusSummary.total) * 100)}%)`}
+                              value={`${statusSummary.free} (${Math.round((statusSummary.free / statusSummary.total) * 100) || 0}%)`}
                               variant="primary"
                             />
                           </View>
                           <View className="flex-1">
                             <StatCard
                               title="空闲单人座位"
-                              value={`${statusSummary.freeSingle} (${Math.round((statusSummary.freeSingle / statusSummary.total) * 100)}%)`}
+                              value={`${statusSummary.freeSingle} (${Math.round((statusSummary.freeSingle / statusSummary.total) * 100) || 0}%)`}
                               variant="success"
                             />
                           </View>
@@ -459,18 +470,9 @@ export default function AvailableSeatsPage() {
                         <TabButton active={activeTab === 'all'} title="全部" onPress={() => setActiveTab('all')} />
                         <TabButton
                           active={activeTab === 'single'}
-                          title="单人座(205-476号)"
+                          title="单人座"
                           onPress={() => setActiveTab('single')}
                         />
-                      </View>
-
-                      {/* 显示座位数量信息 */}
-                      <View className="mb-3">
-                        <Text className="text-sm text-text-secondary">
-                          {activeTab === 'all'
-                            ? `共 ${allFreeSeats.length} 个空闲座位`
-                            : `共 ${singleFreeSeats.length} 个空闲单人座位`}
-                        </Text>
                       </View>
 
                       {/* 空闲座位列表 */}
