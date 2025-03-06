@@ -191,10 +191,10 @@ export default function AvailableSeatsPage() {
     setSelectedSpace(spaceName);
     setConfirmVisible(true);
   }, []);
-  const currentTabData = useMemo(
-    () => seats[currentTab].sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10)) || [],
-    [seats, currentTab],
-  );
+  const currentTabData = useMemo(() => {
+    const tabSeats = seats[currentTab] || [];
+    return tabSeats.sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10)) || [];
+  }, [seats, currentTab]);
 
   useEffect(() => {
     fetchSeatStatus();
