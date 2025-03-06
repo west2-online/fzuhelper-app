@@ -1,6 +1,6 @@
 import { Link, useRouter, type Href, type Router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, FlatList } from 'react-native';
+import { forwardRef, useEffect, useState } from 'react';
+import { Alert, FlatList, Pressable } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
@@ -179,23 +179,27 @@ type ToolButtonProps = Omit<ButtonProps, 'size'> & {
   icon?: React.FC<SvgProps>;
 };
 
-const ToolButton: React.FC<ToolButtonProps> = ({ className, icon: Icon, name, onPress }) => (
-  <Button
-    className={cn('mb-3 h-auto w-auto items-center justify-center bg-transparent', className)}
-    size="icon"
-    onPress={onPress}
-  >
-    {Icon ? <Icon width="42px" height="42px" /> : null}
-    <Text
-      className="w-[50px] text-center align-middle text-text-secondary"
-      // eslint-disable-next-line react-native/no-inline-styles
-      style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
-      numberOfLines={1}
-      ellipsizeMode="tail"
+// eslint-disable-next-line react/display-name
+const ToolButton = forwardRef<React.ElementRef<typeof Pressable>, ToolButtonProps>(
+  ({ className, icon: Icon, name, onPress }, ref) => (
+    <Button
+      className={cn('mb-3 h-auto w-auto items-center justify-center bg-transparent', className)}
+      size="icon"
+      onPress={onPress}
+      ref={ref}
     >
-      {name}
-    </Text>
-  </Button>
+      {Icon ? <Icon width="42px" height="42px" /> : null}
+      <Text
+        className="w-[50px] text-center align-middle text-text-secondary"
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {name}
+      </Text>
+    </Button>
+  ),
 );
 
 type ToolButtonLinkProps = Omit<ToolButtonProps, 'onPress'> & {
