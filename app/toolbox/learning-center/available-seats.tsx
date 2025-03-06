@@ -1,3 +1,5 @@
+import Loading from '@/components/loading';
+import { TabFlatList } from '@/components/tab-flatlist';
 import { Card, CardContent } from '@/components/ui/card';
 import FloatModal from '@/components/ui/float-modal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,8 +19,8 @@ import {
 } from 'react-native';
 import ImageZoom from 'react-native-image-zoom-viewer';
 import { toast } from 'sonner-native';
-// 座位卡片组件
 
+// 座位卡片组件
 const SeatCard: React.FC<{
   spaceName: string;
   onPress: () => void;
@@ -26,7 +28,7 @@ const SeatCard: React.FC<{
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="m-1 flex h-20 flex-1 items-center justify-center rounded-lg bg-slate-50 shadow-md"
+      className="m-1 flex h-20 flex-1 items-center justify-center rounded-lg bg-secondary shadow-md"
     >
       <Text>{spaceName}</Text>
     </TouchableOpacity>
@@ -135,6 +137,16 @@ const LearningCenterMap = () => {
   );
 };
 
+// 座位列表为空时的组件
+const ListEmptySeats = React.memo(() => {
+  return (
+    <View className="flex-1 items-center justify-center py-8">
+      <Text className="text-gray-500">暂无可用座位</Text>
+    </View>
+  );
+});
+ListEmptySeats.displayName = 'ListEmptySeats';
+
 export default function AvailableSeatsPage() {
   const { date, beginTime, endTime, token } = useLocalSearchParams<{
     date: string;
@@ -205,47 +217,31 @@ export default function AvailableSeatsPage() {
       <Stack.Screen options={{ title: '可预约座位' }} />
       <LearningCenterMap />
 
-      {/* 选项卡 */}
-      <Tabs value={currentTab} onValueChange={setCurrentTab}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <TabsList className="flex-row">
-            {Object.keys(seats)
-              .sort()
-              .map(area => (
-                <TabsTrigger key={area} value={area} className="items-center">
-                  <Text className="text-center">{area}</Text>
-                </TabsTrigger>
-              ))}
-          </TabsList>
-        </ScrollView>
-      </Tabs>
-
-      {/* 座位列表 不用TabFlatList的原因是性能过于捉急 */}
-      <FlatList
-        refreshing={isRefreshing}
-        onRefresh={fetchSeatStatus}
-        data={currentTabData}
-        renderItem={({ item }) => (
-          <SeatCard spaceName={item.spaceName} onPress={() => handleSeatPress(item.spaceName)} />
-        )}
-        keyExtractor={item => item.spaceName}
-        numColumns={5}
-        initialNumToRender={50}
-        windowSize={10}
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={10}
-        updateCellsBatchingPeriod={50}
-        getItemLayout={(data, index) => ({
-          length: 80, // height of item
-          offset: 80 * Math.floor(index / 5),
-          index,
-        })}
-        ListEmptyComponent={() => (
-          <View className="flex-1 items-center justify-center py-8">
-            <Text className="text-gray-500">暂无可用座位</Text>
-          </View>
-        )}
-      />
+      {/* 座位列表 */}
+      {isRefreshing ? (
+        <Loading />
+      ) : (
+        <TabFlatList
+          data={Object.keys(seats).sort()}
+          value={currentTab}
+          onChange={setCurrentTab}
+          renderContent={area => (
+            <View style={{ width: Dimensions.get('window').width }}>
+              <FlatList
+                data={seats[area] || []}
+                removeClippedSubviews={true}
+                renderItem={({ item }) => (
+                  <SeatCard spaceName={item.spaceName} onPress={() => handleSeatPress(item.spaceName)} />
+                )}
+                keyExtractor={item => item.spaceName}
+                numColumns={5}
+                initialNumToRender={50}
+                ListEmptyComponent={ListEmptySeats}
+              />
+            </View>
+          )}
+        />
+      )}
 
       {/* 确认预约的浮层 */}
       {confirmVisible && (
