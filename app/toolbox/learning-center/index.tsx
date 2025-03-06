@@ -49,7 +49,10 @@ const getToken = async () => {
 
   // sso登录获取token
   const ssoLogin = new SSOLogin();
-  const tokenLogin = await ssoLogin.getStudyToken(ssoCookie);
+  const tokenLogin = await ssoLogin.getStudyToken(ssoCookie).catch(error => {
+    console.error('SSO登录获取token失败:', error);
+    return null;
+  });
   if (tokenLogin) {
     console.log('通过SSO登录获取到token:', tokenLogin);
     await AsyncStorage.setItem(LEARNING_CENTER_TOKEN_KEY, tokenLogin);
@@ -65,10 +68,16 @@ export default function LearningCenterPage() {
   // 进入页面时获取token
   useFocusEffect(
     useCallback(() => {
-      getToken().then(fetchedToken => {
-        setToken(fetchedToken);
-        setIsLoading(false);
-      });
+      getToken()
+        .then(fetchedToken => {
+          setToken(fetchedToken);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error('获取token失败:', error);
+          setIsLoading(false);
+          router.push('/(guest)/unified-auth-login');
+        });
     }, []),
   );
   if (isLoading) {

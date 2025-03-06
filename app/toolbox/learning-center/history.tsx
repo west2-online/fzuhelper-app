@@ -42,7 +42,7 @@ export default function HistoryPage() {
       setData(prevData => (page === 1 ? appointmentData : [...prevData, ...appointmentData]));
       console.log('拉取了第' + page + '页');
     } catch (error: any) {
-      toast.error(`加载数据失败，请稍后重试${error.message}`);
+      toast.error(`加载数据失败: ${error.message}`);
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);

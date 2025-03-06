@@ -124,34 +124,41 @@ class SSOLogin {
     if (ssoCookie === '') {
       throw {
         type: RejectEnum.NativeLoginFailed,
-        data: 'SSO登录cookie不能为空,请先登录',
+        data: 'SSOcookie不能为空,请先登录',
       };
     }
 
     let cookie = ssoCookie;
     let resp;
-
-    // 重定向1
-    resp = await this.#get({
-      url: 'https://sso.fzu.edu.cn/oauth2.0/authorize?response_type=code&client_id=wlwxt&redirect_uri=http://aiot.fzu.edu.cn/api/admin/sso/getIbsToken',
-      headers: {
-        Cookie: cookie,
-      },
-    });
-
-    const SESSION = extractKV(resp.headers['Set-Cookie'], 'SESSION');
-    cookie += `; SESSION=${SESSION}`;
-    console.log('重定向1:', resp.headers);
-
-    // 进行后续四次重定向
-    for (let i = 0; i < 4; i++) {
+    try {
+      // 重定向1
       resp = await this.#get({
-        url: resp.headers.Location,
+        url: 'https://sso.fzu.edu.cn/oauth2.0/authorize?response_type=code&client_id=wlwxt&redirect_uri=http://aiot.fzu.edu.cn/api/admin/sso/getIbsToken',
         headers: {
           Cookie: cookie,
         },
       });
-      console.log(`重定向${i + 2}:`, resp.headers);
+
+      const SESSION = extractKV(resp.headers['Set-Cookie'], 'SESSION');
+      cookie += `; SESSION=${SESSION}`;
+      console.log('重定向1:', resp.headers);
+
+      // 进行后续四次重定向
+      for (let i = 0; i < 4; i++) {
+        resp = await this.#get({
+          url: resp.headers.Location,
+          headers: {
+            Cookie: cookie,
+          },
+        });
+        console.log(`重定向${i + 2}:`, resp.headers);
+      }
+    } catch (error) {
+      console.error('无法从SSO登录到学习空间:', error);
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '无法从SSO登录到学习空间',
+      };
     }
 
     // 从最后一次重定向中提取token

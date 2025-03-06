@@ -142,31 +142,29 @@ class ApiService {
     headers: Record<string, string> = {},
     formData: Record<string, string> = {},
   ) {
-    try {
-      let response;
+    let response;
 
-      headers = {
-        'Content-Type': 'application/json',
-        ...headers,
+    headers = {
+      'Content-Type': 'application/json',
+      ...headers,
+    };
+
+    if (method === 'GET') {
+      response = await get(url, headers);
+    } else if (method === 'POST') {
+      response = await postJSON(url, headers, formData);
+    } else {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: 'HTTP请求方法错误',
       };
+    }
 
-      if (method === 'GET') {
-        response = await get(url, headers);
-      } else if (method === 'POST') {
-        response = await postJSON(url, headers, formData);
-      } else {
-        throw {
-          type: RejectEnum.NativeLoginFailed,
-          data: 'HTTP请求方法错误',
-        };
-      }
-
-      const { data } = response;
-      const jsonData = JSON.parse(Buffer.from(data).toString('utf-8'));
-
-      return jsonData;
+    try {
+      const data = JSON.parse(Buffer.from(response.data).toString('utf-8'));
+      return data;
     } catch (error) {
-      console.error('请求错误:', error);
+      console.error('解析错误:', error);
       throw error;
     }
   }

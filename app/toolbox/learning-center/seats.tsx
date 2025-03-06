@@ -1,16 +1,12 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-
-import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 
 function formatDate(date: Date, formatStr: string): string {
   const year = date.getFullYear();
@@ -66,15 +62,13 @@ function calculateHoursDifference(startTime: string, endTime: string): number {
 export default function SeatsPage() {
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [, setToken] = useState<string | null>(null);
-
   // 日期和时间选择状态
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [startTime, setStartTime] = useState<string | null>(null);
+  const [beginTime, setBeginTime] = useState<string | null>(null);
   const [endTime, setEndTime] = useState<string | null>(null);
   const [selectedTimeStep, setSelectedTimeStep] = useState<'start' | 'end'>('start');
   const { token } = useLocalSearchParams<{ token: string }>();
+
   // 生成未来7天的日期
   const dates = useMemo(() => {
     const result = [];
@@ -119,19 +113,19 @@ export default function SeatsPage() {
   // 处理时间选择
   const handleTimeSelection = (time: string) => {
     if (selectedTimeStep === 'start') {
-      setStartTime(time);
+      setBeginTime(time);
       setEndTime(null);
       setSelectedTimeStep('end');
     } else {
       // 确保结束时间晚于开始时间
-      if (startTime && time > startTime) {
+      if (beginTime && time > beginTime) {
         // 检查时长是否超过4小时
-        const hoursDifference = calculateHoursDifference(startTime, time);
+        const hoursDifference = calculateHoursDifference(beginTime, time);
 
         if (hoursDifference > 4) {
           toast.error('预约时间不能超过4小时');
           // 重置选择
-          setStartTime(null);
+          setBeginTime(null);
           setEndTime(null);
           setSelectedTimeStep('start');
         } else {
@@ -141,7 +135,7 @@ export default function SeatsPage() {
       } else {
         toast.error('结束时间必须晚于开始时间');
         // 重置选择
-        setStartTime(null);
+        setBeginTime(null);
         setEndTime(null);
         setSelectedTimeStep('start');
       }
@@ -154,11 +148,11 @@ export default function SeatsPage() {
 
     if (disabled) {
       return 'bg-muted opacity-40';
-    } else if (time === startTime) {
+    } else if (time === beginTime) {
       return 'bg-primary';
     } else if (time === endTime) {
       return 'bg-primary';
-    } else if (startTime && endTime && time > startTime && time < endTime) {
+    } else if (beginTime && endTime && time > beginTime && time < endTime) {
       return 'bg-primary/30'; // 开始和结束时间之间的时段
     } else {
       return 'bg-secondary';
@@ -170,9 +164,9 @@ export default function SeatsPage() {
     const disabled = isTimeSlotDisabled(time);
     if (disabled) {
       return 'text-text-secondary';
-    } else if (time === startTime || time === endTime) {
+    } else if (time === beginTime || time === endTime) {
       return 'text-primary-foreground';
-    } else if (startTime && endTime && time > startTime && time < endTime) {
+    } else if (beginTime && endTime && time > beginTime && time < endTime) {
       return 'text-foreground';
     } else {
       return 'text-foreground';
@@ -187,26 +181,9 @@ export default function SeatsPage() {
     return rows;
   }, [timeSlots]);
 
-  useEffect(() => {
-    const checkToken = async () => {
-      try {
-        const savedToken = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
-        if (savedToken) {
-          setToken(savedToken);
-        }
-      } catch (error) {
-        toast.error(`检查令牌时出错: ${error instanceof Error ? error.message : String(error)}`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkToken();
-  }, [router]);
-
   // 导航到可用座位页面，传递日期和时间参数
   const navigateToAvailableSeats = () => {
-    if (!selectedDate || !startTime || !endTime) {
+    if (!selectedDate || !beginTime || !endTime) {
       toast.error('请先选择日期和时间');
       return;
     }
@@ -219,17 +196,12 @@ export default function SeatsPage() {
       pathname: '/toolbox/learning-center/available-seats',
       params: {
         date: formattedDate,
-        startTime,
+        beginTime,
         endTime,
         token,
       },
     });
   };
-
-  if (isLoading) {
-    return <Loading />;
-  }
-
   return (
     <>
       <Stack.Screen options={{ title: '预约座位' }} />
@@ -295,7 +267,7 @@ export default function SeatsPage() {
                     <View key={rowIndex} className="mb-2 flex-row justify-between">
                       {row.map(time => {
                         const disabled = isTimeSlotDisabled(time);
-                        const endTimeDisabled = selectedTimeStep === 'end' && startTime && time <= startTime;
+                        const endTimeDisabled = selectedTimeStep === 'end' && beginTime && time <= beginTime;
                         const isDisabled = disabled || endTimeDisabled;
 
                         return (
@@ -324,17 +296,17 @@ export default function SeatsPage() {
               </Card>
 
               {/* 时间段选择状态指示 */}
-              {startTime && (
+              {beginTime && (
                 <Text className="text-text text-center text-sm">
-                  {startTime && !endTime
-                    ? `已选择开始时间：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${startTime}`
-                    : startTime && endTime
-                      ? `已选择时间段：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${startTime} - ${endTime}`
+                  {beginTime && !endTime
+                    ? `已选择开始时间：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${beginTime}`
+                    : beginTime && endTime
+                      ? `已选择时间段：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${beginTime} - ${endTime}`
                       : ''}
                 </Text>
               )}
 
-              <Button disabled={!startTime || !endTime} onPress={navigateToAvailableSeats} className="mt-4">
+              <Button disabled={!beginTime || !endTime} onPress={navigateToAvailableSeats} className="mt-4">
                 <Text className="text-white">查询可用座位</Text>
               </Button>
             </View>
