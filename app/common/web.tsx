@@ -9,6 +9,7 @@ import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-web
 import Loading from '@/components/loading';
 import { JWCH_COOKIES_DOMAIN, YJSY_COOKIES_DOMAIN } from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { urlToScriptMap } from '@/utils/domCleaner';
 import { toast } from 'sonner-native';
 
 export interface WebParams {
@@ -119,6 +120,11 @@ export default function Web() {
         // 更新网页标题
         if (event.title && !title) {
           setWebpageTitle(event.title); // 只有在没有传递 title 参数时才更新标题
+        }
+
+        const matchedUrl = Object.keys(urlToScriptMap).find(key => event.url.startsWith(key));
+        if (matchedUrl) {
+          webViewRef.current?.injectJavaScript(urlToScriptMap[matchedUrl as keyof typeof urlToScriptMap]);
         }
       }
     },
