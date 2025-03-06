@@ -58,8 +58,8 @@ internal fun updateNextClassWidget(
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
     )
-    views.setPendingIntentTemplate(R.id.next_class_layout, pendingIntent)
-    views.setOnClickPendingIntent(R.id.next_class_layout, pendingIntent)
+    views.setPendingIntentTemplate(R.id.root, pendingIntent)
+    views.setOnClickPendingIntent(R.id.root, pendingIntent)
 
     val cacheCourseData: CacheCourseData
     var nextClass: ClassInfo? = null
