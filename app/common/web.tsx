@@ -1,16 +1,17 @@
 import CookieManager from '@react-native-cookies/cookies';
 import { Stack, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform } from 'react-native';
+import { BackHandler, Platform, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
+import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
+
 import { JWCH_COOKIES_DOMAIN, YJSY_COOKIES_DOMAIN } from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
-import { urlToScriptMap } from '@/utils/domCleaner';
-import { toast } from 'sonner-native';
+import { getScriptByURL } from '@/utils/dom-cleaner';
 
 export interface WebParams {
   url: string; // URL 地址
@@ -28,6 +29,7 @@ export default function Web() {
   const [cookiesSet, setCookiesSet] = useState(false); // 用于控制 Cookie 设置先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
   const { url, jwch, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const setCookies = async () => {
@@ -122,13 +124,10 @@ export default function Web() {
           setWebpageTitle(event.title); // 只有在没有传递 title 参数时才更新标题
         }
 
-        const matchedUrl = Object.keys(urlToScriptMap).find(key => event.url.startsWith(key));
-        if (matchedUrl) {
-          webViewRef.current?.injectJavaScript(urlToScriptMap[matchedUrl as keyof typeof urlToScriptMap]);
-        }
+        webViewRef.current?.injectJavaScript(getScriptByURL(event.url, colorScheme));
       }
     },
-    [title],
+    [title, colorScheme],
   );
 
   return (
