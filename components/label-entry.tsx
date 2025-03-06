@@ -28,7 +28,7 @@ const LabelEntry: React.FC<LabelEntryProps> = forwardRef<React.ElementRef<typeof
       <View className="w-full flex-row items-center justify-between">
         <View className="flex-1">
           <Text className="truncate text-lg">{leftText}</Text>
-          {description && <Text className="text-smtext-text-secondary">{description}</Text>}
+          {description && <Text className="text-sm text-text-secondary">{description}</Text>}
         </View>
         <View className="ml-3 flex-row items-center">
           <Text className="mr-3 truncate text-lg text-text-secondary">{rightText}</Text>
