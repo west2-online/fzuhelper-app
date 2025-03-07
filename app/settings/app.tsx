@@ -10,8 +10,8 @@ import { toast } from 'sonner-native';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { CourseCache } from '@/lib/course';
+import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
-import { clearUserStorage } from '@/utils/user';
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function AcademicPage() {
@@ -33,8 +33,9 @@ export default function AcademicPage() {
         text: '清除',
         style: 'destructive',
         onPress: async () => {
-          CourseCache.clear();
-          await AsyncStorage.clear();
+          await CourseCache.clear(); // 清除课程缓存
+          await LocalUser.clear(); // 清除本地用户
+          await AsyncStorage.clear(); // 清空 AsyncStorage
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
             redirect('/(guest)');
@@ -55,9 +56,10 @@ export default function AcademicPage() {
         style: 'destructive',
         onPress: async () => {
           try {
-            CourseCache.clear();
-            await clearUserStorage();
-            redirect('/(guest)/academic-login');
+            await CourseCache.clear();
+            await LocalUser.clear();
+            await AsyncStorage.clear(); // 清空 AsyncStorage
+            redirect('/(guest)');
           } catch (error) {
             console.error('Error clearing storage:', error);
             Alert.alert('清理用户数据失败', '无法清理用户数据');
@@ -98,9 +100,9 @@ export default function AcademicPage() {
             {/* <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text> */}
             {/* <LabelEntry leftText="开发者工具" onPress={() => router.push('/devtools')} /> */}
 
-            <Text className="mb-2 mt-4 text-sm text-text-secondary">关于</Text>
+            <Text className="mb-2 mt-4 text-sm text-text-secondary">其他</Text>
 
-            <LabelEntry leftText="关于" onPress={() => router.push('/common/about')} />
+            <LabelEntry leftText="关于福uu" onPress={() => router.push('/common/about')} />
           </SafeAreaView>
         </ScrollView>
       </PageContainer>

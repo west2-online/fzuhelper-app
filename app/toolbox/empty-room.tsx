@@ -1,4 +1,3 @@
-import { CommonClassroomEmptyResponse } from '@/api/backend';
 import { getApiV1CommonClassroomEmpty } from '@/api/generate';
 import FAQModal from '@/components/FAQModal';
 import { Icon } from '@/components/Icon';
@@ -8,14 +7,13 @@ import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_EMPTY_ROOM } from '@/lib/FAQ';
 import { type IntRange } from '@/types/int-range';
-import { LoadingState } from '@/types/loading-state';
 import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
 import { DateTime } from 'luxon';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, TouchableOpacity, View, useColorScheme } from 'react-native';
 import DateTimePicker, { getDefaultClassNames } from 'react-native-ui-datepicker';
 
@@ -62,7 +60,6 @@ function generateEndPickerData(start: number): { value: IntRange<1, 12>; label: 
 
 export default function EmptyRoomPage() {
   const today = DateTime.local({ zone: TIMEZONE });
-  const currentColorScheme = useColorScheme();
 
   const [selectedRange, setSelectedRange] = useState<LessonRange>({ start: 1, end: 11 });
   const [selectedDate, setSelectedDate] = useState(today);
@@ -75,32 +72,14 @@ export default function EmptyRoomPage() {
   const [isRangeStartPickerVisible, setIsRangeStartPickerVisible] = useState(false);
   const [isRangeEndPickerVisible, setIsRangeEndPickerVisible] = useState(false);
   const [isCampusPickerVisible, setCampusPickerVisible] = useState(false);
-
-  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
-  const [roomData, setRoomData] = useState<CommonClassroomEmptyResponse>([]);
-  const [loadingState, setLoadingState] = useState(LoadingState.UNINIT);
   const campusData = CAMPUS_LIST.map(campus => ({ value: campus, label: campus }));
 
-  const getRoomData = useCallback(async () => {
-    setLoadingState(LoadingState.PENDING);
-    try {
-      const result = await getApiV1CommonClassroomEmpty({
-        date: selectedDate.toFormat(DATE_FMT),
-        campus: selectedCampus,
-        startTime: selectedRange.start.toString(),
-        endTime: selectedRange.end.toString(),
-      });
-      setRoomData(result.data.data);
-      setLoadingState(LoadingState.SUCCESS);
-    } catch (error: any) {
-      handleError(error);
-      setLoadingState(LoadingState.FAILED);
-    }
-  }, [handleError, selectedCampus, selectedDate, selectedRange]);
-
-  useEffect(() => {
-    getRoomData();
-  }, [getRoomData]);
+  const { data: roomData, status: loadingState } = useApiRequest(getApiV1CommonClassroomEmpty, {
+    date: selectedDate.toFormat(DATE_FMT),
+    campus: selectedCampus,
+    startTime: selectedRange.start.toString(),
+    endTime: selectedRange.end.toString(),
+  });
 
   // 处理 Modal 显示事件
   const handleModalVisible = useCallback(() => {
@@ -116,51 +95,49 @@ export default function EmptyRoomPage() {
           headerRight: () => <DateNavigator date={selectedDate} onPress={() => setIsDateTimePickerVisible(true)} />,
         }}
       />
-      {/* 选择器区域 */}
-      <View
-        className={`w-full flex-row items-center justify-between px-4 py-2 ${currentColorScheme === 'dark' ? 'bg-black' : 'bg-white'}`}
-      >
-        {/* 左侧按钮 */}
-        <TouchableOpacity
-          className="flex-1 flex-row items-center justify-center px-2 py-2"
-          onPressIn={() => setIsRangeStartPickerVisible(true)}
-        >
-          <Text className="pr-1">第{selectedRange.start}节</Text>
-          <Icon name={isRangeStartPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
-        </TouchableOpacity>
-
-        {/* 中间的“至” */}
-        <Text className={`mx-3`}>至</Text>
-
-        {/* 右侧按钮 */}
-        <TouchableOpacity
-          className="flex-1 flex-row items-center justify-center px-2 py-2"
-          onPressIn={() => setIsRangeEndPickerVisible(true)}
-        >
-          <Text className="pr-1">第{selectedRange.end}节</Text>
-          <Icon name={isRangeEndPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
-        </TouchableOpacity>
-
-        {/* 校区按钮 */}
-        <TouchableOpacity
-          className="ml-3 flex-1 flex-row items-center justify-center px-2 py-2"
-          onPressIn={() => setCampusPickerVisible(true)}
-        >
-          <Text className="pr-1">{selectedCampus}</Text>
-          <Icon name={isCampusPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
-        </TouchableOpacity>
-
-        <Pressable onPress={handleModalVisible} className="flex-right flex-row items-center">
-          <Icon name="help-circle-outline" size={26} className="mr-4" />
-        </Pressable>
-      </View>
       <PageContainer>
-        {loadingState === LoadingState.PENDING ? (
-          <Loading className="flex-1" />
-        ) : loadingState === LoadingState.FAILED ? (
-          <Text>获取空教室数据失败</Text> // FIXME: 替换为加载失败图片
-        ) : (
+        {/* 选择器区域 */}
+        <View className={`w-full flex-row items-center justify-between px-4 py-2`}>
+          {/* 左侧按钮 */}
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center px-2 py-2"
+            onPressIn={() => setIsRangeStartPickerVisible(true)}
+          >
+            <Text className="pr-1">第 {selectedRange.start} 节</Text>
+            <Icon name={isRangeStartPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+          </TouchableOpacity>
+
+          {/* 中间的“至” */}
+          <Text className={`mx-3`}>至</Text>
+
+          {/* 右侧按钮 */}
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center px-2 py-2"
+            onPressIn={() => setIsRangeEndPickerVisible(true)}
+          >
+            <Text className="pr-1">第 {selectedRange.end} 节</Text>
+            <Icon name={isRangeEndPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+          </TouchableOpacity>
+
+          {/* 校区按钮 */}
+          <TouchableOpacity
+            className="ml-3 flex-1 flex-row items-center justify-center px-2 py-2"
+            onPressIn={() => setCampusPickerVisible(true)}
+          >
+            <Text className="pr-1">{selectedCampus}</Text>
+            <Icon name={isCampusPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+          </TouchableOpacity>
+
+          <Pressable onPress={handleModalVisible} className="flex-right flex-row items-center">
+            <Icon name="help-circle-outline" size={26} className="mr-4" />
+          </Pressable>
+        </View>
+        {loadingState === 'success' ? (
           <ClassroomList data={roomData} />
+        ) : loadingState === 'pending' ? (
+          <Loading className="flex-1" />
+        ) : (
+          <Text>获取空教室数据失败</Text> // FIXME: 替换为加载失败图片
         )}
         {/* 日期选择器 */}
         <FloatModal

@@ -49,9 +49,15 @@ export enum ResultEnum {
   InternalETCDErrorCode = '50019', // ETCD错误
   InternalTraceErrorCode = '50020', // Trace错误
 
-  // SuccessCodePaper paper在旧版Android中的SuccessCode是2000，用作兼容
-  SuccessCodePaper = '2000',
+  SuccessCodePaper = '2000', // [历年卷] 在旧版 Android APP 中的 SuccessCode 是 2000，此处用作兼容
+  SuccessCodeVerifyCode = '200', // [验证码] 在旧版 Android APP 中的 SuccessCode 是 200，此处用作兼容
 }
+
+export const SuccessCodeList = [
+  ResultEnum.SuccessCode,
+  ResultEnum.SuccessCodePaper,
+  ResultEnum.SuccessCodeVerifyCode,
+] as const;
 
 export enum RejectEnum {
   AuthFailed = '10001', // 鉴权异常

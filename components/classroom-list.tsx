@@ -1,30 +1,37 @@
-import { CommonClassroomEmptyResponse_Classroom as Classroom } from '@/api/backend';
-import { Text } from '@/components/ui/text';
 import { memo, useRef, useState } from 'react';
 import { SectionList, TouchableOpacity, View, type ViewToken } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type Section = {
+import { Text } from '@/components/ui/text';
+
+import { CommonClassroomEmptyResponse_Classroom as Classroom } from '@/api/backend';
+
+interface Section {
   title: string;
   data: Classroom[];
-};
+}
 
-const ListItem = memo(function ListItem({ item }: { item: Classroom }) {
-  return (
-    <View className="h-16 justify-center border-b border-gray-200 px-4 dark:border-gray-600">
-      <View className="flex-row justify-between">
-        <Text className="text-base font-medium dark:text-gray-200">{item.location}</Text>
-        <Text className="text-gray-500 dark:text-gray-400">{item.capacity}人</Text>
-      </View>
-      <Text className="text-gray-500 dark:text-gray-400">{item.type}</Text>
+interface ListItemProps {
+  item: Classroom;
+}
+
+const ListItem: React.FC<ListItemProps> = ({ item }) => (
+  <View className="h-16 justify-center border-b border-border px-4">
+    <View className="flex-row justify-between">
+      <Text className="text-base font-medium">{item.location}</Text>
+      <Text className="text-text-secondary">{item.capacity}人</Text>
     </View>
-  );
-});
+    <Text className="text-text-secondary">{item.type}</Text>
+  </View>
+);
 
 const buildOrder = ['西3', '西2', '西1', '中楼', '东1', '东2', '东3', '文1', '文2', '文3', '文4'];
+
 export default function ClassroomList({ data }: { data: Classroom[] }) {
   const sectionListRef = useRef<SectionList<Classroom, Section>>(null);
   const [currentBuild, setCurrentBuild] = useState('');
   const isAutoScrolling = useRef(false);
+  const insets = useSafeAreaInsets();
 
   const groups = data.reduce(
     (acc, item) => {
@@ -73,17 +80,22 @@ export default function ClassroomList({ data }: { data: Classroom[] }) {
   return (
     <View className="flex-1">
       <SectionList
+        className="mr-20 rounded-tr-4xl bg-card"
         ref={sectionListRef}
         sections={groupedData}
         keyExtractor={item => item.location}
         renderItem={({ item }) => <ListItem item={item} />}
         renderSectionHeader={({ section }) => (
-          <View className="flex-row items-center bg-white px-4 py-2 dark:bg-gray-900">
-            <View className="mr-2 h-4 w-2 bg-blue-500" />
-            <Text className="font-bold text-gray-700 dark:text-gray-300">{section.title}</Text>
+          <View className="flex-row items-center bg-card py-2">
+            <View className="mr-2 h-5 w-2 bg-primary" />
+            <Text className="font-bold text-primary">{section.title}</Text>
           </View>
         )}
         stickySectionHeadersEnabled
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: insets.bottom,
+        }}
         onViewableItemsChanged={onViewableItemsChanged}
         onScrollEndDrag={() => {
           isAutoScrolling.current = false;
@@ -100,16 +112,15 @@ export default function ClassroomList({ data }: { data: Classroom[] }) {
           };
         }}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
-        className="mr-20 bg-white dark:bg-gray-900"
       />
 
       {/* 右侧书签导航 */}
-      <View className="absolute right-4 top-8">
+      <View className="absolute right-4 top-12">
         {groupedData.map((section, index) => (
           <TouchableOpacity key={section.title} onPress={() => handlePress(index, section.title)} className="mb-4">
             <View
               className={`px-4 py-2 ${
-                section.title === currentBuild ? 'bg-blue-500' : 'bg-gray-300'
+                section.title === currentBuild ? 'bg-primary' : 'bg-gray-300'
               } rounded-br-xl rounded-tr-xl`}
             >
               <Text className="text-base font-bold text-white">{section.title.substring(0, 2)}</Text>

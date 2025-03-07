@@ -3,7 +3,46 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 学期信息 GET /api/v1/terms/info */
+/** 获取贡献者列表 GET /api/v1/common/contributor https://apifox.com/web/project/3275694/apis/api-267250927-run */
+export async function getApiV1CommonContributor(options?: {
+  [key: string]: unknown;
+}) {
+  return request<{
+    code: string;
+    message: string;
+    data: {
+      fzuhelper_app: {
+        name: string;
+        avatar_url: string;
+        url: string;
+        contributions: number;
+      }[];
+      fzuhelper_server: {
+        name: string;
+        avatar_url: string;
+        url: string;
+        contributions: number;
+      }[];
+      jwch: {
+        name: string;
+        avatar_url: string;
+        url: string;
+        contributions: number;
+      }[];
+      yjsy: {
+        name: string;
+        avatar_url: string;
+        url: string;
+        contributions: number;
+      }[];
+    };
+  }>('/api/v1/common/contributor', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** 学期信息 GET /api/v1/terms/info https://apifox.com/web/project/3275694/apis/api-227251089-run */
 export async function getApiV1TermsInfo(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1TermsInfoParams,
@@ -27,7 +66,7 @@ export async function getApiV1TermsInfo(
   });
 }
 
-/** 学期列表 GET /api/v1/terms/list */
+/** 学期列表 GET /api/v1/terms/list https://apifox.com/web/project/3275694/apis/api-227251088-run */
 export async function getApiV1TermsList(options?: { [key: string]: unknown }) {
   return request<{
     code: string;
@@ -48,7 +87,7 @@ export async function getApiV1TermsList(options?: { [key: string]: unknown }) {
   });
 }
 
-/** 获取安卓版本更新信息 GET /api/v2/version/android */
+/** 获取安卓版本更新信息 GET /api/v2/version/android https://apifox.com/web/project/3275694/apis/api-262439432-run */
 export async function getApiV2VersionAndroid(options?: {
   [key: string]: unknown;
 }) {

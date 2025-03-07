@@ -6,11 +6,15 @@ import {
   CLASS_SCHEDULES_MINUTES,
   COURSE_CURRENT_CACHE_KEY,
   COURSE_SETTINGS_KEY,
+  COURSE_TERMS_LIST_KEY,
 } from '@/lib/constants';
 import { MergedExamData } from '@/types/academic';
 import generateRandomColor, { clearColorMapping, getExamColor } from '@/utils/random-color';
+import * as ExpoWidgetsModule from '@bittingz/expo-widgets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import objectHash from 'object-hash';
+import { getWeeksBySemester } from './locate-date';
 
 export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
   JwchCourseListResponse_CourseScheduleRule;
@@ -35,10 +39,15 @@ interface CacheCourseData {
   priorityCounter: number;
 }
 
+export const SCHEDULE_ITEM_MARGIN = 1;
 export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
 export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
+export const LEFT_TIME_COLUMN_WIDTH = 32;
+export const TOP_CALENDAR_HEIGHT = 72;
+
 export const COURSE_TYPE = 0;
 export const EXAM_TYPE = 1;
+
 const NO_LOADING_MSG = '未加载';
 const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析时间段
 const MAX_PRIORITY = 10000; // 最大优先级，达到这个优先级后会重新计数
@@ -100,8 +109,12 @@ export class CourseCache {
   /**
    * 获取缓存数据
    */
-  public static getCachedData(): Record<number, ExtendCourse[]> {
+  public static getCachedData(): Record<number, ExtendCourse[]> | null {
     const mergedData: Record<number, ExtendCourse[]> = {};
+
+    if (!this.cachedData && !this.cachedExamData) {
+      return null;
+    }
 
     // 合并课程数据
     if (this.cachedData) {
@@ -159,6 +172,20 @@ export class CourseCache {
         lastExamUpdateTime: this.lastExamUpdateTime,
       }),
     );
+    const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
+    const term = (await readCourseSetting()).selectedSemester;
+    const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
+    const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+    ExpoWidgetsModule.setWidgetData(
+      JSON.stringify({
+        courseData: this.cachedData,
+        examData: this.cachedExamData,
+        startDate: currentTerm.start_date,
+        maxWeek: maxWeek,
+      }),
+      Constants.expoConfig?.android?.package,
+    );
+    console.log('Saved cached course data to widget.');
   }
 
   /**
@@ -172,7 +199,9 @@ export class CourseCache {
     this.lastCourseUpdateTime = NO_LOADING_MSG;
     this.lastExamUpdateTime = NO_LOADING_MSG;
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
+    this.startID = DEFAULT_STARTID; // 重置 ID 计数器
     await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
+    ExpoWidgetsModule.setWidgetData('', Constants.expoConfig?.android?.package);
   }
 
   /**
@@ -364,10 +393,7 @@ export class CourseCache {
    * @param colorScheme - 当前的配色方案（'dark' 或 'light'）
    * @returns 按天归类的课程数据
    */
-  public static setCourses(
-    tempData: JwchCourseListResponse_Course[],
-    colorScheme: 'dark' | 'light' | null | undefined,
-  ): Record<number, ExtendCourse[]> {
+  public static setCourses(tempData: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
     // 更新时间戳
     this.lastCourseUpdateTime = new Date().toLocaleString();
     // 生成当前 tempData 的 digest
@@ -387,7 +413,7 @@ export class CourseCache {
     // 为每个课程生成颜色并扩展数据
     const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
       if (!courseColorMap[schedule.name]) {
-        courseColorMap[schedule.name] = generateRandomColor(schedule.name, colorScheme === 'dark');
+        courseColorMap[schedule.name] = generateRandomColor(schedule.name);
       }
       return {
         ...schedule,
@@ -398,15 +424,21 @@ export class CourseCache {
       };
     });
 
+    // 为调课课程添加标记
+    for (const course of extendedCourses) {
+      if (course.adjust) {
+        course.name = `[调课] ${course.name}`;
+      }
+    }
+
     // 按天归类课程数据
     const groupedData = extendedCourses.reduce(
       (result, current) => {
         const day = current.weekday - 1;
-        if (!result[day]) result[day] = [];
         result[day].push(current);
         return result;
       },
-      {} as Record<number, ExtendCourse[]>,
+      Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<number, ExtendCourse[]>,
     );
 
     // 更新缓存

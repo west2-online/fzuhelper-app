@@ -9,13 +9,15 @@ export type getApiV1CommonClassroomEmptyParams = {
 };
 
 export type getApiV1JwchClassroomExamParams = {
-  /** 学期 202401 */
+  /** 学期 202401(研究生2023-2024-2) */
   term?: string;
 };
 
 export type getApiV1JwchCourseListParams = {
   /** 学期 */
   term: string;
+  /** 强刷标签 */
+  is_refresh: boolean;
 };
 
 export type getApiV1LaunchScreenImagePointTimeParams = {

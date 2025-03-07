@@ -23,8 +23,9 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
+import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
-import { ToolType, toolOnPress, type Tool } from '@/utils/tools';
+import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 
 // 工具类型的枚举
 
@@ -64,6 +65,7 @@ const DEFAULT_TOOLS: Tool[] = [
     name: '一键评议',
     icon: OneKeyIcon,
     type: ToolType.FUNCTION,
+    userTypes: [USER_TYPE_UNDERGRADUATE],
     action: async () => {
       Alert.alert('暂未开放', '新版一键评议正在设计中，预计学期结束前（即评议开始前）上线，敬请期待');
     },
@@ -73,32 +75,28 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: XuankeIcon,
     type: ToolType.LINK,
     href: '/toolbox/xuanke',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '各类申请',
     icon: ApplicationIcon,
     type: ToolType.LINK,
     href: '/toolbox/application',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '学生证',
     icon: IDCardIcon,
     type: ToolType.LINK,
     href: '/toolbox/id-card',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '毕业设计',
     icon: GraduationIcon,
     type: ToolType.LINK,
     href: '/toolbox/graduation',
-  },
-  {
-    name: '校园指南',
-    icon: WikiIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
-    },
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '嘉锡讲坛',
@@ -107,6 +105,7 @@ const DEFAULT_TOOLS: Tool[] = [
     action: async () => {
       pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉锡讲坛');
     },
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '智慧餐厅',
@@ -114,6 +113,14 @@ const DEFAULT_TOOLS: Tool[] = [
     type: ToolType.FUNCTION,
     action: async () => {
       pushToWebViewNormal('http://hqczhct.fzu.edu.cn:8001/html/index.html', '智慧餐厅');
+    },
+  },
+  {
+    name: '校园指南',
+    icon: WikiIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
     },
   },
   {
@@ -149,14 +156,19 @@ const useToolsPageData = () => {
   useEffect(() => {
     // 模拟数据加载
     setBannerList(DEFAULT_BANNERS);
-    setToolList(processTools(DEFAULT_TOOLS));
+    setToolList(
+      // 此处会进行一层过滤，只显示当前用户类型可用的工具
+      processTools(
+        DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType)),
+      ),
+    );
   }, []);
 
   return { bannerList, toolList };
 };
 
 // 工具按钮的渲染函数
-const renderToolButton = ({ item }: { item: Tool }, router: Router) => (
+const renderToolButton = (item: Tool, router: Router) => (
   <Button
     className="mb-3 h-auto w-auto items-center justify-center bg-transparent"
     size="icon"
@@ -191,7 +203,7 @@ export default function ToolsPage() {
         numColumns={5}
         className="mt-4"
         columnWrapperClassName="justify-between"
-        renderItem={({ item }) => renderToolButton({ item }, router)}
+        renderItem={({ item }) => renderToolButton(item, router)}
       />
     </PageContainer>
   );

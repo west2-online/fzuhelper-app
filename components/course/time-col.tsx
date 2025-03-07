@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { CLASS_SCHEDULES } from '@/lib/constants';
-import { SCHEDULE_MIN_HEIGHT } from '@/lib/course';
+import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
 import { cn } from '@/lib/utils';
 
 // 判断当前时间是否在指定时间段内
@@ -35,7 +35,7 @@ interface TimeColProps {
 const TimeCol: React.FC<TimeColProps> = ({ height }) => {
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
 
-  const displayHeight = useMemo(() => Math.max(SCHEDULE_MIN_HEIGHT, height) / 11, [height]);
+  const displayHeight = useMemo(() => Math.max(SCHEDULE_ITEM_MIN_HEIGHT, Math.floor(height / 11)), [height]);
 
   // 定时更新当前时间
   useEffect(() => {
@@ -82,4 +82,4 @@ const TimeCol: React.FC<TimeColProps> = ({ height }) => {
   );
 };
 
-export default TimeCol;
+export default memo(TimeCol);

@@ -30,7 +30,8 @@
     --text-tertiary: 0 0% 80%; /* 三级文本色 */
   }
 
-  .dark:root {
+  .dark:root,
+  .dark {
     --foreground: 0 0% 98%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
