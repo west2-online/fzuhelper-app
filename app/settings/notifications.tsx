@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ALLOW_PUSH_EVENT_KEYS } from '@/lib/constants';
+import ExpoUmengModule from '@/modules/umeng-bridge';
 import { NotificationsSettings } from '@/types/notifications';
 import { ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
@@ -47,27 +48,33 @@ export default function PushSettingsPage() {
     readSettingsFromStorage();
   }, []);
 
+  const checkPermission = () => {
+    if (!ExpoUmengModule.hasPermission()) {
+      ExpoUmengModule.requirePermission();
+    }
+  };
+
   const handleTeachingNotice = () => {
+    checkPermission();
     const newValue = !settings.allowJWCHTeachingNotice;
     updateSetting('allowJWCHTeachingNotice', newValue);
-    toast('已 ' + (newValue ? '开启' : '关闭') + ' 教学通知');
   };
 
   const hanleMarkNotice = () => {
+    checkPermission();
     const newValue = !settings.allowGradeUpdateNotice;
     updateSetting('allowGradeUpdateNotice', newValue);
-    toast('已 ' + (newValue ? '开启' : '关闭') + ' 成绩通知');
   };
 
   const handleExamNotice = () => {
+    checkPermission();
     const newValue = !settings.allowExamNotice;
     updateSetting('allowExamNotice', newValue);
-    toast('已 ' + (newValue ? '开启' : '关闭') + ' 考试通知');
   };
 
   return (
     <>
-      <Stack.Screen options={{ title: '推送管理' }} />
+      <Stack.Screen options={{ title: '推送通知' }} />
 
       <PageContainer>
         <ScrollView className="flex-1 bg-background px-8 pt-8">
@@ -78,7 +85,7 @@ export default function PushSettingsPage() {
               label="教学通知"
               value={settings.allowJWCHTeachingNotice}
               onValueChange={handleTeachingNotice}
-              description="由教务处发布，含停调课、教学安排、竞赛通知等"
+              description="由教务处发布，含调停课、教学安排、竞赛通知等"
             />
 
             <Text className="my-2 text-sm text-text-secondary">学业</Text>
@@ -87,14 +94,14 @@ export default function PushSettingsPage() {
               label="考试成绩通知"
               value={settings.allowGradeUpdateNotice}
               onValueChange={hanleMarkNotice}
-              description="首次更新课程成绩时通知(不具备实时性，通常在成绩发布后的24小时内)"
+              description="课程成绩有更新时通知（通常在成绩发布后24小时内推送）"
             />
 
             <LabelSwitch
               label="考试通知"
               value={settings.allowExamNotice}
               onValueChange={handleExamNotice}
-              description="教师发布考试安排时通知(不具备实时性，通常在考场更新后的24小时内)"
+              description="教师发布考试安排时通知（通常在考场更新后24小时内推送）"
             />
           </SafeAreaView>
         </ScrollView>

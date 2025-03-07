@@ -20,9 +20,12 @@ const withKey = (
   config,
   {
     AndroidAppKey,
-    iOSAppKey,
     channel,
     msgsec,
+    mipushAppId,
+    mipushAppKey,
+    hmspushAppId,
+    iOSAppKey,
     bridgingSourcePath,
     bridgingTargetPath,
     NSPushNotificationUsageDescription,
@@ -35,6 +38,13 @@ const withKey = (
     AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'UMENG_APPKEY', AndroidAppKey); // 写入友盟 AppKey
     AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'UMENG_CHANNEL', channel); // 写入友盟渠道
     AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'UMENG_MSGSEC', msgsec); // 写入友盟安全密钥
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'MIPUSH_APPID', mipushAppId);
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'MIPUSH_APPKEY', mipushAppKey);
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(
+      mainApplication,
+      'com.huawei.hms.client.appid',
+      `appid=${hmspushAppId}`,
+    );
     return manifestConfig;
   });
 
