@@ -86,7 +86,8 @@ export default function YiMaTongPage() {
           const storedName = await AsyncStorage.getItem(YMT_USERNAME_KEY);
 
           const storedUserInfo = await AsyncStorage.getItem(LOCAL_USER_INFO_KEY);
-          const { userid } = storedUserInfo ? JSON.parse(storedUserInfo) : null;
+          const parsedUserInfo = storedUserInfo ? JSON.parse(storedUserInfo) : null;
+          const userid = parsedUserInfo ? parsedUserInfo.userid : null;
           setAccessToken(storedAccessToken);
           setName(storedName);
           setLibCodeContent(userid);
