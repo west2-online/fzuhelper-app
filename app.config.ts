@@ -56,6 +56,20 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-localization',
+    [
+      '@bittingz/expo-widgets',
+      {
+        android: {
+          src: './targets/android-widget',
+          widgets: [
+            {
+              name: 'NextClassWidgetProvider',
+              resourceName: '@xml/next_class_widget_provider',
+            },
+          ],
+        },
+      },
+    ],
     'expo-router',
     [
       'react-native-permissions',

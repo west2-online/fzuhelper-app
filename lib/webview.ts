@@ -19,7 +19,7 @@ export function getWebViewHrefJWCH(url: string, title: string | undefined = unde
   return getWebViewHref(params);
 }
 
-export function getWebViewHrefNormal(url: string, title: string): Href {
+export function getWebViewHrefNormal(url: string, title: string | undefined = undefined): Href {
   const params: WebParams = {
     url,
     title: title, // 页面标题（可选）
