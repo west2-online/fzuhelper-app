@@ -1,6 +1,7 @@
-import { useRouter, type Router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, FlatList } from 'react-native';
+import { Link, useRouter, type Href, type Router } from 'expo-router';
+import { forwardRef, useEffect, useState } from 'react';
+import { Alert, FlatList, Pressable } from 'react-native';
+import type { SvgProps } from 'react-native-svg';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
@@ -20,11 +21,12 @@ import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
 import Banner, { type BannerContent } from '@/components/banner';
 import PageContainer from '@/components/page-container';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
-import { pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
+import { cn } from '@/lib/utils';
+import { getWebViewHref, pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 
 // 工具类型的枚举
@@ -101,34 +103,39 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '嘉锡讲坛',
     icon: JiaXiIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx', '嘉锡讲坛');
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://jwcjwxt2.fzu.edu.cn:81/student/glbm/lecture/jxjt_cszt.aspx',
+      title: '嘉锡讲坛',
+      jwch: true,
     },
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '智慧餐厅',
     icon: ZHCTIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      pushToWebViewNormal('http://hqczhct.fzu.edu.cn:8001/html/index.html', '智慧餐厅');
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'http://hqczhct.fzu.edu.cn:8001/html/index.html',
+      title: '智慧餐厅',
     },
   },
   {
     name: '校园指南',
     icon: WikiIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      pushToWebViewNormal('https://fzuwiki.west2.online/?source=fzuhelper', '校园指南');
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://fzuwiki.west2.online/?source=fzuhelper&utm_source=fzuhelper-app&utm_medium=toolbox',
+      title: '校园指南',
     },
   },
   {
     name: '飞跃手册',
     icon: FZURunIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      pushToWebViewNormal('https://run.west2.online/?source=fzuhelper', '飞跃手册');
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://run.west2.online/?source=fzuhelper&utm_source=fzuhelper-app&utm_medium=toolbox',
+      title: '飞跃手册',
     },
   },
 ];
@@ -167,25 +174,56 @@ const useToolsPageData = () => {
   return { bannerList, toolList };
 };
 
-// 工具按钮的渲染函数
-const renderToolButton = (item: Tool, router: Router) => (
-  <Button
-    className="mb-3 h-auto w-auto items-center justify-center bg-transparent"
-    size="icon"
-    onPress={() => toolOnPress(item, router)}
-  >
-    {item.icon ? <item.icon width="42px" height="42px" /> : null}
-    <Text
-      className="w-[50px] text-center align-middle text-text-secondary"
-      // eslint-disable-next-line react-native/no-inline-styles
-      style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
-      numberOfLines={1}
-      ellipsizeMode="tail"
+type ToolButtonProps = Omit<ButtonProps, 'size'> & {
+  name: string;
+  icon?: React.FC<SvgProps>;
+};
+
+// eslint-disable-next-line react/display-name
+const ToolButton = forwardRef<React.ElementRef<typeof Pressable>, ToolButtonProps>(
+  ({ className, icon: Icon, name, onPress }, ref) => (
+    <Button
+      className={cn('mb-3 h-auto w-auto items-center justify-center bg-transparent', className)}
+      size="icon"
+      onPress={onPress}
+      ref={ref}
     >
-      {item.name}
-    </Text>
-  </Button>
+      {Icon ? <Icon width="42px" height="42px" /> : null}
+      <Text
+        className="w-[50px] text-center align-middle text-text-secondary"
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {name}
+      </Text>
+    </Button>
+  ),
 );
+
+type ToolButtonLinkProps = Omit<ToolButtonProps, 'onPress'> & {
+  href: Href;
+};
+
+const ToolButtonLink: React.FC<ToolButtonLinkProps> = ({ href, ...props }) => (
+  <Link href={href} asChild>
+    <ToolButton {...props} />
+  </Link>
+);
+
+// 工具按钮的渲染函数
+const renderToolButton = (item: Tool, router: Router) => {
+  if (item.type === ToolType.LINK) {
+    return <ToolButtonLink name={item.name} href={item.href} icon={item.icon} />;
+  }
+
+  if (item.type === ToolType.WEBVIEW) {
+    return <ToolButtonLink name={item.name} href={getWebViewHref(item.params)} icon={item.icon} />;
+  }
+
+  return <ToolButton name={item.name} icon={item.icon} onPress={() => toolOnPress(item, router)} />;
+};
 
 export default function ToolsPage() {
   const { bannerList, toolList } = useToolsPageData();
