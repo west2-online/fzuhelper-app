@@ -54,8 +54,9 @@ const teachingProgramScript: StringScript = `
 
 type ColorData = {
   backgroundColor: string;
-  backgroundHighlightColor?: string;
+  backgroundHighlightColor: string;
   color: string;
+  backgroundColorAlpha: string;
 };
 
 const colors: Record<ParsedColorScheme, ColorData> = {
@@ -63,11 +64,13 @@ const colors: Record<ParsedColorScheme, ColorData> = {
     backgroundColor: '#ffffff',
     backgroundHighlightColor: '#efefef',
     color: '#000000',
+    backgroundColorAlpha: 'ff',
   },
   dark: {
     backgroundColor: '#121212',
     backgroundHighlightColor: '#1e1e1e',
     color: '#ffffff',
+    backgroundColorAlpha: '20',
   },
 };
 
@@ -82,12 +85,21 @@ const darkModeScript: GeneratedScript = colorScheme => `
     element.removeAttribute("bgcolor");
   });
 
-   document.querySelectorAll("tr").forEach((tr) => {
+  document.querySelectorAll("table").forEach((table) => {
+    table.removeAttribute("bgcolor");
+    table.style.backgroundColor = "${colors[colorScheme].backgroundColor}";
+  });
+
+  document.querySelectorAll("tr").forEach((tr) => {
     if (!tr.bgColor) {
       // 设置表格行的背景颜色
       tr.style.backgroundColor = "${colors[colorScheme].backgroundColor}";
+    } else if (/[\\w]{6}/.test(tr.bgColor)) {
+      // 表格高亮行的背景颜色
+      tr.style.backgroundColor = '#' + tr.bgColor + '${colors[colorScheme].backgroundColorAlpha}';
+      tr.removeAttribute("bgcolor");
     } else {
-      tr.style.color = "black";
+      tr.style.color = 'black';
     }
   });
 `;
