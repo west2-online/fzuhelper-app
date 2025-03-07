@@ -7,13 +7,16 @@ import {
   COURSE_CURRENT_CACHE_KEY,
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
+  IOS_APP_GROUP,
 } from '@/lib/constants';
 import { MergedExamData } from '@/types/academic';
 import generateRandomColor, { clearColorMapping, getExamColor } from '@/utils/random-color';
+import { ExtensionStorage } from '@bacons/apple-targets';
 import * as ExpoWidgetsModule from '@bittingz/expo-widgets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
+import { Platform } from 'react-native';
 import { getWeeksBySemester } from './locate-date';
 
 export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
@@ -160,31 +163,39 @@ export class CourseCache {
    * 保存缓存数据
    */
   private static async save(): Promise<void> {
-    await AsyncStorage.setItem(
-      COURSE_CURRENT_CACHE_KEY,
-      JSON.stringify({
-        courseData: this.cachedData,
-        courseDigest: this.cachedDigest,
-        examData: this.cachedExamData,
-        examDigest: this.cachedExamDigest,
-        priorityCounter: this.priorityCounter,
-        lastCourseUpdateTime: this.lastCourseUpdateTime,
-        lastExamUpdateTime: this.lastExamUpdateTime,
-      }),
-    );
-    const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
-    const term = (await readCourseSetting()).selectedSemester;
-    const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
-    const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
-    ExpoWidgetsModule.setWidgetData(
-      JSON.stringify({
-        courseData: this.cachedData,
-        examData: this.cachedExamData,
-        startDate: currentTerm.start_date,
-        maxWeek: maxWeek,
-      }),
-      Constants.expoConfig?.android?.package,
-    );
+    const data = JSON.stringify({
+      courseData: this.cachedData,
+      courseDigest: this.cachedDigest,
+      examData: this.cachedExamData,
+      examDigest: this.cachedExamDigest,
+      priorityCounter: this.priorityCounter,
+      lastCourseUpdateTime: this.lastCourseUpdateTime,
+      lastExamUpdateTime: this.lastExamUpdateTime,
+    });
+
+    await AsyncStorage.setItem(COURSE_CURRENT_CACHE_KEY, data);
+
+    // （仅iOS）保存到 ExtensionStorage，用于小组件
+    if (Platform.OS === 'ios') {
+      const storage = new ExtensionStorage(IOS_APP_GROUP);
+      storage.set(COURSE_CURRENT_CACHE_KEY, data); // 如果要改这个 KEY，需要同步修改 target 中原生代码
+      ExtensionStorage.reloadWidget(); // 保存后需要重载一次
+    }
+    if (Platform.OS === 'android') {
+      const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
+      const term = (await readCourseSetting()).selectedSemester;
+      const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
+      const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+      ExpoWidgetsModule.setWidgetData(
+        JSON.stringify({
+          courseData: this.cachedData,
+          examData: this.cachedExamData,
+          startDate: currentTerm.start_date,
+          maxWeek: maxWeek,
+        }),
+        Constants.expoConfig?.android?.package,
+      );
+    }
     console.log('Saved cached course data to widget.');
   }
 
