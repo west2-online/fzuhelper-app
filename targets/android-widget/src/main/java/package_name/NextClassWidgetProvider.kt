@@ -50,8 +50,8 @@ internal fun updateNextClassWidget(
 
     val intent = Intent()
     intent.setClassName(
-        "com.helper.west2ol.fzuhelper",
-        "com.helper.west2ol.fzuhelper.MainActivity"
+        BuildConfig.APPLICATION_ID,
+        BuildConfig.APPLICATION_ID + ".MainActivity"
     )
     val pendingIntent = PendingIntent.getActivity(
         context,
