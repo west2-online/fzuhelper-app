@@ -45,11 +45,7 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
       </View>
 
       {/* 课程详情 */}
-      <ScheduleDetailsDialog
-        isOpen={isDetailsDialogOpen}
-        onClose={() => setDetailsDialogOpen(false)}
-        schedules={schedules}
-      />
+      <ScheduleDetailsDialog open={isDetailsDialogOpen} onOpenChange={setDetailsDialogOpen} schedules={schedules} />
     </>
   );
 };

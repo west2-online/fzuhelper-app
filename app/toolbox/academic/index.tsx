@@ -1,5 +1,5 @@
-import { useNavigation, useRouter } from 'expo-router';
-import { useCallback, useLayoutEffect, useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import CreditIcon from '@/assets/images/toolbox/academic/ic_credit.png';
@@ -13,7 +13,7 @@ import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchAcademicPlan } from '@/api/generate';
 import { LoadingDialog } from '@/components/loading';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import useApiRequest from '@/hooks/useApiRequest';
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { pushToWebViewJWCH } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
@@ -21,16 +21,16 @@ import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '学业状况';
 
-export default function AcademicPage() {
-  // 设置导航栏标题
-  const navigation = useNavigation();
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: NAVIGATION_TITLE });
-  }, [navigation]);
+const errorHandler = (error: any) => {
+  if (error) {
+    toast.error(error.msg ? error.msg : '培养计划没有找到');
+  }
+};
 
+export default function AcademicPage() {
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
+  const { refetch } = useApiRequest(getApiV1JwchAcademicPlan, {}, { enabled: false, errorHandler });
 
   // 菜单项数据
   const MENU_ITEMS: Tool[] = [
@@ -68,47 +68,39 @@ export default function AcademicPage() {
       action: async () => {
         if (isRefreshing) return;
         setIsRefreshing(true);
-        handlePlanData();
+        const planData = await refetch();
+        setIsRefreshing(false);
+        if (planData.data) {
+          pushToWebViewJWCH(planData.data || '', '培养计划');
+        }
       },
       userTypes: [USER_TYPE_UNDERGRADUATE],
     },
   ];
 
-  const handlePlanData = useCallback(async () => {
-    try {
-      const result = await getApiV1JwchAcademicPlan();
-      pushToWebViewJWCH(result.data.data || '', '培养计划');
-    } catch (error: any) {
-      const data = handleError(error);
-      console.log(data);
-      if (data) {
-        toast.error(data.msg ? data.msg : '培养计划没有找到');
-      }
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [handleError]);
-
   return (
-    <PageContainer className="bg-background p-4">
-      {/* 菜单列表 */}
-      <View className="mx-4 space-y-4">
-        {MENU_ITEMS.filter(
-          item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType),
-        ).map((item, index) => (
-          <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => toolOnPress(item, router)} />
-        ))}
-      </View>
-      <View className="mx-4 space-y-4">
-        <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
-        <Text className="my-2 text-base text-text-secondary">
-          在教务系统中可能没有全部专业的培养计划，或没有当前专业当前年级的培养计划
-        </Text>
-        <Text className="text-base text-text-secondary">
-          统考成绩采集自教务系统数据，数据更新时间会晚于官方统考成绩公布渠道
-        </Text>
-      </View>
-      <LoadingDialog open={isRefreshing} />
-    </PageContainer>
+    <>
+      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
+      <PageContainer className="bg-background p-4">
+        {/* 菜单列表 */}
+        <View className="mx-4 space-y-4">
+          {MENU_ITEMS.filter(
+            item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType),
+          ).map((item, index) => (
+            <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => toolOnPress(item, router)} />
+          ))}
+        </View>
+        <View className="mx-4 space-y-4">
+          <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+          <Text className="my-2 text-base text-text-secondary">
+            在教务系统中可能没有全部专业的培养计划，或没有当前专业当前年级的培养计划
+          </Text>
+          <Text className="text-base text-text-secondary">
+            统考成绩采集自教务系统数据，数据更新时间会晚于官方统考成绩公布渠道
+          </Text>
+        </View>
+        <LoadingDialog open={isRefreshing} />
+      </PageContainer>
+    </>
   );
 }
