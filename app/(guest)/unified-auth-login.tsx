@@ -1,6 +1,15 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Stack, router } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
+import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
+
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import {
   SSO_LOGIN_COOKIE_KEY,
@@ -12,13 +21,6 @@ import {
 import SSOLogin from '@/lib/sso-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 import YMTLogin from '@/lib/ymt-login';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, router } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
-import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
 
 const NAVIGATION_TITLE = '统一身份认证';
 const URL_FORGET_PASSWORD = 'https://sso.fzu.edu.cn/public/client/forget-password/qr';
@@ -38,6 +40,7 @@ const UnifiedLoginPage: React.FC = () => {
   if (!ssoLogin.current) {
     ssoLogin.current = new SSOLogin();
   }
+
   // 处理SSO登录逻辑
   const handleSSOLogin = useCallback(async () => {
     try {

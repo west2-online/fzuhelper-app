@@ -31,10 +31,11 @@ export const JWCH_CURRENT_SEMESTER_KEY = 'jwch_current_semester'; // 当前学�
 export const YJSY_COOKIES_DOMAIN = 'https://yjsglxt.fzu.edu.cn'; // YJSY Cookies 域名
 
 // 一码通
+// 以 YMT_ 开头
 export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
 export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 
-// sso登录
+// SSO 登录
 export const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';
 export const SSO_LOGIN_COOKIE_KEY = 'sso_login_cookie';
 

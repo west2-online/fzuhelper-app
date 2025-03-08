@@ -1,8 +1,10 @@
+import { Buffer } from 'buffer';
+import CryptoJs from 'crypto-js';
+
 import { RejectEnum } from '@/api/enum';
 import { SSO_LOGIN_URL } from '@/lib/constants';
 import { get, post } from '@/modules/native-request';
-import { Buffer } from 'buffer';
-import CryptoJs from 'crypto-js';
+
 // 用于提取 Set-Cookie 中的内容
 function extractKV(raw: string, key: string): string {
   /**
@@ -57,6 +59,7 @@ class SSOLogin {
   async #get({ url, headers = {} }: { url: string; headers?: Record<string, string> }) {
     return this.#request('GET', url, headers);
   }
+
   // 登录, 返回并保存 cookie
   async login(account: string, password: string) {
     /**
