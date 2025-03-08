@@ -76,49 +76,73 @@ export const parseScore = (score: string) => {
   return -2; // 其他情况，按最低分处理
 };
 
+// 需要排除的课程类型
+const excludedElectiveTypes = [
+  '自然科学与工程技术类',
+  '人文社会科学类',
+  '经济管理类',
+  '文学与艺术类',
+  '工程技术类',
+  '劳动教育类',
+  '创新创业类',
+  '通识选修任选',
+  '任意选修', // 转专业会遇到
+];
+
+// 移除补考课程对应的原课程
+const removeReexaminationCourse = (data: CourseGradesData[]) =>
+  data.filter(item => {
+    if (!item.gpa) return true;
+    if (item.exam_type.includes('补考')) return true; // 补考课程不需要排除
+
+    // 找到对应的补考课程
+    const nItem = data.find(
+      // 理论上一个学期内不会有两门同名的同教师授课课程，所以只需要判断名称和教师是否相同
+      o => o.name === item.name && o.teacher === item.teacher && o.exam_type.includes('补考'),
+    );
+
+    if (!nItem) return true; // 没有补考课程则保留原始成绩
+    return !nItem.gpa; // 补考成绩已出则过滤掉当前课程（原始挂科的成绩）
+  });
+
+// 获取 GPA 相关数据
+const getGpaRelevantData = (data: CourseGradesData[]) =>
+  data
+    // 过滤掉不需要的课程类型
+    .filter(item => !excludedElectiveTypes.includes(item.elective_type))
+    // 过滤掉二专业课程
+    .filter(item => !item.elective_type.includes('二专业'))
+    // GPA 不为空
+    .filter(item => item.gpa)
+    // 根据《福州大学本科生课程考核与成绩记载管理实施办法（暂行）》中第四条（二）第一款：
+    // > 考核成绩采用两级制的，暂不计算绩点。
+    // https://jwch.fzu.edu.cn/info/1172/13460.htm
+    .filter(item => item.score !== '合格' && item.score !== '不合格');
+
 // 计算单个学期的总体数据
-export const calSingleTermSummary = (data: CourseGradesData[], term: string) => {
-  const filteredData = data.filter(item => item.term === term);
+// 过滤对应学期数据的逻辑在上层已经写了，所以这里无需再次过滤
+export const calSingleTermSummary = (data: CourseGradesData[]) => {
+  const filteredData = removeReexaminationCourse(data);
+  const gpaRelevantData = getGpaRelevantData(filteredData);
 
-  // 计算本学期总课程数
+  // 本学期总课程数
   const totalCount = filteredData.length;
-  // 计算本学期总修学分
+  // 本学期总修学分
   const totalCredit = filteredData.reduce((sum, item) => sum + parseFloat(item.credit || '0'), 0);
-  // 计算单科最高分
-  const maxScore = Math.max(...filteredData.map(item => parseFloat(item.score) || 0));
+  // 单科最高分
+  const maxScore = Math.max(...filteredData.map(item => parseFloat(item.score || '0') || 0));
 
-  // 计算平均学分绩(GPA)，单门课程学分绩点乘积之和除以总学分，计算比较复杂
+  // === 计算平均学分绩 (GPA) ===
+  // 单门课程学分绩点乘积之和除以总学分
 
-  // 需要排除的课程类型
-  const excludedElectiveTypes = [
-    '自然科学与工程技术类',
-    '人文社会科学类',
-    '经济管理类',
-    '文学与艺术类',
-    '工程技术类',
-    '劳动教育类',
-    '创新创业类',
-    '通识选修任选',
-    '任意选修', // 转专业会遇到
-  ];
-
-  // 进一步过滤出需要计算的数据
-  const gpaRelevantData = filteredData.filter(
-    item =>
-      !excludedElectiveTypes.includes(item.elective_type) && // 排除特定课程类型
-      !item.elective_type.includes('二专业') && // 排除课程类型中包含“二专业”的课程
-      item.gpa && // gpa 不为空
-      item.score !== '合格' &&
-      item.score !== '不合格', // 成绩不是“合格”或“不合格”的课程不参与绩点统计，即使他们绩点显示为 1.0
-  );
-
-  // 计算 GPA，单科学分绩点乘积之和除以总学分
+  // 分子：学分绩点乘积之和
   const totalWeightedGPA = gpaRelevantData.reduce((sum, item) => {
     const credit = parseFloat(item.credit || '0');
     const gpa = parseFloat(item.gpa || '0');
     return sum + credit * gpa; // 累加单科学分 * 绩点
   }, 0);
 
+  // 分母：总学分
   const totalGpaCredits = gpaRelevantData.reduce((sum, item) => sum + parseFloat(item.credit || '0'), 0);
 
   return {

@@ -14,7 +14,7 @@ import { Text } from '@/components/ui/text';
 
 import Loading from '@/components/loading';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
+import { LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
 
 export default function YiMaTongPage() {
@@ -24,9 +24,11 @@ export default function YiMaTongPage() {
   const [name, setName] = useState<string | null>(null); // 用户名
   const [payCodes, setPayCodes] = useState<PayCodeRespData[]>(); // 支付码
   const [identifyCode, setIdentifyCode] = useState<IdentifyRespData>(); // 身份码
+  const [libCodeContent, setLibCodeContent] = useState<string | null>(null); // 图书馆码
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
   const [isRefreshing, setIsRefreshing] = useState(false); // 用于触发重新渲染
   const handleErrorRef = useRef(useSafeResponseSolve().handleError);
+
   const handleError = handleErrorRef.current;
 
   const logoutCleanData = useCallback(async () => {
@@ -82,8 +84,13 @@ export default function YiMaTongPage() {
         try {
           const storedAccessToken = await AsyncStorage.getItem(YMT_ACCESS_TOKEN_KEY);
           const storedName = await AsyncStorage.getItem(YMT_USERNAME_KEY);
+
+          const storedUserInfo = await AsyncStorage.getItem(LOCAL_USER_INFO_KEY);
+          const parsedUserInfo = storedUserInfo ? JSON.parse(storedUserInfo) : null;
+          const userid = parsedUserInfo ? parsedUserInfo.userid : null;
           setAccessToken(storedAccessToken);
           setName(storedName);
+          setLibCodeContent(userid);
         } catch (error) {
           console.error('读取本地数据失败:', error);
           logoutCleanData();
@@ -170,8 +177,10 @@ export default function YiMaTongPage() {
                 <Text className="text-base text-text-secondary">
                   消费码：适用于福州大学大门、生活区入口及宿舍楼门禁，不可用于桃李园消费。
                 </Text>
-              ) : (
+              ) : currentTab === '认证码' ? (
                 <Text className="text-base text-text-secondary">认证码：适用于福州大学铜盘校区入口门禁。</Text>
+              ) : (
+                <Text className="text-base text-text-secondary">入馆码：适用于福州大学图书馆入口门禁。</Text>
               )}
             </View>
           </CardFooter>
@@ -193,6 +202,9 @@ export default function YiMaTongPage() {
               <TabsTrigger value="认证码" className="w-auto">
                 <Text className="text-center">认证码</Text>
               </TabsTrigger>
+              <TabsTrigger value="入馆码" className="w-auto">
+                <Text className="text-center">入馆码</Text>
+              </TabsTrigger>
             </TabsList>
 
             <View className="flex-1">
@@ -202,6 +214,9 @@ export default function YiMaTongPage() {
 
               <TabsContent value="认证码">
                 {identifyCode && renderQRCodeCard('认证码', identifyCode.content, identifyCode.color)}
+              </TabsContent>
+              <TabsContent value="入馆码">
+                {libCodeContent && renderQRCodeCard('入馆码', libCodeContent, '#000000')}
               </TabsContent>
             </View>
           </Tabs>
