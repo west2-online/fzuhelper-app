@@ -6,16 +6,22 @@ import { ScrollView } from 'react-native-gesture-handler';
 import QRCode from 'react-native-qrcode-svg';
 import { toast } from 'sonner-native';
 
+import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 
-import Loading from '@/components/loading';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
-import YMTLogin, { IdentifyRespData, PayCodeRespData } from '@/lib/ymt-login';
+import YMTLogin, { type IdentifyRespData, type PayCodeRespData } from '@/lib/ymt-login';
+
+const LoadingCard: React.FC = () => (
+  <View className="flex w-screen flex-1 items-center justify-center rounded-tl-4xl bg-card">
+    <Loading />
+  </View>
+);
 
 export default function YiMaTongPage() {
   const ymtLogin = useMemo(() => new YMTLogin(), []);
@@ -209,14 +215,15 @@ export default function YiMaTongPage() {
 
             <View className="flex-1">
               <TabsContent value="消费码">
-                {payCodes && renderQRCodeCard('消费码', payCodes[0].prePayId, '#000000')}
+                {payCodes ? renderQRCodeCard('消费码', payCodes[0].prePayId, '#000000') : <LoadingCard />}
               </TabsContent>
 
               <TabsContent value="认证码">
-                {identifyCode && renderQRCodeCard('认证码', identifyCode.content, identifyCode.color)}
+                {identifyCode ? renderQRCodeCard('认证码', identifyCode.content, identifyCode.color) : <LoadingCard />}
               </TabsContent>
+
               <TabsContent value="入馆码">
-                {libCodeContent && renderQRCodeCard('入馆码', libCodeContent, '#000000')}
+                {libCodeContent ? renderQRCodeCard('入馆码', libCodeContent, '#000000') : <LoadingCard />}
               </TabsContent>
             </View>
           </Tabs>
