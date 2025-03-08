@@ -1,6 +1,8 @@
 import { type ExpoConfig } from 'expo/config';
 import 'ts-node/register'; // Add this to import TypeScript files
 
+const IS_DEV = process.env.APP_VARIANT === 'development';
+
 const config: ExpoConfig = {
   name: 'fzuhelper',
   slug: 'fzuhelper-app',
@@ -13,7 +15,7 @@ const config: ExpoConfig = {
   ios: {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
-    bundleIdentifier: 'FzuHelper.FzuHelper',
+    bundleIdentifier: IS_DEV ? 'FzuHelper.FzuHelper.dev' : 'FzuHelper.FzuHelper',
     buildNumber: '7.0.0',
     bitcode: true,
     supportsTablet: true,
@@ -49,7 +51,7 @@ const config: ExpoConfig = {
     'zh-Hant': './locales/chinese-traditional.json',
   },
   android: {
-    package: 'com.helper.west2ol.fzuhelper',
+    package: IS_DEV ? 'com.helper.west2ol.fzuhelper.dev' : 'com.helper.west2ol.fzuhelper',
     versionCode: 700001, // 此处不需要修改，将在inject-android-config中自增
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
