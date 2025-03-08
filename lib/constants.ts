@@ -130,3 +130,5 @@ export const NAV_THEME = {
 };
 
 export const EXPIRE_ONE_DAY = 1000 * 60 * 60 * 24; // 一天的毫秒数
+
+export const IOS_APP_GROUP = 'group.FzuHelper.NextCourse'; // iOS App Group，需要保持和 app.config.ts 中的一致
