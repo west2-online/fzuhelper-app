@@ -67,6 +67,7 @@ const config: ExpoConfig = {
               resourceName: '@xml/next_class_widget_provider',
             },
           ],
+          distPlaceholder: 'com.helper.west2ol.fzuhelper',
         },
       },
     ],
