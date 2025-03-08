@@ -79,7 +79,7 @@ const withKey = (
     const targetName = project.getFirstTarget().firstTarget.name;
 
     // 设置 Objective-C Bridging Header
-    project.addBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', bridgingTargetPath);
+    // project.addBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', bridgingTargetPath);
 
     // 自动启用 Push Notifications Capabilities
     const entitlementsFile = `${targetName}.entitlements`;
@@ -107,11 +107,21 @@ const withKey = (
       try {
         // 确保目标目录存在
         await fs.mkdir(join(targetPath, '..'), { recursive: true });
-        // 复制文件
-        await fs.copyFile(sourcePath, targetPath);
-        console.log(`Copied Bridging Header from ${sourcePath} to ${targetPath}`);
+
+        // 检测目标文件是否存在
+        try {
+          await fs.access(targetPath); // 检查目标文件是否存在
+          // 如果存在，读取源文件内容并追加到目标文件末尾
+          const sourceContent = await fs.readFile(sourcePath, 'utf8');
+          await fs.appendFile(targetPath, `\n${sourceContent}`);
+          console.log(`Appended Bridging Header content from ${sourcePath} to ${targetPath}`);
+        } catch {
+          // 如果目标文件不存在，直接复制源文件
+          await fs.copyFile(sourcePath, targetPath);
+          console.log(`Copied Bridging Header from ${sourcePath} to ${targetPath}`);
+        }
       } catch (error) {
-        console.error(`Failed to copy Bridging Header: ${error.message}`);
+        console.error(`Failed to process Bridging Header: ${error.message}`);
         throw error;
       }
 
