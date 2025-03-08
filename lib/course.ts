@@ -163,29 +163,41 @@ export class CourseCache {
    * 保存缓存数据
    */
   private static async save(): Promise<void> {
-    const data = JSON.stringify({
-      courseData: this.cachedData,
-      courseDigest: this.cachedDigest,
-      examData: this.cachedExamData,
-      examDigest: this.cachedExamDigest,
-      priorityCounter: this.priorityCounter,
-      lastCourseUpdateTime: this.lastCourseUpdateTime,
-      lastExamUpdateTime: this.lastExamUpdateTime,
-    });
+    await AsyncStorage.setItem(
+      COURSE_CURRENT_CACHE_KEY,
+      JSON.stringify({
+        courseData: this.cachedData,
+        courseDigest: this.cachedDigest,
+        examData: this.cachedExamData,
+        examDigest: this.cachedExamDigest,
+        priorityCounter: this.priorityCounter,
+        lastCourseUpdateTime: this.lastCourseUpdateTime,
+        lastExamUpdateTime: this.lastExamUpdateTime,
+      }),
+    );
 
-    await AsyncStorage.setItem(COURSE_CURRENT_CACHE_KEY, data);
-
-    // （仅iOS）保存到 ExtensionStorage，用于小组件
+    // 将数据保存到原生共享存储中，以便在小组件中调用
+    const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
+    const term = (await readCourseSetting()).selectedSemester;
+    const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
+    const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
     if (Platform.OS === 'ios') {
+      // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
+      // 只能在常量中定义这个 identifier
       const storage = new ExtensionStorage(IOS_APP_GROUP);
-      storage.set(COURSE_CURRENT_CACHE_KEY, data); // 如果要改这个 KEY，需要同步修改 target 中原生代码
+      storage.set(
+        COURSE_CURRENT_CACHE_KEY,
+        JSON.stringify({
+          courseData: this.cachedData,
+          examData: this.cachedExamData,
+          lastCourseUpdateTime: this.lastCourseUpdateTime,
+          lastExamUpdateTime: this.lastExamUpdateTime,
+          startDate: currentTerm.start_date,
+          maxWeek: maxWeek,
+        }),
+      ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-    }
-    if (Platform.OS === 'android') {
-      const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
-      const term = (await readCourseSetting()).selectedSemester;
-      const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
-      const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+    } else if (Platform.OS === 'android') {
       ExpoWidgetsModule.setWidgetData(
         JSON.stringify({
           courseData: this.cachedData,
@@ -212,7 +224,15 @@ export class CourseCache {
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
     this.startID = DEFAULT_STARTID; // 重置 ID 计数器
     await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
-    ExpoWidgetsModule.setWidgetData('', Constants.expoConfig?.android?.package);
+
+    // 清除小组件数据
+    if (Platform.OS === 'ios') {
+      const storage = new ExtensionStorage(IOS_APP_GROUP);
+      storage.set(COURSE_CURRENT_CACHE_KEY, '');
+      ExtensionStorage.reloadWidget(); // 保存后需要重载一次
+    } else if (Platform.OS === 'android') {
+      ExpoWidgetsModule.setWidgetData('', Constants.expoConfig?.android?.package);
+    }
   }
 
   /**

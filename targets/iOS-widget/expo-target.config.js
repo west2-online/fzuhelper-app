@@ -3,7 +3,7 @@ module.exports = config => ({
   type: 'widget',
   // name: 'WhatNextCourse',
   icon: 'https://github.com/expo.png',
-  // frameworks: ['SwiftUI'],
+  frameworks: ['SwiftUI'],
   // deploymentTarget: '18.0', // 建议跟随主项目的版本
   // exportJs: true, // 启用 JS 导出
   entitlements: {
