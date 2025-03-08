@@ -274,6 +274,7 @@ class UserLogin {
       const { id } = await this.#finishLogin(id0, num);
       identifier = id;
     }
+
     return {
       id: identifier,
       cookies: this.#getCookies(),
