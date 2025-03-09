@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/text';
 import ApiService from '@/utils/learning-center/api_service';
 import { Appointment } from '@/utils/learning-center/history-appointment-status';
 import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo } from 'react';
 
 export interface AppointmentCardProps {
   id: number;
@@ -39,19 +40,13 @@ export default function HistoryAppointmentCard({
 }: AppointmentCardProps) {
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token: string }>(); // 从路由参数中获取token
-  const api = new ApiService(token);
-  const appointment = new Appointment(
-    id.toString(),
-    floor.toString(),
-    spaceName,
-    date,
-    beginTime,
-    endTime,
-    auditStatus,
-    sign,
+  const api = useMemo(() => new ApiService(token), [token]);
+  const appointment = useMemo(
+    () => new Appointment(id.toString(), floor.toString(), spaceName, date, beginTime, endTime, auditStatus, sign),
+    [id, floor, spaceName, date, beginTime, endTime, auditStatus, sign],
   );
 
-  const getStatusColor = () => {
+  const getStatusColor = useCallback(() => {
     const statusText = appointment.getStatusText();
     switch (statusText) {
       case '未开始':
@@ -69,10 +64,10 @@ export default function HistoryAppointmentCard({
       default:
         return 'text-gray-500';
     }
-  };
+  }, [appointment]);
 
   // 处理取消预约
-  const handleCancel = async () => {
+  const handleCancel = useCallback(async () => {
     // 尝试取消预约，如果失败则显示错误信息
     try {
       await api.cancelAppointment(id.toString());
@@ -81,10 +76,10 @@ export default function HistoryAppointmentCard({
     } catch (error: any) {
       toast.error(`取消预约失败: ${error.message}`);
     }
-  };
+  }, [api, id, onRefresh]);
 
   // 处理签到
-  const handleSignIn = async () => {
+  const handleSignIn = useCallback(async () => {
     try {
       // 跳转到二维码扫描页面并传递预约ID
       router.push({
@@ -94,10 +89,10 @@ export default function HistoryAppointmentCard({
     } catch (error: any) {
       toast.error(`打开扫码页面失败: ${error.message}`);
     }
-  };
+  }, [router, id]);
 
   // 处理签退
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       await api.signOut(id.toString());
       toast.success('签退成功');
@@ -105,10 +100,10 @@ export default function HistoryAppointmentCard({
     } catch (error: any) {
       toast.error(`签退失败: ${error.message}`);
     }
-  };
+  }, [api, id, onRefresh]);
 
   // 渲染底部功能按钮
-  const renderActionButtons = () => {
+  const renderActionButtons = useCallback(() => {
     switch (appointment.getStatusText()) {
       case '未开始':
         return (
@@ -131,13 +126,16 @@ export default function HistoryAppointmentCard({
       default:
         return null;
     }
-  };
+  }, [appointment, handleCancel, handleSignIn, handleSignOut]);
 
   // 渲染卡片
   return (
     <Card className="mb-4 overflow-hidden rounded-xl border border-border">
       <CardHeader className="flex-row items-center justify-between pb-2 pt-4">
-        <CardTitle className="text-lg">{`${floor}F ${spaceName}`}</CardTitle>
+        <CardTitle>
+          <Text className="text-lg">{`${floor}F ${spaceName}`}</Text>
+          <Text className="text-sm"> # {id}</Text>
+        </CardTitle>
         <View className={`rounded-md px-2 py-1 ${getStatusColor().replace('text-', 'bg-').replace('-600', '-100')}`}>
           <Text className={`text-sm font-medium ${getStatusColor()}`}>{appointment.getStatusText()}</Text>
         </View>

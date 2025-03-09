@@ -3,12 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import ApiService from '@/utils/learning-center/api_service';
-import { useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Stack } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
-
 // 用于生成符合后端要求的日期格式
 const formatDate = (timestamp: number) => {
   const date = new Date(timestamp);
@@ -18,15 +19,21 @@ const formatDate = (timestamp: number) => {
   return `${year}-${month}-${day}`;
 };
 
-export default function TestApi() {
-  const { token } = useLocalSearchParams<{ token: string }>();
+export default function LearningCenterApi() {
   const [date, setDate] = useState(formatDate(Date.now() + 24 * 60 * 60 * 3000)); // 初始化为三天后的日期
   const [beginTime, setStartTime] = useState('22:00'); // 开始时间
   const [endTime, setEndTime] = useState('23:00'); // 结束时间
   const [spaceName, setSpaceName] = useState('1');
   const [floor, setFloor] = useState('4');
   const [appointmentID, setAppointmentID] = useState('');
+  const [token, setToken] = useState('');
   const api = useMemo(() => new ApiService(token), [token]);
+
+  // 读取本地token
+  const getToken = useCallback(async () => {
+    const token = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
+    setToken(token ?? '');
+  }, []);
 
   // 错误处理
   const handleError = (error: any) => {
@@ -34,7 +41,7 @@ export default function TestApi() {
   };
 
   // 测试历史记录
-  const history = async () => {
+  const history = useCallback(async () => {
     const response = await api
       .fetchAppointments({
         currentPage: 1,
@@ -43,9 +50,10 @@ export default function TestApi() {
       })
       .catch(handleError);
     console.log(response);
-  };
+  }, [api]);
+
   // 测试查询指定楼层的座位
-  const querySeatStatus = async () => {
+  const querySeatStatus = useCallback(async () => {
     const response = await api
       .querySeatStatus({
         date,
@@ -55,10 +63,10 @@ export default function TestApi() {
       })
       .catch(handleError);
     console.log(response);
-  };
+  }, [api, date, beginTime, endTime, floor]);
 
   // 测试预约
-  const order = async () => {
+  const order = useCallback(async () => {
     const response = await api
       .makeAppointment({
         date,
@@ -68,33 +76,44 @@ export default function TestApi() {
       })
       .catch(handleError);
     console.log(response);
-  };
+  }, [api, date, beginTime, endTime, spaceName]);
 
   // 测试签到
-  const signin = async () => {
+  const signin = useCallback(async () => {
     const response = await api.signIn(appointmentID).catch(handleError);
     console.log(response);
-  };
+  }, [api, appointmentID]);
 
   // 测试签退
-  const signout = async () => {
+  const signout = useCallback(async () => {
     const response = await api.signOut(appointmentID).catch(handleError);
     console.log(response);
-  };
+  }, [api, appointmentID]);
+
   // 测试取消
-  const cancel = async () => {
+  const cancel = useCallback(async () => {
     const response = await api.cancelAppointment(appointmentID).catch(handleError);
     console.log(response);
-  };
+  }, [api, appointmentID]);
+
+  // 初始化时读取本地token
+  useEffect(() => {
+    getToken();
+  }, [getToken]);
 
   return (
     <View>
-      <Text>token:{token}</Text>
+      <Stack.Screen options={{ title: '学习中心API测试' }} />
+      <Input value={token} onChangeText={setToken} placeholder="token" />
+
+      <Button onPress={getToken}>
+        <Text>读取本地token</Text>
+      </Button>
+
       {/* 测试预约历史 */}
       <Button onPress={history}>
         <Text>查询历史记录</Text>
       </Button>
-      {/* 测试查询指定层的座位 */}
 
       {/* 测试预约功能 */}
       <Input value={floor} onChangeText={setFloor} placeholder="楼层" keyboardType="numeric" />

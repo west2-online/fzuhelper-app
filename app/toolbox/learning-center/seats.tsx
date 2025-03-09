@@ -1,8 +1,11 @@
+import DateCard from '@/components/learning-center/date-card';
+import TimeCard from '@/components/learning-center/time-card';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, View } from 'react-native';
+import { FlatList, View } from 'react-native';
+
 // 格式化日期
 const formatDate = (date: Date, formatStr: string): string => {
   const year = date.getFullYear();
@@ -41,62 +44,6 @@ const calculateHoursDifference = (startTime: string, endTime: string): number =>
 // 添加指定小时到当前日期
 const addHours = (date: Date, hours: number): Date => {
   return new Date(date.getTime() + hours * 60 * 60 * 1000);
-};
-
-const DateCard: React.FC<{
-  date: Date;
-  selectedDate: Date;
-  onPress: () => void;
-}> = ({ date, selectedDate, onPress }) => {
-  // 判断日期是否选中
-  const isSelected = formatDate(selectedDate, 'yyyy-MM-dd') === formatDate(date, 'yyyy-MM-dd');
-
-  // 样式映射对象
-  const styles = {
-    container: isSelected ? 'bg-primary' : 'bg-secondary',
-    dateText: isSelected ? 'text-primary-foreground' : 'text-foreground',
-    weekText: isSelected ? 'text-primary-foreground' : 'text-text-secondary',
-  };
-
-  return (
-    <Pressable onPress={onPress} className={`m-1 flex-1 rounded-lg p-3 ${styles.container}`}>
-      <Text className={`text-center font-medium ${styles.dateText}`}>{date.getDate()}</Text>
-      <Text className={`text-center text-xs ${styles.weekText}`}>{formatDate(date, 'EEE')}</Text>
-    </Pressable>
-  );
-};
-
-const TimeCard: React.FC<{
-  time: string;
-  disabled: boolean;
-  isSelected: boolean;
-  isInclude: boolean;
-  onPress: () => void;
-}> = ({ time, disabled, isSelected, isInclude, onPress }) => {
-  // 样式映射对象
-  const styles = {
-    container: disabled
-      ? 'bg-muted opacity-40' //如果被禁用，背景色为灰色
-      : isSelected
-        ? 'bg-primary' //如果被选中，背景色为主色
-        : isInclude
-          ? 'bg-primary/50' //如果被包含，背景色为主色的30%透明度
-          : 'bg-secondary',
-
-    timeText: disabled
-      ? 'text-text-secondary' //如果被禁用，文字颜色为次文本色
-      : isSelected
-        ? 'text-primary-foreground' //如果被选中，文字颜色为主色
-        : isInclude
-          ? 'text-foreground' //如果被包含，文字颜色为主文本色
-          : 'text-foreground',
-  };
-
-  return (
-    <Pressable onPress={onPress} disabled={disabled} className={`m-1 flex-1 rounded-lg p-3 ${styles.container}`}>
-      <Text className={`text-center ${styles.timeText}`}>{time}</Text>
-    </Pressable>
-  );
 };
 
 export default function SeatsPage() {
@@ -157,6 +104,25 @@ export default function SeatsPage() {
     [beginTime, endTime],
   );
 
+  const getTimeCardState = useCallback(
+    (time: string): 'disabled' | 'selected' | 'included' | 'default' => {
+      if (isTimePast(selectedDate, time) || (beginTime && calculateHoursDifference(beginTime, time) > 4)) {
+        return 'disabled';
+      }
+
+      if (time === beginTime || time === endTime) {
+        return 'selected';
+      }
+
+      if (isInclude(time)) {
+        return 'included';
+      }
+
+      return 'default';
+    },
+    [selectedDate, beginTime, endTime, isInclude, isTimePast],
+  );
+
   // 处理时间点击事件
   const handleTimeSelection = (time: string) => {
     // 1. 开始：无 结束：无 点击-> 设置开始时间
@@ -183,6 +149,7 @@ export default function SeatsPage() {
     }
   };
 
+  // 处理确认按钮点击事件
   const handleCommit = useCallback(() => {
     // 格式化日期
     const formattedDate = formatDate(selectedDate, 'yyyy-MM-dd');
@@ -203,41 +170,38 @@ export default function SeatsPage() {
   return (
     <View className="p-2">
       <Stack.Screen options={{ title: '预约时间' }} />
+
       {/* 日期选择 */}
       <Text className="text-text mt-4 text-center text-sm">选择日期</Text>
       <FlatList
-        className="flex-grow-0" // 限制高度
         data={dates}
         keyExtractor={item => formatDate(item, 'yyyy-MM-dd')}
         showsHorizontalScrollIndicator={false}
         numColumns={10}
         scrollEnabled={false}
         renderItem={({ item }) => (
-          <DateCard date={item} selectedDate={selectedDate} onPress={() => setSelectedDate(item)} />
+          <DateCard
+            date={item.getDate().toString()}
+            day={formatDate(item, 'EEE')}
+            onPress={() => setSelectedDate(item)}
+            state={formatDate(selectedDate, 'yyyy-MM-dd') === formatDate(item, 'yyyy-MM-dd') ? 'selected' : 'default'}
+          />
         )}
       />
       <Text className="text-text mt-4 text-center text-sm">选择时间</Text>
+
       {/* 时间段选择 */}
       <FlatList
-        className="flex-grow-0" // 限制高度
         data={timeSlots}
         keyExtractor={item => item}
         showsHorizontalScrollIndicator={false}
         numColumns={4}
         renderItem={({ item }) => (
-          <TimeCard
-            time={item}
-            disabled={
-              isTimePast(selectedDate, item) || (beginTime ? calculateHoursDifference(beginTime, item) > 4 : false)
-            }
-            isSelected={item === beginTime || item === endTime}
-            isInclude={isInclude(item)}
-            onPress={() => {
-              handleTimeSelection(item);
-            }}
-          />
+          <TimeCard time={item} state={getTimeCardState(item)} onPress={() => handleTimeSelection(item)} />
         )}
       />
+
+      {/* 底部提示 */}
       <Text>
         {beginTime && !endTime
           ? `已选择开始时间：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${beginTime}`

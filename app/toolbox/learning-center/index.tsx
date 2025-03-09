@@ -11,7 +11,7 @@ import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 const menuItems: {
   name: string;
-  route?: '/toolbox/learning-center/seats' | '/toolbox/learning-center/history' | '/toolbox/learning-center/test-api';
+  route?: '/toolbox/learning-center/seats' | '/toolbox/learning-center/history';
   description?: string;
   action?: () => void;
 }[] = [
@@ -24,11 +24,6 @@ const menuItems: {
     name: '我的预约',
     route: '/toolbox/learning-center/history',
     description: '查看过往预约记录',
-  },
-  {
-    name: '测试api',
-    route: '/toolbox/learning-center/test-api',
-    description: '测试api',
   },
 ];
 

@@ -1,30 +1,16 @@
+import LearningCenterMap from '@/components/learning-center/learning-center-map';
+import SeatCard from '@/components/learning-center/seat-card';
 import Loading from '@/components/loading';
 import { TabFlatList } from '@/components/tab-flatlist';
-import { Card, CardContent } from '@/components/ui/card';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 import ApiService from '@/utils/learning-center/api_service';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, FlatList, Image, Modal, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
-import ImageZoom from 'react-native-image-zoom-viewer';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { Dimensions, FlatList, View } from 'react-native';
 import { toast } from 'sonner-native';
-// 座位卡片组件
-const SeatCard: React.FC<{
-  spaceName: string;
-  onPress: () => void;
-}> = React.memo(({ spaceName, onPress }) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="m-1 flex h-20 flex-1 items-center justify-center rounded-lg bg-secondary shadow-md"
-    >
-      <Text>{spaceName}</Text>
-    </TouchableOpacity>
-  );
-});
-SeatCard.displayName = 'SeatCard';
 
+// 座位分区表
 const areas: [number, number, string][] = [
   [1, 204, 'J'],
   [205, 268, 'A'],
@@ -41,83 +27,31 @@ const areas: [number, number, string][] = [
   [871, 919, 'M'],
 ];
 
+// 获取座位所在区域
 const getSpaceArea = (spaceName: string) => {
   const spaceNumber = Number(spaceName.split('-')[0]);
   const area = areas.find(([start, end]) => spaceNumber >= start && spaceNumber <= end);
   return area ? area[2] : '其他';
 };
 
-// 学习中心地图组件
-// TODO: 地图目前还是半成品
-const LearningCenterMap = () => {
-  const [showFullScreenMap, setShowFullScreenMap] = useState(false);
-  const screenWidth = Dimensions.get('window').width;
-  const imageWidth = screenWidth - 32;
-  const imageHeight = 200;
-
-  return (
-    <Card className="mb-4 w-full overflow-hidden rounded-xl">
-      <CardContent className="p-0">
-        <TouchableOpacity onPress={() => setShowFullScreenMap(true)}>
-          <Image
-            source={require('@/assets/images/toolbox/learning-center/map.jpg')}
-            style={{ width: imageWidth, height: imageHeight }}
-            accessible={true}
-            accessibilityLabel="学习中心地图"
-          />
-        </TouchableOpacity>
-        <Modal visible={showFullScreenMap} transparent={true} onRequestClose={() => setShowFullScreenMap(false)}>
-          <TouchableWithoutFeedback onPress={() => setShowFullScreenMap(false)}>
-            <View className="flex-1 items-center justify-center bg-black/90">
-              <TouchableOpacity
-                className="absolute right-4 top-4 rounded-full bg-white/20 p-2"
-                onPress={() => setShowFullScreenMap(false)}
-              >
-                <Text className="text-white">×</Text>
-              </TouchableOpacity>
-              <View className="h-4/5 w-full" onStartShouldSetResponder={() => true}>
-                <ImageZoom
-                  enableImageZoom={true}
-                  enableSwipeDown
-                  swipeDownThreshold={50}
-                  onSwipeDown={() => setShowFullScreenMap(false)}
-                  onClick={() => {}}
-                  imageUrls={[
-                    {
-                      url: '',
-                      props: {
-                        source: require('@/assets/images/toolbox/learning-center/map.jpg'),
-                      },
-                    },
-                  ]}
-                  renderImage={props => <Image {...props} resizeMode="contain" />}
-                />
-              </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
-      </CardContent>
-    </Card>
-  );
-};
-
 // 座位列表为空时的组件
-const ListEmptySeats = React.memo(() => {
+const ListEmptySeats: React.FC = memo(() => {
   return (
     <View className="flex-1 items-center justify-center py-8">
       <Text className="text-gray-500">暂无可用座位</Text>
     </View>
   );
 });
-ListEmptySeats.displayName = 'ListEmptySeats';
+
+type parmProps = {
+  date: string;
+  beginTime: string;
+  endTime: string;
+  token: string;
+};
 
 export default function AvailableSeatsPage() {
-  const { date, beginTime, endTime, token } = useLocalSearchParams<{
-    date: string;
-    beginTime: string;
-    endTime: string;
-    token: string;
-  }>();
+  const { date, beginTime, endTime, token } = useLocalSearchParams<parmProps>();
   const api = useMemo(() => new ApiService(token), [token]);
   const [seats, setSeats] = useState<Record<string, string[]>>({}); // 按区域分组的座位，只需要记录座位名
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -146,8 +80,10 @@ export default function AvailableSeatsPage() {
     );
     const results = (await Promise.all(allPromises)).flat();
 
-    // 筛选出所有的可用座位
-    const availableSeats = results.filter(seat => seat.spaceStatus === 0);
+    // 筛选出所有的可用座位 并 按座位号排序
+    const availableSeats = results
+      .filter(seat => seat.spaceStatus === 0)
+      .sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10));
 
     // 对座位用getSpaceArea进行分区
     const newSeats: Record<string, string[]> = {};
@@ -170,6 +106,22 @@ export default function AvailableSeatsPage() {
     setSelectedSpace(spaceName);
     setConfirmVisible(true);
   }, []);
+
+  // 处理预约请求
+  const handleConfirm = useCallback(async () => {
+    try {
+      await api.makeAppointment({
+        date,
+        beginTime,
+        endTime,
+        spaceName: selectedSpace!,
+      });
+      toast.success('预约成功');
+    } catch (error: any) {
+      toast.error(`预约座位失败: ${error.message}`);
+    }
+    setConfirmVisible(false);
+  }, [api, date, beginTime, endTime, selectedSpace]);
 
   useEffect(() => {
     fetchSeatStatus();
@@ -200,11 +152,6 @@ export default function AvailableSeatsPage() {
                 renderItem={({ item }) => <SeatCard spaceName={item} onPress={() => handleSeatPress(item)} />}
                 keyExtractor={item => item}
                 numColumns={5}
-                // getItemLayout={(data, index) => ({
-                //   length: 70,
-                //   offset: 50 * index,
-                //   index,
-                // })}
                 initialNumToRender={50}
                 ListEmptyComponent={ListEmptySeats}
               />
@@ -219,20 +166,7 @@ export default function AvailableSeatsPage() {
           visible={confirmVisible}
           title="确认预约"
           onClose={() => setConfirmVisible(false)}
-          onConfirm={async () => {
-            try {
-              await api.makeAppointment({
-                date,
-                beginTime,
-                endTime,
-                spaceName: selectedSpace!,
-              });
-              toast.success('预约成功');
-            } catch (error: any) {
-              toast.error(`预约座位失败: ${error.message}`);
-            }
-            setConfirmVisible(false);
-          }}
+          onConfirm={handleConfirm}
         >
           <Text>日期: {date}</Text>
           <Text>

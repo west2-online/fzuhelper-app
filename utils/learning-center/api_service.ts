@@ -1,7 +1,5 @@
 import { RejectEnum } from '@/api/enum';
-import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import { get, postJSON } from '@/modules/native-request';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';
 import { SeatMappingUtil } from './seat-mapping';
 
@@ -131,6 +129,12 @@ export interface AppointmentResultData {
 class ApiService {
   token: string;
   constructor(token: string) {
+    if (!token) {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '无效的token',
+      };
+    }
     this.token = token;
   }
 
@@ -183,11 +187,10 @@ class ApiService {
     headers?: Record<string, string>;
     formData?: Record<string, string>;
   }) {
-    const token = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
-    if (!token) {
-      throw new Error('Token invalid, please login again');
+    if (!this.token) {
+      console.error('无效的token');
     }
-    return this.#request('POST', url, { ...headers, token }, formData);
+    return this.#request('POST', url, { ...headers, token: this.token }, formData);
   }
 
   // 预约历史
