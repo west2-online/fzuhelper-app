@@ -165,6 +165,7 @@ export default function SeatsPage() {
     // 2. 开始：有 结束：无 点击-> 判断
     //   2.1 点击的时间比开始时间早，清除开始时间，设置新的开始时间
     //   2.2 点击的时间比开始时间晚，设置结束时间
+    //   2.3 点击的时间和开始时间相同，清除开始时间
     // 3. 开始：有 结束：有 点击-> 清除开始和结束时间
     // 时间先后问题在push的时候进行判断
 
@@ -173,8 +174,10 @@ export default function SeatsPage() {
     } else if (beginTime && !endTime) {
       if (time < beginTime) {
         setBeginTime(time);
-      } else {
+      } else if (time > beginTime) {
         setEndTime(time);
+      } else {
+        setBeginTime(null);
       }
     } else {
       setBeginTime(null);
