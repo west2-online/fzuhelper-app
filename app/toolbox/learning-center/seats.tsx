@@ -106,9 +106,7 @@ export default function SeatsPage() {
   const [endTime, setEndTime] = useState<string | null>(null);
 
   // 生成未来7天的日期
-  const dates = useMemo(() => {
-    return Array.from({ length: 7 }, (_, index) => addHours(new Date(), 24 * index));
-  }, []);
+  const dates = useMemo(() => Array.from({ length: 7 }, (_, index) => addHours(new Date(), 24 * index)), []);
 
   // 判断时间是否已过
   const isTimePast = useCallback((date: Date, timeStr: string): boolean => {
