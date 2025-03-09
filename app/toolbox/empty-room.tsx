@@ -161,7 +161,7 @@ export default function EmptyRoomPage() {
             locale="zh-cn"
             classNames={getDefaultClassNames()}
             // 选择范围为从今天开始的一周内
-            minDate={today.subtract(1, 'day').toDate()}
+            minDate={today.toDate()}
             maxDate={today.add(6, 'day').toDate()}
           />
         </FloatModal>
