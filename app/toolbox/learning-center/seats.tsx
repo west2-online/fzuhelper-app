@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 
 // 格式化日期
 const formatDate = (date: Date, formatStr: string): string => {
@@ -196,8 +196,11 @@ export default function SeatsPage() {
         keyExtractor={item => item}
         showsHorizontalScrollIndicator={false}
         numColumns={4}
-        renderItem={({ item }) => (
-          <TimeCard time={item} state={getTimeCardState(item)} onPress={() => handleTimeSelection(item)} />
+        columnWrapperStyle={styles.columnWrapper}
+        renderItem={({ item, index }) => (
+          <View style={styles.timeCardWrapper}>
+            <TimeCard time={item} state={getTimeCardState(item)} onPress={() => handleTimeSelection(item)} />
+          </View>
         )}
       />
 
@@ -215,3 +218,14 @@ export default function SeatsPage() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  columnWrapper: {
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    width: '100%',
+  },
+  timeCardWrapper: {
+    width: '25%',
+  },
+});
