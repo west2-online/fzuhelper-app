@@ -24,18 +24,24 @@ export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'ra
   JwchCourseListResponse_CourseScheduleRule;
 
 // 对课程类型的拓展，支持颜色等设计，也允许后期进行不断扩充
-export interface ExtendCourse extends ParsedCourse {
+interface ExtendCourseBase extends ParsedCourse {
   id: number; // 我们为每门课程分配一个唯一的 ID，后续可以用于识别
   color: string; // 课程颜色
   priority: number; // 优先级
-  type: number; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
 }
 
-export interface CustomCourse extends ExtendCourse {
+export type ExtendCourse = ExtendCourseBase & {
+  type: 0 | 1; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
+};
+
+export type CustomCourse = ExtendCourseBase & {
+  type: 2;
   storageKey: string; // 预留给后端的存储 key
   lastUpdateTime: string; // 最后更新时间
   isCustom: true;
-}
+};
+
+export type CourseInfo = ExtendCourse | CustomCourse;
 
 interface CacheCourseData {
   courseData: Record<number, ExtendCourse[]>; // 课程数据
@@ -122,8 +128,8 @@ export class CourseCache {
   /**
    * 获取缓存数据
    */
-  public static getCachedData(): Record<number, ExtendCourse[]> | null {
-    const mergedData: Record<number, ExtendCourse[]> = {};
+  public static getCachedData(): Record<number, CourseInfo[]> | null {
+    const mergedData: Record<number, CourseInfo[]> = {};
 
     if (!this.cachedData && !this.cachedExamData) {
       return null;

@@ -12,7 +12,7 @@ import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
-import { COURSE_TYPE, CourseCache, EXAM_TYPE, type ExtendCourse } from '@/lib/course';
+import { COURSE_TYPE, CourseCache, EXAM_TYPE, type CourseInfo } from '@/lib/course';
 import { formatExamData } from '@/lib/exam-room';
 import { deConvertSemester, getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
@@ -32,7 +32,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
-  const [schedulesByDays, setSchedulesByDays] = useState<Record<number, ExtendCourse[]>>([]); // 目前的课程数据，按天归类
+  const [schedulesByDays, setSchedulesByDays] = useState<Record<number, CourseInfo[]>>([]); // 目前的课程数据，按天归类
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
   const [neetForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
 

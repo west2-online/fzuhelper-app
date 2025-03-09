@@ -34,7 +34,7 @@ const DEFAULT_EMPTY_COURSE = {
 
 export default function CourseAddPage() {
   const searchParams = useLocalSearchParams();
-  const id = (searchParams.id as string) ?? '';
+  const id = (searchParams.key as string) ?? '';
 
   const [loaded, setLoaded] = useState(false);
   const [disabled, setDisabled] = useState(false);
