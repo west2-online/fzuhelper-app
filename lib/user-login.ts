@@ -1,11 +1,11 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Buffer } from 'buffer';
+import { fetch } from 'expo/fetch';
+
 import { RejectEnum } from '@/api/enum';
 import { ACCESS_TOKEN_KEY } from '@/lib/constants';
 import { LocalUser } from '@/lib/user';
-import { get, post } from '@/modules/native-request';
 import { base64, md5 } from '@/utils/crypto';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import { Buffer } from 'buffer';
 
 // const 只会使变量的引用不可变，但不代表变量的内容（如对象或数组）也是不可变的，因此需要补一个 as const
 // 本科生教务系统
@@ -54,12 +54,9 @@ const GRADUATE_ID_PREFIX = '00000';
 class UserLogin {
   #cookies: Record<string, string> = {};
 
-  #setCookies(_newCookies: string) {
+  #setCookies(_newCookies: string[]) {
     const newCookies: Record<string, string> = Object.fromEntries(
-      _newCookies
-        .split(',')
-        .map(cookie => cookie.trim())
-        .map(cookie => cookie.split(';')[0].split('=')),
+      _newCookies.map(cookie => cookie.split(';')[0].split('=')),
     );
 
     // 后面的 newCookies 会覆盖前面的 this.#cookies
@@ -72,10 +69,6 @@ class UserLogin {
       .join('; ');
   }
 
-  #responseToString(response: Uint8Array) {
-    return Buffer.from(response).toString('utf-8').replace(/\s+/g, '');
-  }
-
   #checkErrors(data: string): string | null {
     for (const [key, message] of Object.entries(ERROR_MESSAGES)) {
       if (data.includes(key)) {
@@ -86,27 +79,41 @@ class UserLogin {
   }
 
   async #get(url: string, headers: Record<string, string>) {
-    const { data, headers: resHeaders } = await get(url, headers);
+    const res = await fetch(url, { headers });
+    const setCookie = res.headers.get('set-cookie')?.split(',') ?? [];
+    const data = await res.arrayBuffer();
 
-    if (resHeaders['Set-Cookie']) {
-      this.#setCookies(resHeaders['Set-Cookie']);
+    if (setCookie.length) {
+      this.#setCookies(setCookie);
     }
 
     return data;
   }
 
-  async #post(url: string, headers: Record<string, string>, formData: Record<string, string>) {
-    const { data, headers: resHeaders } = await post(url, headers, formData);
-
-    if (resHeaders['Set-Cookie']) {
-      this.#setCookies(resHeaders['Set-Cookie']);
+  async #post(url: string, headers: Record<string, string>, _formData: Record<string, string>) {
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(_formData)) {
+      formData.append(key, value);
     }
 
-    return { data: data, headers: resHeaders };
+    const res = await fetch(url, {
+      headers,
+      method: 'POST',
+      body: formData,
+    });
+    const resHeaders = res.headers;
+    const setCookie = resHeaders.get('set-cookie')?.split(',') ?? []();
+    const data = await res.arrayBuffer();
+
+    if (setCookie.length) {
+      this.#setCookies(setCookie);
+    }
+
+    return { data, headers: resHeaders };
   }
 
   // 获取验证码（仅限本科生教务系统，研究生教务系统没有验证码）
-  async getCaptcha(): Promise<Uint8Array> {
+  async getCaptcha() {
     return await this.#get(JWCH_URLS.VERIFY_CODE, DEFAULT_HEADERS_UNDERGRADUATE);
   }
 
@@ -123,7 +130,7 @@ class UserLogin {
     };
 
     const { data: _data } = await this.#post(JWCH_URLS.LOGIN_CHECK, headers, formData);
-    const data = this.#responseToString(_data);
+    const data = new TextDecoder().decode(_data);
     const result = this.#checkErrors(data);
     if (result) {
       throw {
@@ -155,7 +162,7 @@ class UserLogin {
     const formData = { token };
 
     const { data: _data } = await this.#post(JWCH_URLS.SSO_LOGIN, headers, formData);
-    const data = JSON.parse(this.#responseToString(_data));
+    const data = JSON.parse(new TextDecoder().decode(_data));
 
     // {"code":200,"info":"登录成功","data":{}}
     if (data.code !== 200) {
@@ -177,7 +184,7 @@ class UserLogin {
     };
 
     const _data = await this.#get(reqUrl, headers);
-    const data = this.#responseToString(_data);
+    const data = new TextDecoder().decode(_data);
     const resId = /id=(.*?)&/.exec(data)?.[1];
 
     if (!resId) {
@@ -191,25 +198,25 @@ class UserLogin {
   }
 
   // (本科生教务系统) 自动验证码识别
-  async autoVerifyCaptcha(data: Uint8Array) {
+  async autoVerifyCaptcha(data: ArrayBuffer) {
     const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
     const credentials = LocalUser.getCredentials();
-    const response = await axios.request({
-      url: URL_AUTO_VALIDATE,
+    const response = await fetch(URL_AUTO_VALIDATE, {
       method: 'POST',
       headers: {
-        'Access-Token': accessToken,
-        Authorization: accessToken,
+        'Access-Token': accessToken ?? '',
+        Authorization: accessToken ?? '',
         Id: credentials.identifier,
         Cookies: credentials.cookies,
+        'Content-Type': 'application/json',
       },
-      data: {
-        image: `data:image/png;base64,${btoa(String.fromCharCode(...data))}`,
-      },
-    });
+      body: JSON.stringify({
+        image: `data:image/png;base64,${btoa(new Uint8Array(data).reduce((cur, byte) => cur + String.fromCharCode(byte), ''))}`,
+      }),
+    }).then(res => res.json());
 
     if (!response.data.data) {
-      console.error('自动验证码识别失败,HTTP JSON:', JSON.stringify(response.data));
+      console.error('自动验证码识别失败', JSON.stringify(response.data));
       throw {
         type: RejectEnum.NativeLoginFailed,
         data: '自动验证码识别失败',
@@ -233,7 +240,7 @@ class UserLogin {
     };
 
     const { data: _data, headers: resHeaders } = await this.#post(YJSY_URLS.LOGIN, headers, formData);
-    const data = this.#responseToString(_data);
+    const data = new TextDecoder().decode(_data);
     const result = this.#checkErrors(data);
     if (result) {
       throw {
@@ -243,7 +250,7 @@ class UserLogin {
     }
 
     // 下面是判断登录成功的确认，登录成功时会是一个 302，所以直接判断是否有 Location 头即可
-    if (!resHeaders.Location) {
+    if (!resHeaders.get('location')) {
       throw {
         type: RejectEnum.NativeLoginFailed,
         data: '研究生教务系统登录失败',
@@ -253,13 +260,13 @@ class UserLogin {
     return;
   }
 
-  async login(username: string, password: string, _captcha: string | Uint8Array, isGraduate = false) {
+  async login(username: string, password: string, _captcha: string | ArrayBuffer, isGraduate = false) {
     let captcha: string;
     let identifier: string;
 
     if (typeof _captcha !== 'string') {
       captcha = await this.autoVerifyCaptcha(_captcha);
-      console.log('auto veryfy captcha result:', captcha);
+      console.log('auto verify captcha result:', captcha);
     } else {
       captcha = _captcha;
     }

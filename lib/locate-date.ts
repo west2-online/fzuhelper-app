@@ -1,8 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetch } from 'expo/fetch';
+
 import type { LocateDateResult } from '@/api/interface';
 import { JWCH_LOCATE_DATE_CACHE_KEY, JWCH_LOCATE_DATE_URL } from '@/lib/constants';
-import { get } from '@/modules/native-request';
 import { JWCHLocateDateResult } from '@/types/data';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /*
 这里附上这个 URL 请求的返回内容（文本，这个注释也是它直接返回的，挺幽默）：
@@ -11,10 +12,7 @@ var xn = "2024";  //定义当前学年
 var xq = "01";  //定义当前学期
 */
 export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
-  const response = await get(JWCH_LOCATE_DATE_URL, { responseType: 'text' });
-
-  // 确保 data 是字符串
-  const data = typeof response.data === 'string' ? response.data : new TextDecoder('utf-8').decode(response.data);
+  const data = await fetch(JWCH_LOCATE_DATE_URL).then(res => res.text());
 
   // 使用正则表达式解析返回内容
   const match = data.match(/var week = "(\d+)";\s*\/\/.*\s*var xn = "(\d{4})";\s*\/\/.*\s*var xq = "(\d{2})";/);
