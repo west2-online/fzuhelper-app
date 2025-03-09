@@ -74,15 +74,13 @@ export default function HistoryAppointmentCard({
   // 处理取消预约
   const handleCancel = async () => {
     // 尝试取消预约，如果失败则显示错误信息
-    await api
-      .cancelAppointment(id.toString())
-      .then(() => {
-        toast.success('取消预约成功');
-        onRefresh && onRefresh();
-      })
-      .catch((error: any) => {
-        toast.error(`取消预约失败: ${error.message}`);
-      });
+    try {
+      await api.cancelAppointment(id.toString());
+      toast.success('取消预约成功');
+      onRefresh && onRefresh();
+    } catch (error: any) {
+      toast.error(`取消预约失败: ${error.message}`);
+    }
   };
 
   // 处理签到
@@ -100,15 +98,13 @@ export default function HistoryAppointmentCard({
 
   // 处理签退
   const handleSignOut = async () => {
-    await api
-      .signOut(id.toString())
-      .then(() => {
-        toast.success('签退成功');
-        onRefresh && onRefresh();
-      })
-      .catch((error: any) => {
-        toast.error(`签退失败: ${error.message}`);
-      });
+    try {
+      await api.signOut(id.toString());
+      toast.success('签退成功');
+      onRefresh && onRefresh();
+    } catch (error: any) {
+      toast.error(`签退失败: ${error.message}`);
+    }
   };
 
   // 渲染底部功能按钮

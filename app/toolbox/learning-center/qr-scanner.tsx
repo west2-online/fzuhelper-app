@@ -78,17 +78,14 @@ export default function QrScannerPage() {
     }
 
     // 签到
-    await api
-      .signIn(appointmentId)
-      .then(() => {
-        toast.success('签到成功');
-      })
-      .catch(error => {
-        toast.error(`签到失败: ${error.message}`);
-      })
-      .finally(() => {
-        setScanning(false);
-      });
+    try {
+      await api.signIn(appointmentId);
+      toast.success('签到成功');
+    } catch (error: any) {
+      toast.error(`签到失败: ${error.message}`);
+    } finally {
+      setScanning(false);
+    }
   };
 
   const handleScanAgain = () => setScanned(false);

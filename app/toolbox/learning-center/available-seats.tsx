@@ -146,9 +146,12 @@ export default function AvailableSeatsPage() {
     );
     const results = (await Promise.all(allPromises)).flat();
 
+    // 筛选出所有的可用座位
+    const availableSeats = results.filter(seat => seat.spaceStatus === 0);
+
     // 对座位用getSpaceArea进行分区
     const newSeats: Record<string, string[]> = {};
-    results.forEach(seat => {
+    availableSeats.forEach(seat => {
       const area = getSpaceArea(seat.spaceName);
       if (!newSeats[area]) {
         newSeats[area] = [];
@@ -217,19 +220,17 @@ export default function AvailableSeatsPage() {
           title="确认预约"
           onClose={() => setConfirmVisible(false)}
           onConfirm={async () => {
-            await api
-              .makeAppointment({
+            try {
+              await api.makeAppointment({
                 date,
                 beginTime,
                 endTime,
                 spaceName: selectedSpace!,
-              })
-              .catch(error => {
-                toast.error(`预约座位失败: ${error.message}`);
-              })
-              .then(() => {
-                toast.success('预约成功');
               });
+              toast.success('预约成功');
+            } catch (error: any) {
+              toast.error(`预约座位失败: ${error.message}`);
+            }
             setConfirmVisible(false);
           }}
         >
