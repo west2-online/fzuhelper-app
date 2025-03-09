@@ -1,26 +1,21 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, router } from 'expo-router';
+import { Link, Stack } from 'expo-router';
+import { Alert } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
-import { Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { CourseCache } from '@/lib/course';
 import { LocalUser } from '@/lib/user';
-import { pushToWebViewNormal } from '@/lib/webview';
-import { ScrollView } from 'react-native-gesture-handler';
+import { getWebViewHref } from '@/lib/webview';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
-
-  // 通知推送
-  const handleNotification = () => {
-    router.push('/settings/notifications');
-  };
 
   // 清除数据
   const handleClearData = () => {
@@ -79,30 +74,35 @@ export default function AcademicPage() {
             {/* 菜单列表 */}
             <Text className="mb-2 text-sm text-text-secondary">基本</Text>
 
-            <LabelEntry leftText="推送通知" onPress={handleNotification} />
+            <Link href="/settings/notifications" asChild>
+              <LabelEntry leftText="通知推送" />
+            </Link>
             <LabelEntry leftText="清除数据" onPress={handleClearData} />
             <LabelEntry leftText="退出登录" onPress={handleLogout} />
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">隐私</Text>
 
-            <LabelEntry leftText="隐私权限设置" onPress={() => router.push('/settings/permissions')} />
-            <LabelEntry leftText="个人信息收集清单" onPress={() => router.push('/settings/personal-info-list')} />
-            <LabelEntry
-              leftText="第三方信息共享清单"
-              onPress={() =>
-                pushToWebViewNormal(
-                  'https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#third-party',
-                  '第三方信息共享清单',
-                )
-              }
-            />
+            <Link href="/settings/permissions" asChild>
+              <LabelEntry leftText="隐私权限设置" />
+            </Link>
+            <Link href="/settings/personal-info-list" asChild>
+              <LabelEntry leftText="个人信息收集清单" />
+            </Link>
+            <Link
+              href={getWebViewHref({ url: 'https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#privacy' })}
+              asChild
+            >
+              <LabelEntry leftText="第三方信息共享清单" />
+            </Link>
 
             {/* <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text> */}
             {/* <LabelEntry leftText="开发者工具" onPress={() => router.push('/devtools')} /> */}
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">其他</Text>
 
-            <LabelEntry leftText="关于福uu" onPress={() => router.push('/common/about')} />
+            <Link href="/common/about" asChild>
+              <LabelEntry leftText="关于福uu" />
+            </Link>
           </SafeAreaView>
         </ScrollView>
       </PageContainer>

@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 import { type ExpoConfig } from 'expo/config';
-import { withAppBuildGradle } from 'expo/config-plugins';
+import { withAppBuildGradle, withGradleProperties } from 'expo/config-plugins';
 
 function insertAfter(s: string, searchString: string, content: string): string {
   const index = s.indexOf(searchString);
@@ -29,7 +29,7 @@ function getCommitCountString(): string {
 
 function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
   // eslint-disable-next-line @typescript-eslint/no-shadow
-  return withAppBuildGradle(config, config => {
+  config = withAppBuildGradle(config, config => {
     let contents = config.modResults.contents;
     // 签名配置
     contents = insertAfter(
@@ -60,7 +60,7 @@ function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
             reset()
             enable true
             universalApk false
-            include "arm64-v8a", "x86_64"
+            include "arm64-v8a"
         }
     }`,
     );
@@ -73,6 +73,15 @@ function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
     config.modResults.contents = contents;
     return config;
   });
+  config = withGradleProperties(config, config => {
+    // abi配置
+    let arch = config.modResults.find(item => item.type === 'property' && item.key === 'reactNativeArchitectures');
+    if (arch && arch.type === 'property') {
+      arch.value = 'arm64-v8a';
+    }
+    return config;
+  });
+  return config;
 }
 
 export default withAndroidBuildConfig;

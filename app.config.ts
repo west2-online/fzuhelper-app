@@ -38,6 +38,9 @@ const config: ExpoConfig = {
         NSAllowsArbitraryLoads: true, // 允许访问非 HTTPS 的内容
       },
     },
+    entitlements: {
+      'com.apple.security.application-groups': ['group.FzuHelper.NextCourse'],
+    },
   },
   locales: {
     ja: './locales/japanese.json',
@@ -56,6 +59,21 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-localization',
+    [
+      '@bittingz/expo-widgets',
+      {
+        android: {
+          src: './targets/android-widget',
+          widgets: [
+            {
+              name: 'NextClassWidgetProvider',
+              resourceName: '@xml/next_class_widget_provider',
+            },
+          ],
+          distPlaceholder: 'com.helper.west2ol.fzuhelper',
+        },
+      },
+    ],
     'expo-router',
     [
       'react-native-permissions',
@@ -97,7 +115,10 @@ const config: ExpoConfig = {
         // iOS
         iOSAppKey: '679132946d8fdd4ad83ab20e', // 发布（正式包名）时需更换
         bridgingSourcePath: './modules/umeng-bridge/ios/ExpoUmeng-Bridging-Header.h', // (iOS) 源路径（相对于 app.plugin.js 文件）
-        bridgingTargetPath: 'Bridging/ExpoUmeng-Bridging-Header.h', // (iOS) 目标路径（相对于 ios 文件夹）这个文件可以不更改
+        bridgingTargetPath: 'fzuhelper/fzuhelper-Bridging-Header.h', // (iOS) 目标路径（相对于 ios 文件夹）这个文件可以不更改
+        // 请注意：这个文件的格式是符合{targetName}/{targetName}-Bridging-Header.h的，如果你的targetName不是fzuhelper，请更改
+        // 如果需要通用的 Header（即对所有 Target 都生效），你需要将其移动到一个独立的文件夹（比如 ios/Bridging）然后在 Xcode Project
+        // 的 config 注入过程中加入`project.addBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', bridgingTargetPath);`
         NSPushNotificationUsageDescription:
           '$(PRODUCT_NAME) 会使用推送通知来推送成绩信息、教务处最新通知，通知发送受福州大学监管，不会泄露您的个人信息',
         NSUserTrackingUsageDescription:
@@ -126,6 +147,7 @@ const config: ExpoConfig = {
     ],
     './with-android-theme',
     './with-android-localization',
+    '@bacons/apple-targets', // Apple Targets (e.g. widget)
   ],
   experiments: {
     typedRoutes: true,
