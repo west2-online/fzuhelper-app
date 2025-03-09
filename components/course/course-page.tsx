@@ -171,6 +171,8 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
     [maxWeek],
   );
 
+  console.log(schedulesByDays);
+
   return !cacheInitialized || neetForceFetch ? (
     <Loading />
   ) : (
@@ -188,7 +190,12 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
             </Pressable>
           ),
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />,
+          headerRight: () => (
+            <>
+              <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-4" />
+              <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
+            </>
+          ),
         }}
       />
 

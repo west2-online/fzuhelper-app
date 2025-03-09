@@ -10,6 +10,7 @@ import {
   IOS_APP_GROUP,
 } from '@/lib/constants';
 import { MergedExamData } from '@/types/academic';
+import { randomUUID } from '@/utils/crypto';
 import generateRandomColor, { clearColorMapping, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
 import * as ExpoWidgetsModule from '@bittingz/expo-widgets';
@@ -27,7 +28,13 @@ export interface ExtendCourse extends ParsedCourse {
   id: number; // 我们为每门课程分配一个唯一的 ID，后续可以用于识别
   color: string; // 课程颜色
   priority: number; // 优先级
-  type: number; // 课程类型（0 = 普通课程， 1 = 考试）
+  type: number; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
+}
+
+export interface CustomCourse extends ExtendCourse {
+  storageKey: string; // 预留给后端的存储 key
+  lastUpdateTime: string; // 最后更新时间
+  isCustom: true;
 }
 
 interface CacheCourseData {
@@ -35,8 +42,8 @@ interface CacheCourseData {
   courseDigest: string;
   examData: Record<number, ExtendCourse[]>; // 考试数据
   examDigest: string;
-  // DIYData: Record<number, ExtendCourse[]>; // 自定义数据 (未启用)
-  // DIYDigest: string;
+  customData: Record<number, CustomCourse[]>; // 自定义数据 (未启用)
+  customDigest: string;
   lastCourseUpdateTime: string;
   lastExamUpdateTime: string;
   priorityCounter: number;
@@ -50,19 +57,22 @@ export const TOP_CALENDAR_HEIGHT = 72;
 
 export const COURSE_TYPE = 0;
 export const EXAM_TYPE = 1;
+export const CUSTOM_TYPE = 2;
 
 const NO_LOADING_MSG = '未加载';
 const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析时间段
-const MAX_PRIORITY = 10000; // 最大优先级，达到这个优先级后会重新计数
-const EXAM_PRIORITY = 10001; // 考试优先级，我们取巧一下，比最大的优先级还要大
+const MAX_PRIORITY = 10000; // 普通课程最大优先级，达到这个优先级后会重新计数
+const EXAM_PRIORITY = 20002; // 考试优先级，我们取巧一下，比最大的优先级还要大
 const DEFAULT_PRIORITY = 1; // 默认优先级
 const DEFAULT_STARTID = 1000; // 默认 ID 起始值
 
 export class CourseCache {
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
   private static cachedExamDigest: string | null = null; // 缓存的考试数据的摘要
+  private static cachedCustomDigest: string | null = null; // 缓存的自定义课程数据的摘要
   private static cachedData: Record<number, ExtendCourse[]> | null = null; // 缓存的课程数据
   private static cachedExamData: Record<number, ExtendCourse[]> | null = null; // 缓存的考试数据
+  private static cachedCustomData: Record<number, CustomCourse[]> | null = null; // 缓存的自定义课程数据
   private static priorityCounter: number = DEFAULT_PRIORITY; // 静态优先级计数器，初始值为 1
   private static startID = DEFAULT_STARTID; // 从 1000 开始分配 ID
   private static lastCourseUpdateTime: string = NO_LOADING_MSG;
@@ -137,6 +147,15 @@ export class CourseCache {
       }
     }
 
+    // 合并自定义课程数据
+    if (this.cachedCustomData) {
+      for (const [day, customs] of Object.entries(this.cachedCustomData)) {
+        const dayIndex = Number(day);
+        if (!mergedData[dayIndex]) mergedData[dayIndex] = [];
+        mergedData[dayIndex].push(...customs);
+      }
+    }
+
     return mergedData;
   }
 
@@ -153,6 +172,8 @@ export class CourseCache {
     this.cachedData = result.courseData;
     this.cachedExamDigest = result.examDigest;
     this.cachedExamData = result.examData;
+    this.cachedCustomData = result.customData;
+    this.cachedCustomDigest = result.customDigest;
     this.priorityCounter = result.priorityCounter;
     this.lastCourseUpdateTime = result.lastCourseUpdateTime;
     this.lastExamUpdateTime = result.lastExamUpdateTime;
@@ -170,44 +191,48 @@ export class CourseCache {
         courseDigest: this.cachedDigest,
         examData: this.cachedExamData,
         examDigest: this.cachedExamDigest,
+        customData: this.cachedCustomData,
+        customDigest: this.cachedCustomDigest,
         priorityCounter: this.priorityCounter,
         lastCourseUpdateTime: this.lastCourseUpdateTime,
         lastExamUpdateTime: this.lastExamUpdateTime,
-      }),
+      } as CacheCourseData),
     );
 
     // 将数据保存到原生共享存储中，以便在小组件中调用
-    const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
-    const term = (await readCourseSetting()).selectedSemester;
-    const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
-    const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
-    if (Platform.OS === 'ios') {
-      // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
-      // 只能在常量中定义这个 identifier
-      const storage = new ExtensionStorage(IOS_APP_GROUP);
-      storage.set(
-        COURSE_CURRENT_CACHE_KEY,
-        JSON.stringify({
-          courseData: this.cachedData,
-          examData: this.cachedExamData,
-          lastCourseUpdateTime: this.lastCourseUpdateTime,
-          lastExamUpdateTime: this.lastExamUpdateTime,
-          startDate: currentTerm.start_date,
-          maxWeek: maxWeek,
-        }),
-      ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
-      ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-    } else if (Platform.OS === 'android') {
-      ExpoWidgetsModule.setWidgetData(
-        JSON.stringify({
-          courseData: this.cachedData,
-          examData: this.cachedExamData,
-          startDate: currentTerm.start_date,
-          maxWeek: maxWeek,
-        }),
-        Constants.expoConfig?.android?.package,
-      );
-    }
+    // const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
+    // const term = (await readCourseSetting()).selectedSemester;
+    // const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
+    // const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+    // if (Platform.OS === 'ios') {
+    //   // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
+    //   // 只能在常量中定义这个 identifier
+    //   const storage = new ExtensionStorage(IOS_APP_GROUP);
+    //   storage.set(
+    //     COURSE_CURRENT_CACHE_KEY,
+    //     JSON.stringify({
+    //       courseData: this.cachedData,
+    //       examData: this.cachedExamData,
+    //       customData: this.cachedCustomData,
+    //       lastCourseUpdateTime: this.lastCourseUpdateTime,
+    //       lastExamUpdateTime: this.lastExamUpdateTime,
+    //       startDate: currentTerm.start_date,
+    //       maxWeek: maxWeek,
+    //     }),
+    //   ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
+    //   ExtensionStorage.reloadWidget(); // 保存后需要重载一次
+    // } else if (Platform.OS === 'android') {
+    //   ExpoWidgetsModule.setWidgetData(
+    //     JSON.stringify({
+    //       courseData: this.cachedData,
+    //       examData: this.cachedExamData,
+    //       customData: this.cachedCustomData,
+    //       startDate: currentTerm.start_date,
+    //       maxWeek: maxWeek,
+    //     }),
+    //     Constants.expoConfig?.android?.package,
+    //   );
+    // }
     console.log('Saved cached course data to widget.');
   }
 
@@ -219,6 +244,8 @@ export class CourseCache {
     this.cachedData = null;
     this.cachedExamData = null;
     this.cachedExamDigest = null;
+    this.cachedCustomData = null;
+    this.cachedCustomDigest = null;
     this.lastCourseUpdateTime = NO_LOADING_MSG;
     this.lastExamUpdateTime = NO_LOADING_MSG;
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
@@ -244,6 +271,16 @@ export class CourseCache {
     this.lastExamUpdateTime = NO_LOADING_MSG;
     await this.save();
   }
+
+  /**
+   * 删除自定义课程数据
+   */
+  public static async clearCustomData(): Promise<void> {
+    this.cachedCustomData = null;
+    this.cachedCustomDigest = null;
+    await this.save();
+  }
+
   /**
    * 分配一个新的独立 ID
    * @returns 新的 ID
@@ -254,16 +291,19 @@ export class CourseCache {
 
   /**
    * 设置摘要
-   * @param type - 数据类型 0 = 课程数据，1 = 考试数据
+   * @param type - 数据类型 0 = 课程数据，1 = 考试数据，2 = 自定义数据
    * @param digest - 数据摘要
    */
   public static async setDigest(type: number, digest: string): Promise<void> {
     switch (type) {
-      case 0:
+      case COURSE_TYPE:
         this.cachedDigest = digest;
         break;
-      case 1:
+      case EXAM_TYPE:
         this.cachedExamDigest = digest;
+        break;
+      case CUSTOM_TYPE:
+        this.cachedCustomDigest = digest;
         break;
     }
     await this.save();
@@ -289,6 +329,8 @@ export class CourseCache {
         return this.calculateDigest(data) === this.cachedDigest;
       case EXAM_TYPE:
         return this.calculateDigest(data) === this.cachedExamDigest;
+      case CUSTOM_TYPE:
+        return this.calculateDigest(data) === this.cachedCustomDigest;
       default:
         return false;
     }
@@ -479,6 +521,79 @@ export class CourseCache {
     this.save(); // 缓存数据
 
     return groupedData;
+  }
+
+  public static async addCustomCourse(course: CustomCourse) {
+    if (!this.cachedCustomData) {
+      this.cachedCustomData = {};
+    }
+
+    const newIndex = course.weekday - 1;
+
+    if (!this.cachedCustomData[newIndex]) {
+      this.cachedCustomData[newIndex] = [];
+    }
+
+    const newCourse: CustomCourse = {
+      ...course,
+      id: this.allocateID(),
+      storageKey: randomUUID(),
+      lastUpdateTime: new Date().toISOString(),
+    };
+
+    this.cachedCustomData[newIndex].push(newCourse);
+
+    await this.save();
+    this.refresh();
+  }
+
+  public static async getCustomCourse(key: string) {
+    if (!this.cachedCustomData) {
+      return null;
+    }
+
+    for (const courses of Object.values(this.cachedCustomData)) {
+      for (const course of courses) {
+        if (course.storageKey === key) {
+          return course;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  public static async updateCustomCourse(course: CustomCourse) {
+    const key = course.storageKey;
+
+    if (!this.cachedCustomData) {
+      return;
+    }
+
+    const updatedCourse: CustomCourse = {
+      ...course,
+      lastUpdateTime: new Date().toISOString(),
+    };
+
+    for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+      this.cachedCustomData[+day] = courses.map(c => (c.storageKey === key ? updatedCourse : c));
+    }
+
+    await this.save();
+    this.refresh();
+  }
+
+  public static async removeCustomCourse(key: string) {
+    if (!this.cachedCustomData) {
+      return;
+    }
+
+    for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+      this.cachedCustomData[+day] = courses.filter(course => course.storageKey !== key);
+    }
+
+    await this.save();
+    this.refresh();
   }
 }
 
