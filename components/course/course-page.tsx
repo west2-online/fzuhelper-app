@@ -225,7 +225,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
           itemVisiblePercentThreshold: 50,
         }}
         showsHorizontalScrollIndicator={false} // 隐藏水平滚动条
-        className="bg-background"
       />
 
       {/* 周数选择器 */}

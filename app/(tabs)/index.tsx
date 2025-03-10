@@ -7,6 +7,7 @@ import Loading from '@/components/loading';
 
 import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
+import PageContainer from '@/components/page-container';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
 import { CourseCache, normalizeCourseSetting } from '@/lib/course';
@@ -76,7 +77,9 @@ export default function HomePage() {
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置
   // 具体加载课程的逻辑在 CoursePage 组件中
   return config && currentWeek && termsData ? (
-    <CoursePage config={config} initialWeek={currentWeek} semesterList={termsData.data.data.terms} />
+    <PageContainer>
+      <CoursePage config={config} initialWeek={currentWeek} semesterList={termsData.data.data.terms} />
+    </PageContainer>
   ) : (
     <Loading />
   );

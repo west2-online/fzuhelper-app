@@ -44,7 +44,7 @@ export default function ApplicationPage() {
   }, [navigation]);
 
   return (
-    <PageContainer className="bg-background px-8 pt-4">
+    <PageContainer className="px-8 pt-4">
       {/* 菜单列表 */}
       <View className="space-y-4">
         {menuItems.map(item => (
