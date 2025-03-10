@@ -1,6 +1,7 @@
 import { RejectEnum } from '@/api/enum';
 import { get, postJSON } from '@/modules/native-request';
 import { Buffer } from 'buffer';
+import dayjs from 'dayjs';
 import { SeatMappingUtil } from './seat-mapping';
 
 // 预约历史的数据类型
@@ -129,16 +130,11 @@ export interface AppointmentResultData {
 class ApiService {
   token: string;
   constructor(token: string) {
-    if (!token) {
-      throw {
-        type: RejectEnum.NativeLoginFailed,
-        data: '无效的token',
-      };
-    }
     this.token = token;
   }
 
   baseUrl = 'https://aiot.fzu.edu.cn/api/ibs';
+
   // 公共请求方法，使用 Native-Request 模块
   async #request(
     method: 'GET' | 'POST',
@@ -162,12 +158,22 @@ class ApiService {
         type: RejectEnum.NativeLoginFailed,
         data: 'HTTP请求方法错误',
       };
+      return;
     }
 
     try {
-      const data = JSON.parse(Buffer.from(response.data).toString('utf-8'));
+      if (response.data === null) {
+        console.error('请求结果为空');
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: '请求结果为空',
+        };
+      }
+      const result = Buffer.from(response.data).toString('utf-8');
+      console.log('请求结果:', result);
+      const data = JSON.parse(result);
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('解析错误:', error);
       throw error;
     }
@@ -177,7 +183,7 @@ class ApiService {
     return this.#request('GET', url, headers);
   }
 
-  // post请求,统一在header加上token
+  // post请求, 统一在header加上token
   async #post({
     url,
     headers = {},
@@ -327,6 +333,7 @@ class ApiService {
     throw new Error(`查询座位状态失败: ${msg}`);
   }
 
+  // 预约座位
   async makeAppointment({
     spaceName,
     beginTime,
@@ -383,9 +390,53 @@ class ApiService {
         case '预约空间不存在!':
           throw new Error('座位不存在，请检查座位号');
         default:
-          throw new Error(`预约失败: ${msg}`);
+          throw new Error(`${msg}`);
       }
     }
   }
 }
 export default ApiService;
+
+const auditStatusPriority: Record<number, number> = {
+  2: 1, // 待签到/已签到
+  4: 2, // 已完成
+  3: 3, // 已取消
+};
+
+/**
+ * 比较函数，用于按照指定规则排序数据
+ * @param a - 第一个数据项
+ * @param b - 第二个数据项
+ * @returns - 比较结果（-1, 0, 1）
+ */
+export const compareAppointments = (a: fetchAppointmentsData, b: fetchAppointmentsData): number => {
+  // 1. 按 auditStatus 排序
+  const priorityA = auditStatusPriority[a.auditStatus] || 999; // 默认优先级最低
+  const priorityB = auditStatusPriority[b.auditStatus] || 999;
+
+  if (priorityA !== priorityB) {
+    return priorityA - priorityB; // 优先级小的排在前面
+  }
+
+  // 2. 按 beginTime 距离当前时间的接近程度排序
+  const now = dayjs();
+  const beginTimeA = dayjs(a.beginTime);
+  const beginTimeB = dayjs(b.beginTime);
+
+  const diffA = Math.abs(beginTimeA.diff(now));
+  const diffB = Math.abs(beginTimeB.diff(now));
+
+  if (diffA !== diffB) {
+    return diffA - diffB; // 距离当前时间更近的排在前面
+  }
+
+  // 3. 按 seatCode 升序排序
+  if (a.seatCode < b.seatCode) {
+    return -1;
+  }
+  if (a.seatCode > b.seatCode) {
+    return 1;
+  }
+
+  return 0; // 如果完全相等，保持原顺序
+};

@@ -1,12 +1,14 @@
-import HistoryAppointmentCard from '@/components/learning-center/history-appointment-card';
-import Loading from '@/components/loading';
-import PageContainer from '@/components/page-container';
-import { Text } from '@/components/ui/text';
-import ApiService, { fetchAppointmentsData } from '@/utils/learning-center/api_service';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
 import { toast } from 'sonner-native';
+
+import HistoryAppointmentCard from '@/components/learning-center/history-appointment-card';
+import Loading from '@/components/loading';
+import PageContainer from '@/components/page-container';
+import { Text } from '@/components/ui/text';
+
+import ApiService, { compareAppointments, fetchAppointmentsData } from '@/utils/learning-center/api-service';
 
 const PAGE_SIZE = 30; // 每次请求返回的数据量
 
@@ -50,11 +52,12 @@ export default function HistoryPage() {
   }, [page, api, isBottom]);
 
   // 刷新数据
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
     setPage(1); // 重置页数
     setIsRefreshing(true); // 开启刷新
+    setIsLoading(true); // 开启加载
     setIsBottom(false); // 重置是否到底
-    fetchData(); // 重新请求数据
+    await fetchData(); // 重新请求数据
   }, [fetchData]);
 
   // 首次加载数据
@@ -77,7 +80,7 @@ export default function HistoryPage() {
       {/*  判断首次进入刷新 */}
       <PageContainer className="p-2">
         <FlatList
-          data={data}
+          data={[...data].sort(compareAppointments)}
           renderItem={({ item }) => (
             <HistoryAppointmentCard
               key={item.id}

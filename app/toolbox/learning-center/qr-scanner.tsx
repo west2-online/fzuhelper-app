@@ -8,7 +8,7 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
-import ApiService from '@/utils/learning-center/api_service';
+import ApiService from '@/utils/learning-center/api-service';
 
 export default function QrScannerPage() {
   const router = useRouter();
@@ -81,8 +81,10 @@ export default function QrScannerPage() {
     try {
       await api.signIn(appointmentId);
       toast.success('签到成功');
+      // 回到上一页
+      router.back();
     } catch (error: any) {
-      toast.error(`签到失败: ${error.message}`);
+      toast.error(`签到失败(` + appointmentId + `):` + error.data);
     } finally {
       setScanning(false);
     }

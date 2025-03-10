@@ -30,7 +30,7 @@ const config: ExpoConfig = {
       ITSAppUsesNonExemptEncryption: false,
       ITSEncryptionExportComplianceCode: '',
       NSCalendarsFullAccessUsageDescription: '我们需要申请日历权限以导出课表、考场安排等内容到日历',
-      NSCameraUsageDescription: '我们需要申请相机权限以提供拍照上传头像等功能',
+      NSCameraUsageDescription: '我们需要申请相机权限以提供拍照上传头像、学习中心扫码签到等功能',
       NSPhotoLibraryUsageDescription: '我们需要申请相册权限以提供上传头像等功能',
       LSApplicationQueriesSchemes: ['itms-apps'],
       CFBundleAllowMixedLocalizations: true,
@@ -96,6 +96,13 @@ const config: ExpoConfig = {
       {
         calendarPermission: '我们需要访问日历以提供导出课表到日历功能', // iOS only
         remindersPermission: '我们需要访问提醒事项以提供导出课表到提醒事项功能', // iOS only
+      },
+    ],
+    [
+      'expo-camera',
+      {
+        cameraPermission: '我们需要申请相机权限以提供拍照上传头像、学习中心扫码签到等功能',
+        recordAudioAndroid: true,
       },
     ],
     './inject-android-config',

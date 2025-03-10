@@ -1,7 +1,7 @@
 {
   "name": "fzuhelper",
   "description": "福州大学の学生向けの便利なアプリ",
-  "CFBundleDisplayName": "fzuhelper",
+  "CFBundleDisplayName": "FzuHelper",
   "NSCalendarsFullAccessUsageDescription": "fzuhelper では、授業スケジュールや試験室の配置などをカレンダーにエクスポートするためにカレンダー権限を申請する必要があります",
   "NSCameraUsageDescription": "fzuhelper では、写真の撮影やアバターのアップロードなどの機能を提供するには、カメラの権限を申請する必要があります",
   "NSPhotoLibraryUsageDescription": "fzuhelper では、アバターのアップロードなどの機能を提供するにはアルバムの権限を申請する必要があります",

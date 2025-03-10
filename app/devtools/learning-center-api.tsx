@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
-import ApiService from '@/utils/learning-center/api_service';
+import ApiService from '@/utils/learning-center/api-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -26,13 +26,13 @@ export default function LearningCenterApi() {
   const [spaceName, setSpaceName] = useState('1');
   const [floor, setFloor] = useState('4');
   const [appointmentID, setAppointmentID] = useState('');
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState('a7b4c98e-eb4e-4b96-a8be-1b47cb8daf62');
   const api = useMemo(() => new ApiService(token), [token]);
 
   // 读取本地token
   const getToken = useCallback(async () => {
-    const token = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
-    setToken(token ?? '');
+    const result = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
+    setToken(result ?? '');
   }, []);
 
   // 错误处理
@@ -103,7 +103,7 @@ export default function LearningCenterApi() {
 
   return (
     <View>
-      <Stack.Screen options={{ title: '学习中心API测试' }} />
+      <Stack.Screen options={{ title: '学习中心' }} />
       <Input value={token} onChangeText={setToken} placeholder="token" />
 
       <Button onPress={getToken}>

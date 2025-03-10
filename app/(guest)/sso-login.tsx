@@ -23,7 +23,7 @@ import { pushToWebViewNormal } from '@/lib/webview';
 import YMTLogin from '@/lib/ymt-login';
 
 const NAVIGATION_TITLE = '统一身份认证';
-const URL_FORGET_PASSWORD = 'https://sso.fzu.edu.cn/public/client/forget-password/qr';
+const URL_FORGET_PASSWORD = 'https://idself.fzu.edu.cn/public/client/phone/retrieve';
 
 const UnifiedLoginPage: React.FC = () => {
   const [account, setAccount] = useState('');
@@ -116,7 +116,7 @@ const UnifiedLoginPage: React.FC = () => {
       router.back();
     }
     setIsLoggingIn(false);
-  }, [isAgree, account, accountPassword, ymtLogin, handleError]);
+  }, [isAgree, account, accountPassword, handleSSOLogin, handleYMTLogin]);
 
   return (
     <>

@@ -1,17 +1,19 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, Stack, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { View } from 'react-native';
+
 import LabelEntry from '@/components/label-entry';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
-import { Button } from '@/components/ui/button';
-import { Text } from '@/components/ui/text';
+import LoginPrompt from '@/components/sso-login-prompt';
+
 import SSOLogin from '@/lib/sso-login';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Link, router, Stack, useFocusEffect } from 'expo-router';
 import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
-import { useCallback, useState } from 'react';
-import { View } from 'react-native';
+
 const menuItems: {
   name: string;
-  route?: '/toolbox/learning-center/seats' | '/toolbox/learning-center/history';
+  route?: '/toolbox/learning-center/time-select' | '/toolbox/learning-center/history';
   description?: string;
   action?: () => void;
 }[] = [
@@ -38,7 +40,7 @@ const getToken = async () => {
   // 本地没有就检查SSO是否登录
   const ssoCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
   if (!ssoCookie) {
-    console.log('未登录SSO，无法获取token');
+    console.log('未登录SSO');
     return null;
   }
 
@@ -71,7 +73,7 @@ export default function LearningCenterPage() {
         .catch(error => {
           console.error('获取token失败:', error);
           setIsLoading(false);
-          router.push('/(guest)/unified-auth-login');
+          router.push('/(guest)/sso-login');
         });
     }, []),
   );
@@ -86,9 +88,9 @@ export default function LearningCenterPage() {
   return (
     <>
       <Stack.Screen options={{ title: '学习中心预约' }} />
-      <PageContainer className="bg-background px-8 pt-4">
+      <PageContainer>
         {token ? (
-          <View className="space-y-4">
+          <View className="space-y-4 bg-background px-8 pt-4">
             {menuItems.map((item, index) => (
               <LabelEntry
                 key={index}
@@ -108,24 +110,7 @@ export default function LearningCenterPage() {
             ))}
           </View>
         ) : (
-          <View className="flex-1 items-center justify-center gap-10">
-            <Text className="text-lg">登录统一身份认证平台，享受学习一码通，学习中心预约服务</Text>
-            <Button
-              onPress={() => {
-                router.push('/(guest)/unified-auth-login');
-                setIsLoading(true);
-              }}
-              className="w-1/2"
-            >
-              <Text>前往登录</Text>
-            </Button>
-
-            <Link href="/toolbox/learning-center/webview-login" asChild>
-              <Button className="w-1/2">
-                <Text className="text-white">通过网页登录到学习空间</Text>
-              </Button>
-            </Link>
-          </View>
+          <LoginPrompt />
         )}
       </PageContainer>
     </>

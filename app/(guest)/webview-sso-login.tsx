@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { toast } from 'sonner-native';
 
+// 网页 SSO 登录，目前暂时不启用，同时只支持学习中心，实装前需要修改成兼容性更强的
+
 const GET_TOKEN_URL =
   'https://sso.fzu.edu.cn/oauth2.0/authorize?response_type=code&client_id=wlwxt&redirect_uri=http://aiot.fzu.edu.cn/api/admin/sso/getIbsToken';
 
@@ -50,7 +52,7 @@ export default function LearningCenterTokenPage() {
     <>
       <Stack.Screen
         options={{
-          title: '请先在网页中登录',
+          title: 'SSO 网页登录',
         }}
       />
       <SafeAreaView edges={['bottom', 'left', 'right']} className="flex-1">

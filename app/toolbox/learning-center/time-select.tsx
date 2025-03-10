@@ -156,7 +156,7 @@ export default function SeatsPage() {
 
     // 由于Button在时间不合法直接disable，这里不需要再次判断
     // 导航到可用座位页面，传递选择的日期和时间
-    router.push({
+    router.replace({
       pathname: '/toolbox/learning-center/available-seats',
       params: {
         date: formattedDate,

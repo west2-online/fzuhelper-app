@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 
-import ApiService from '@/utils/learning-center/api_service';
+import ApiService from '@/utils/learning-center/api-service';
 import { Appointment } from '@/utils/learning-center/history-appointment-status';
 
 export interface AppointmentCardProps {
@@ -21,7 +21,7 @@ export interface AppointmentCardProps {
   seatCode: string;
   auditStatus: number;
   sign?: boolean;
-  onRefresh?: () => void;
+  onRefresh?: () => Promise<void>;
 }
 
 // 渲染卡片
@@ -72,7 +72,7 @@ export default function HistoryAppointmentCard({
     try {
       await api.cancelAppointment(id.toString());
       toast.success('取消预约成功');
-      onRefresh && onRefresh();
+      onRefresh && (await onRefresh());
     } catch (error: any) {
       toast.error(`取消预约失败: ${error.message}`);
     } finally {
@@ -87,19 +87,19 @@ export default function HistoryAppointmentCard({
       // 跳转到二维码扫描页面并传递预约ID
       router.push({
         pathname: '/toolbox/learning-center/qr-scanner',
-        params: { appointmentId: id.toString() },
+        params: { appointmentId: id.toString(), token: token },
       });
     } catch (error: any) {
       toast.error(`打开扫码页面失败: ${error.message}`);
     }
-  }, [router, id]);
+  }, [router, id, token]);
 
   // 处理签退
   const handleSignOut = useCallback(async () => {
     try {
       await api.signOut(id.toString());
       toast.success('签退成功');
-      onRefresh && onRefresh();
+      onRefresh && (await onRefresh());
     } catch (error: any) {
       toast.error(`签退失败: ${error.message}`);
     } finally {

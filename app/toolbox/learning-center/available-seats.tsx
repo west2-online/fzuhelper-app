@@ -1,14 +1,16 @@
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
+import { toast } from 'sonner-native';
+
 import LearningCenterMap from '@/components/learning-center/learning-center-map';
 import SeatCard from '@/components/learning-center/seat-card';
 import Loading from '@/components/loading';
 import { TabFlatList } from '@/components/tab-flatlist';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
-import ApiService from '@/utils/learning-center/api_service';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
-import { toast } from 'sonner-native';
+
+import ApiService from '@/utils/learning-center/api-service';
 
 // 座位分区表
 const areas: [number, number, string][] = [
@@ -85,6 +87,7 @@ export default function AvailableSeatsPage() {
   const [seats, setSeats] = useState<Record<string, string[]>>({}); // 按区域分组的座位，只需要记录座位名
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentTab, setCurrentTab] = useState('4');
+  const router = useRouter();
 
   // 确认预约弹层状态
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -150,12 +153,15 @@ export default function AvailableSeatsPage() {
         spaceName: selectedSpace!,
       });
       toast.success('预约成功');
+      // 跳转到预约历史页面
+      // router.back(); // 回到上一个地方
+      router.replace({ pathname: '/toolbox/learning-center/history', params: { token } });
     } catch (error: any) {
-      toast.error(`${error.message}`);
+      toast.error(`预约失败: ${error.message}`);
       // 不需要提供预约失败字样，因为错误信息已经包含了
     }
     setConfirmVisible(false);
-  }, [api, date, beginTime, endTime, selectedSpace]);
+  }, [api, date, beginTime, endTime, selectedSpace, router, token]);
 
   useEffect(() => {
     fetchSeatStatus();
