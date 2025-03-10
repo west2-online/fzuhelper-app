@@ -32,8 +32,8 @@ import {
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
+import { NotificationManager } from '@/lib/notification';
 import { LocalUser } from '@/lib/user';
-import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
 
 ExpoSplashScreen.preventAutoHideAsync();
@@ -54,9 +54,9 @@ export default function SplashScreen() {
   const [hideSystemBars, setHideSystemBars] = useState(true);
 
   // 合规初始化第三方库
-  const initThirdParty = useCallback(() => {
+  const initThirdParty = useCallback(async () => {
     console.log('initUMPush and UMAnalysis');
-    ExpoUmengModule.initUmeng();
+    await NotificationManager.init();
   }, []);
 
   const navigateToHome = useCallback(() => {
