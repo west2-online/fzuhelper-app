@@ -1,7 +1,7 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
-
-import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +9,6 @@ import { Text } from '@/components/ui/text';
 
 import ApiService from '@/utils/learning-center/api_service';
 import { Appointment } from '@/utils/learning-center/history-appointment-status';
-import { useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo } from 'react';
 
 export interface AppointmentCardProps {
   id: number;
@@ -45,6 +43,8 @@ export default function HistoryAppointmentCard({
     () => new Appointment(id.toString(), floor.toString(), spaceName, date, beginTime, endTime, auditStatus, sign),
     [id, floor, spaceName, date, beginTime, endTime, auditStatus, sign],
   );
+  const [isProcessing, setIsProcessing] = useState(false); // 控制取消预约按钮状态
+  const [forceUpdateKey, setForceUpdateKey] = useState(0); // 用于强制刷新按钮的状态
 
   const getStatusColor = useCallback(() => {
     const statusText = appointment.getStatusText();
@@ -75,6 +75,9 @@ export default function HistoryAppointmentCard({
       onRefresh && onRefresh();
     } catch (error: any) {
       toast.error(`取消预约失败: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
+      setForceUpdateKey(prev => prev + 1);
     }
   }, [api, id, onRefresh]);
 
@@ -99,6 +102,9 @@ export default function HistoryAppointmentCard({
       onRefresh && onRefresh();
     } catch (error: any) {
       toast.error(`签退失败: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
+      setForceUpdateKey(prev => prev + 1);
     }
   }, [api, id, onRefresh]);
 
@@ -107,8 +113,17 @@ export default function HistoryAppointmentCard({
     switch (appointment.getStatusText()) {
       case '未开始':
         return (
-          <Button variant="destructive" className="w-full" onPress={handleCancel}>
-            <Text>取消预约</Text>
+          <Button
+            key={forceUpdateKey}
+            variant="destructive"
+            className="w-full"
+            onPress={() => {
+              setIsProcessing(true);
+              handleCancel();
+            }}
+            disabled={isProcessing}
+          >
+            <Text>{isProcessing ? '正在取消' : '取消预约'}</Text>
           </Button>
         );
       case '待签到':
@@ -119,21 +134,30 @@ export default function HistoryAppointmentCard({
         );
       case '已签到':
         return (
-          <Button variant="default" className="w-full" onPress={handleSignOut}>
-            <Text>签退</Text>
+          <Button
+            key={forceUpdateKey}
+            variant="default"
+            className="w-full"
+            onPress={() => {
+              setIsProcessing(true);
+              handleSignOut();
+            }}
+            disabled={isProcessing}
+          >
+            <Text>{isProcessing ? '正在签退' : '签退'}</Text>
           </Button>
         );
       default:
         return null;
     }
-  }, [appointment, handleCancel, handleSignIn, handleSignOut]);
+  }, [appointment, handleCancel, handleSignIn, handleSignOut, isProcessing, forceUpdateKey]);
 
   // 渲染卡片
   return (
     <Card className="mb-4 overflow-hidden rounded-xl border border-border">
       <CardHeader className="flex-row items-center justify-between pb-2 pt-4">
         <CardTitle>
-          <Text className="text-lg">{`${floor}F ${spaceName}`}</Text>
+          <Text className="text-lg">{`${floor}层 ${spaceName}`}</Text>
           <Text className="text-sm"> # {id}</Text>
         </CardTitle>
         <View className={`rounded-md px-2 py-1 ${getStatusColor().replace('text-', 'bg-').replace('-600', '-100')}`}>
@@ -143,11 +167,11 @@ export default function HistoryAppointmentCard({
       <CardContent className="pb-4">
         <View className="flex flex-row justify-between">
           <View className="flex flex-row items-center">
-            <Text className="mr-2 text-text-secondary">日期：</Text>
+            <Text className="mr-2 text-text-secondary">日期</Text>
             <Text>{date}</Text>
           </View>
           <View className="flex flex-row items-center">
-            <Text className="mr-2 text-text-secondary">时间：</Text>
+            <Text className="mr-2 text-text-secondary">时间</Text>
             <Text>{`${beginTime} - ${endTime}`}</Text>
           </View>
         </View>

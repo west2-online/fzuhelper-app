@@ -12,19 +12,19 @@ import { toast } from 'sonner-native';
 
 // 座位分区表
 const areas: [number, number, string][] = [
-  [1, 204, 'J'],
-  [205, 268, 'A'],
-  [269, 368, 'B'],
-  [369, 416, 'D'],
-  [417, 476, 'C'],
-  [477, 616, 'I'],
-  [617, 640, 'F'],
-  [641, 736, 'H'],
-  [737, 758, 'G'],
-  [759, 804, 'E'],
-  [805, 837, 'K'],
-  [838, 870, 'L'],
-  [871, 919, 'M'],
+  [1, 204, 'J区'],
+  [205, 268, 'A区'],
+  [269, 368, 'B区'],
+  [369, 416, 'D区'],
+  [417, 476, 'C区'],
+  [477, 616, 'I区'],
+  [617, 640, 'F区'],
+  [641, 736, 'H区'],
+  [737, 758, 'G区'],
+  [759, 804, 'E区'],
+  [805, 837, 'K区'],
+  [838, 870, 'L区'],
+  [871, 919, 'M区'],
 ];
 
 // 获取座位所在区域
@@ -32,6 +32,22 @@ const getSpaceArea = (spaceName: string) => {
   const spaceNumber = Number(spaceName.split('-')[0]);
   const area = areas.find(([start, end]) => spaceNumber >= start && spaceNumber <= end);
   return area ? area[2] : '其他';
+};
+
+// 转换座位显示名称，这里的 spacename 一律是数字
+const convertSpaceName = (spaceName: string): string => {
+  const spaceNumber = Number(spaceName);
+
+  // 如果在 205-476，则是单人座，spaceName 要多加一行
+  if (spaceNumber >= 205 && spaceNumber <= 476) {
+    return `${spaceName}\n单人座`;
+  }
+
+  // 如果在 617-664，则是沙发坐
+  if (spaceNumber >= 617 && spaceNumber <= 664) {
+    return `${spaceName}\n沙发座`;
+  }
+  return spaceName;
 };
 
 const styles = StyleSheet.create({
@@ -135,7 +151,8 @@ export default function AvailableSeatsPage() {
       });
       toast.success('预约成功');
     } catch (error: any) {
-      toast.error(`预约座位失败: ${error.message}`);
+      toast.error(`${error.message}`);
+      // 不需要提供预约失败字样，因为错误信息已经包含了
     }
     setConfirmVisible(false);
   }, [api, date, beginTime, endTime, selectedSpace]);
@@ -170,7 +187,7 @@ export default function AvailableSeatsPage() {
                 removeClippedSubviews={true}
                 renderItem={({ item }) => (
                   <View style={{ width: itemWidth }}>
-                    <SeatCard spaceName={item} onPress={() => handleSeatPress(item)} />
+                    <SeatCard spaceName={convertSpaceName(item)} onPress={() => handleSeatPress(item)} />
                   </View>
                 )}
                 keyExtractor={item => item}
@@ -192,30 +209,25 @@ export default function AvailableSeatsPage() {
           onClose={() => setConfirmVisible(false)}
           onConfirm={handleConfirm}
         >
-          <View className="space-y-8 px-2 py-6">
+          <View className="space-y-8 px-2">
             {/* 预约信息卡片 */}
-            <View className="rounded-xl bg-gray-50 p-5">
+            <View className="rounded-xl p-5">
               <View className="mb-6">
-                <Text className="mb-2 text-sm text-gray-400">预约日期</Text>
+                <Text className="mb-2 text-sm text-primary">预约日期</Text>
                 <Text className="text-xl font-medium">{date}</Text>
               </View>
 
               <View className="mb-6">
-                <Text className="mb-2 text-sm text-gray-400">预约时段</Text>
+                <Text className="mb-2 text-sm text-primary">预约时段</Text>
                 <Text className="text-xl font-medium">
                   {beginTime} - {endTime}
                 </Text>
               </View>
 
               <View>
-                <Text className="mb-2 text-sm text-gray-400">座位号码</Text>
+                <Text className="mb-2 text-sm text-primary">座位号码</Text>
                 <Text className="text-xl font-medium">{selectedSpace}</Text>
               </View>
-            </View>
-
-            {/* 确认提示 */}
-            <View className="px-4 py-2">
-              <Text className="text-center text-base text-blue-600">请确认以上信息无误</Text>
             </View>
           </View>
         </FloatModal>

@@ -17,7 +17,7 @@ const menuItems: {
 }[] = [
   {
     name: '预约座位',
-    route: '/toolbox/learning-center/seats',
+    route: '/toolbox/learning-center/time-select',
     description: '预约空闲自习座位',
   },
   {

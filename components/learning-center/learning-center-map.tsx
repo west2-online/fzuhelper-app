@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { memo, useState } from 'react';
-import { Image, Modal, StyleSheet, Text, TouchableOpacity, View, Platform, StatusBar } from 'react-native';
+import { Image, Modal, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ImageZoom from 'react-native-image-zoom-viewer';
 // 学习中心地图组件
 // TODO: 地图目前还是半成品

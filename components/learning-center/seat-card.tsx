@@ -6,11 +6,8 @@ const SeatCard: React.FC<{
   onPress: () => void;
 }> = memo(({ spaceName, onPress }) => {
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="m-1 flex h-20 flex-1 items-center justify-center rounded-lg bg-secondary shadow-md"
-    >
-      <Text>{spaceName}</Text>
+    <TouchableOpacity onPress={onPress} className="m-1 flex flex-1 items-center justify-center rounded-lg bg-card py-4">
+      <Text className="text-center text-primary">{spaceName}</Text>
     </TouchableOpacity>
   );
 });

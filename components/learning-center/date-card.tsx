@@ -9,7 +9,7 @@ const containerVariants = cva('m-1 flex-1 rounded-lg p-3', {
   variants: {
     state: {
       selected: 'bg-primary',
-      default: 'bg-secondary',
+      default: 'bg-card',
     },
   },
   defaultVariants: {
