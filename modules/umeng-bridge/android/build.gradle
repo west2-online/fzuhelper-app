@@ -25,7 +25,7 @@ if (useManagedAndroidSdkVersions) {
         }
     }
     project.android {
-        compileSdkVersion safeExtGet("compileSdkVersion", 34)
+        compileSdk safeExtGet("compileSdkVersion", 35)
         defaultConfig {
             minSdkVersion safeExtGet("minSdkVersion", 21)
             targetSdkVersion safeExtGet("targetSdkVersion", 34)
@@ -50,10 +50,15 @@ dependencies {
 //  implementation project(':expo-modules-core')
 //  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getKotlinVersion()}"
 
-  // 友盟统计SDK
-  api 'com.umeng.umsdk:common:9.7.9'
-  api 'com.umeng.umsdk:asms:1.8.5.1'
-  // 友盟Push相关依赖
-  api 'com.umeng.umsdk:push:6.7.0'
-
+    // 友盟统计SDK
+    api 'com.umeng.umsdk:common:9.7.9'
+    api 'com.umeng.umsdk:asms:1.8.6'
+    // 友盟Push相关依赖
+    api 'com.umeng.umsdk:push:6.7.0'
+    // 小米
+    api 'com.umeng.umsdk:xiaomi-umengaccs:2.1.0'
+    api 'com.umeng.umsdk:xiaomi-push:5.9.9'
+    // 华为
+    api 'com.umeng.umsdk:huawei-umengaccs:2.1.0'
+    api 'com.huawei.hms:push:6.12.0.300'
 }
