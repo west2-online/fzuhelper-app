@@ -7,6 +7,7 @@ import LabelEntry from '@/components/label-entry';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
+import { Text } from '@/components/ui/text';
 
 import SSOLogin from '@/lib/sso-login';
 import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
@@ -108,6 +109,33 @@ export default function LearningCenterPage() {
                 }
               />
             ))}
+            <View className="space-y-4">
+              <Text className="my-4 text-lg font-bold text-text-secondary">预约流程</Text>
+              <Text className="text-base text-text-secondary">
+                打开"预约座位" -&gt; 选择时间段 -&gt; 查找可用座位 -&gt; 确认预约
+              </Text>
+            </View>
+            <View className="space-y-4">
+              <Text className="my-4 text-lg font-bold text-text-secondary">签到流程</Text>
+              <Text className="text-base text-text-secondary">
+                进入学习中心 -&gt; 打开"我的预约" -&gt; 扫码签到 -&gt; 签到成功
+              </Text>
+            </View>
+            <View className="space-y-4">
+              <Text className="my-4 text-lg font-bold text-text-secondary">友情提示</Text>
+              <Text className="text-base text-text-secondary">
+                1. 一个人只能最多同时预约 3 个座位，最多只能预约 4 小时
+              </Text>
+              <Text className="text-base text-text-secondary">
+                2. 如果时间段里有已经预约过的座位，会查询不到任何结果
+              </Text>
+              <Text className="text-base text-text-secondary">
+                3. 请按时签到、签退，迟到、早退频繁的同学会暂时被禁止预约
+              </Text>
+              <Text className="text-base text-text-secondary">
+                4. 如果无法在"我的预约"中扫码签到，请检查是否给予本应用相机权限
+              </Text>
+            </View>
           </View>
         ) : (
           <LoginPrompt />
