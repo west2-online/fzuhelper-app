@@ -122,3 +122,12 @@ export const NAV_THEME = {
 };
 
 export const EXPIRE_ONE_DAY = 1000 * 60 * 60 * 24; // 一天的毫秒数
+
+export const IOS_APP_GROUP = 'group.FzuHelper.NextCourse'; // iOS App Group，需要保持和 app.config.ts 中的一致
+
+// 日期时间格式化
+export const DATE_FORMAT = 'YYYY/M/D';
+export const TIME_FORMAT = 'HH:mm';
+export const TIME_SECOND_FORMAT = `${TIME_FORMAT}:ss`;
+export const DATETIME_FORMAT = `${DATE_FORMAT} ${TIME_FORMAT}`;
+export const DATETIME_SECOND_FORMAT = `${DATE_FORMAT} ${TIME_SECOND_FORMAT}`;
