@@ -1,7 +1,11 @@
 import { RejectEnum } from '@/api/enum';
+import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import { get, postJSON } from '@/modules/native-request';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';
 import dayjs from 'dayjs';
+import { router } from 'expo-router';
+import { toast } from 'sonner-native';
 import { SeatMappingUtil } from './seat-mapping';
 
 // 预约历史的数据类型
@@ -158,7 +162,13 @@ class ApiService {
         type: RejectEnum.NativeLoginFailed,
         data: 'HTTP请求方法错误',
       };
-      return;
+    }
+
+    // token 过期时会返回 500，直接在这个 request 里处理即可
+    if (response.status === 500) {
+      toast.error('登录状态已过期，请重新登录');
+      await AsyncStorage.removeItem(LEARNING_CENTER_TOKEN_KEY);
+      router.replace('/(guest)/sso-login');
     }
 
     try {
