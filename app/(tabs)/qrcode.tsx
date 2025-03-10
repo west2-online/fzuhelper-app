@@ -226,14 +226,14 @@ export default function YiMaTongPage() {
 
                     <View className="flex-row gap-4">
                       <Button onPress={logout} className="width-full flex-5" variant="outline">
-                        <Text className="text-white">退出</Text>
+                        <Text>退出</Text>
                       </Button>
                       <Button
                         onPress={() => refresh(accessToken)}
                         className="width-full flex-1"
                         disabled={isRefreshing}
                       >
-                        <Text className="text-white">{isRefreshing ? '刷新中...' : '刷新'}</Text>
+                        <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
                       </Button>
                     </View>
                   </CardContent>
