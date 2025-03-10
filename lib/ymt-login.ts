@@ -1,6 +1,7 @@
+import { Buffer } from 'buffer';
+
 import { RejectEnum } from '@/api/enum';
 import { get, postJSON } from '@/modules/native-request';
-import { Buffer } from 'buffer';
 
 const YMT_URLS = {
   LOGIN: 'https://oss.fzu.edu.cn/api/qr/login/getAccessToken',
@@ -29,7 +30,7 @@ export interface IdentifyRespData {
 }
 
 class YMTLogin {
-  // 公共请求方法，使用 Native-Request 模块
+  // 公共请求方法，使用 Native Request 模块
   async #request(
     method: 'GET' | 'POST',
     url: string,

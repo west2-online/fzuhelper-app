@@ -3,7 +3,7 @@ import { Text } from '@/components/ui/text';
 import { convertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { JSXElementConstructor, ReactElement, useCallback, useEffect, useRef } from 'react';
-import { Dimensions, FlatList, ScrollView } from 'react-native';
+import { Dimensions, FlatList, FlatListProps, ScrollView } from 'react-native';
 
 export interface TabFlatListProps {
   data: string[]; // tab列表数据
@@ -13,6 +13,7 @@ export interface TabFlatListProps {
   tabWidth?: number; // 单个tab的宽度
   screenWidth?: number; // 屏幕宽度
   tabsScrollViewRef?: React.RefObject<ScrollView>; // 外部传入的ScrollView引用
+  flatListOptions?: Partial<Omit<FlatListProps<string>, 'data' | 'renderItem' | 'keyExtractor'>>; // 底部左右滑动的FlatList的配置项
 }
 
 export function TabFlatList({
@@ -23,6 +24,7 @@ export function TabFlatList({
   tabWidth = 96,
   screenWidth = Dimensions.get('window').width,
   tabsScrollViewRef: externalTabsScrollViewRef,
+  flatListOptions,
 }: TabFlatListProps) {
   const internalTabsScrollViewRef = useRef<ScrollView>(null);
   const tabsScrollViewRef = externalTabsScrollViewRef || internalTabsScrollViewRef;
@@ -86,6 +88,7 @@ export function TabFlatList({
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
         renderItem={({ item }) => renderContent(item)}
         onScrollToIndexFailed={() => {}}
+        {...flatListOptions}
       />
     </>
   );
