@@ -10,9 +10,9 @@ import { Text } from '@/components/ui/text';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_EMPTY_ROOM } from '@/lib/FAQ';
 import { type IntRange } from '@/types/int-range';
+import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
-import { DateTime } from 'luxon';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, TouchableOpacity, View, useColorScheme } from 'react-native';
 import DateTimePicker, { getDefaultClassNames } from 'react-native-ui-datepicker';
@@ -20,7 +20,7 @@ import DateTimePicker, { getDefaultClassNames } from 'react-native-ui-datepicker
 type Campus = '旗山校区' | '铜盘校区' | '晋江校区' | '泉港校区' | '怡山校区' | '集美校区' | '鼓浪屿校区';
 const CAMPUS_LIST: Campus[] = ['旗山校区', '铜盘校区', '晋江校区', '泉港校区', '怡山校区', '集美校区', '鼓浪屿校区'];
 const TIMEZONE = 'Asia/Shanghai';
-const DATE_FMT = 'yyyy-MM-dd';
+const DATE_FMT = 'YYYY-MM-DD';
 
 interface LessonRange {
   start: IntRange<1, 12>;
@@ -28,7 +28,7 @@ interface LessonRange {
 }
 
 interface DateNavigatorProps {
-  date: DateTime;
+  date: string;
   onPress: () => void;
 }
 
@@ -38,7 +38,7 @@ function DateNavigator({ date, onPress }: DateNavigatorProps) {
 
   return (
     <TouchableOpacity className="flex-row items-center" onPressIn={onPress}>
-      <Text className="pr-2 text-lg">{date.toFormat(DATE_FMT)}</Text>
+      <Text className="pr-2 text-lg">{date}</Text>
       <CalendarDaysIcon size={20} color={iconColor} />
     </TouchableOpacity>
   );
@@ -59,7 +59,7 @@ function generateEndPickerData(start: number): { value: IntRange<1, 12>; label: 
 }
 
 export default function EmptyRoomPage() {
-  const today = DateTime.local({ zone: TIMEZONE });
+  const today = useMemo(() => dayjs(), []);
 
   const [selectedRange, setSelectedRange] = useState<LessonRange>({ start: 1, end: 11 });
   const [selectedDate, setSelectedDate] = useState(today);
@@ -75,7 +75,7 @@ export default function EmptyRoomPage() {
   const campusData = CAMPUS_LIST.map(campus => ({ value: campus, label: campus }));
 
   const { data: roomData, status: loadingState } = useApiRequest(getApiV1CommonClassroomEmpty, {
-    date: selectedDate.toFormat(DATE_FMT),
+    date: selectedDate.format(DATE_FMT),
     campus: selectedCampus,
     startTime: selectedRange.start.toString(),
     endTime: selectedRange.end.toString(),
@@ -92,12 +92,14 @@ export default function EmptyRoomPage() {
         options={{
           title: '空教室',
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => <DateNavigator date={selectedDate} onPress={() => setIsDateTimePickerVisible(true)} />,
+          headerRight: () => (
+            <DateNavigator date={selectedDate.format(DATE_FMT)} onPress={() => setIsDateTimePickerVisible(true)} />
+          ),
         }}
       />
       <PageContainer>
         {/* 选择器区域 */}
-        <View className={`w-full flex-row items-center justify-between px-4 py-2`}>
+        <View className="w-full flex-row items-center justify-between px-4 py-2">
           {/* 左侧按钮 */}
           <TouchableOpacity
             className="flex-1 flex-row items-center justify-center px-2 py-2"
@@ -106,10 +108,8 @@ export default function EmptyRoomPage() {
             <Text className="pr-1">第 {selectedRange.start} 节</Text>
             <Icon name={isRangeStartPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
           </TouchableOpacity>
-
           {/* 中间的“至” */}
-          <Text className={`mx-3`}>至</Text>
-
+          <Text className="mx-3">至</Text>
           {/* 右侧按钮 */}
           <TouchableOpacity
             className="flex-1 flex-row items-center justify-center px-2 py-2"
@@ -118,7 +118,6 @@ export default function EmptyRoomPage() {
             <Text className="pr-1">第 {selectedRange.end} 节</Text>
             <Icon name={isRangeEndPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
           </TouchableOpacity>
-
           {/* 校区按钮 */}
           <TouchableOpacity
             className="ml-3 flex-1 flex-row items-center justify-center px-2 py-2"
@@ -127,7 +126,6 @@ export default function EmptyRoomPage() {
             <Text className="pr-1">{selectedCampus}</Text>
             <Icon name={isCampusPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
           </TouchableOpacity>
-
           <Pressable onPress={handleModalVisible} className="flex-right flex-row items-center">
             <Icon name="help-circle-outline" size={26} className="mr-4" />
           </Pressable>
@@ -157,14 +155,14 @@ export default function EmptyRoomPage() {
         >
           <DateTimePicker
             mode="single"
-            date={pickerSelectedDate.toJSDate()}
+            date={pickerSelectedDate.toDate()}
             timeZone={TIMEZONE}
-            onChange={({ date }) => setPickerSelectedDate(DateTime.fromJSDate(date as Date) as DateTime)}
+            onChange={({ date }) => setPickerSelectedDate(dayjs(date))}
             locale="zh-cn"
             classNames={getDefaultClassNames()}
             // 选择范围为从今天开始的一周内
-            minDate={today.toJSDate()}
-            maxDate={today.plus({ day: 6 }).toJSDate()}
+            minDate={today.toDate()}
+            maxDate={today.add(6, 'day').toDate()}
           />
         </FloatModal>
 
