@@ -1,11 +1,12 @@
-import { Tabs, useNavigation } from 'expo-router';
+import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { Alert, AppState, Platform } from 'react-native';
+import { Alert, AppState, ImageBackground, Platform } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
 
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { getBackgroundImageComponent } from '@/lib/appearance';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
 const NAVIGATION_TITLE = '首页';
@@ -68,47 +69,68 @@ export default function TabLayout() {
   }, [handleError]);
 
   return (
-    <Tabs screenOptions={{ headerTitleAlign: 'center' }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: '课程',
-          href: '/',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
-          ),
+    <>
+      {/* https://github.com/react-navigation/react-navigation/issues/11347#issuecomment-1740865580 */}
+      <Stack.Screen options={{ headerShown: false, headerBackground: undefined }} />
+      <Tabs
+        screenOptions={{
+          headerTitleAlign: 'center',
+          headerShadowVisible: false,
+          // headerStyle: {
+          //   backgroundColor: 'transparent',
+          // },
+          headerBackground: () => getBackgroundImageComponent(),
+          // tabBarStyle: {
+          //   position: 'absolute',
+          // },
+          tabBarBackground: () => getBackgroundImageComponent(),
         }}
-      />
-      <Tabs.Screen
-        name="toolbox"
-        options={{
-          title: '工具箱',
-          href: '/toolbox',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="qrcode"
-        options={{
-          title: '一码通',
-          href: '/qrcode',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'qr-code' : 'qr-code-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="user"
-        options={{
-          title: '我的',
-          href: '/user',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: '课程',
+            href: '/',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="toolbox"
+          options={{
+            title: '工具箱',
+            href: '/toolbox',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="qrcode"
+          options={{
+            title: '一码通',
+            href: '/qrcode',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon name={focused ? 'qr-code' : 'qr-code-outline'} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="user"
+          options={{
+            title: '我的',
+            href: '/user',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
+            ),
+          }}
+        />
+      </Tabs>
+    </>
   );
 }

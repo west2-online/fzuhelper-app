@@ -47,7 +47,7 @@ const TimeCol: React.FC<TimeColProps> = ({ height }) => {
   }, []);
 
   return (
-    <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col bg-background">
+    <View className="flex w-[32px] flex-shrink-0 flex-grow-0 basis-[32px] flex-col">
       {CLASS_SCHEDULES.map((time, index) => {
         const isActive = isTimeInRange(currentTime, time[0], time[1]);
 

@@ -38,12 +38,12 @@ export default function PersonalInfoListPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '个人信息搜集清单' }} />
+      <Stack.Screen options={{ title: '个人信息收集清单' }} />
 
       <PageContainer>
-        <ScrollView className="flex-1 bg-background px-8 pt-8">
+        <ScrollView className="flex-1 px-8 pt-8">
           <SafeAreaView edges={['bottom']}>
-            <Text className="mb-2 text-sm text-text-secondary">你可以查阅当前我们对你的个人信息的搜集情况</Text>
+            <Text className="mb-2 text-sm text-text-secondary">你可以查阅当前我们对你的个人信息的收集情况。</Text>
 
             <LabelEntry leftText="姓名" rightText={userInfo.name} disabled />
             <LabelEntry leftText="学号" rightText={userInfo.stu_id} disabled />

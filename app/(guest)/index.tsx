@@ -221,7 +221,7 @@ export default function SplashScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, headerBackground: undefined }} />
 
       <View>
         {!showSplashImage ? (

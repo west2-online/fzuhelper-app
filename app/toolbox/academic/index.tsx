@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { ImageBackground, View } from 'react-native';
 
 import CreditIcon from '@/assets/images/toolbox/academic/ic_credit.png';
 import GpaIcon from '@/assets/images/toolbox/academic/ic_gpa.png';
@@ -81,7 +81,7 @@ export default function AcademicPage() {
   return (
     <>
       <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
-      <PageContainer className="bg-background p-4">
+      <PageContainer className="p-4">
         {/* 菜单列表 */}
         <View className="mx-4 space-y-4">
           {MENU_ITEMS.filter(
