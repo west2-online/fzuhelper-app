@@ -169,7 +169,7 @@ export default function AvailableSeatsPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '可预约座位' }} />
+      <Stack.Screen options={{ title: '可用座位' }} />
       <View className="mx-2 my-3 overflow-hidden rounded-2xl">
         <LearningCenterMap />
       </View>

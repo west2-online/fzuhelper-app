@@ -23,47 +23,53 @@ export default function HistoryPage() {
   const api = useMemo(() => new ApiService(token), [token]);
 
   // 请求数据
-  const fetchData = useCallback(async () => {
-    try {
-      // 如果已经请求了所有的数据，就不再请求
-      if (isBottom) return;
+  const fetchData = useCallback(
+    async (ignoreBottomCheck = false) => {
+      try {
+        // 如果已经请求了所有的数据，就不再请求
+        if (isBottom && !ignoreBottomCheck) {
+          return;
+        }
 
-      // 请求数据
-      const appointmentData = await api.fetchAppointments({
-        currentPage: page,
-        pageSize: PAGE_SIZE,
-        auditStatus: '',
-      });
+        // 请求数据
+        const appointmentData = await api.fetchAppointments({
+          currentPage: page,
+          pageSize: PAGE_SIZE,
+          auditStatus: '',
+        });
 
-      // 判断是否请求到了所有的数据
-      if (appointmentData.length < PAGE_SIZE || appointmentData.length === 0) {
-        setIsBottom(true);
+        // 判断是否请求到了所有的数据
+        if (appointmentData.length < PAGE_SIZE || appointmentData.length === 0) {
+          setIsBottom(true);
+        }
+
+        // 更新数据
+        setData(prevData => (page === 1 ? appointmentData : [...prevData, ...appointmentData]));
+        console.log('拉取了第' + page + '页');
+      } catch (error: any) {
+        toast.error(`加载数据失败: ${error.message}`);
+      } finally {
+        setIsRefreshing(false);
+        setIsLoading(false);
       }
-
-      // 更新数据
-      setData(prevData => (page === 1 ? appointmentData : [...prevData, ...appointmentData]));
-      console.log('拉取了第' + page + '页');
-    } catch (error: any) {
-      toast.error(`加载数据失败: ${error.message}`);
-    } finally {
-      setIsRefreshing(false);
-      setIsLoading(false);
-    }
-  }, [page, api, isBottom]);
+    },
+    [page, api, isBottom],
+  );
 
   // 刷新数据
   const refresh = useCallback(async () => {
     setPage(1); // 重置页数
+    setData([]); // 重置数据
     setIsRefreshing(true); // 开启刷新
     setIsLoading(true); // 开启加载
     setIsBottom(false); // 重置是否到底
-    await fetchData(); // 重新请求数据
+    await fetchData(true); // 重新请求数据
   }, [fetchData]);
 
   // 首次加载数据
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, []);
 
   if (isLoading) {
     return (

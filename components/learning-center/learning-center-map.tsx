@@ -4,7 +4,6 @@ import { memo, useState } from 'react';
 import { Image, Modal, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ImageZoom from 'react-native-image-zoom-viewer';
 // 学习中心地图组件
-// TODO: 地图目前还是半成品
 const LearningCenterMap = memo(() => {
   const [showFullScreenMap, setShowFullScreenMap] = useState(false); //控制是否展示全屏地图
 
@@ -14,11 +13,11 @@ const LearningCenterMap = memo(() => {
       <Card>
         <TouchableOpacity
           onPress={() => setShowFullScreenMap(true)}
-          className="mb-4 w-full flex-row overflow-hidden rounded-xl"
+          className="w-full flex-row overflow-hidden rounded-xl"
         >
           <Image
             source={require('@/assets/images/toolbox/learning-center/map.jpg')}
-            style={styles.mapImage}
+            className="aspect-[4022/2475] w-full"
             accessible={true}
             accessibilityLabel="学习中心地图"
           />
@@ -75,11 +74,8 @@ const LearningCenterMap = memo(() => {
 
 LearningCenterMap.displayName = 'LearningCenterMap';
 
+// ImageZoom 不支持 className，需要使用 style
 const styles = StyleSheet.create({
-  mapImage: {
-    width: '100%',
-    aspectRatio: 4022 / 2475,
-  },
   imageZoom: {
     width: '100%',
     height: '100%',

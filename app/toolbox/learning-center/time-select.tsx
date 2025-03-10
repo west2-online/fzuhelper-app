@@ -169,7 +169,7 @@ export default function SeatsPage() {
 
   return (
     <View className="p-2">
-      <Stack.Screen options={{ title: '预约时间' }} />
+      <Stack.Screen options={{ title: '选择时间段' }} />
 
       {/* 日期选择 */}
       <FlatList
@@ -206,9 +206,9 @@ export default function SeatsPage() {
       {/* 底部提示 */}
       <Text className="flex text-center">
         {beginTime && !endTime
-          ? `开始时间：${beginTime}`
+          ? ``
           : beginTime && endTime
-            ? `时间段：${formatDate(selectedDate, 'yyyy年MM月dd日')} ${beginTime} - ${endTime}`
+            ? `已选择时间段 ${formatDate(selectedDate, 'yyyy年MM月dd日')} ${beginTime} - ${endTime}`
             : ''}
       </Text>
       <Button disabled={!beginTime || !endTime || beginTime > endTime} onPress={handleCommit}>

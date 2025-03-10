@@ -26,7 +26,7 @@ export default function LearningCenterApi() {
   const [spaceName, setSpaceName] = useState('1');
   const [floor, setFloor] = useState('4');
   const [appointmentID, setAppointmentID] = useState('');
-  const [token, setToken] = useState('a7b4c98e-eb4e-4b96-a8be-1b47cb8daf62');
+  const [token, setToken] = useState('');
   const api = useMemo(() => new ApiService(token), [token]);
 
   // 读取本地token

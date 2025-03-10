@@ -72,7 +72,9 @@ export default function HistoryAppointmentCard({
     try {
       await api.cancelAppointment(id.toString());
       toast.success('取消预约成功');
-      onRefresh && (await onRefresh());
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (error: any) {
       toast.error(`取消预约失败: ${error.message}`);
     } finally {
@@ -99,7 +101,9 @@ export default function HistoryAppointmentCard({
     try {
       await api.signOut(id.toString());
       toast.success('签退成功');
-      onRefresh && (await onRefresh());
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (error: any) {
       toast.error(`签退失败: ${error.message}`);
     } finally {
