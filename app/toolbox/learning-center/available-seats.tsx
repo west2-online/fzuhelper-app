@@ -167,6 +167,11 @@ export default function AvailableSeatsPage() {
     fetchSeatStatus();
   }, [fetchSeatStatus]);
 
+  // 如果没有座位数据，且不是正在刷新状态，则说明没有座位数据
+  if (Object.keys(seats).length === 0 && !isRefreshing) {
+    return <ListEmptySeats />;
+  }
+
   return (
     <>
       <Stack.Screen options={{ title: '可用座位' }} />

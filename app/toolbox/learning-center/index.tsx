@@ -135,6 +135,12 @@ export default function LearningCenterPage() {
               <Text className="text-base text-text-secondary">
                 4. 如果无法在"我的预约"中扫码签到，请检查是否给予本应用相机权限
               </Text>
+              <Text className="text-base text-text-secondary">
+                5. 学习中心预约服务器硬件条件有限，访问速度可能较慢，请耐心等待
+              </Text>
+              <Text className="text-base text-text-secondary">
+                6. 学习中心地址：福州大学旗山校区研究生科研楼（晋江楼） 4-5 层
+              </Text>
             </View>
           </View>
         ) : (
