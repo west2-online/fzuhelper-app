@@ -83,6 +83,8 @@ export class NotificationManager {
       }
     }
 
+    const oldTags = (await ExpoUmengModule.getAllTags()).data;
+    await ExpoUmengModule.deleteTags(oldTags); // 删除所有 tags
     // 注册 tags
     if (tags.length > 0) {
       console.log('注册 tags: ', tags);

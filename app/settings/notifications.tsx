@@ -8,10 +8,10 @@ import { Text } from '@/components/ui/text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ALLOW_PUSH_EVENT_KEYS } from '@/lib/constants';
+import { NotificationManager } from '@/lib/notification';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { NotificationsSettings } from '@/types/notifications';
 import { ScrollView } from 'react-native-gesture-handler';
-import { toast } from 'sonner-native';
 
 const defaultNotificationsSetting: NotificationsSettings = {
   allowJWCHTeachingNotice: false,
@@ -26,15 +26,14 @@ export default function PushSettingsPage() {
     await AsyncStorage.setItem(ALLOW_PUSH_EVENT_KEYS, JSON.stringify(newSettings));
   };
 
-  const updateSetting = (key: keyof NotificationsSettings, value: boolean) => {
-    setSettings(prev => {
-      const updatedSettings = {
-        ...prev,
-        [key]: value,
-      };
-      saveSettingsToStorage(updatedSettings);
-      return updatedSettings;
-    });
+  const updateSetting = async (key: keyof NotificationsSettings, value: boolean) => {
+    const updatedSettings = {
+      ...settings,
+      [key]: value,
+    };
+    setSettings(updatedSettings);
+    await saveSettingsToStorage(updatedSettings);
+    NotificationManager.register(); // 初始化通知
   };
 
   useEffect(() => {
@@ -74,7 +73,7 @@ export default function PushSettingsPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '推送通知' }} />
+      <Stack.Screen options={{ title: '通知推送' }} />
 
       <PageContainer>
         <ScrollView className="flex-1 bg-background px-8 pt-8">
