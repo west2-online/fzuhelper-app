@@ -11,15 +11,16 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 
-import { CourseCache, type ExtendCourse } from '@/lib/course';
+import { CUSTOM_TYPE, CourseCache, type CourseInfo } from '@/lib/course';
 import { pushToWebViewJWCH } from '@/lib/webview';
 
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
+import { Link } from 'expo-router';
 
 interface ScheduleDetailsDialogProps {
   open: boolean;
   onOpenChange?: (open: boolean) => void;
-  schedules: ExtendCourse[];
+  schedules: CourseInfo[];
 }
 
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onOpenChange, schedules }) => {
@@ -120,7 +121,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                     </DescriptionListDescription>
                   </DescriptionListRow>
                 </DescriptionList>
-                <View className="flex flex-row justify-evenly">
+                <View className="flex flex-row flex-wrap justify-evenly">
                   {schedule.syllabus && (
                     <Button variant="link" onPress={handleSyllabusPress}>
                       <Text className="text-primary">教学大纲</Text>
@@ -135,6 +136,34 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                     <Button variant="link" onPress={() => setPriority(schedule.id)}>
                       <Text className="text-primary">优先显示</Text>
                     </Button>
+                  )}
+                  {schedule.type === CUSTOM_TYPE && (
+                    <>
+                      <Link
+                        href={{
+                          pathname: '/settings/custom-course',
+                          params: {
+                            key: schedule.storageKey,
+                          },
+                        }}
+                        onPress={closeDialog}
+                        asChild
+                      >
+                        <Button variant="link">
+                          <Text className="text-primary">编辑</Text>
+                        </Button>
+                      </Link>
+
+                      <Button
+                        variant="link"
+                        onPress={() => {
+                          closeDialog();
+                          CourseCache.removeCustomCourse(schedule.storageKey);
+                        }}
+                      >
+                        <Text className="text-primary">删除</Text>
+                      </Button>
+                    </>
                   )}
                 </View>
               </View>

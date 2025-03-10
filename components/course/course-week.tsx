@@ -5,7 +5,7 @@ import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
 import { Text } from '@/components/ui/text';
 
-import { LEFT_TIME_COLUMN_WIDTH, TOP_CALENDAR_HEIGHT, type ExtendCourse } from '@/lib/course';
+import { LEFT_TIME_COLUMN_WIDTH, TOP_CALENDAR_HEIGHT, type CourseInfo } from '@/lib/course';
 
 import CalendarCol from './calendar-col';
 import TimeCol from './time-col';
@@ -13,7 +13,7 @@ import TimeCol from './time-col';
 interface CourseWeekProps {
   week: number;
   startDate: string;
-  schedulesByDays: Record<number, ExtendCourse[]>;
+  schedulesByDays: Record<number, CourseInfo[]>;
   showNonCurrentWeekCourses: boolean;
   showExam: boolean;
   flatListLayout: LayoutRectangle;

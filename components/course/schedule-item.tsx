@@ -4,13 +4,13 @@ import { Pressable, useColorScheme, View } from 'react-native';
 import { Text } from '@/components/ui/text';
 
 import OverlapIcon from '@/assets/images/course/overlap.svg';
-import { SCHEDULE_ITEM_MARGIN, type ExtendCourse } from '@/lib/course';
+import { SCHEDULE_ITEM_MARGIN, type CourseInfo } from '@/lib/course';
 import { getCourseColor } from '@/utils/random-color';
 
 import ScheduleDetailsDialog from './schedule-detail-dialog';
 
 interface ScheduleItemProps {
-  schedules: ExtendCourse[];
+  schedules: CourseInfo[];
   itemHeight: number;
   span: number;
   color: string; // 课程的颜色
