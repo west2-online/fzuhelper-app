@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { memo, useState } from 'react';
-import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, StyleSheet, Text, TouchableOpacity, View, Platform, StatusBar } from 'react-native';
 import ImageZoom from 'react-native-image-zoom-viewer';
 // 学习中心地图组件
 // TODO: 地图目前还是半成品
@@ -36,7 +36,10 @@ const LearningCenterMap = memo(() => {
           {/* 关闭按钮 */}
           <TouchableOpacity
             onPress={() => setShowFullScreenMap(false)}
-            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20"
+            // 适配iOS状态栏高度
+            className={`absolute right-4 ${
+              Platform.OS === 'ios' ? 'top-12' : `top-${(StatusBar.currentHeight || 0) + 4}`
+            } z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20`}
           >
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>
@@ -49,6 +52,7 @@ const LearningCenterMap = memo(() => {
             onClick={() => {}}
             saveToLocalByLongPress={false} // 防止长按保存菜单
             style={styles.imageZoom}
+            renderIndicator={() => <></>} // 修改为返回空的 React Fragment
             imageUrls={[
               {
                 url: '',
