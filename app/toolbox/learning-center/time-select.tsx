@@ -50,7 +50,7 @@ export default function SeatsPage() {
 
   // 判断时间是否已过
   const isTimePast = useCallback((date: Date, timeStr: string): boolean => {
-    const isToday = formatDate(date, 'yyyy-MM-dd') === formatDate(new Date(), 'yyyy-MM-dd');
+    const isToday = formatDate(date, 'YYYY-MM-DD') === formatDate(new Date(), 'YYYY-MM-DD');
 
     if (!isToday) return false;
 
@@ -145,7 +145,7 @@ export default function SeatsPage() {
   // 处理确认按钮点击事件
   const handleCommit = useCallback(() => {
     // 格式化日期
-    const formattedDate = formatDate(selectedDate, 'yyyy-MM-dd');
+    const formattedDate = formatDate(selectedDate, 'YYYY-MM-DD');
 
     // 由于Button在时间不合法直接disable，这里不需要再次判断
     // 导航到可用座位页面，传递选择的日期和时间
@@ -167,7 +167,7 @@ export default function SeatsPage() {
       {/* 日期选择 */}
       <FlatList
         data={dates}
-        keyExtractor={item => formatDate(item, 'yyyy-MM-dd')}
+        keyExtractor={item => formatDate(item, 'YYYY-MM-DD')}
         showsHorizontalScrollIndicator={false}
         numColumns={10}
         scrollEnabled={false}
@@ -176,7 +176,7 @@ export default function SeatsPage() {
             date={item.getDate().toString()}
             day={formatDate(item, 'EEE')}
             onPress={() => setSelectedDate(item)}
-            state={formatDate(selectedDate, 'yyyy-MM-dd') === formatDate(item, 'yyyy-MM-dd') ? 'selected' : 'default'}
+            state={formatDate(selectedDate, 'YYYY-MM-DD') === formatDate(item, 'YYYY-MM-DD') ? 'selected' : 'default'}
           />
         )}
       />
