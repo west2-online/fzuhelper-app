@@ -1,6 +1,3 @@
-import * as FileSystem from 'expo-file-system';
-import { memo } from 'react';
-import { ImageBackground } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 
 const hasCustomBackground = () => {
@@ -9,19 +6,26 @@ const hasCustomBackground = () => {
 
 const getBackgroundImagePath = () => {
   const path = ReactNativeBlobUtil.fs.dirs.DocumentDir + '/background.png';
-  console.log('background path', path);
   return path;
+};
+
+const setBackgroundImage = (imagePath: string) => {
+  ReactNativeBlobUtil.fs
+    .mv(imagePath, getBackgroundImagePath())
+    .then(() => {
+      return true;
+    })
+    .catch(err => {
+      throw err;
+    });
 };
 
 const getBackgroundImage = () => {
   return { uri: getBackgroundImagePath() };
 };
 
-const getBackgroundImageComponent = () => {
-  if (!hasCustomBackground()) {
-    return undefined;
-  }
-  return <ImageBackground source={getBackgroundImage()} className="h-full w-full" />;
+const getBottomTabBarHeight = (height: number) => {
+  console.log('height', height);
 };
 
 const deleteBackgroundImage = async () => {
@@ -37,7 +41,8 @@ const deleteBackgroundImage = async () => {
 export {
   deleteBackgroundImage,
   getBackgroundImage,
-  getBackgroundImageComponent,
   getBackgroundImagePath,
+  getBottomTabBarHeight,
   hasCustomBackground,
+  setBackgroundImage,
 };

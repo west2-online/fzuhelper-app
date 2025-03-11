@@ -16,7 +16,7 @@ export default function Contributors() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '贡献名录' }} />
+      <Stack.Screen options={{ title: '贡献名录', headerTransparent: true }} />
 
       <SafeAreaView className="h-full w-full" edges={['bottom']}>
         {/* 在原生端传入 colorScheme，防止出现闪动 */}

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { View, useColorScheme } from 'react-native';
+import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { Icon } from '@/components/Icon';
@@ -178,7 +178,7 @@ export default function AcademicPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '课程表设置' }} />
+      <Stack.Screen options={{ title: '课程表设置', headerTransparent: true }} />
 
       <PageContainer>
         <ScrollView className="flex-1 px-8 pt-8">

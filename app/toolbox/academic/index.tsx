@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ImageBackground, View } from 'react-native';
+import { View } from 'react-native';
 
 import CreditIcon from '@/assets/images/toolbox/academic/ic_credit.png';
 import GpaIcon from '@/assets/images/toolbox/academic/ic_gpa.png';
@@ -18,8 +18,6 @@ import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { pushToWebViewJWCH } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 import { toast } from 'sonner-native';
-
-const NAVIGATION_TITLE = '学业状况';
 
 const errorHandler = (error: any) => {
   if (error) {
@@ -80,7 +78,7 @@ export default function AcademicPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
+      <Stack.Screen options={{ title: '学业状况', headerTransparent: true }} />
       <PageContainer className="p-4">
         {/* 菜单列表 */}
         <View className="mx-4 space-y-4">

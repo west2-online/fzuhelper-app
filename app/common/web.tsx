@@ -128,6 +128,7 @@ export default function Web() {
   return (
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
+      {/* 不要使用 headerTransparent: true  */}
       <Stack.Screen options={{ title: title || webpageTitle }} />
       {!cookiesSet ? (
         <Loading />

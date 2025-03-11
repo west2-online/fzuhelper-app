@@ -28,11 +28,11 @@ export default function UnifiedExamScorePage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '统考成绩' }} />
+      <Stack.Screen options={{ title: '统考成绩', headerTransparent: true }} />
       {isLoading ? (
         <Loading />
       ) : (
-        <PageContainer className="bg-background">
+        <PageContainer>
           <SafeAreaView className="flex-1" edges={['bottom']}>
             <ScrollView
               className="p-4"

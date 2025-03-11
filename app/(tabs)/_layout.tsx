@@ -1,12 +1,12 @@
 import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { Alert, AppState, ImageBackground, Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
+import { BlurView } from 'expo-blur';
 
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { getBackgroundImageComponent } from '@/lib/appearance';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
 const NAVIGATION_TITLE = '首页';
@@ -75,15 +75,12 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           headerTitleAlign: 'center',
-          headerShadowVisible: false,
-          // headerStyle: {
-          //   backgroundColor: 'transparent',
-          // },
-          headerBackground: () => getBackgroundImageComponent(),
-          // tabBarStyle: {
-          //   position: 'absolute',
-          // },
-          tabBarBackground: () => getBackgroundImageComponent(),
+          headerShadowVisible: true,
+          tabBarStyle: { position: 'absolute' },
+          tabBarPosition: 'bottom',
+          headerTransparent: true,
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarBackground: () => <BlurView tint={'default'} intensity={100} className={'absolute'} />,
         }}
       >
         <Tabs.Screen

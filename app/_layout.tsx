@@ -2,7 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
 import { colorScheme } from 'nativewind';
-import { ImageBackground, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -13,7 +13,6 @@ import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
 import { cn } from '@/lib/utils';
 
-import { getBackgroundImageComponent } from '@/lib/appearance';
 import '../global.css';
 
 // 此处配置 NativeWind 的颜色方案
@@ -34,7 +33,6 @@ export default function RootLayout() {
                 screenOptions={{
                   animation: 'ios_from_right',
                   headerTitleAlign: 'center',
-                  headerBackground: () => getBackgroundImageComponent(),
                 }}
               >
                 <Stack.Screen name="/(guest)" />

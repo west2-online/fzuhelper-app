@@ -118,6 +118,7 @@ export default function GradesPage() {
       <Tabs.Screen
         options={{
           title: '成绩查询',
+          headerTransparent: true,
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
             <Pressable onPress={handleModalVisible} className="flex flex-row items-center">

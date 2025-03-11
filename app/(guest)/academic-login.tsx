@@ -20,7 +20,6 @@ import UserLogin from '@/lib/user-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
-const NAVIGATION_TITLE = '登录';
 const URL_RESET_PASSWORD = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
 
 const LoginPage: React.FC = () => {
@@ -149,7 +148,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <>
-      <Stack.Screen options={{ title: NAVIGATION_TITLE, headerShown: false }} />
+      <Stack.Screen options={{ title: '登录', headerShown: false }} />
 
       <SafeAreaView className="bg-background">
         <KeyboardAwareScrollView

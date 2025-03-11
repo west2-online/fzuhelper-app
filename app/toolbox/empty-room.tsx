@@ -91,6 +91,7 @@ export default function EmptyRoomPage() {
       <Stack.Screen
         options={{
           title: '空教室',
+          headerTransparent: true,
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => <DateNavigator date={selectedDate} onPress={() => setIsDateTimePickerVisible(true)} />,
         }}

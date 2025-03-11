@@ -92,7 +92,7 @@ export default function AcademicCalendarPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '校历' }} />
+      <Stack.Screen options={{ title: '校历', headerTransparent: true }} />
 
       <PageContainer>
         <TabFlatList

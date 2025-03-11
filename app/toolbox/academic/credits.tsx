@@ -28,11 +28,11 @@ export default function CreditsPage() {
 
   return (
     <>
-      <Stack.Screen options={{ headerTitle: '学分统计' }} />
+      <Stack.Screen options={{ headerTitle: '学分统计', headerTransparent: true }} />
       {isLoading ? (
         <Loading />
       ) : (
-        <PageContainer className="bg-background">
+        <PageContainer>
           <ScrollView
             className="flex-1 p-4"
             refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}

@@ -14,7 +14,6 @@ import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT, YMT_ACCESS_TOKEN_KEY, YMT_USERN
 import { pushToWebViewNormal } from '@/lib/webview';
 import YMTLogin from '@/lib/ymt-login';
 
-const NAVIGATION_TITLE = '统一身份认证';
 const URL_FORGET_PASSWORD = 'https://sso.fzu.edu.cn/public/client/forget-password/qr';
 
 const UnifiedLoginPage: React.FC = () => {
@@ -88,7 +87,7 @@ const UnifiedLoginPage: React.FC = () => {
 
   return (
     <>
-      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
+      <Stack.Screen options={{ title: '统一身份认证', headerTransparent: true }} />
 
       <SafeAreaView className="bg-background" edges={['bottom', 'left', 'right']}>
         <KeyboardAwareScrollView

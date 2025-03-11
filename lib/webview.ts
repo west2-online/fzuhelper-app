@@ -33,14 +33,14 @@ export function pushToWebViewJWCH(url: string, title: string | undefined = undef
   router.push(getWebViewHrefJWCH(url, title));
 }
 
-export async function pushToWebViewNormal(url: string, title: string) {
+export async function pushToWebViewNormal(url: string, title: string | undefined = undefined) {
   router.push(getWebViewHrefNormal(url, title));
 }
 
-export async function replaceToWebViewJWCH(url: string, title: string) {
+export async function replaceToWebViewJWCH(url: string, title: string | undefined = undefined) {
   router.replace(getWebViewHrefJWCH(url, title));
 }
 
-export async function replaceToWebViewNormal(url: string, title: string) {
+export async function replaceToWebViewNormal(url: string, title: string | undefined = undefined) {
   router.replace(getWebViewHrefNormal(url, title));
 }
