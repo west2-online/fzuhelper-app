@@ -201,7 +201,7 @@ export default function SeatsPage() {
         {beginTime && !endTime
           ? ``
           : beginTime && endTime
-            ? `已选择时间段 ${formatDate(selectedDate, 'yyyy年MM月dd日')} ${beginTime} - ${endTime}`
+            ? `已选择时间段 ${formatDate(selectedDate, 'YYYY年MM月DD日')} ${beginTime} - ${endTime}`
             : ''}
       </Text>
       <Button disabled={!beginTime || !endTime || beginTime > endTime} onPress={handleCommit}>
