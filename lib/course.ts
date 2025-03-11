@@ -524,7 +524,7 @@ export class CourseCache {
     this.cachedDigest = currentDigest;
     this.cachedData = groupedData;
 
-    this.save(); // 缓存数据
+    this.save().then(() => this.refresh()); // 缓存数据
 
     return groupedData;
   }
