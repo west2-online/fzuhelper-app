@@ -1,16 +1,14 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import ColorRadioButton from '@/components/color-radio-button';
 import Entry from '@/components/entry';
-import LabelEntry from '@/components/label-entry';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import RadioButton from '@/components/radio-button';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
@@ -117,7 +115,17 @@ export default function CourseAddPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '自定义课程' }} />
+      <Stack.Screen
+        options={{
+          title: '自定义课程',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: () => (
+            <Pressable onPress={() => handleSave(course)}>
+              <Text>保存</Text>
+            </Pressable>
+          ),
+        }}
+      />
 
       {loaded ? (
         <PageContainer>
@@ -226,8 +234,8 @@ export default function CourseAddPage() {
               />
             </View>
 
-            <View className="mb-2 mt-6 flex-row items-center justify-between">
-              <Text className="text-lg">颜色</Text>
+            <Text className="text-lg">颜色</Text>
+            <View className="my-6 flex-1 items-center justify-between">
               <ColorRadioButton
                 options={COLOR_OPTIONS}
                 selectedValue={course.color} // 当前选中的颜色值
@@ -293,10 +301,6 @@ export default function CourseAddPage() {
                 setWeekPickerVisible(false);
               }}
             />
-
-            <Button className="my-2" onPress={() => handleSave(course)} disabled={disabled}>
-              <Text>保存</Text>
-            </Button>
 
             <View className="mx-4 space-y-4">
               <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
