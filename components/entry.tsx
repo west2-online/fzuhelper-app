@@ -25,7 +25,7 @@ const Entry: React.FC<EntryProps> = ({ text, placeholder, onPress, disabled = fa
       <Text className={cn('truncate text-lg', text ? 'text-text-primary' : 'text-text-secondary')}>
         {text || placeholder}
       </Text>
-      {!noIcon && <Icon name="caret-down-outline" size={16} className="ml-2 text-text-secondary" />}
+      {!noIcon && <Icon name="caret-down-outline" size={10} className="ml-6 text-text-secondary" />}
     </View>
   </TouchableOpacity>
 );

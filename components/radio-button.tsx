@@ -23,7 +23,7 @@ const RadioButton: React.FC<RadioButtonProps> = ({ options, selectedValue, onCha
           )}
           onPress={() => onChange(option.value)}
         >
-          <Text className={cn('text-lg', selectedValue === option.value ? 'text-secondary' : 'text-text-primary')}>
+          <Text className={cn('text-lg', selectedValue === option.value ? 'text-white' : 'text-text-primary')}>
             {option.label}
           </Text>
         </TouchableOpacity>

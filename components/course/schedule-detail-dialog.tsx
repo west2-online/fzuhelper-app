@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Image, Pressable, View } from 'react-native';
+import { Alert, Image, Pressable, View } from 'react-native';
 
 import {
   DescriptionList,
@@ -157,8 +157,17 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Button
                         variant="link"
                         onPress={() => {
-                          closeDialog();
-                          CourseCache.removeCustomCourse(schedule.storageKey);
+                          Alert.alert('删除自定义课程', '确认要删除该自定义课程吗？', [
+                            { text: '取消', style: 'cancel' },
+                            {
+                              text: '删除',
+                              style: 'destructive',
+                              onPress: () => {
+                                closeDialog();
+                                CourseCache.removeCustomCourse(schedule.storageKey);
+                              },
+                            },
+                          ]);
                         }}
                       >
                         <Text className="text-primary">删除</Text>
