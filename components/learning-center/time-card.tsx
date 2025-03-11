@@ -11,7 +11,7 @@ const containerVariants = cva('m-1 flex-1 rounded-lg p-3', {
       disabled: 'bg-muted opacity-40',
       selected: 'bg-primary',
       included: 'bg-primary/50',
-      default: 'bg-secondary',
+      default: 'bg-card',
     },
   },
   defaultVariants: {
@@ -24,8 +24,8 @@ const textVariants = cva('text-center', {
   variants: {
     state: {
       disabled: 'text-text-secondary',
-      selected: 'text-primary-foreground',
-      included: 'text-foreground',
+      selected: 'text-white',
+      included: 'text-white',
       default: 'text-foreground',
     },
   },

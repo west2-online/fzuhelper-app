@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { Button } from '@/components/ui/button';
@@ -68,19 +68,29 @@ export default function HistoryAppointmentCard({
 
   // 处理取消预约
   const handleCancel = useCallback(async () => {
-    // 尝试取消预约，如果失败则显示错误信息
-    try {
-      await api.cancelAppointment(id.toString());
-      toast.success('取消预约成功');
-      if (onRefresh) {
-        await onRefresh();
-      }
-    } catch (error: any) {
-      toast.error(`取消预约失败: ${error.message}`);
-    } finally {
-      setIsProcessing(false);
-      setForceUpdateKey(prev => prev + 1);
-    }
+    Alert.alert('取消预约', '确定要取消预约吗？', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '确定',
+        style: 'destructive',
+        onPress: async () => {
+          // 尝试取消预约，如果失败则显示错误信息
+          setIsProcessing(true);
+          try {
+            await api.cancelAppointment(id.toString());
+            toast.success('取消预约成功');
+            if (onRefresh) {
+              await onRefresh();
+            }
+          } catch (error: any) {
+            toast.error(`取消预约失败: ${error.message}`);
+          } finally {
+            setIsProcessing(false);
+            setForceUpdateKey(prev => prev + 1);
+          }
+        },
+      },
+    ]);
   }, [api, id, onRefresh]);
 
   // 处理签到
@@ -98,6 +108,7 @@ export default function HistoryAppointmentCard({
 
   // 处理签退
   const handleSignOut = useCallback(async () => {
+    setIsProcessing(true);
     try {
       await api.signOut(id.toString());
       toast.success('签退成功');
@@ -122,7 +133,6 @@ export default function HistoryAppointmentCard({
             variant="destructive"
             className="w-full"
             onPress={() => {
-              setIsProcessing(true);
               handleCancel();
             }}
             disabled={isProcessing}
@@ -143,7 +153,6 @@ export default function HistoryAppointmentCard({
             variant="default"
             className="w-full"
             onPress={() => {
-              setIsProcessing(true);
               handleSignOut();
             }}
             disabled={isProcessing}
@@ -158,7 +167,7 @@ export default function HistoryAppointmentCard({
 
   // 渲染卡片
   return (
-    <Card className="mb-4 overflow-hidden rounded-xl border border-border">
+    <Card className="my-2 overflow-hidden rounded-xl border border-border">
       <CardHeader className="flex-row items-center justify-between pb-2 pt-4">
         <CardTitle>
           <Text className="text-lg">{`${floor}层 ${spaceName}`}</Text>

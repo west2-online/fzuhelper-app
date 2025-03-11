@@ -9,6 +9,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import ApiService, { compareAppointments, fetchAppointmentsData } from '@/utils/learning-center/api-service';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PAGE_SIZE = 30; // 每次请求返回的数据量
 
@@ -18,6 +19,7 @@ export default function HistoryPage() {
   const [data, setData] = useState<fetchAppointmentsData[]>([]); // 预约记录数据
   const [isRefreshing, setIsRefreshing] = useState(true); // 控制刷新状态
   const [isBottom, setIsBottom] = useState(false); // 判断是否请求了所有的数据
+  const insets = useSafeAreaInsets();
 
   const api = useMemo(() => new ApiService(token), [token]);
 
@@ -70,7 +72,7 @@ export default function HistoryPage() {
   return (
     <>
       <Stack.Screen options={{ title: '我的预约' }} />
-      <PageContainer className="p-2">
+      <PageContainer className="px-2">
         {isRefreshing ? (
           <Loading />
         ) : (
@@ -106,10 +108,11 @@ export default function HistoryPage() {
               </View>
             }
             ListFooterComponent={
-              <View className="mb-5 flex-1 items-center justify-center">
+              <View className="mb-2 flex-1 items-center justify-center">
                 <Text>{isBottom ? '已经到底了' : ''}</Text>
               </View>
             }
+            contentContainerStyle={{ paddingBottom: insets.bottom }}
           />
         )}
       </PageContainer>

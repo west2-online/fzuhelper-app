@@ -21,8 +21,8 @@ const containerVariants = cva('m-1 flex-1 rounded-lg p-3', {
 const dateTextVariants = cva('text-center font-medium', {
   variants: {
     state: {
-      selected: 'text-primary-foreground',
-      default: 'text-foreground',
+      selected: 'text-white',
+      default: 'text-text-primary',
     },
   },
   defaultVariants: {
@@ -34,7 +34,7 @@ const dateTextVariants = cva('text-center font-medium', {
 const weekTextVariants = cva('text-center text-xs', {
   variants: {
     state: {
-      selected: 'text-primary-foreground',
+      selected: 'text-white',
       default: 'text-text-secondary',
     },
   },

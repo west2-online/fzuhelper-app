@@ -1,12 +1,13 @@
 import { Card } from '@/components/ui/card';
-import { transform } from '@babel/core';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { memo, useState } from 'react';
 import { Image, Modal, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ImageZoom from 'react-native-image-zoom-viewer';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // 学习中心地图组件
 const LearningCenterMap = memo(() => {
   const [showFullScreenMap, setShowFullScreenMap] = useState(false); //控制是否展示全屏地图
+  const insets = useSafeAreaInsets();
 
   return (
     <>
@@ -31,15 +32,15 @@ const LearningCenterMap = memo(() => {
         transparent={true}
         animationType="fade" // 添加过渡动画
         onRequestClose={() => setShowFullScreenMap(false)} // 支持Android返回键
+        statusBarTranslucent
+        navigationBarTranslucent
       >
         <View className="flex-1 items-center justify-center bg-black/90">
           {/* 关闭按钮 */}
           <TouchableOpacity
             onPress={() => setShowFullScreenMap(false)}
-            // 适配iOS状态栏高度
-            className={`absolute right-4 ${
-              Platform.OS === 'ios' ? 'top-12' : `top-${(StatusBar.currentHeight || 0) + 4}`
-            } z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20`}
+            className={`absolute right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20`}
+            style={{ top: insets.top + 14 }}
           >
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>
@@ -49,7 +50,6 @@ const LearningCenterMap = memo(() => {
             enableSwipeDown
             swipeDownThreshold={50}
             onSwipeDown={() => setShowFullScreenMap(false)}
-            onClick={() => {}}
             saveToLocalByLongPress={false} // 防止长按保存菜单
             style={styles.imageZoom}
             renderIndicator={() => <></>} // 修改为返回空的 React Fragment
@@ -70,8 +70,8 @@ const LearningCenterMap = memo(() => {
           />
 
           {/* 缩放提示 */}
-          <View className="absolute bottom-6 left-0 right-0 items-center">
-            <Text className="text-xs text-white/70">双指缩放或捏合可放大查看详情</Text>
+          <View className="absolute bottom-6 left-0 right-0 items-center" style={{ bottom: insets.bottom + 16 }}>
+            <Text className="text-xs text-text-secondary">双指缩放或捏合可放大查看详情</Text>
           </View>
         </View>
       </Modal>

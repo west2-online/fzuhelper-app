@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 const ListEmptySeats: React.FC = memo(() => {
   return (
     <View className="flex-1 items-center justify-center py-8">
-      <Text className="text-gray-500">
+      <Text className="text-text-secondary">
         暂无可用座位
         {'\n'}
         （或当前时间段已存在一个有效预约）

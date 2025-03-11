@@ -180,7 +180,7 @@ export default function SeatsPage() {
           />
         )}
       />
-      <Text className="text-text mt-4 text-center text-sm">请选择时间段</Text>
+      <Text className="my-4 text-center">请选择时间段</Text>
 
       {/* 时间段选择 */}
       <FlatList
@@ -197,7 +197,7 @@ export default function SeatsPage() {
       />
 
       {/* 底部提示 */}
-      <Text className="flex text-center">
+      <Text className="my-4 flex text-center">
         {beginTime && !endTime
           ? ``
           : beginTime && endTime
