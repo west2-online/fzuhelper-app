@@ -31,7 +31,7 @@ interface ExtendCourseBase extends ParsedCourse {
 }
 
 export type ExtendCourse = ExtendCourseBase & {
-  type: 0 | 1; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
+  type: 0 | 1 | 2; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
 };
 
 export type CustomCourse = ExtendCourseBase & {
@@ -206,27 +206,28 @@ export class CourseCache {
     );
 
     // 将数据保存到原生共享存储中，以便在小组件中调用
-    // const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
-    // const term = (await readCourseSetting()).selectedSemester;
-    // const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
-    // const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
-    // if (Platform.OS === 'ios') {
-    //   // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
-    //   // 只能在常量中定义这个 identifier
-    //   const storage = new ExtensionStorage(IOS_APP_GROUP);
-    //   storage.set(
-    //     COURSE_CURRENT_CACHE_KEY,
-    //     JSON.stringify({
-    //       courseData: this.cachedData,
-    //       examData: this.cachedExamData,
-    //       customData: this.cachedCustomData,
-    //       lastCourseUpdateTime: this.lastCourseUpdateTime,
-    //       lastExamUpdateTime: this.lastExamUpdateTime,
-    //       startDate: currentTerm.start_date,
-    //       maxWeek: maxWeek,
-    //     }),
-    //   ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
-    //   ExtensionStorage.reloadWidget(); // 保存后需要重载一次
+    const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
+    const term = (await readCourseSetting()).selectedSemester;
+    const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
+    const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+    if (Platform.OS === 'ios') {
+      // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
+      // 只能在常量中定义这个 identifier
+      const storage = new ExtensionStorage(IOS_APP_GROUP);
+      storage.set(
+        COURSE_CURRENT_CACHE_KEY,
+        JSON.stringify({
+          courseData: this.cachedData,
+          examData: this.cachedExamData,
+          customData: this.cachedCustomData,
+          lastCourseUpdateTime: this.lastCourseUpdateTime,
+          lastExamUpdateTime: this.lastExamUpdateTime,
+          startDate: currentTerm.start_date,
+          maxWeek: maxWeek,
+        }),
+      ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
+      ExtensionStorage.reloadWidget(); // 保存后需要重载一次
+    }
     // } else if (Platform.OS === 'android') {
     //   ExpoWidgetsModule.setWidgetData(
     //     JSON.stringify({
@@ -529,6 +530,10 @@ export class CourseCache {
     return groupedData;
   }
 
+  /**
+   * 添加自定义课程，每次添加都会保存一次数据
+   * @param course - 自定义课程
+   */
   public static async addCustomCourse(course: CustomCourse) {
     if (!this.cachedCustomData) {
       this.cachedCustomData = {};
@@ -553,7 +558,12 @@ export class CourseCache {
     this.refresh();
   }
 
-  public static async getCustomCourse(key: string) {
+  /**
+   * 根据 key 获取自定义课程
+   * @param key
+   * @returns 课程数据
+   */
+  public static async getCustomCourse(key: string): Promise<CustomCourse | null> {
     if (!this.cachedCustomData) {
       return null;
     }
@@ -569,7 +579,11 @@ export class CourseCache {
     return null;
   }
 
-  public static async updateCustomCourse(course: CustomCourse) {
+  /**
+   * 更新课程数据
+   * @param course 课程数据
+   */
+  public static async updateCustomCourse(course: CustomCourse): Promise<void> {
     const key = course.storageKey;
 
     if (!this.cachedCustomData) {
@@ -589,7 +603,11 @@ export class CourseCache {
     this.refresh();
   }
 
-  public static async removeCustomCourse(key: string) {
+  /**
+   * 删除自定义课程
+   * @param key 指定的 key
+   */
+  public static async removeCustomCourse(key: string): Promise<void> {
     if (!this.cachedCustomData) {
       return;
     }
