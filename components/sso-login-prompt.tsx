@@ -7,7 +7,7 @@ import { View } from 'react-native';
 
 interface LoginPromptProps {
   className?: string;
-  message?: string;
+  message: string;
   buttonText?: string;
   onButtonPress?: () => void;
   isLoading?: boolean; // Optional: To handle loading state externally
@@ -15,7 +15,7 @@ interface LoginPromptProps {
 
 const LoginPrompt: React.FC<LoginPromptProps> = ({
   className,
-  message = '登录统一身份认证平台，享受一码通服务',
+  message,
   buttonText = '前往登录',
   onButtonPress,
   isLoading = false,

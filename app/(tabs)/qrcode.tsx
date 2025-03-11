@@ -261,7 +261,7 @@ export default function YiMaTongPage() {
           </Tabs>
         </View>
       ) : (
-        <LoginPrompt />
+        <LoginPrompt message="登录统一身份认证平台，享受一码通服务" />
       )}
     </PageContainer>
   );

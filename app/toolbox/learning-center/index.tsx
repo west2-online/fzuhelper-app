@@ -81,14 +81,14 @@ export default function LearningCenterPage() {
   if (isLoading) {
     return (
       <>
-        <Stack.Screen options={{ title: '学习中心预约' }} />
+        <Stack.Screen options={{ title: '学习中心' }} />
         <Loading />
       </>
     );
   }
   return (
     <>
-      <Stack.Screen options={{ title: '学习中心预约' }} />
+      <Stack.Screen options={{ title: '学习中心' }} />
       <PageContainer>
         {token ? (
           <View className="space-y-4 bg-background px-8 pt-4">
@@ -144,7 +144,7 @@ export default function LearningCenterPage() {
             </View>
           </View>
         ) : (
-          <LoginPrompt />
+          <LoginPrompt message="登录统一身份认证平台，享受学习中心服务" />
         )}
       </PageContainer>
     </>
