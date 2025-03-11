@@ -16,8 +16,7 @@ export default function HistoryPage() {
   const { token } = useLocalSearchParams<{ token: string }>(); // 从路由参数中获取token
   const [page, setPage] = useState(1); // 当前页数
   const [data, setData] = useState<fetchAppointmentsData[]>([]); // 预约记录数据
-  const [isRefreshing, setIsRefreshing] = useState(false); //控制下拉刷新
-  const [isLoading, setIsLoading] = useState(true); // 控制首次加载
+  const [isRefreshing, setIsRefreshing] = useState(true); // 控制刷新状态
   const [isBottom, setIsBottom] = useState(false); // 判断是否请求了所有的数据
 
   const api = useMemo(() => new ApiService(token), [token]);
@@ -50,7 +49,6 @@ export default function HistoryPage() {
         toast.error(`加载数据失败: ${error.message}`);
       } finally {
         setIsRefreshing(false);
-        setIsLoading(false);
       }
     },
     [page, api, isBottom],
@@ -59,9 +57,7 @@ export default function HistoryPage() {
   // 刷新数据
   const refresh = useCallback(async () => {
     setPage(1); // 重置页数
-    setData([]); // 重置数据
     setIsRefreshing(true); // 开启刷新
-    setIsLoading(true); // 开启加载
     setIsBottom(false); // 重置是否到底
     await fetchData(true); // 重新请求数据
   }, [fetchData]);
@@ -71,57 +67,51 @@ export default function HistoryPage() {
     fetchData();
   }, []);
 
-  if (isLoading) {
-    return (
-      <>
-        <Stack.Screen options={{ title: '我的预约' }} />
-        <Loading />
-      </>
-    );
-  }
-
   return (
     <>
       <Stack.Screen options={{ title: '我的预约' }} />
-      {/*  判断首次进入刷新 */}
       <PageContainer className="p-2">
-        <FlatList
-          data={[...data].sort(compareAppointments)}
-          renderItem={({ item }) => (
-            <HistoryAppointmentCard
-              key={item.id}
-              id={item.id}
-              spaceName={item.spaceName}
-              floor={item.floor}
-              date={item.date}
-              beginTime={item.beginTime}
-              endTime={item.endTime}
-              regionName={item.regionName}
-              seatCode={item.seatCode}
-              auditStatus={item.auditStatus}
-              sign={item.sign}
-              onRefresh={refresh}
-            />
-          )}
-          refreshControl={
-            // 下拉刷新
-            <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
-          }
-          onEndReachedThreshold={0.1}
-          onEndReached={() => {
-            setPage(prevPage => prevPage + 1);
-          }}
-          ListEmptyComponent={
-            <View className="flex-1 items-center justify-center">
-              <Text>暂无预约记录</Text>
-            </View>
-          }
-          ListFooterComponent={
-            <View className="mb-5 flex-1 items-center justify-center">
-              <Text>{isBottom ? '已经到底了' : ''}</Text>
-            </View>
-          }
-        />
+        {isRefreshing ? (
+          <Loading />
+        ) : (
+          <FlatList
+            data={[...data].sort(compareAppointments)}
+            renderItem={({ item }) => (
+              <HistoryAppointmentCard
+                key={item.id}
+                id={item.id}
+                spaceName={item.spaceName}
+                floor={item.floor}
+                date={item.date}
+                beginTime={item.beginTime}
+                endTime={item.endTime}
+                regionName={item.regionName}
+                seatCode={item.seatCode}
+                auditStatus={item.auditStatus}
+                sign={item.sign}
+                onRefresh={refresh}
+              />
+            )}
+            refreshControl={
+              // 下拉刷新
+              <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
+            }
+            onEndReachedThreshold={0.1}
+            onEndReached={() => {
+              setPage(prevPage => prevPage + 1);
+            }}
+            ListEmptyComponent={
+              <View className="flex-1 items-center justify-center">
+                <Text>暂无预约记录</Text>
+              </View>
+            }
+            ListFooterComponent={
+              <View className="mb-5 flex-1 items-center justify-center">
+                <Text>{isBottom ? '已经到底了' : ''}</Text>
+              </View>
+            }
+          />
+        )}
       </PageContainer>
     </>
   );
