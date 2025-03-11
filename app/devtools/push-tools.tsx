@@ -97,7 +97,7 @@ export default function PushToolsPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '推送工具', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '推送工具' }} />
 
       <PageContainer>
         <KeyboardAwareScrollView className="h-full" keyboardShouldPersistTaps="handled">

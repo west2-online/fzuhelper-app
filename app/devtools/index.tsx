@@ -98,7 +98,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Developer Tools', headerTransparent: true }} />
+      <Stack.Screen options={{ title: 'Developer Tools' }} />
 
       <PageContainer>
         <KeyboardAwareScrollView className="h-full" keyboardShouldPersistTaps="handled">

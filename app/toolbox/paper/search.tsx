@@ -74,7 +74,7 @@ export default function SearchPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '搜索', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '搜索' }} />
       <PageContainer>
         <Card className="mx-4 mt-4">
           <TextInput

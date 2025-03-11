@@ -20,7 +20,7 @@ export default function GPAPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '绩点排名', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '绩点排名' }} />
       <PageContainer>
         {isLoading ? (
           <Loading />

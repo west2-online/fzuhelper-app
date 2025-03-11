@@ -38,7 +38,7 @@ export default function PersonalInfoListPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '个人信息收集清单', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '个人信息收集清单' }} />
 
       <PageContainer>
         <ScrollView className="flex-1 px-8 pt-8">

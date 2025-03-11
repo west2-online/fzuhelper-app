@@ -67,7 +67,7 @@ export default function PushSettingsPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '推送管理', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '推送管理' }} />
 
       <PageContainer>
         <ScrollView className="flex-1 px-8 pt-8">

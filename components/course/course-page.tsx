@@ -18,6 +18,7 @@ import { deConvertSemester, getFirstDateByWeek, getWeeksBySemester } from '@/lib
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 
+import { hasCustomBackground } from '@/lib/appearance';
 import CourseWeek from './course-week';
 
 interface CoursePageProps {
@@ -35,6 +36,15 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
   const [schedulesByDays, setSchedulesByDays] = useState<Record<number, ExtendCourse[]>>([]); // 目前的课程数据，按天归类
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
   const [neetForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
+  const [customBackground, setCustomBackground] = useState(false);
+
+  useEffect(() => {
+    const checkBackground = async () => {
+      const result = await hasCustomBackground();
+      setCustomBackground(result);
+    };
+    checkBackground();
+  }, []);
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -178,6 +188,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
       {/* 顶部 Tab 导航栏 */}
       <Tabs.Screen
         options={{
+          // headerStyle: { backgroundColor: customBackground ? 'transparent' : 'background' },
           // eslint-disable-next-line react/no-unstable-nested-components
           headerLeft: () => <Text className="ml-4 text-2xl font-medium">课程表</Text>,
           // eslint-disable-next-line react/no-unstable-nested-components

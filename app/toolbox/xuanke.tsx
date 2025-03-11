@@ -23,7 +23,7 @@ const menuItems: MenuItem[] = [
 export default function AcademicPage() {
   return (
     <>
-      <Stack.Screen options={{ title: '选课', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '选课' }} />
       <PageContainer className="px-8 pt-4">
         {/* 菜单列表 */}
         <View className="space-y-4">

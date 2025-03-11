@@ -76,7 +76,6 @@ export default function PaperPage() {
       <Stack.Screen
         options={{
           title: '历年卷',
-          headerTransparent: true,
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => <SearchButton currentPath={currentPath} papers={currentPapers} />,
         }}

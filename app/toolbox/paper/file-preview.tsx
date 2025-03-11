@@ -162,7 +162,7 @@ export default function FilePreviewPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '文件详情', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '文件详情' }} />
       <PageContainer className="flex-1 items-center justify-between px-10 py-6">
         <View className="mt-24 items-center">
           <FileIcon width={80} height={80} />

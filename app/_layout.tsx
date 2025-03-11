@@ -33,6 +33,7 @@ export default function RootLayout() {
                 screenOptions={{
                   animation: 'ios_from_right',
                   headerTitleAlign: 'center',
+                  headerTransparent: true,
                 }}
               >
                 <Stack.Screen name="/(guest)" />

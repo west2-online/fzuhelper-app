@@ -20,7 +20,7 @@ const menuItems: MenuItem[] = [
 export default function GraduationPage() {
   return (
     <>
-      <Stack.Screen options={{ title: '毕业设计', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '毕业设计' }} />
       <PageContainer className="px-8 pt-4">
         {/* 菜单列表 */}
         <View className="space-y-4">

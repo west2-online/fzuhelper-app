@@ -1,9 +1,8 @@
 import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { Alert, AppState, Platform } from 'react-native';
+import { Alert, AppState, Platform, View } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
-import { BlurView } from 'expo-blur';
 
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
@@ -75,12 +74,12 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           headerTitleAlign: 'center',
-          headerShadowVisible: true,
-          tabBarStyle: { position: 'absolute' },
-          tabBarPosition: 'bottom',
+          headerShadowVisible: false,
           headerTransparent: true,
+          tabBarPosition: 'bottom',
+          tabBarStyle: { position: 'absolute', elevation: 0 },
           // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarBackground: () => <BlurView tint={'default'} intensity={100} className={'absolute'} />,
+          tabBarBackground: () => <View className={'flex-1 bg-background/10'} />,
         }}
       >
         <Tabs.Screen

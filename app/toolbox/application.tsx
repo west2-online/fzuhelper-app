@@ -36,7 +36,7 @@ const menuItems: MenuItem[] = [
 export default function ApplicationPage() {
   return (
     <>
-      <Stack.Screen options={{ title: '各类申请', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '各类申请' }} />
       <PageContainer className="px-8 pt-4">
         {/* 菜单列表 */}
         <View className="space-y-4">

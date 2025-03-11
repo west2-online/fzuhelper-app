@@ -78,7 +78,7 @@ export default function AcademicPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '学业状况', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '学业状况' }} />
       <PageContainer className="p-4">
         {/* 菜单列表 */}
         <View className="mx-4 space-y-4">

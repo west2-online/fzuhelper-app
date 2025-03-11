@@ -22,7 +22,7 @@ const menuItems: MenuItem[] = [
 export default function IDCardPage() {
   return (
     <>
-      <Stack.Screen options={{ title: '学生证与附卡', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '学生证与附卡' }} />
       <PageContainer className="px-8 pt-4">
         {/* 菜单列表 */}
         <View className="space-y-4">

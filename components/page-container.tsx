@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { getBackgroundImage, hasCustomBackground } from '@/lib/appearance';
 import { useBottomTabBarHeight as originalUseBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useHeaderHeight } from '@react-navigation/elements';
+import { useEffect, useState } from 'react';
 
 export type ThemedViewProps = ViewProps;
 
@@ -24,9 +25,19 @@ export function useSafeBottomTabBarHeight(): number {
 export default function PageContainer({ className, ...otherProps }: ThemedViewProps) {
   const bottomTabBarHeight = useSafeBottomTabBarHeight();
   const headerheight = useHeaderHeight();
+  const [customBackground, setCustomBackground] = useState(false);
+
+  useEffect(() => {
+    const checkBackground = async () => {
+      const result = await hasCustomBackground();
+      setCustomBackground(result);
+    };
+    checkBackground();
+  }, []);
+
   return (
     <>
-      {hasCustomBackground() ? (
+      {customBackground ? (
         <ImageBackground source={getBackgroundImage()} className="flex-1">
           <View
             className={cn('flex-1', className)}

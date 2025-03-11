@@ -178,7 +178,7 @@ export default function AcademicPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '课程表设置', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '课程表设置' }} />
 
       <PageContainer>
         <ScrollView className="flex-1 px-8 pt-8">

@@ -100,9 +100,6 @@ export const COURSE_SYMBOLS_MAP = {
   '★': '[二专业]',
 } as const;
 
-// Header 和 TabBar 高度
-export const APP_HEIGHT_KEY = 'app_height';
-
 // for RNR
 // please sync it with values in `global.css`
 export const NAV_THEME = {

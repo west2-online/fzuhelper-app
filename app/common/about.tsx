@@ -60,7 +60,7 @@ export default function AboutPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '关于', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '关于' }} />
 
       <PageContainer>
         <Pressable className="flex items-center p-12" onPress={() => setClickCount(prev => prev + 1)}>

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1CommonContributor } from '@/api/generate';
 import ContributorsDOMComponent from '@/components/dom/contributors';
+import PageContainer from '@/components/page-container';
 import useApiRequest from '@/hooks/useApiRequest';
 
 // 这个页面更多地作为一种测试用途，用于展示 DOM 组件的使用
@@ -16,12 +17,14 @@ export default function Contributors() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '贡献名录', headerTransparent: true }} />
+      <Stack.Screen options={{ title: '贡献名录' }} />
 
-      <SafeAreaView className="h-full w-full" edges={['bottom']}>
-        {/* 在原生端传入 colorScheme，防止出现闪动 */}
-        {data && <ContributorsDOMComponent data={data} colorScheme={colorScheme} />}
-      </SafeAreaView>
+      <PageContainer>
+        <SafeAreaView className="h-full w-full" edges={['bottom']}>
+          {/* 在原生端传入 colorScheme，防止出现闪动 */}
+          {data && <ContributorsDOMComponent data={data} colorScheme={colorScheme} />}
+        </SafeAreaView>
+      </PageContainer>
     </>
   );
 }
