@@ -11,6 +11,7 @@ import { Dimensions } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { ScrollView } from 'react-native-gesture-handler';
 import ImagePicker from 'react-native-image-crop-picker';
+import { toast } from 'sonner-native';
 
 export default function AppearancePage() {
   const selectPicture = useCallback(async () => {
@@ -28,9 +29,11 @@ export default function AppearancePage() {
         ReactNativeBlobUtil.fs
           .mv(image.path, getBackgroundImagePath())
           .then(() => {
+            toast.success('设置成功，重启应用生效');
             console.log('move success');
           })
           .catch(err => {
+            toast.success('设置失败: ' + err);
             console.log('move error', err);
           });
       } catch (err) {
