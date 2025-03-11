@@ -2,31 +2,24 @@ import DateCard from '@/components/learning-center/date-card';
 import TimeCard from '@/components/learning-center/time-card';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import dayjs from 'dayjs';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 
 // 格式化日期
 const formatDate = (date: Date, formatStr: string): string => {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-
   const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-  const weekDay = weekDays[date.getDay()];
+  const dayjsDate = dayjs(date);
 
-  switch (formatStr) {
-    case 'yyyy-MM-dd':
-      return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-    case 'MM/dd':
-      return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-    case 'EEE':
-      return `周${weekDay}`;
-    case 'yyyy年MM月dd日':
-      return `${year}年${month.toString().padStart(2, '0')}月${day.toString().padStart(2, '0')}日`;
-    default:
-      return date.toLocaleDateString();
+  // 如果格式字符串中包含自定义的 "EEE"（周几），需要特殊处理
+  if (formatStr === 'EEE') {
+    const weekDay = weekDays[dayjsDate.day()];
+    return `周${weekDay}`;
   }
+
+  // 使用 dayjs 的格式化功能处理其他格式
+  return dayjsDate.format(formatStr);
 };
 
 // 计算两个时间之间的小时差

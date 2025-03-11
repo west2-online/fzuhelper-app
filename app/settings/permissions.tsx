@@ -43,11 +43,16 @@ export default function AcademicPage() {
   const checkPermission = useCallback(async () => {
     if (Platform.OS === 'android') {
       setAllowNotification(ExpoUmengModule.hasPermission()); // 通知权限
-      checkMultiple([PERMISSIONS.ANDROID.READ_CALENDAR, PERMISSIONS.ANDROID.WRITE_CALENDAR]).then(statues => {
+      checkMultiple([
+        PERMISSIONS.ANDROID.READ_CALENDAR,
+        PERMISSIONS.ANDROID.WRITE_CALENDAR,
+        PERMISSIONS.ANDROID.CAMERA,
+      ]).then(statues => {
         setAllowCalendar(
           statues[PERMISSIONS.ANDROID.READ_CALENDAR] === RESULTS.GRANTED &&
             statues[PERMISSIONS.ANDROID.WRITE_CALENDAR] === RESULTS.GRANTED,
         ); // 日历权限
+        setAllowCamera(statues[PERMISSIONS.ANDROID.CAMERA] === RESULTS.GRANTED); // 相机权限
       });
     } else if (Platform.OS === 'ios') {
       await checkMultiple([PERMISSIONS.IOS.CALENDARS, PERMISSIONS.IOS.CAMERA]).then(statues => {
