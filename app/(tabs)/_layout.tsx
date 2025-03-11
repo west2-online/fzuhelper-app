@@ -69,8 +69,7 @@ export default function TabLayout() {
 
   return (
     <>
-      {/* https://github.com/react-navigation/react-navigation/issues/11347#issuecomment-1740865580 */}
-      <Stack.Screen options={{ headerShown: false, headerBackground: undefined }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <Tabs
         screenOptions={{
           headerTitleAlign: 'center',

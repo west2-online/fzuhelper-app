@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
+import { FlatList, Pressable, View, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { Icon } from '@/components/Icon';
@@ -188,7 +188,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
       {/* 顶部 Tab 导航栏 */}
       <Tabs.Screen
         options={{
-          // headerStyle: { backgroundColor: customBackground ? 'transparent' : 'background' },
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerBackground: !customBackground ? () => <View className="flex-1 bg-card" /> : undefined,
+          // headerStyle: { backgroundColor: customBackground ? 'transparent' :  },
           // eslint-disable-next-line react/no-unstable-nested-components
           headerLeft: () => <Text className="ml-4 text-2xl font-medium">课程表</Text>,
           // eslint-disable-next-line react/no-unstable-nested-components

@@ -17,11 +17,7 @@ const HeaderContainer: React.FC<React.PropsWithChildren<ViewProps>> = ({ childre
 
   return (
     <View
-      className={cn(
-        'flex flex-none flex-row items-center ring-opacity-5',
-        className,
-        customBackground ? '' : 'bg-card shadow',
-      )}
+      className={cn('flex flex-none flex-row items-center', className, customBackground ? '' : 'bg-card')}
       {...props}
     >
       {children}

@@ -44,7 +44,7 @@ export default function AppearancePage() {
       }
       return image;
     });
-  }, []);
+  }, [redirect]);
 
   const restoreDefault = useCallback(async () => {
     try {
@@ -55,7 +55,7 @@ export default function AppearancePage() {
       console.log('error', err);
       toast.error('恢复默认失败: ' + err);
     }
-  }, []);
+  }, [redirect]);
 
   return (
     <>

@@ -13,7 +13,7 @@ export function useSafeBottomTabBarHeight(): number {
   try {
     // 尝试获取 Bottom Tab Bar 的高度
     return originalUseBottomTabBarHeight();
-  } catch (err: any) {
+  } catch {
     // 不做任何处理，直接返回 0
     return 0;
   }
