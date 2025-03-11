@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import dayjs from 'dayjs';
 import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, View } from 'react-native';
@@ -14,22 +15,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
+import { DATETIME_SECOND_FORMAT, LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import YMTLogin, { type IdentifyRespData, type PayCodeRespData } from '@/lib/ymt-login';
 
 const CurrentTime: React.FC = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(dayjs().format(DATETIME_SECOND_FORMAT));
 
   useEffect(() => {
-    const timeInterval = setInterval(() => setCurrentTime(new Date()), 1000);
+    const timeInterval = setInterval(() => setCurrentTime(dayjs().format(DATETIME_SECOND_FORMAT)), 500);
+
     return () => clearInterval(timeInterval);
   }, []);
 
-  return (
-    <Text className="text-sm text-text-secondary">
-      {currentTime.toLocaleDateString()} {currentTime.toLocaleTimeString()}
-    </Text>
-  );
+  return <Text className="text-sm text-text-secondary">{currentTime}</Text>;
 };
 
 interface QRCodeViewProps {
@@ -228,14 +226,14 @@ export default function YiMaTongPage() {
 
                     <View className="flex-row gap-4">
                       <Button onPress={logout} className="width-full flex-5" variant="outline">
-                        <Text className="text-white">退出</Text>
+                        <Text>退出</Text>
                       </Button>
                       <Button
                         onPress={() => refresh(accessToken)}
                         className="width-full flex-1"
                         disabled={isRefreshing}
                       >
-                        <Text className="text-white">{isRefreshing ? '刷新中...' : '刷新'}</Text>
+                        <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
                       </Button>
                     </View>
                   </CardContent>
