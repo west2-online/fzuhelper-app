@@ -126,8 +126,8 @@ export default function CourseAddPage() {
               <Text className="text-lg">名称</Text>
               <Input
                 value={course.name}
-                onChangeText={name => setCourse({ ...course, name })}
-                placeholder="请填写课程全称"
+                onChangeText={name => setCourse(prev => ({ ...prev, name }))}
+                placeholder="课程名称（必填）"
               />
             </View>
 
@@ -135,8 +135,8 @@ export default function CourseAddPage() {
               <Text className="text-lg">教师</Text>
               <Input
                 value={course.teacher}
-                onChangeText={teacher => setCourse({ ...course, teacher })}
-                placeholder="任课教师名称(非必需)"
+                onChangeText={teacher => setCourse(prev => ({ ...prev, teacher }))}
+                placeholder="任课教师名称（选填）"
               />
             </View>
 
@@ -144,8 +144,8 @@ export default function CourseAddPage() {
               <Text className="text-lg">地点</Text>
               <Input
                 value={course.location}
-                onChangeText={location => setCourse({ ...course, location })}
-                placeholder="教学楼+教室号 或具体地点(非必需)"
+                onChangeText={location => setCourse(prev => ({ ...prev, location }))}
+                placeholder="教学楼+教室号，或具体地点（选填）"
               />
             </View>
 
@@ -160,7 +160,7 @@ export default function CourseAddPage() {
               <View className="flex-row items-center justify-between px-2">
                 <View className="mx-2 flex-1 items-end">
                   <Entry
-                    text={course.startClass ? `第${course.startClass}节` : '未知'}
+                    text={course.startClass ? `第 ${course.startClass} 节` : '未知'}
                     placeholder="选择开始节"
                     onPress={() => {
                       setPickerClassType('startClass');
@@ -171,7 +171,7 @@ export default function CourseAddPage() {
                 <Text className="mx-2 text-lg text-text-secondary">至</Text>
                 <View className="mx-2 flex-1">
                   <Entry
-                    text={course.endClass ? `第${course.endClass}节` : '未知'}
+                    text={course.endClass ? `第 ${course.endClass} 节` : '未知'}
                     placeholder="选择结束节"
                     onPress={() => {
                       setPickerClassType('endClass');
@@ -187,7 +187,7 @@ export default function CourseAddPage() {
               <View className="flex-row items-center justify-between px-2">
                 <View className="mx-2 flex-1 items-end">
                   <Entry
-                    text={course.startClass ? `第${course.startWeek}周` : '未知'}
+                    text={course.startClass ? `第 ${course.startWeek} 周` : '未知'}
                     placeholder="选择开始节"
                     onPress={() => {
                       setPickerWeekType('startWeek');
@@ -198,7 +198,7 @@ export default function CourseAddPage() {
                 <Text className="mx-2 text-lg text-text-secondary">至</Text>
                 <View className="mx-2 flex-1">
                   <Entry
-                    text={course.endClass ? `第${course.endWeek}周` : '未知'}
+                    text={course.endClass ? `第 ${course.endWeek} 周` : '未知'}
                     placeholder="选择结束周"
                     onPress={() => {
                       setPickerWeekType('endWeek');
@@ -216,11 +216,11 @@ export default function CourseAddPage() {
                 selectedValue={course.single && course.double ? 'both' : course.single ? 'single' : 'double'}
                 onChange={value => {
                   if (value === 'both') {
-                    setCourse({ ...course, single: true, double: true });
+                    setCourse(prev => ({ ...prev, single: true, double: true }));
                   } else if (value === 'single') {
-                    setCourse({ ...course, single: true, double: false });
+                    setCourse(prev => ({ ...prev, single: true, double: false }));
                   } else if (value === 'double') {
-                    setCourse({ ...course, single: false, double: true });
+                    setCourse(prev => ({ ...prev, single: false, double: true }));
                   }
                 }}
               />
@@ -231,7 +231,7 @@ export default function CourseAddPage() {
               <ColorRadioButton
                 options={COLOR_OPTIONS}
                 selectedValue={course.color} // 当前选中的颜色值
-                onChange={newColor => setCourse({ ...course, color: newColor })} // 更新课程颜色
+                onChange={newColor => setCourse(prev => ({ ...prev, color: newColor }))} // 更新课程颜色
               />
             </View>
 
@@ -239,8 +239,8 @@ export default function CourseAddPage() {
               <Text className="text-lg">备注</Text>
               <Input
                 value={course.remark}
-                onChangeText={newRemark => setCourse({ ...course, remark: newRemark })}
-                placeholder="对这门课的个人备注(非必需)"
+                onChangeText={newRemark => setCourse(prev => ({ ...prev, remark: newRemark }))}
+                placeholder="对这门课的个人备注（选填）"
               />
             </View>
 
@@ -251,7 +251,7 @@ export default function CourseAddPage() {
               value={course.weekday} // 当前选中的值
               onClose={() => setWeekDayPickerVisible(false)}
               onConfirm={selectedValue => {
-                setCourse({ ...course, weekday: selectedValue });
+                setCourse(prev => ({ ...prev, weekday: selectedValue }));
                 setWeekDayPickerVisible(false);
               }}
             />
@@ -261,15 +261,15 @@ export default function CourseAddPage() {
               title={`选择${pickerClassType === 'startClass' ? '开始节' : '结束节'}`}
               data={Array.from({ length: 11 }, (_, i) => ({
                 value: i + 1,
-                label: `第${i + 1}节`,
+                label: `第 ${i + 1} 节`,
               }))}
               value={pickerClassType === 'startClass' ? course.startClass : course.endClass}
               onClose={() => setClassPickerVisible(false)}
               onConfirm={selectedValue => {
                 if (pickerClassType === 'startClass') {
-                  setCourse({ ...course, startClass: selectedValue });
+                  setCourse(prev => ({ ...prev, startClass: selectedValue }));
                 } else if (pickerClassType === 'endClass') {
-                  setCourse({ ...course, endClass: selectedValue });
+                  setCourse(prev => ({ ...prev, endClass: selectedValue }));
                 }
                 setClassPickerVisible(false);
               }}
@@ -280,15 +280,15 @@ export default function CourseAddPage() {
               title={`选择${pickerWeekType === 'startWeek' ? '开始周' : '结束周'}`}
               data={Array.from({ length: 22 }, (_, i) => ({
                 value: i + 1,
-                label: `第${i + 1}周`,
+                label: `第 ${i + 1} 周`,
               }))}
               value={pickerWeekType === 'startWeek' ? course.startWeek : course.endWeek}
               onClose={() => setWeekPickerVisible(false)}
               onConfirm={selectedValue => {
                 if (pickerWeekType === 'startWeek') {
-                  setCourse({ ...course, startWeek: selectedValue });
+                  setCourse(prev => ({ ...prev, startWeek: selectedValue }));
                 } else if (pickerWeekType === 'endWeek') {
-                  setCourse({ ...course, endWeek: selectedValue });
+                  setCourse(prev => ({ ...prev, endWeek: selectedValue }));
                 }
                 setWeekPickerVisible(false);
               }}

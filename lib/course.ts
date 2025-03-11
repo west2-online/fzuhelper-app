@@ -227,19 +227,18 @@ export class CourseCache {
         }),
       ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
+    } else if (Platform.OS === 'android') {
+      ExpoWidgetsModule.setWidgetData(
+        JSON.stringify({
+          courseData: this.cachedData,
+          examData: this.cachedExamData,
+          // customData: this.cachedCustomData,
+          startDate: currentTerm.start_date,
+          maxWeek: maxWeek,
+        }),
+        Constants.expoConfig?.android?.package,
+      );
     }
-    // } else if (Platform.OS === 'android') {
-    //   ExpoWidgetsModule.setWidgetData(
-    //     JSON.stringify({
-    //       courseData: this.cachedData,
-    //       examData: this.cachedExamData,
-    //       customData: this.cachedCustomData,
-    //       startDate: currentTerm.start_date,
-    //       maxWeek: maxWeek,
-    //     }),
-    //     Constants.expoConfig?.android?.package,
-    //   );
-    // }
     console.log('Saved cached course data to widget.');
   }
 
