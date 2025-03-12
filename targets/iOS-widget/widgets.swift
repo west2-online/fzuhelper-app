@@ -58,7 +58,7 @@ struct Provider: AppIntentTimelineProvider {
         courseLocation: "本地没有数据",
         courseWeekday: "",
         courseSection: "",
-        courseRemark: "请打开课表设置刷新",
+        courseRemark: "在课表设置刷新",
         courseWeek: -1,
         showUpdateTime: configuration.showLastUpdateTime,
         notCurrentWeek: false
