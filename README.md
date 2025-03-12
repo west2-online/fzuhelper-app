@@ -26,6 +26,10 @@ Before you start, make sure you have [Node.js](https://nodejs.org/), [Yarn](http
 
 Then create an Android Studio emulator, you can follow the instructions in the [Expo documentation](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated).
 
+For convenience, you can set environment variable `APP_VARIANT=development`.
+This will use a different application identifier than the release, which allows for the coexistence of dev and release versions.
+If the environment variable is not set or set to a different value, only the release version of the application identifier will be used.
+
 After you have installed the required software, you can start developing the app.
 
 Clone the repository and install dependencies:
