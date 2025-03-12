@@ -10,6 +10,7 @@ import {
   IOS_APP_GROUP,
 } from '@/lib/constants';
 import { MergedExamData } from '@/types/academic';
+import { randomUUID } from '@/utils/crypto';
 import generateRandomColor, { clearColorMapping, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
 import * as ExpoWidgetsModule from '@bittingz/expo-widgets';
@@ -23,20 +24,31 @@ export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'ra
   JwchCourseListResponse_CourseScheduleRule;
 
 // 对课程类型的拓展，支持颜色等设计，也允许后期进行不断扩充
-export interface ExtendCourse extends ParsedCourse {
+interface ExtendCourseBase extends ParsedCourse {
   id: number; // 我们为每门课程分配一个唯一的 ID，后续可以用于识别
   color: string; // 课程颜色
   priority: number; // 优先级
-  type: number; // 课程类型（0 = 普通课程， 1 = 考试）
 }
+
+export type ExtendCourse = ExtendCourseBase & {
+  type: 0 | 1 | 2; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
+};
+
+export type CustomCourse = ExtendCourseBase & {
+  type: 2;
+  storageKey: string; // 预留给后端的存储 key
+  lastUpdateTime: string; // 最后更新时间
+};
+
+export type CourseInfo = ExtendCourse | CustomCourse;
 
 interface CacheCourseData {
   courseData: Record<number, ExtendCourse[]>; // 课程数据
   courseDigest: string;
   examData: Record<number, ExtendCourse[]>; // 考试数据
   examDigest: string;
-  // DIYData: Record<number, ExtendCourse[]>; // 自定义数据 (未启用)
-  // DIYDigest: string;
+  customData: Record<number, CustomCourse[]>; // 自定义数据
+  customDigest: string;
   lastCourseUpdateTime: string;
   lastExamUpdateTime: string;
   priorityCounter: number;
@@ -50,19 +62,22 @@ export const TOP_CALENDAR_HEIGHT = 72;
 
 export const COURSE_TYPE = 0;
 export const EXAM_TYPE = 1;
+export const CUSTOM_TYPE = 2;
 
 const NO_LOADING_MSG = '未加载';
 const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析时间段
-const MAX_PRIORITY = 10000; // 最大优先级，达到这个优先级后会重新计数
-const EXAM_PRIORITY = 10001; // 考试优先级，我们取巧一下，比最大的优先级还要大
-const DEFAULT_PRIORITY = 1; // 默认优先级
+const MAX_PRIORITY = 10000; // 普通课程最大优先级，达到这个优先级后会重新计数
+const EXAM_PRIORITY = 20002; // 考试优先级，我们取巧一下，比最大的优先级还要大
+export const DEFAULT_PRIORITY = 1; // 默认优先级
 const DEFAULT_STARTID = 1000; // 默认 ID 起始值
 
 export class CourseCache {
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
   private static cachedExamDigest: string | null = null; // 缓存的考试数据的摘要
+  private static cachedCustomDigest: string | null = null; // 缓存的自定义课程数据的摘要
   private static cachedData: Record<number, ExtendCourse[]> | null = null; // 缓存的课程数据
   private static cachedExamData: Record<number, ExtendCourse[]> | null = null; // 缓存的考试数据
+  private static cachedCustomData: Record<number, CustomCourse[]> | null = null; // 缓存的自定义课程数据
   private static priorityCounter: number = DEFAULT_PRIORITY; // 静态优先级计数器，初始值为 1
   private static startID = DEFAULT_STARTID; // 从 1000 开始分配 ID
   private static lastCourseUpdateTime: string = NO_LOADING_MSG;
@@ -112,8 +127,8 @@ export class CourseCache {
   /**
    * 获取缓存数据
    */
-  public static getCachedData(): Record<number, ExtendCourse[]> | null {
-    const mergedData: Record<number, ExtendCourse[]> = {};
+  public static getCachedData(): Record<number, CourseInfo[]> | null {
+    const mergedData: Record<number, CourseInfo[]> = {};
 
     if (!this.cachedData && !this.cachedExamData) {
       return null;
@@ -137,6 +152,15 @@ export class CourseCache {
       }
     }
 
+    // 合并自定义课程数据
+    if (this.cachedCustomData) {
+      for (const [day, customs] of Object.entries(this.cachedCustomData)) {
+        const dayIndex = Number(day);
+        if (!mergedData[dayIndex]) mergedData[dayIndex] = [];
+        mergedData[dayIndex].push(...customs);
+      }
+    }
+
     return mergedData;
   }
 
@@ -153,6 +177,8 @@ export class CourseCache {
     this.cachedData = result.courseData;
     this.cachedExamDigest = result.examDigest;
     this.cachedExamData = result.examData;
+    this.cachedCustomData = result.customData;
+    this.cachedCustomDigest = result.customDigest;
     this.priorityCounter = result.priorityCounter;
     this.lastCourseUpdateTime = result.lastCourseUpdateTime;
     this.lastExamUpdateTime = result.lastExamUpdateTime;
@@ -162,7 +188,7 @@ export class CourseCache {
   /**
    * 保存缓存数据
    */
-  private static async save(): Promise<void> {
+  public static async save(): Promise<void> {
     await AsyncStorage.setItem(
       COURSE_CURRENT_CACHE_KEY,
       JSON.stringify({
@@ -170,10 +196,12 @@ export class CourseCache {
         courseDigest: this.cachedDigest,
         examData: this.cachedExamData,
         examDigest: this.cachedExamDigest,
+        customData: this.cachedCustomData,
+        customDigest: this.cachedCustomDigest,
         priorityCounter: this.priorityCounter,
         lastCourseUpdateTime: this.lastCourseUpdateTime,
         lastExamUpdateTime: this.lastExamUpdateTime,
-      }),
+      } as CacheCourseData),
     );
 
     // 将数据保存到原生共享存储中，以便在小组件中调用
@@ -190,6 +218,7 @@ export class CourseCache {
         JSON.stringify({
           courseData: this.cachedData,
           examData: this.cachedExamData,
+          customData: this.cachedCustomData,
           lastCourseUpdateTime: this.lastCourseUpdateTime,
           lastExamUpdateTime: this.lastExamUpdateTime,
           startDate: currentTerm.start_date,
@@ -202,6 +231,7 @@ export class CourseCache {
         JSON.stringify({
           courseData: this.cachedData,
           examData: this.cachedExamData,
+          customData: this.cachedCustomData,
           startDate: currentTerm.start_date,
           maxWeek: maxWeek,
         }),
@@ -219,6 +249,8 @@ export class CourseCache {
     this.cachedData = null;
     this.cachedExamData = null;
     this.cachedExamDigest = null;
+    this.cachedCustomData = null;
+    this.cachedCustomDigest = null;
     this.lastCourseUpdateTime = NO_LOADING_MSG;
     this.lastExamUpdateTime = NO_LOADING_MSG;
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
@@ -244,6 +276,16 @@ export class CourseCache {
     this.lastExamUpdateTime = NO_LOADING_MSG;
     await this.save();
   }
+
+  /**
+   * 删除自定义课程数据
+   */
+  public static async clearCustomData(): Promise<void> {
+    this.cachedCustomData = null;
+    this.cachedCustomDigest = null;
+    await this.save();
+  }
+
   /**
    * 分配一个新的独立 ID
    * @returns 新的 ID
@@ -254,16 +296,19 @@ export class CourseCache {
 
   /**
    * 设置摘要
-   * @param type - 数据类型 0 = 课程数据，1 = 考试数据
+   * @param type - 数据类型 0 = 课程数据，1 = 考试数据，2 = 自定义数据
    * @param digest - 数据摘要
    */
   public static async setDigest(type: number, digest: string): Promise<void> {
     switch (type) {
-      case 0:
+      case COURSE_TYPE:
         this.cachedDigest = digest;
         break;
-      case 1:
+      case EXAM_TYPE:
         this.cachedExamDigest = digest;
+        break;
+      case CUSTOM_TYPE:
+        this.cachedCustomDigest = digest;
         break;
     }
     await this.save();
@@ -289,6 +334,8 @@ export class CourseCache {
         return this.calculateDigest(data) === this.cachedDigest;
       case EXAM_TYPE:
         return this.calculateDigest(data) === this.cachedExamDigest;
+      case CUSTOM_TYPE:
+        return this.calculateDigest(data) === this.cachedCustomDigest;
       default:
         return false;
     }
@@ -299,26 +346,52 @@ export class CourseCache {
    * @param courseID - 课程 ID
    * @param priority - 优先级
    */
-  public static async setPriority(courseID: number): Promise<void> {
+  public static async setPriority(course: CourseInfo): Promise<void> {
     if (!this.cachedData) {
       return;
     }
 
-    const updatedData = Object.values(this.cachedData).map(day =>
-      day.map(course => {
-        if (course.id === courseID) {
-          console.log(`Set priority for course ${course.name} to ${this.priorityCounter}`);
-          this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
-          return {
-            ...course,
-            priority: this.priorityCounter, // 设置优先级并自增计数器
-          };
-        }
-        return course;
-      }),
-    );
+    switch (course.type) {
+      case COURSE_TYPE:
+        const updatedData = Object.values(this.cachedData).map(day =>
+          day.map(c => {
+            if (c.id === course.id) {
+              console.log(`Set priority for course ${course.name} to ${this.priorityCounter}`);
+              this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
+              return {
+                ...c,
+                priority: this.priorityCounter, // 设置优先级并自增计数器
+              };
+            }
+            return c;
+          }),
+        );
 
-    this.cachedData = updatedData;
+        this.cachedData = updatedData;
+        break;
+      case CUSTOM_TYPE:
+        if (!this.cachedCustomData) {
+          console.log("cachedCustomData is null, this shouldn't happen");
+          return;
+        }
+        const updatedCustomData = Object.values(this.cachedCustomData).map(day =>
+          day.map(c => {
+            if (c.storageKey === course.storageKey) {
+              console.log(`Set priority for custom course ${course.name} to ${this.priorityCounter}`);
+              this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
+              return {
+                ...c,
+                priority: this.priorityCounter, // 设置优先级并自增计数器
+              };
+            }
+            return c;
+          }),
+        );
+
+        this.cachedCustomData = updatedCustomData;
+        break;
+    }
+
     await this.save();
     // 调用 refresh 方法触发页面刷新
     this.refresh();
@@ -421,7 +494,6 @@ export class CourseCache {
   /**
    * 转换课程数据为扩展课程数据
    * @param tempData - 接口返回的数据
-   * @param colorScheme - 当前的配色方案（'dark' 或 'light'）
    * @returns 按天归类的课程数据
    */
   public static setCourses(tempData: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
@@ -449,7 +521,7 @@ export class CourseCache {
       return {
         ...schedule,
         color: courseColorMap[schedule.name],
-        priority: 0, // 默认优先级为 0
+        priority: DEFAULT_PRIORITY, // 默认优先级
         id: this.allocateID(), // 分配一个新的 ID
         type: COURSE_TYPE,
       };
@@ -476,9 +548,101 @@ export class CourseCache {
     this.cachedDigest = currentDigest;
     this.cachedData = groupedData;
 
-    this.save(); // 缓存数据
+    this.save().then(() => this.refresh()); // 缓存数据
 
     return groupedData;
+  }
+
+  /**
+   * 添加自定义课程，每次添加都会保存一次数据
+   * @param course - 自定义课程
+   */
+  public static async addCustomCourse(course: CustomCourse) {
+    if (!this.cachedCustomData) {
+      this.cachedCustomData = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<
+        number,
+        CustomCourse[]
+      >;
+    }
+
+    const newIndex = course.weekday - 1;
+    const newCourse: CustomCourse = {
+      ...course,
+      id: this.allocateID(),
+      storageKey: randomUUID(),
+      lastUpdateTime: new Date().toISOString(),
+    };
+
+    this.cachedCustomData[newIndex].push(newCourse);
+
+    await this.save();
+    this.refresh();
+  }
+
+  /**
+   * 根据 key 获取自定义课程
+   * @param key
+   * @returns 课程数据
+   */
+  public static async getCustomCourse(key: string): Promise<CustomCourse | null> {
+    if (!this.cachedCustomData) {
+      return null;
+    }
+
+    for (const courses of Object.values(this.cachedCustomData)) {
+      for (const course of courses) {
+        if (course.storageKey === key) {
+          return course;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * 更新自定义课程数据
+   * @param course 课程数据
+   */
+  public static async updateCustomCourse(course: CustomCourse): Promise<void> {
+    const key = course.storageKey;
+
+    if (!this.cachedCustomData) {
+      return;
+    }
+
+    const updatedCourse: CustomCourse = {
+      ...course,
+      lastUpdateTime: new Date().toISOString(),
+    };
+
+    // 先删除再添加
+    for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+      this.cachedCustomData[+day] = courses.filter(c => c.storageKey !== key);
+    }
+
+    const newIndex = course.weekday - 1;
+    this.cachedCustomData[newIndex].push(updatedCourse);
+
+    await this.save();
+    this.refresh();
+  }
+
+  /**
+   * 删除自定义课程
+   * @param key 指定的 key
+   */
+  public static async removeCustomCourse(key: string): Promise<void> {
+    if (!this.cachedCustomData) {
+      return;
+    }
+
+    for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+      this.cachedCustomData[+day] = courses.filter(course => course.storageKey !== key);
+    }
+
+    await this.save();
+    this.refresh();
   }
 }
 

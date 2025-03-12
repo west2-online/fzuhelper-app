@@ -1,3 +1,11 @@
+//
+//  CourseDataHandler.swift
+//  fzuhelper
+//
+//  Created by 黄骁(ozline) on 2025/3/8.
+//
+//  小组件的样式渲染代码，适用于桌面 Widget
+
 import SwiftUI
 import WidgetKit
 
@@ -50,7 +58,7 @@ struct Provider: AppIntentTimelineProvider {
         courseLocation: "本地没有数据",
         courseWeekday: "",
         courseSection: "",
-        courseRemark: "打开APP加载",
+        courseRemark: "在课表设置刷新",
         courseWeek: -1,
         showUpdateTime: configuration.showLastUpdateTime,
         notCurrentWeek: false
@@ -212,12 +220,10 @@ struct widgetEntryView: View {
 
         // 更新时间信息
         if entry.showUpdateTime {
-          Text(
-            "\(DateFormatter.localizedString(from: entry.date, dateStyle: .short, timeStyle: .short))"
-          )
-          .font(.caption)
-          .foregroundColor(secondaryTextColor)
-          .lineLimit(1)
+            Text(entry.date.formattedWithoutYear())
+                .font(.caption)
+                .foregroundColor(secondaryTextColor)
+                .lineLimit(1)
         }
       }
       .padding()
@@ -266,4 +272,14 @@ extension View {
       return background(backgroundView)
     }
   }
+}
+
+
+// 添加格式化日期的拓展
+extension Date {
+    func formattedWithoutYear() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MM/dd HH:mm" // 自定义日期格式，不包含年份
+        return dateFormatter.string(from: self)
+    }
 }
