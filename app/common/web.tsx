@@ -127,10 +127,9 @@ export default function Web() {
 
         webViewRef.current?.injectJavaScript(getScriptByURL(event.url, colorScheme));
 
-        // 注入后延时 50ms 设置注入完成
         setTimeout(() => {
           setInjectedScript(true);
-        }, 50);
+        }, 200);
       }
     },
     [title, colorScheme],
@@ -141,10 +140,10 @@ export default function Web() {
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
       <Stack.Screen options={{ title: title || webpageTitle }} />
       <PageContainer>
-        {!cookiesSet || !injectedScript ? (
+        {!cookiesSet ? (
           <Loading />
         ) : (
-          <SafeAreaView className="h-full w-full" edges={['bottom']}>
+          <SafeAreaView className="h-full w-full bg-background" edges={['bottom']}>
             {cookiesSet && (
               <WebView
                 source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
@@ -169,6 +168,8 @@ export default function Web() {
                 // 事件处理
                 onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
                 onNavigationStateChange={handleNavigationStateChange}
+                // 当脚本未注入完成时隐藏 WebView
+                className={injectedScript ? 'flex-1' : 'hidden bg-background'}
               />
             )}
           </SafeAreaView>
