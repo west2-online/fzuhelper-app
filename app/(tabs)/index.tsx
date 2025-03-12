@@ -80,7 +80,7 @@ export default function HomePage() {
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置
   // 具体加载课程的逻辑在 CoursePage 组件中
   return config && currentWeek && termsData ? (
-    <PageContainer>
+    <PageContainer refreshBackground>
       <CoursePage config={config} initialWeek={currentWeek} semesterList={termsData.data.data.terms} />
     </PageContainer>
   ) : (
