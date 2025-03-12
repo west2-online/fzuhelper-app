@@ -38,6 +38,7 @@ android {
     defaultConfig {
         versionCode 1
         versionName "0.4.1"
+        consumerProguardFiles 'proguard-rules.pro'
     }
     lintOptions {
         abortOnError false
@@ -60,5 +61,5 @@ dependencies {
     api 'com.umeng.umsdk:xiaomi-push:5.9.9'
     // 华为
     api 'com.umeng.umsdk:huawei-umengaccs:2.1.0'
-    api 'com.huawei.hms:push:6.12.0.300'
+    api 'com.huawei.hms:push:6.13.0.300'
 }
