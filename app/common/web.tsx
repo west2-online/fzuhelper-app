@@ -1,10 +1,11 @@
 import CookieManager from '@react-native-cookies/cookies';
 import { Stack, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform } from 'react-native';
+import { BackHandler, Platform, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
+import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
@@ -15,8 +16,8 @@ import {
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { getScriptByURL } from '@/utils/dom-cleaner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { toast } from 'sonner-native';
 
 export interface WebParams {
   url: string; // URL 地址
@@ -32,8 +33,10 @@ export default function Web() {
   const [webpageTitle, setWebpageTitle] = useState('');
   const [currentUrl, setCurrentUrl] = useState(''); // 当前加载的 URL
   const [cookiesSet, setCookiesSet] = useState(false); // 用于控制 Cookie 设置先于 WebView 加载
+  const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
   const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const setCookies = async () => {
@@ -136,9 +139,15 @@ export default function Web() {
         if (event.title && !title) {
           setWebpageTitle(event.title); // 只有在没有传递 title 参数时才更新标题
         }
+
+        webViewRef.current?.injectJavaScript(getScriptByURL(event.url, colorScheme));
+
+        setTimeout(() => {
+          setInjectedScript(true);
+        }, 200);
       }
     },
-    [title],
+    [title, colorScheme],
   );
 
   return (
@@ -149,7 +158,7 @@ export default function Web() {
         {!cookiesSet ? (
           <Loading />
         ) : (
-          <SafeAreaView className="h-full w-full" edges={['bottom']}>
+          <SafeAreaView className="h-full w-full bg-background" edges={['bottom']}>
             {cookiesSet && (
               <WebView
                 source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
@@ -174,6 +183,8 @@ export default function Web() {
                 // 事件处理
                 onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
                 onNavigationStateChange={handleNavigationStateChange}
+                // 当脚本未注入完成时隐藏 WebView
+                className={injectedScript ? 'flex-1' : 'hidden bg-background'}
               />
             )}
           </SafeAreaView>
