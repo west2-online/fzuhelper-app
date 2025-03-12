@@ -45,9 +45,9 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
   }, [schedule.lessonplan, closeDialog]);
 
   const setPriority = useCallback(
-    (index: number) => {
+    (course: CourseInfo) => {
       closeDialog();
-      CourseCache.setPriority(index);
+      CourseCache.setPriority(course);
     },
     [closeDialog],
   );
@@ -132,11 +132,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text className="text-primary">授课计划</Text>
                     </Button>
                   )}
-                  {schedules.length > 1 && scheduleIndex > 0 && (
-                    <Button variant="link" onPress={() => setPriority(schedule.id)}>
-                      <Text className="text-primary">优先显示</Text>
-                    </Button>
-                  )}
+
                   {schedule.type === CUSTOM_TYPE && (
                     <>
                       <Link
@@ -173,6 +169,11 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                         <Text className="text-primary">删除</Text>
                       </Button>
                     </>
+                  )}
+                  {schedules.length > 1 && scheduleIndex > 0 && (
+                    <Button variant="link" onPress={() => setPriority(schedule)}>
+                      <Text className="text-primary">优先显示</Text>
+                    </Button>
                   )}
                 </View>
               </View>

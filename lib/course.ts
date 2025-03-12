@@ -47,7 +47,7 @@ interface CacheCourseData {
   courseDigest: string;
   examData: Record<number, ExtendCourse[]>; // 考试数据
   examDigest: string;
-  customData: Record<number, CustomCourse[]>; // 自定义数据 (未启用)
+  customData: Record<number, CustomCourse[]>; // 自定义数据
   customDigest: string;
   lastCourseUpdateTime: string;
   lastExamUpdateTime: string;
@@ -346,26 +346,52 @@ export class CourseCache {
    * @param courseID - 课程 ID
    * @param priority - 优先级
    */
-  public static async setPriority(courseID: number): Promise<void> {
+  public static async setPriority(course: CourseInfo): Promise<void> {
     if (!this.cachedData) {
       return;
     }
 
-    const updatedData = Object.values(this.cachedData).map(day =>
-      day.map(course => {
-        if (course.id === courseID) {
-          console.log(`Set priority for course ${course.name} to ${this.priorityCounter}`);
-          this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
-          return {
-            ...course,
-            priority: this.priorityCounter, // 设置优先级并自增计数器
-          };
-        }
-        return course;
-      }),
-    );
+    switch (course.type) {
+      case COURSE_TYPE:
+        const updatedData = Object.values(this.cachedData).map(day =>
+          day.map(c => {
+            if (c.id === course.id) {
+              console.log(`Set priority for course ${course.name} to ${this.priorityCounter}`);
+              this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
+              return {
+                ...c,
+                priority: this.priorityCounter, // 设置优先级并自增计数器
+              };
+            }
+            return c;
+          }),
+        );
 
-    this.cachedData = updatedData;
+        this.cachedData = updatedData;
+        break;
+      case CUSTOM_TYPE:
+        if (!this.cachedCustomData) {
+          console.log("cachedCustomData is null, this shouldn't happen");
+          return;
+        }
+        const updatedCustomData = Object.values(this.cachedCustomData).map(day =>
+          day.map(c => {
+            if (c.storageKey === course.storageKey) {
+              console.log(`Set priority for custom course ${course.name} to ${this.priorityCounter}`);
+              this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
+              return {
+                ...c,
+                priority: this.priorityCounter, // 设置优先级并自增计数器
+              };
+            }
+            return c;
+          }),
+        );
+
+        this.cachedCustomData = updatedCustomData;
+        break;
+    }
+
     await this.save();
     // 调用 refresh 方法触发页面刷新
     this.refresh();
@@ -533,15 +559,13 @@ export class CourseCache {
    */
   public static async addCustomCourse(course: CustomCourse) {
     if (!this.cachedCustomData) {
-      this.cachedCustomData = {};
+      this.cachedCustomData = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<
+        number,
+        CustomCourse[]
+      >;
     }
 
     const newIndex = course.weekday - 1;
-
-    if (!this.cachedCustomData[newIndex]) {
-      this.cachedCustomData[newIndex] = [];
-    }
-
     const newCourse: CustomCourse = {
       ...course,
       id: this.allocateID(),
@@ -598,11 +622,6 @@ export class CourseCache {
     }
 
     const newIndex = course.weekday - 1;
-
-    if (!this.cachedCustomData[newIndex]) {
-      this.cachedCustomData[newIndex] = [];
-    }
-
     this.cachedCustomData[newIndex].push(updatedCourse);
 
     await this.save();
