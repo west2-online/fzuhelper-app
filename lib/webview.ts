@@ -27,6 +27,7 @@ export function getWebViewHrefSSO(url: string, title: string | undefined = undef
     sso: true,
     title: title, // 页面标题（可选）
   };
+  return getWebViewHref(params);
 }
 
 export function getWebViewHrefNormal(url: string, title: string | undefined = undefined): Href {

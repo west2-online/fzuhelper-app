@@ -8,8 +8,14 @@ import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-web
 
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
-import { JWCH_COOKIES_DOMAIN, YJSY_COOKIES_DOMAIN } from '@/lib/constants';
+import {
+  JWCH_COOKIES_DOMAIN,
+  SSO_LOGIN_COOKIE_DOMAIN,
+  SSO_LOGIN_COOKIE_KEY,
+  YJSY_COOKIES_DOMAIN,
+} from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { toast } from 'sonner-native';
 
 export interface WebParams {
@@ -81,11 +87,15 @@ export default function Web() {
 
       // 统一身份认证 Cookie
       if (sso) {
+        const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
+        if (SSOCookie) {
+          SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+        }
       }
       setCookiesSet(true);
     };
     setCookies();
-  }, [jwch, url]);
+  }, [jwch, url, sso]);
 
   // 处理 Android 返回键
   useEffect(() => {
