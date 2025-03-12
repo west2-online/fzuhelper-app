@@ -78,8 +78,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
         if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
           queryTerm = deConvertSemester(term);
         }
-
-        console.log('queryTerm:', queryTerm);
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, queryTerm],
           () => getApiV1JwchCourseList({ term: queryTerm, is_refresh: false }),
@@ -180,8 +178,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
       })),
     [maxWeek],
   );
-
-  console.log(schedulesByDays);
 
   return !cacheInitialized || neetForceFetch ? (
     <Loading />

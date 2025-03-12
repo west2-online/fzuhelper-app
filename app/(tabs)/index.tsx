@@ -69,7 +69,15 @@ export default function HomePage() {
     if (!cacheInitialized) {
       const initializeCache = async () => {
         await CourseCache.load(); // 加载缓存数据
-        await NotificationManager.register(); // 初始化通知
+        // 将 NotificationManager.register 放到后台运行
+        setTimeout(async () => {
+          try {
+            await NotificationManager.register(); // 初始化通知
+            console.log('NotificationManager registered successfully.');
+          } catch (error) {
+            console.error('Failed to register NotificationManager:', error);
+          }
+        }, 0); // 推到事件循环的下一轮，避免阻塞
         setCacheInitialized(true); // 设置缓存已初始化
       };
       initializeCache();
