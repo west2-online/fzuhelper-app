@@ -28,6 +28,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.android.agoo.huawei.HuaWeiRegister
+import org.android.agoo.xiaomi.MiPushRegistar
 
 class ExpoUmengModule : Module() {
     private var initialized = false
@@ -93,6 +95,14 @@ class ExpoUmengModule : Module() {
                         }
                     }
                 PushAgent.getInstance(context).notificationClickHandler = notificationClickHandler
+
+                MiPushRegistar.register(
+                    context,
+                    metadata.getString("MIPUSH_APPID"),
+                    metadata.getString("MIPUSH_APPKEY"),
+                    false
+                )
+                HuaWeiRegister.register(context)
 
                 initialized = true
             }

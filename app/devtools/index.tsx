@@ -13,8 +13,6 @@ import { Link, Stack } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { toast } from 'sonner-native';
 
-const NAVIGATION_TITLE = 'Developer Tools';
-
 export default function HomePage() {
   const login = new UserLogin();
   const testValidateCodeVerify = async () => {
@@ -100,7 +98,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
+      <Stack.Screen options={{ title: 'Developer Tools' }} />
 
       <PageContainer>
         <KeyboardAwareScrollView className="h-full" keyboardShouldPersistTaps="handled">
@@ -114,6 +112,11 @@ export default function HomePage() {
           <Link href="/devtools/push-tools" asChild>
             <Button>
               <Text>Push Tools</Text>
+            </Button>
+          </Link>
+          <Link href="/devtools/learning-center-api" asChild>
+            <Button>
+              <Text>Learning Center API</Text>
             </Button>
           </Link>
 

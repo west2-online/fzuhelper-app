@@ -41,7 +41,7 @@ export default function Breadcrumb({ currentPath, setCurrentPath }: BreadcrumbPr
       ref={flatListRef}
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="h-16 flex-grow-0 bg-background"
+      className="h-16 flex-grow-0"
       contentContainerClassName="px-3"
       data={breadcrumbs}
       renderItem={({ item, index }) => {

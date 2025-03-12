@@ -32,7 +32,7 @@ export default function CreditsPage() {
       {isLoading ? (
         <Loading />
       ) : (
-        <PageContainer className="bg-background">
+        <PageContainer>
           <ScrollView
             className="flex-1 p-4"
             refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}

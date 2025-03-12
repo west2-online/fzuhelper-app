@@ -9,6 +9,7 @@ import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
+import LoginPrompt from '@/components/sso-login-prompt';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -260,14 +261,7 @@ export default function YiMaTongPage() {
           </Tabs>
         </View>
       ) : (
-        <View className="flex-1 items-center justify-center gap-10">
-          <Text className="text-lg">登录统一身份认证平台，享受一码通服务</Text>
-          <Link href="/unified-auth-login" asChild>
-            <Button className="w-1/2">
-              <Text className="text-white">前往登录</Text>
-            </Button>
-          </Link>
-        </View>
+        <LoginPrompt message="登录统一身份认证平台，享受一码通服务" />
       )}
     </PageContainer>
   );

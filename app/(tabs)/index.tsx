@@ -7,10 +7,12 @@ import Loading from '@/components/loading';
 
 import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
+import PageContainer from '@/components/page-container';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
 import { CourseCache, normalizeCourseSetting } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
+import { NotificationManager } from '@/lib/notification';
 
 export default function HomePage() {
   const [config, setConfig] = useState<CourseSetting | null>(null); // 课程设置
@@ -26,7 +28,7 @@ export default function HomePage() {
   });
 
   // loadData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
-  const loadData = useCallback(async () => {
+  const loadConfigAndDateResult = useCallback(async () => {
     // const startTime = Date.now(); // 记录开始时间
 
     const res = await locateDate();
@@ -56,9 +58,10 @@ export default function HomePage() {
   useFocusEffect(
     useCallback(() => {
       if (cacheInitialized) {
-        loadData();
+        loadConfigAndDateResult();
+        // 调用到这里已经经过了开屏页，所以可以注册通知了
       }
-    }, [loadData, cacheInitialized]),
+    }, [loadConfigAndDateResult, cacheInitialized]),
   );
 
   useEffect(() => {
@@ -66,6 +69,7 @@ export default function HomePage() {
     if (!cacheInitialized) {
       const initializeCache = async () => {
         await CourseCache.load(); // 加载缓存数据
+        await NotificationManager.register(); // 初始化通知
         setCacheInitialized(true); // 设置缓存已初始化
       };
       initializeCache();
@@ -76,7 +80,9 @@ export default function HomePage() {
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置
   // 具体加载课程的逻辑在 CoursePage 组件中
   return config && currentWeek && termsData ? (
-    <CoursePage config={config} initialWeek={currentWeek} semesterList={termsData.data.data.terms} />
+    <PageContainer>
+      <CoursePage config={config} initialWeek={currentWeek} semesterList={termsData.data.data.terms} />
+    </PageContainer>
   ) : (
     <Loading />
   );

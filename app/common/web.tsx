@@ -7,6 +7,7 @@ import { WebView } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
 
 import Loading from '@/components/loading';
+import PageContainer from '@/components/page-container';
 import { JWCH_COOKIES_DOMAIN, YJSY_COOKIES_DOMAIN } from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { toast } from 'sonner-native';
@@ -129,38 +130,40 @@ export default function Web() {
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
       <Stack.Screen options={{ title: title || webpageTitle }} />
-      {!cookiesSet ? (
-        <Loading />
-      ) : (
-        <SafeAreaView className="h-full w-full" edges={['bottom']}>
-          {cookiesSet && (
-            <WebView
-              source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
-              ref={webViewRef}
-              sharedCookiesEnabled
-              cacheEnabled // 启用缓存
-              cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
-              javaScriptEnabled // 确保启用 JavaScript
-              //
-              // Android 平台设置
-              onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回（Android）
-              scalesPageToFit // 启用页面缩放（Android）
-              renderToHardwareTextureAndroid // 启用硬件加速（Android）
-              setDisplayZoomControls={false} // 隐藏缩放控件图标（Android）
-              setBuiltInZoomControls // 启用内置缩放控件（Android）
-              //
-              // iOS 平台设置
-              allowsBackForwardNavigationGestures // 启用手势返回（iOS）
-              contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小（iOS）
-              allowsInlineMediaPlayback // 允许内联播放媒体（iOS）
-              //
-              // 事件处理
-              onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
-              onNavigationStateChange={handleNavigationStateChange}
-            />
-          )}
-        </SafeAreaView>
-      )}
+      <PageContainer>
+        {!cookiesSet ? (
+          <Loading />
+        ) : (
+          <SafeAreaView className="h-full w-full" edges={['bottom']}>
+            {cookiesSet && (
+              <WebView
+                source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
+                ref={webViewRef}
+                sharedCookiesEnabled
+                cacheEnabled // 启用缓存
+                cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
+                javaScriptEnabled // 确保启用 JavaScript
+                //
+                // Android 平台设置
+                onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回（Android）
+                scalesPageToFit // 启用页面缩放（Android）
+                renderToHardwareTextureAndroid // 启用硬件加速（Android）
+                setDisplayZoomControls={false} // 隐藏缩放控件图标（Android）
+                setBuiltInZoomControls // 启用内置缩放控件（Android）
+                //
+                // iOS 平台设置
+                allowsBackForwardNavigationGestures // 启用手势返回（iOS）
+                contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小（iOS）
+                allowsInlineMediaPlayback // 允许内联播放媒体（iOS）
+                //
+                // 事件处理
+                onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
+                onNavigationStateChange={handleNavigationStateChange}
+              />
+            )}
+          </SafeAreaView>
+        )}
+      </PageContainer>
     </>
   );
 }
