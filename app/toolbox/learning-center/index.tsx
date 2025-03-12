@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import LabelEntry from '@/components/label-entry';
 import Loading from '@/components/loading';
@@ -91,7 +91,7 @@ export default function LearningCenterPage() {
       <Stack.Screen options={{ title: '学习中心' }} />
       <PageContainer>
         {token ? (
-          <View className="space-y-4 px-8 pt-4">
+          <ScrollView className="space-y-4 px-8 pt-4">
             {menuItems.map((item, index) => (
               <LabelEntry
                 key={index}
@@ -142,7 +142,7 @@ export default function LearningCenterPage() {
                 6. 学习中心地址：福州大学旗山校区研究生科研楼（晋江楼） 4-5 层
               </Text>
             </View>
-          </View>
+          </ScrollView>
         ) : (
           <LoginPrompt message="登录统一身份认证平台，享受学习中心服务" />
         )}
