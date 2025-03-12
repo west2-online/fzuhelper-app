@@ -231,7 +231,7 @@ export class CourseCache {
         JSON.stringify({
           courseData: this.cachedData,
           examData: this.cachedExamData,
-          // customData: this.cachedCustomData,
+          customData: this.cachedCustomData,
           startDate: currentTerm.start_date,
           maxWeek: maxWeek,
         }),
