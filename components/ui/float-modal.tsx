@@ -2,6 +2,7 @@ import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import { Text } from '@/components/ui/text';
 import { Modal, Pressable, View } from 'react-native';
+import {useState} from 'react';
 
 interface FloatModalProps {
   visible: boolean;
@@ -27,6 +28,7 @@ export default function FloatModal({
   className = '',
   contentContainerClassName = '',
 }: FloatModalProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
   return (
     <Modal
       visible={visible}
@@ -50,16 +52,25 @@ export default function FloatModal({
           <View className={`${contentContainerClassName}`}>{children}</View>
 
           {/* 按钮区域 */}
-          <View className="mt-6 flex-row justify-between">
+          {isProcessing ? (<Text className='text-center flex'>正在处理中...</Text>
+          ) : (<View className="mt-6 flex-row justify-between">
             <Pressable onPress={onClose} className="flex-1 items-center p-2">
               <IcCancel className="h-6 w-6" />
             </Pressable>
             {onConfirm && (
-              <Pressable onPress={onConfirm} className="flex-1 items-center p-2">
+              <Pressable onPress={()=> {
+                setIsProcessing(true);
+                try {
+                  onConfirm();
+                } finally {
+                  // setIsProcessing(false);
+                  // 发现不需要再设置为 false，因为 Modal 会被关闭
+                }
+              }} className="flex-1 items-center p-2" disabled={isProcessing}>
                 <IcConfirm className="h-6 w-6" />
               </Pressable>
             )}
-          </View>
+          </View>)}
         </View>
       </View>
     </Modal>

@@ -24,6 +24,7 @@ import { toast } from 'sonner-native';
 export default function AcademicPage() {
   const [isAllowNotification, setAllowNotification] = useState(false); // 通知权限
   const [isAllowCalendar, setAllowCalendar] = useState(false); // 日历权限
+  const [isAllowCamera, setAllowCamera] = useState(false); // 相机权限
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(); // 目前允许的通知内容
   const appState = useRef(AppState.currentState);
 
@@ -42,15 +43,21 @@ export default function AcademicPage() {
   const checkPermission = useCallback(async () => {
     if (Platform.OS === 'android') {
       setAllowNotification(ExpoUmengModule.hasPermission()); // 通知权限
-      checkMultiple([PERMISSIONS.ANDROID.READ_CALENDAR, PERMISSIONS.ANDROID.WRITE_CALENDAR]).then(statues => {
+      checkMultiple([
+        PERMISSIONS.ANDROID.READ_CALENDAR,
+        PERMISSIONS.ANDROID.WRITE_CALENDAR,
+        PERMISSIONS.ANDROID.CAMERA,
+      ]).then(statues => {
         setAllowCalendar(
           statues[PERMISSIONS.ANDROID.READ_CALENDAR] === RESULTS.GRANTED &&
             statues[PERMISSIONS.ANDROID.WRITE_CALENDAR] === RESULTS.GRANTED,
         ); // 日历权限
+        setAllowCamera(statues[PERMISSIONS.ANDROID.CAMERA] === RESULTS.GRANTED); // 相机权限
       });
     } else if (Platform.OS === 'ios') {
-      await checkMultiple([PERMISSIONS.IOS.CALENDARS]).then(statues => {
+      await checkMultiple([PERMISSIONS.IOS.CALENDARS, PERMISSIONS.IOS.CAMERA]).then(statues => {
         setAllowCalendar(statues[PERMISSIONS.IOS.CALENDARS] === RESULTS.GRANTED); // 日历权限
+        setAllowCamera(statues[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED); // 相机权限
       });
 
       await checkNotifications().then(({ status, settings }) => {
@@ -160,6 +167,47 @@ export default function AcademicPage() {
     }
   };
 
+  const handleCameraPermission = () => {
+    if (Platform.OS === 'ios') {
+      if (isAllowCamera) {
+        openApplicationSettings();
+        return;
+      }
+      request(PERMISSIONS.IOS.CAMERA).then(result => {
+        switch (result) {
+          case RESULTS.DENIED:
+            toast.error('您已拒绝了相机权限');
+            break;
+          case RESULTS.UNAVAILABLE:
+            toast.error('当前设备不支持相机权限');
+            break;
+          case RESULTS.BLOCKED:
+            Alert.alert(
+              '提示',
+              '相机权限被手动关闭，需要您手动打开。点击确认跳转设置页',
+              [
+                {
+                  text: '取消',
+                  style: 'cancel', // iOS 上会显示为取消按钮样式
+                },
+                {
+                  text: '去设置',
+                  onPress: openApplicationSettings,
+                },
+              ],
+              { cancelable: true },
+            );
+            break;
+          case RESULTS.GRANTED:
+            setAllowCamera(true);
+            break;
+        }
+      });
+    } else if (Platform.OS === 'android') {
+      openApplicationSettings();
+    }
+  };
+
   return (
     <>
       <Stack.Screen options={{ title: '隐私权限设置' }} />
@@ -184,6 +232,13 @@ export default function AcademicPage() {
               onPress={handleNotificationPermission}
               description="用于推送成绩更新、教务处通知等内容"
               rightText={isAllowNotification ? '已开启' : '未开启'}
+            />
+
+            <LabelEntry
+              leftText="相机权限"
+              onPress={handleCameraPermission}
+              description="用于学习中心扫码签到等功能"
+              rightText={isAllowCamera ? '已开启' : '未开启'}
             />
           </SafeAreaView>
         </ScrollView>

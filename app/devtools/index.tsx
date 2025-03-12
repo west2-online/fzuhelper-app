@@ -114,6 +114,11 @@ export default function HomePage() {
               <Text>Push Tools</Text>
             </Button>
           </Link>
+          <Link href="/devtools/learning-center-api" asChild>
+            <Button>
+              <Text>Learning Center API</Text>
+            </Button>
+          </Link>
 
           {/* Toast 示例 */}
           <Text className="m-3 my-4 text-lg font-bold">Toast</Text>
