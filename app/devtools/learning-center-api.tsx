@@ -1,5 +1,6 @@
 // 用于测试api 的页面
 
+import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
@@ -8,7 +9,7 @@ import ApiService from '@/utils/learning-center/api-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
 // 用于生成符合后端要求的日期格式
 const formatDate = (timestamp: number) => {
@@ -21,10 +22,10 @@ const formatDate = (timestamp: number) => {
 
 export default function LearningCenterApi() {
   const [date, setDate] = useState(formatDate(Date.now() + 24 * 60 * 60 * 3000)); // 初始化为三天后的日期
-  const [beginTime, setStartTime] = useState('22:00'); // 开始时间
-  const [endTime, setEndTime] = useState('23:00'); // 结束时间
-  const [spaceName, setSpaceName] = useState('1');
-  const [floor, setFloor] = useState('4');
+  const [beginTime, setStartTime] = useState(''); // 开始时间
+  const [endTime, setEndTime] = useState(''); // 结束时间
+  const [spaceName, setSpaceName] = useState('');
+  const [floor, setFloor] = useState('');
   const [appointmentID, setAppointmentID] = useState('');
   const [token, setToken] = useState('');
   const api = useMemo(() => new ApiService(token), [token]);
@@ -102,47 +103,85 @@ export default function LearningCenterApi() {
   }, [getToken]);
 
   return (
-    <View>
-      <Stack.Screen options={{ title: '学习中心' }} />
-      <Input value={token} onChangeText={setToken} placeholder="token" />
+    <PageContainer className="p-4">
+      <ScrollView>
+        <Stack.Screen options={{ title: '学习中心', headerTransparent: true }} />
+        <Input value={token} onChangeText={setToken} placeholder="token" className="my-1" />
 
-      <Button onPress={getToken}>
-        <Text>读取本地token</Text>
-      </Button>
+        <Button onPress={getToken} className="my-1">
+          <Text>读取本地token</Text>
+        </Button>
 
-      {/* 测试预约历史 */}
-      <Button onPress={history}>
-        <Text>查询历史记录</Text>
-      </Button>
+        {/* 测试预约历史 */}
+        <Button onPress={history} className="my-1">
+          <Text>查询历史记录</Text>
+        </Button>
 
-      {/* 测试预约功能 */}
-      <Input value={floor} onChangeText={setFloor} placeholder="楼层" keyboardType="numeric" />
-      <Input value={date} onChangeText={setDate} placeholder="日期" keyboardType="numeric" />
-      <Input value={beginTime} onChangeText={setStartTime} placeholder="开始时间" keyboardType="numeric" />
-      <Input value={endTime} onChangeText={setEndTime} placeholder="结束时间" keyboardType="numeric" />
-      <Input value={spaceName} onChangeText={setSpaceName} placeholder="座位号" keyboardType="numeric" />
-      <Button onPress={querySeatStatus}>
-        <Text>
-          查询 {floor} 楼 {date} {beginTime}-{endTime} 的座位
-        </Text>
-      </Button>
-      <Button onPress={order}>
-        <Text>
-          预约 {date} {beginTime}-{endTime} 的 {spaceName}
-        </Text>
-      </Button>
-      {/* 测试签到 */}
-      <Input value={appointmentID} onChangeText={setAppointmentID} placeholder="预约ID" keyboardType="numeric" />
-      <Button onPress={signin}>
-        <Text>测试签到 {appointmentID}</Text>
-      </Button>
+        {/* 测试预约功能 */}
+        <Input
+          value={floor}
+          onChangeText={setFloor}
+          className="my-1"
+          placeholder="楼层(e.g. 4)"
+          keyboardType="numeric"
+        />
+        <Input
+          value={date}
+          onChangeText={setDate}
+          className="my-1"
+          placeholder="日期(e.g. 2025-03-15)"
+          keyboardType="numeric"
+        />
+        <Input
+          value={beginTime}
+          onChangeText={setStartTime}
+          className="my-1"
+          placeholder="开始时间(e.g. 22:00)"
+          keyboardType="numeric"
+        />
+        <Input
+          value={endTime}
+          onChangeText={setEndTime}
+          className="my-1"
+          placeholder="结束时间(e.g. 23:00)"
+          keyboardType="numeric"
+        />
+        <Input
+          value={spaceName}
+          onChangeText={setSpaceName}
+          className="my-1"
+          placeholder="座位号(e.g. 1)"
+          keyboardType="numeric"
+        />
+        <Button onPress={querySeatStatus} className="my-1">
+          <Text>
+            查询 {floor} 楼 {date} {beginTime}-{endTime} 的座位
+          </Text>
+        </Button>
+        <Button onPress={order} className="my-1">
+          <Text>
+            预约 {date} {beginTime}-{endTime} 的 {spaceName}
+          </Text>
+        </Button>
+        {/* 测试签到 */}
+        <Input
+          value={appointmentID}
+          onChangeText={setAppointmentID}
+          className="my-1"
+          placeholder="预约ID"
+          keyboardType="numeric"
+        />
+        <Button onPress={signin} className="my-1">
+          <Text>签到 {appointmentID}</Text>
+        </Button>
 
-      <Button onPress={signout}>
-        <Text>测试签退 {appointmentID}</Text>
-      </Button>
-      <Button onPress={cancel}>
-        <Text>测试取消 {appointmentID}</Text>
-      </Button>
-    </View>
+        <Button onPress={signout} className="my-1">
+          <Text>签退 {appointmentID}</Text>
+        </Button>
+        <Button onPress={cancel} className="my-1">
+          <Text>取消 {appointmentID}</Text>
+        </Button>
+      </ScrollView>
+    </PageContainer>
   );
 }

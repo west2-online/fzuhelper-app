@@ -9,6 +9,7 @@ export function getWebViewHref(params: WebParams): Href {
   };
 }
 
+// 使用教务系统的 Cookie，对于本硕来说都使用 JWCH，会在 WebView 内自动判断是本科还是硕士
 export function getWebViewHrefJWCH(url: string, title: string | undefined = undefined): Href {
   const params: WebParams = {
     url: url,
@@ -17,6 +18,15 @@ export function getWebViewHrefJWCH(url: string, title: string | undefined = unde
   };
 
   return getWebViewHref(params);
+}
+
+// 使用 SSO（统一身份认证）Cookie，这里不区分本硕
+export function getWebViewHrefSSO(url: string, title: string | undefined = undefined): Href {
+  const params: WebParams = {
+    url: url,
+    sso: true,
+    title: title, // 页面标题（可选）
+  };
 }
 
 export function getWebViewHrefNormal(url: string, title: string | undefined = undefined): Href {

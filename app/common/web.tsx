@@ -27,10 +27,11 @@ export default function Web() {
   const [currentUrl, setCurrentUrl] = useState(''); // 当前加载的 URL
   const [cookiesSet, setCookiesSet] = useState(false); // 用于控制 Cookie 设置先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
-  const { url, jwch, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
 
   useEffect(() => {
     const setCookies = async () => {
+      // 教务系统 Cookie
       if (jwch) {
         // 清除 webview cookies
         // await CookieManager.get(JWCH_COOKIES_DOMAIN).then(cookies =>
@@ -76,6 +77,10 @@ export default function Web() {
             ),
           ),
         );
+      }
+
+      // 统一身份认证 Cookie
+      if (sso) {
       }
       setCookiesSet(true);
     };
