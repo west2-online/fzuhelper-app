@@ -38,7 +38,6 @@ export type CustomCourse = ExtendCourseBase & {
   type: 2;
   storageKey: string; // 预留给后端的存储 key
   lastUpdateTime: string; // 最后更新时间
-  isCustom: true;
 };
 
 export type CourseInfo = ExtendCourse | CustomCourse;
