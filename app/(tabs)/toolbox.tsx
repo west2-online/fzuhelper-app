@@ -27,7 +27,7 @@ import { Text } from '@/components/ui/text';
 
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { cn } from '@/lib/utils';
-import { getWebViewHref, pushToWebViewJWCH, pushToWebViewNormal } from '@/lib/webview';
+import { getWebViewHref } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 
 // 工具类型的枚举
