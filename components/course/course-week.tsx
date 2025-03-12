@@ -77,7 +77,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
           <TimeCol height={flatListLayout.height - TOP_CALENDAR_HEIGHT} />
 
           {/* 课程内容 */}
-          <View className="flex flex-1 flex-row bg-background">
+          <View className="flex flex-1 flex-row">
             {Array.from({ length: 7 }, (_, i) => (
               <CalendarCol
                 key={`${startDate}_${i}`}

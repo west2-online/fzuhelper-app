@@ -42,16 +42,16 @@ const TabsTrigger = React.forwardRef<TabsPrimitive.TriggerRef, TabsPrimitive.Tri
             )}
             {...props}
           />
-          
+
           {props.value === value && (
             <>
               {/* 左下角外切圆角 */}
-              <View className="absolute bottom-0 -left-4 w-4 h-4 bg-card" />
-              <View className="absolute bottom-0 -left-4 w-4 h-4 rounded-br-2xl bg-background" />
-              
+              {/* <View className="absolute bottom-0 -left-4 w-4 h-4 bg-card" /> */}
+              {/* <View className="absolute bottom-0 -left-4 w-4 h-4 rounded-br-2xl" /> */}
+
               {/* 右下角外切圆角 */}
-              <View className="absolute bottom-0 -right-4 w-4 h-4 bg-card" />
-              <View className="absolute bottom-0 -right-4 w-4 h-4 rounded-bl-2xl bg-background" />
+              {/* <View className="absolute bottom-0 -right-4 w-4 h-4 bg-card" /> */}
+              {/* <View className="absolute bottom-0 -right-4 w-4 h-4 rounded-bl-2xl" /> */}
             </>
           )}
         </View>

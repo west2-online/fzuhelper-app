@@ -76,7 +76,7 @@ export default function PushSettingsPage() {
       <Stack.Screen options={{ title: '通知推送' }} />
 
       <PageContainer>
-        <ScrollView className="flex-1 bg-background px-8 pt-8">
+        <ScrollView className="flex-1 px-8 pt-8">
           <SafeAreaView edges={['bottom']}>
             <Text className="mb-2 text-sm text-text-secondary">通用</Text>
 
