@@ -93,6 +93,7 @@ export default function AcademicPage() {
 
       await AsyncStorage.setItem([COURSE_DATA_KEY, queryTerm].join('__'), JSON.stringify(cacheToStore));
       CourseCache.setCourses(data.data.data);
+      CourseCache.save(); // 强制保存一次，忽略 SetCourses 的判断
       toast.success('刷新成功');
     } catch (error: any) {
       const data = handleError(error);
