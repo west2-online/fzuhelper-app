@@ -12,30 +12,8 @@ import RadioButton from '@/components/radio-button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
-import { CourseCache, type CustomCourse } from '@/lib/course';
+import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, type CustomCourse } from '@/lib/course';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-
-const DEFAULT_EMPTY_COURSE = {
-  id: -1,
-  name: '',
-  teacher: '',
-  color: '#F39F9D',
-  priority: 1,
-  storageKey: '',
-  lastUpdateTime: '',
-  isCustom: true,
-  location: '',
-  startClass: 1,
-  endClass: 11,
-  startWeek: 1,
-  endWeek: 22,
-  weekday: 1,
-  single: true,
-  double: true,
-  adjust: false,
-  remark: '',
-  type: 2, // 2 为自定义课程
-} as CustomCourse;
 
 const WEEKDAYS = [
   { value: 1, label: '星期一' },
@@ -64,9 +42,30 @@ const COLOR_OPTIONS = [
   { value: '#A4D1A6', color: '#A4D1A6' },
 ];
 
+const DEFAULT_EMPTY_COURSE = {
+  id: -1,
+  name: '',
+  teacher: '',
+  color: COLOR_OPTIONS[0].color,
+  priority: DEFAULT_PRIORITY,
+  storageKey: '',
+  lastUpdateTime: '',
+  location: '',
+  startClass: 1,
+  endClass: 11,
+  startWeek: 1,
+  endWeek: 22,
+  weekday: 1,
+  single: true,
+  double: true,
+  adjust: false,
+  remark: '',
+  type: CUSTOM_TYPE,
+} as CustomCourse;
+
 export default function CourseAddPage() {
   const searchParams = useLocalSearchParams();
-  const id = (searchParams.key as string) ?? '';
+  const key = (searchParams.key as string) ?? '';
 
   const [loaded, setLoaded] = useState(false);
   const [disabled, setDisabled] = useState(false);
@@ -79,16 +78,16 @@ export default function CourseAddPage() {
 
   useEffect(() => {
     setLoaded(false);
-    if (id) {
+    if (key) {
       CourseCache.load().then(async () => {
-        setCourse((await CourseCache.getCustomCourse(id)) || DEFAULT_EMPTY_COURSE);
+        setCourse((await CourseCache.getCustomCourse(key)) || DEFAULT_EMPTY_COURSE);
         setLoaded(true);
       });
     } else {
       setCourse(DEFAULT_EMPTY_COURSE);
       setLoaded(true);
     }
-  }, [id]);
+  }, [key]);
 
   // 保存课程（即添加课程）
   const handleSave = useCallback(async (newCourse: CustomCourse) => {

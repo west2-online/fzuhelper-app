@@ -68,7 +68,7 @@ const NO_LOADING_MSG = '未加载';
 const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析时间段
 const MAX_PRIORITY = 10000; // 普通课程最大优先级，达到这个优先级后会重新计数
 const EXAM_PRIORITY = 20002; // 考试优先级，我们取巧一下，比最大的优先级还要大
-const DEFAULT_PRIORITY = 1; // 默认优先级
+export const DEFAULT_PRIORITY = 1; // 默认优先级
 const DEFAULT_STARTID = 1000; // 默认 ID 起始值
 
 export class CourseCache {
@@ -468,7 +468,6 @@ export class CourseCache {
   /**
    * 转换课程数据为扩展课程数据
    * @param tempData - 接口返回的数据
-   * @param colorScheme - 当前的配色方案（'dark' 或 'light'）
    * @returns 按天归类的课程数据
    */
   public static setCourses(tempData: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
@@ -496,7 +495,7 @@ export class CourseCache {
       return {
         ...schedule,
         color: courseColorMap[schedule.name],
-        priority: 0, // 默认优先级为 0
+        priority: DEFAULT_PRIORITY, // 默认优先级
         id: this.allocateID(), // 分配一个新的 ID
         type: COURSE_TYPE,
       };
@@ -578,7 +577,7 @@ export class CourseCache {
   }
 
   /**
-   * 更新课程数据
+   * 更新自定义课程数据
    * @param course 课程数据
    */
   public static async updateCustomCourse(course: CustomCourse): Promise<void> {
@@ -593,9 +592,18 @@ export class CourseCache {
       lastUpdateTime: new Date().toISOString(),
     };
 
+    // 先删除再添加
     for (const [day, courses] of Object.entries(this.cachedCustomData)) {
-      this.cachedCustomData[+day] = courses.map(c => (c.storageKey === key ? updatedCourse : c));
+      this.cachedCustomData[+day] = courses.filter(c => c.storageKey !== key);
     }
+
+    const newIndex = course.weekday - 1;
+
+    if (!this.cachedCustomData[newIndex]) {
+      this.cachedCustomData[newIndex] = [];
+    }
+
+    this.cachedCustomData[newIndex].push(updatedCourse);
 
     await this.save();
     this.refresh();
