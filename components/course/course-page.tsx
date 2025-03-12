@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
+import { FlatList, Pressable, View, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { Icon } from '@/components/Icon';
@@ -18,6 +18,7 @@ import { deConvertSemester, getFirstDateByWeek, getWeeksBySemester } from '@/lib
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 
+import { hasCustomBackground } from '@/lib/appearance';
 import CourseWeek from './course-week';
 
 interface CoursePageProps {
@@ -35,6 +36,15 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
   const [schedulesByDays, setSchedulesByDays] = useState<Record<number, ExtendCourse[]>>([]); // 目前的课程数据，按天归类
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
   const [neetForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
+  const [customBackground, setCustomBackground] = useState(false);
+
+  useEffect(() => {
+    const checkBackground = async () => {
+      const result = await hasCustomBackground();
+      setCustomBackground(result);
+    };
+    checkBackground();
+  }, []);
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -179,6 +189,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
       <Tabs.Screen
         options={{
           // eslint-disable-next-line react/no-unstable-nested-components
+          headerBackground: !customBackground ? () => <View className="flex-1 bg-card" /> : undefined,
+          // headerStyle: { backgroundColor: customBackground ? 'transparent' :  },
+          // eslint-disable-next-line react/no-unstable-nested-components
           headerLeft: () => <Text className="ml-4 text-2xl font-medium">课程表</Text>,
           // eslint-disable-next-line react/no-unstable-nested-components
           headerTitle: () => (
@@ -225,7 +238,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
           itemVisiblePercentThreshold: 50,
         }}
         showsHorizontalScrollIndicator={false} // 隐藏水平滚动条
-        className="bg-background"
       />
 
       {/* 周数选择器 */}

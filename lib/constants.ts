@@ -13,6 +13,7 @@ export const REFRESH_TOKEN_KEY = 'refresh_token';
 
 // 推送管理
 export const ALLOW_PUSH_EVENT_KEYS = 'allow_push_event';
+export const UMENG_JWCH_PUSH_TAG = 'jwch-notice'; // 友盟教务处通知 Tag
 
 // 用户模型
 export const LOCAL_USER_INFO_KEY = 'local_user_info'; // 本地用户信息
@@ -89,6 +90,9 @@ export const CLASS_BREAK_EVENING = [1050, 1140]; // 17:30 - 19:00
 
 // 考场
 export const EXAM_ROOM_KEY = 'exam_room';
+
+// 成绩
+export const GRADE_LIST_KEY = 'grade_list';
 
 // 历年卷
 export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';

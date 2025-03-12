@@ -88,6 +88,7 @@ const config: ExpoConfig = {
           useLegacyPackaging: true,
           enableProguardInReleaseBuilds: true,
           usesCleartextTraffic: true,
+          extraMavenRepos: ['https://developer.huawei.com/repo/'],
         },
       },
     ],
@@ -115,6 +116,9 @@ const config: ExpoConfig = {
         AndroidAppKey: '5dce696b570df3081900033f', // 发布（正式包名）时需更换
         channel: 'default', // Android渠道号
         msgsec: '2931a731b52ca1457b387bcc22cdff32', // 仅供 Android，iOS 是证书鉴权，具体参考 KeeWeb
+        mipushAppId: '2882303761517633929',
+        mipushAppKey: '5111763312929',
+        hmspushAppId: '100423559',
         // iOS
         iOSAppKey: '679132946d8fdd4ad83ab20e', // 发布（正式包名）时需更换
         bridgingSourcePath: './modules/umeng-bridge/ios/ExpoUmeng-Bridging-Header.h', // (iOS) 源路径（相对于 app.plugin.js 文件）
