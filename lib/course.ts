@@ -189,7 +189,7 @@ export class CourseCache {
   /**
    * 保存缓存数据
    */
-  private static async save(): Promise<void> {
+  public static async save(): Promise<void> {
     await AsyncStorage.setItem(
       COURSE_CURRENT_CACHE_KEY,
       JSON.stringify({

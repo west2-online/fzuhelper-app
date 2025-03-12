@@ -73,11 +73,11 @@ export default function HomePage() {
         setTimeout(async () => {
           try {
             await NotificationManager.register(); // 初始化通知
-            console.log('NotificationManager registered successfully.');
+            console.log('NotificationManager registered end.');
           } catch (error) {
             console.error('Failed to register NotificationManager:', error);
           }
-        }, 0); // 推到事件循环的下一轮，避免阻塞
+        }, 2000); // 延迟注册
         setCacheInitialized(true); // 设置缓存已初始化
       };
       initializeCache();

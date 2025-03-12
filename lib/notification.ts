@@ -83,12 +83,18 @@ export class NotificationManager {
       }
     }
 
+    this.refreshTag(tags);
+  }
+
+  private static async refreshTag(newTags: string[]): Promise<void> {
     const oldTags = (await ExpoUmengModule.getAllTags()).data;
-    await ExpoUmengModule.deleteTags(oldTags); // 删除所有 tags
-    // 注册 tags
-    if (tags.length > 0) {
-      console.log('注册 tags: ', tags);
-      await ExpoUmengModule.addTags(tags);
+    if (oldTags.length > 0) {
+      console.log('删除旧 tags: ', oldTags);
+      await ExpoUmengModule.deleteTags(oldTags);
+    }
+    if (newTags.length > 0) {
+      console.log('注册新 tags: ', newTags);
+      await ExpoUmengModule.addTags(newTags);
     }
   }
 
