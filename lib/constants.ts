@@ -144,3 +144,6 @@ export const TIME_FORMAT = 'HH:mm';
 export const TIME_SECOND_FORMAT = `${TIME_FORMAT}:ss`;
 export const DATETIME_FORMAT = `${DATE_FORMAT} ${TIME_FORMAT}`;
 export const DATETIME_SECOND_FORMAT = `${DATE_FORMAT} ${TIME_SECOND_FORMAT}`;
+
+// 发布通道
+export const RELEASE_CHANNEL_KEY = 'release_channel';

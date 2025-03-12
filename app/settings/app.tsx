@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Stack } from 'expo-router';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -9,13 +9,17 @@ import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
+import LabelSwitch from '@/components/label-switch';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { CourseCache } from '@/lib/course';
 import { LocalUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
+import { useEffect, useState } from 'react';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
+  const [releaseChannel, setReleaseChannel] = useState('release'); // 发布渠道
 
   // 清除数据
   const handleClearData = () => {
@@ -64,6 +68,14 @@ export default function AcademicPage() {
     ]);
   };
 
+  const handleChangeReleaseChannel = () => {
+    setReleaseChannel(prev => (prev === 'release' ? 'beta' : 'release'));
+  };
+
+  useEffect(() => {
+    AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
+  }, [releaseChannel]);
+
   return (
     <>
       <Stack.Screen options={{ title: '设置' }} />
@@ -102,6 +114,14 @@ export default function AcademicPage() {
             {/* <LabelEntry leftText="开发者工具" onPress={() => router.push('/devtools')} /> */}
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">其他</Text>
+
+            {Platform.OS === 'android' && (
+              <LabelSwitch
+                label="加入内测计划"
+                value={releaseChannel === 'beta'}
+                onValueChange={handleChangeReleaseChannel}
+              />
+            )}
 
             <Link href="/common/about" asChild>
               <LabelEntry leftText="关于福uu" />
