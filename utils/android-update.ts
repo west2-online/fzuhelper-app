@@ -1,5 +1,7 @@
 import type { VersionAndroidResponse_Data } from '@/api/backend';
 import { getApiV2VersionAndroid } from '@/api/generate';
+import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
@@ -66,15 +68,19 @@ const showAndroidUpdateDialog = (data: VersionAndroidResponse_Data) => {
   Alert.alert(`发现新版本 ${data.version_name}`, `更新内容：\n\n${data.changelog}`, buttons);
 };
 
+type ReleaseChannelType = 'release' | 'beta';
+
 const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: UpdateCallbacks) => {
   // 判断是否为调试版，是则跳过
   if (__DEV__) {
     console.log('skip update check in debug mode');
     return;
   }
+
   try {
+    const releaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
     const result = await getApiV2VersionAndroid();
-    const config = result.data.data.beta; // 测试期间仅在beta通道更新
+    const config = result.data.data[releaseChannel || 'release']; // 测试期间仅在beta通道更新
 
     if (parseInt(config.version_code, 10) > parseInt(DeviceInfo.getBuildNumber(), 10)) {
       callbacks?.onUpdate?.(config);
