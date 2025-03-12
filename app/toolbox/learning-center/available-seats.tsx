@@ -10,6 +10,7 @@ import { TabFlatList } from '@/components/tab-flatlist';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 
+import PageContainer from '@/components/page-container';
 import ApiService from '@/utils/learning-center/api-service';
 
 // 座位分区表
@@ -175,74 +176,76 @@ export default function AvailableSeatsPage() {
   return (
     <>
       <Stack.Screen options={{ title: '可用座位' }} />
-      <View className="mx-2 my-3 overflow-hidden rounded-2xl">
-        <LearningCenterMap />
-      </View>
+      <PageContainer>
+        <View className="mx-2 my-3 overflow-hidden rounded-2xl">
+          <LearningCenterMap />
+        </View>
 
-      {/* 座位列表 */}
-      {isRefreshing ? (
-        <Loading />
-      ) : (
-        <TabFlatList
-          data={Object.keys(seats).sort()}
-          value={currentTab}
-          onChange={setCurrentTab}
-          flatListOptions={{
-            // TabFlatList的配置项
-            initialNumToRender: 3, // 初始化渲染的tab数量
-          }}
-          renderContent={area => (
-            <View style={{ width: Dimensions.get('window').width }}>
-              <FlatList
-                data={seats[area] || []}
-                removeClippedSubviews={true}
-                renderItem={({ item }) => (
-                  <View style={{ width: itemWidth }}>
-                    <SeatCard spaceName={convertSpaceName(item)} onPress={() => handleSeatPress(item)} />
-                  </View>
-                )}
-                keyExtractor={item => item}
-                numColumns={5}
-                initialNumToRender={50}
-                ListEmptyComponent={ListEmptySeats}
-                columnWrapperStyle={styles.columnWrapper}
-              />
+        {/* 座位列表 */}
+        {isRefreshing ? (
+          <Loading />
+        ) : (
+          <TabFlatList
+            data={Object.keys(seats).sort()}
+            value={currentTab}
+            onChange={setCurrentTab}
+            flatListOptions={{
+              // TabFlatList的配置项
+              initialNumToRender: 3, // 初始化渲染的tab数量
+            }}
+            renderContent={area => (
+              <View style={{ width: Dimensions.get('window').width }}>
+                <FlatList
+                  data={seats[area] || []}
+                  removeClippedSubviews={true}
+                  renderItem={({ item }) => (
+                    <View style={{ width: itemWidth }}>
+                      <SeatCard spaceName={convertSpaceName(item)} onPress={() => handleSeatPress(item)} />
+                    </View>
+                  )}
+                  keyExtractor={item => item}
+                  numColumns={5}
+                  initialNumToRender={50}
+                  ListEmptyComponent={ListEmptySeats}
+                  columnWrapperStyle={styles.columnWrapper}
+                />
+              </View>
+            )}
+          />
+        )}
+
+        {/* 确认预约的浮层 */}
+        {confirmVisible && (
+          <FloatModal
+            visible={confirmVisible}
+            title="确认预约"
+            onClose={() => setConfirmVisible(false)}
+            onConfirm={handleConfirm}
+          >
+            <View className="space-y-8 px-2">
+              {/* 预约信息卡片 */}
+              <View className="rounded-xl p-5">
+                <View className="mb-6">
+                  <Text className="mb-2 text-sm text-primary">预约日期</Text>
+                  <Text className="text-xl font-medium">{date}</Text>
+                </View>
+
+                <View className="mb-6">
+                  <Text className="mb-2 text-sm text-primary">预约时段</Text>
+                  <Text className="text-xl font-medium">
+                    {beginTime} - {endTime}
+                  </Text>
+                </View>
+
+                <View>
+                  <Text className="mb-2 text-sm text-primary">座位号码</Text>
+                  <Text className="text-xl font-medium">{selectedSpace}</Text>
+                </View>
+              </View>
             </View>
-          )}
-        />
-      )}
-
-      {/* 确认预约的浮层 */}
-      {confirmVisible && (
-        <FloatModal
-          visible={confirmVisible}
-          title="确认预约"
-          onClose={() => setConfirmVisible(false)}
-          onConfirm={handleConfirm}
-        >
-          <View className="space-y-8 px-2">
-            {/* 预约信息卡片 */}
-            <View className="rounded-xl p-5">
-              <View className="mb-6">
-                <Text className="mb-2 text-sm text-primary">预约日期</Text>
-                <Text className="text-xl font-medium">{date}</Text>
-              </View>
-
-              <View className="mb-6">
-                <Text className="mb-2 text-sm text-primary">预约时段</Text>
-                <Text className="text-xl font-medium">
-                  {beginTime} - {endTime}
-                </Text>
-              </View>
-
-              <View>
-                <Text className="mb-2 text-sm text-primary">座位号码</Text>
-                <Text className="text-xl font-medium">{selectedSpace}</Text>
-              </View>
-            </View>
-          </View>
-        </FloatModal>
-      )}
+          </FloatModal>
+        )}
+      </PageContainer>
     </>
   );
 }

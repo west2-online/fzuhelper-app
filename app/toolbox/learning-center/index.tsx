@@ -91,7 +91,7 @@ export default function LearningCenterPage() {
       <Stack.Screen options={{ title: '学习中心' }} />
       <PageContainer>
         {token ? (
-          <View className="space-y-4 bg-background px-8 pt-4">
+          <View className="space-y-4 px-8 pt-4">
             {menuItems.map((item, index) => (
               <LabelEntry
                 key={index}
