@@ -1,6 +1,7 @@
+import { BlurView } from 'expo-blur';
 import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { Alert, AppState, Platform, View } from 'react-native';
+import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
 
@@ -78,7 +79,18 @@ export default function TabLayout() {
           tabBarPosition: 'bottom',
           tabBarStyle: { position: 'absolute', elevation: 0 },
           // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarBackground: () => <View className={'flex-1 bg-background/10'} />,
+          tabBarBackground: () =>
+            Platform.OS === 'ios' ? (
+              <BlurView
+                intensity={50}
+                tint="light"
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'transparent', overflow: 'hidden' }}
+              />
+            ) : (
+              // TODO: 目前是使用了 BlurView 来实现毛玻璃效果，但是这个组件在 Android 上会有问题，因此暂时不使用
+              <View className={'flex-1 bg-background/10'} />
+            ),
         }}
       >
         <Tabs.Screen
