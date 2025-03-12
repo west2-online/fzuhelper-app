@@ -11,7 +11,6 @@ import Loading from '@/components/loading';
 import useApiRequest from '@/hooks/useApiRequest';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const NAVIGATION_TITLE = '绩点排名';
 const errorHandler = (data: any) => {
   if (data) toast.error(data.msg || '发生未知错误，请稍后再试');
 };
@@ -21,8 +20,8 @@ export default function GPAPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
-      <PageContainer className="bg-background">
+      <Stack.Screen options={{ title: '绩点排名' }} />
+      <PageContainer>
         {isLoading ? (
           <Loading />
         ) : (

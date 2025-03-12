@@ -9,6 +9,8 @@
 import Foundation
 
 // 数据模型：课程扩展类，请参考我们项目中的 ExtendCourse 类型，不要直接在这边改
+// ExtendCourse 是课程的详细数据结构，用于描述单个课程的所有信息
+// 这个课程信息是不完整的，因为我们不需要其余无用信息
 struct ExtendCourse: Codable {
   let type: Int
   let name: String
@@ -24,9 +26,11 @@ struct ExtendCourse: Codable {
 }
 
 // 数据模型：缓存课程数据，这个结构请参考 @/lib/course.ts 中 save 的数据结构，不要直接在这边改
+// CacheCourseData 是整个课程数据的缓存结构，包括课程、考试、学期信息等
 struct CacheCourseData: Codable {
   let courseData: [Int: [ExtendCourse]]?  // 课程数据：星期几 -> 课程列表
   let examData: [Int: [ExtendCourse]]?  // 考试数据：星期几 -> 考试列表
+  let customData: [Int: [ExtendCourse]]? // 自定义课程
   let startDate: String  // 学期开始日期
   let maxWeek: Int  // 最大周次
   let lastCourseUpdateTime: String  // 课程数据上次更新时间
@@ -105,11 +109,15 @@ func searchNextClassIterative(
   var currentWeekday = classTime.weekday
   var currentSection = classTime.section
 
+  // 聚合课程、考试和自定义课程，这样可以统一查询
+  // 在课表上，这三个结构有些许区别，但是在小组件这边，统一都是 ExtendCourse 这个类型的
   let courseBeans =
     (cacheCourseData.courseData?.values.flatMap { $0 } ?? [])
-    + (cacheCourseData.examData?.values.flatMap { $0 } ?? [])
+  + (cacheCourseData.examData?.values.flatMap { $0 } ?? []) + (
+    cacheCourseData.customData?.values.flatMap { $0 } ?? [])
 
-  // 检查当前时间是否已经超过本周最后一天的最后一节课
+  // 检查当前时间是否是星期天晚上最后一节课之后的，如果是的话直接切到下一周
+  // 注意：currentWeekDay
   if currentWeekday == 6 && currentSection > 11 {
     // 如果是，则直接从下周开始查找
     currentWeek += 1
@@ -117,17 +125,25 @@ func searchNextClassIterative(
     currentSection = 1
   }
 
+  // 只有没超过学期末我们才继续查询
   while currentWeek <= cacheCourseData.maxWeek {
+    // 遍历课程
     for course in courseBeans {
+      // 符合条件: 在开课周内，且当前遍历的节数符合起始课，且符合单双周规则
       if currentWeek >= course.startWeek && currentWeek <= course.endWeek
         && currentWeekday == course.weekday
         && currentSection == course.startClass
+          && (course.single && currentWeek % 2 == 1) || (
+            course.double && currentWeek % 2 == 0
+          )
       {
         return ClassInfo(week: currentWeek, courseBean: course)
       }
     }
 
-    // 更新时间：下一节课
+    // 如果当天还能继续下一节，就到下一节
+    // 否则判断是否在周内，在周内则直接跳到下一天的第一节
+    // 如果不在周内，则跳到下一周的周一
     if currentSection < 11 {
       currentSection += 1
     } else if currentWeekday < 7 {

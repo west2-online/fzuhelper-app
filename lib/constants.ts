@@ -13,6 +13,7 @@ export const REFRESH_TOKEN_KEY = 'refresh_token';
 
 // 推送管理
 export const ALLOW_PUSH_EVENT_KEYS = 'allow_push_event';
+export const UMENG_JWCH_PUSH_TAG = 'jwch-notice'; // 友盟教务处通知 Tag
 
 // 用户模型
 export const LOCAL_USER_INFO_KEY = 'local_user_info'; // 本地用户信息
@@ -31,8 +32,16 @@ export const JWCH_CURRENT_SEMESTER_KEY = 'jwch_current_semester'; // 当前学�
 export const YJSY_COOKIES_DOMAIN = 'https://yjsglxt.fzu.edu.cn'; // YJSY Cookies 域名
 
 // 一码通
+// 以 YMT_ 开头
 export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
 export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
+
+// SSO 登录
+export const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';
+export const SSO_LOGIN_COOKIE_KEY = 'sso_login_cookie';
+
+// 学习空间预约
+export const LEARNING_CENTER_TOKEN_KEY = 'learning_center_token';
 
 // 隐私政策允许情况
 export const IS_PRIVACY_POLICY_AGREED = 'is_privacy_policy_agreed';
@@ -81,6 +90,9 @@ export const CLASS_BREAK_EVENING = [1050, 1140]; // 17:30 - 19:00
 
 // 考场
 export const EXAM_ROOM_KEY = 'exam_room';
+
+// 成绩
+export const GRADE_LIST_KEY = 'grade_list';
 
 // 历年卷
 export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';

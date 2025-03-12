@@ -14,3 +14,5 @@ export async function md5(text: string, bit: 16 | 32) {
 export function base64(text: string) {
   return Buffer.from(text).toString('base64');
 }
+
+export const randomUUID = Crypto.randomUUID;

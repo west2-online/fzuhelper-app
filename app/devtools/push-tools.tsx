@@ -9,8 +9,6 @@ import { StyleSheet, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { toast } from 'sonner-native';
 
-const NAVIGATION_TITLE = '推送工具';
-
 export default function PushToolsPage() {
   const [tagInput, setTagInput] = useState(''); // 用于输入 tag 的状态
 
@@ -99,7 +97,7 @@ export default function PushToolsPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
+      <Stack.Screen options={{ title: '推送工具' }} />
 
       <PageContainer>
         <KeyboardAwareScrollView className="h-full" keyboardShouldPersistTaps="handled">

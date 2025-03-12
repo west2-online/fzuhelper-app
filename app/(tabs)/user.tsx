@@ -108,50 +108,51 @@ export default function HomePage() {
 
   return (
     <>
-      <Tabs.Screen
-        options={{
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => <Icon href="/settings/app" name="settings-outline" size={24} className="mr-4" />,
-        }}
-      />
-
       <PageContainer>
+        <Tabs.Screen
+          options={{
+            // eslint-disable-next-line react/no-unstable-nested-components
+            headerRight: () => <Icon href="/settings/app" name="settings-outline" size={24} className="mr-4" />,
+          }}
+        />
         {/* 用户信息 */}
-        <View className="flex flex-row items-center p-8">
-          <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
-          <View>
-            <Text className="text-xl font-bold">{userInfo.name}</Text>
-            <Text className="mt-2 text-sm text-text-secondary">这是一条签名</Text>
-          </View>
-        </View>
-        <View className="h-full rounded-tr-4xl bg-card px-8">
-          <View className="mt-6">
-            <View className="w-full flex-row justify-between">
-              <Text>{userInfo.college}</Text>
-              <Text>{userInfo.stu_id}</Text>
-            </View>
-            <View className="mt-2 w-full flex-row justify-between">
-              <Text className="text-text-secondary">{termInfo.year + '学年第' + termInfo.term + '学期'}</Text>
-              <Text className="text-text-secondary">第 {termInfo.week} 周</Text>
+        <View>
+          <View className="flex flex-row items-center p-8">
+            <Image source={AvatarDefault} className="mr-6 h-24 w-24 rounded-full" />
+            <View>
+              <Text className="text-xl font-bold">{userInfo.name}</Text>
+              <Text className="mt-2 text-sm text-text-secondary">这是一条签名</Text>
             </View>
           </View>
+          <View className="h-full rounded-tr-4xl bg-card px-8">
+            <View className="mt-6">
+              <View className="w-full flex-row justify-between">
+                <Text>{userInfo.college}</Text>
+                <Text>{userInfo.stu_id}</Text>
+              </View>
+              <View className="mt-2 w-full flex-row justify-between">
+                <Text className="text-text-secondary">{termInfo.year + '学年第' + termInfo.term + '学期'}</Text>
+                <Text className="text-text-secondary">第 {termInfo.week} 周</Text>
+              </View>
+            </View>
 
-          {/* 菜单列表 */}
-          <View className="mt-4 space-y-4">
-            {menuItems.map((item, index) => (
-              <LabelIconEntry
-                key={index}
-                icon={item.icon}
-                label={item.name}
-                onPress={() => {
-                  if (item.link) {
-                    router.push(item.link);
-                  } else {
-                    item.operation && item.operation();
-                  }
-                }}
-              />
-            ))}
+            {/* 菜单列表 */}
+            <View className="mt-4 space-y-4">
+              {menuItems.map((item, index) => (
+                <LabelIconEntry
+                  key={index}
+                  icon={item.icon}
+                  label={item.name}
+                  onPress={() => {
+                    if (item.link) {
+                      router.push(item.link);
+                    } else {
+                      item.operation && item.operation();
+                    }
+                  }}
+                />
+              ))}
+            </View>
           </View>
         </View>
       </PageContainer>
