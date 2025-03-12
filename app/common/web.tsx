@@ -27,6 +27,7 @@ export default function Web() {
   const [webpageTitle, setWebpageTitle] = useState('');
   const [currentUrl, setCurrentUrl] = useState(''); // 当前加载的 URL
   const [cookiesSet, setCookiesSet] = useState(false); // 用于控制 Cookie 设置先于 WebView 加载
+  const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
   const { url, jwch, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const colorScheme = useColorScheme();
@@ -125,6 +126,11 @@ export default function Web() {
         }
 
         webViewRef.current?.injectJavaScript(getScriptByURL(event.url, colorScheme));
+
+        // 注入后延时 50ms 设置注入完成
+        setTimeout(() => {
+          setInjectedScript(true);
+        }, 50);
       }
     },
     [title, colorScheme],
@@ -135,7 +141,7 @@ export default function Web() {
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
       <Stack.Screen options={{ title: title || webpageTitle }} />
       <PageContainer>
-        {!cookiesSet ? (
+        {!cookiesSet || !injectedScript ? (
           <Loading />
         ) : (
           <SafeAreaView className="h-full w-full" edges={['bottom']}>
