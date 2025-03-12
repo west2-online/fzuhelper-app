@@ -1,24 +1,19 @@
+import PageContainer from '@/components/page-container';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useNavigation } from 'expo-router';
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { Stack } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const NAVIGATION_TITLE = 'AsyncStorage List';
 const MAX_LENGTH = 50; // 设置最大长度
 
 export default function HomePage() {
-  const navigation = useNavigation();
   const [storageItems, setStorageItems] = useState<{ key: string; value: string | null; expanded: boolean }[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null); // 当前正在修改的 Key
   const [editingValue, setEditingValue] = useState<string | null>(null); // 当前正在修改的 Value
   const [isModalVisible, setModalVisible] = useState(false); // 控制模态框显示
   const [isAdding, setIsAdding] = useState(false); // 区分新增和编辑模式
   const [inputHeight, setInputHeight] = useState(40); // 初始高度
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: NAVIGATION_TITLE });
-  }, [navigation]);
 
   useEffect(() => {
     const fetchStorageItems = async () => {
@@ -153,14 +148,23 @@ export default function HomePage() {
   // Modal 负责新增和编辑操作
   const renderEditModal = () => (
     <Modal visible={isModalVisible} transparent animationType="fade" onRequestClose={closeModal}>
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>{isAdding ? '新增' : '修改 [' + editingKey + ']'}</Text>
+      <View style={styles.modalContainer} className="bg-background">
+        <View style={styles.modalContent} className="bg-card">
+          <Text style={styles.modalTitle} className="text-primary">
+            {isAdding ? '新增' : '修改 [' + editingKey + ']'}
+          </Text>
           {isAdding && (
-            <TextInput style={styles.input} value={editingKey || ''} onChangeText={setEditingKey} placeholder="Key" />
+            <TextInput
+              style={styles.input}
+              className="text-text-primary"
+              value={editingKey || ''}
+              onChangeText={setEditingKey}
+              placeholder="Key"
+            />
           )}
           {/* Value 输入框，支持多行，动态调整高度 */}
           <TextInput
+            className="text-text-primary"
             style={[styles.input, { height: inputHeight }]} // 动态设置高度
             value={editingValue || ''}
             onChangeText={setEditingValue}
@@ -194,9 +198,11 @@ export default function HomePage() {
         : item.value.substring(0, MAX_LENGTH) + '...';
 
     return (
-      <View style={styles.itemContainer}>
+      <View style={styles.itemContainer} className="bg-card">
         <TouchableOpacity onPress={() => toggleExpand(index)} style={styles.itemTouchable}>
-          <Text style={styles.keyText}>{item.key}</Text>
+          <Text style={styles.keyText} className="text-primary">
+            {item.key}
+          </Text>
           {item.expanded && (
             <View style={styles.buttonContainer}>
               <Button title="删除" onPress={() => deleteItem(item.key)} color="red" />
@@ -204,34 +210,37 @@ export default function HomePage() {
               <Button title="修改" onPress={() => openModal(item.key, item.value)} />
             </View>
           )}
-          <Text style={styles.valueText}>{displayValue}</Text>
+          <Text style={styles.valueText} className="text-text-primary">
+            {displayValue}
+          </Text>
         </TouchableOpacity>
       </View>
     );
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerButtons}>
-        <Button title="新增" onPress={() => openModal(null, null, true)} />
-        <Button title="清空" onPress={clearAll} color="red" />
+    <PageContainer>
+      <Stack.Screen options={{ title: 'AsyncStorage Manager', headerTransparent: true }} />
+      <View style={styles.container} className="flex-1">
+        <View style={styles.headerButtons}>
+          <Button title="新增" onPress={() => openModal(null, null, true)} />
+          <Button title="清空" onPress={clearAll} color="red" />
+        </View>
+        <FlatList
+          data={storageItems.sort((a, b) => a.key.localeCompare(b.key))}
+          keyExtractor={item => item.key}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+        />
+        {renderEditModal()}
       </View>
-      <FlatList
-        data={storageItems}
-        keyExtractor={item => item.key}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-      />
-      {renderEditModal()}
-    </View>
+    </PageContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 16,
-    backgroundColor: '#f9f9f9',
   },
   headerButtons: {
     flexDirection: 'row',
@@ -244,8 +253,6 @@ const styles = StyleSheet.create({
   itemContainer: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    backgroundColor: '#fff',
     borderRadius: 8,
     marginBottom: 10,
     elevation: 2,
@@ -256,11 +263,9 @@ const styles = StyleSheet.create({
   keyText: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: '#333',
   },
   valueText: {
     fontSize: 14,
-    color: '#555',
     marginVertical: 5,
   },
   buttonContainer: {
@@ -272,12 +277,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     width: '80%',
     padding: 20,
-    backgroundColor: '#fff',
     borderRadius: 10,
     elevation: 5,
   },
@@ -288,7 +291,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,

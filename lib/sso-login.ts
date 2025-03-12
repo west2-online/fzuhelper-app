@@ -113,6 +113,7 @@ class SSOLogin {
       formData: data,
     });
     const SOURCEID_TGC = extractKV(resp.headers['Set-Cookie'], 'SOURCEID_TGC');
+
     const cookies = `SOURCEID_TGC=${SOURCEID_TGC}`;
 
     return cookies;

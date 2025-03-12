@@ -9,9 +9,15 @@ import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
-import { JWCH_COOKIES_DOMAIN, YJSY_COOKIES_DOMAIN } from '@/lib/constants';
+import {
+  JWCH_COOKIES_DOMAIN,
+  SSO_LOGIN_COOKIE_DOMAIN,
+  SSO_LOGIN_COOKIE_KEY,
+  YJSY_COOKIES_DOMAIN,
+} from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { getScriptByURL } from '@/utils/dom-cleaner';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface WebParams {
   url: string; // URL 地址
@@ -29,11 +35,12 @@ export default function Web() {
   const [cookiesSet, setCookiesSet] = useState(false); // 用于控制 Cookie 设置先于 WebView 加载
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
-  const { url, jwch, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const colorScheme = useColorScheme();
 
   useEffect(() => {
     const setCookies = async () => {
+      // 教务系统 Cookie
       if (jwch) {
         // 清除 webview cookies
         // await CookieManager.get(JWCH_COOKIES_DOMAIN).then(cookies =>
@@ -80,10 +87,18 @@ export default function Web() {
           ),
         );
       }
+
+      // 统一身份认证 Cookie
+      if (sso) {
+        const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
+        if (SSOCookie) {
+          SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+        }
+      }
       setCookiesSet(true);
     };
     setCookies();
-  }, [jwch, url]);
+  }, [jwch, url, sso]);
 
   // 处理 Android 返回键
   useEffect(() => {
