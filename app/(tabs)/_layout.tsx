@@ -33,7 +33,7 @@ export default function TabLayout() {
     try {
       await getApiV1JwchPing(); // 这里是一个 ping 接口，用来测试服务器是否正常
     } catch (error: any) {
-      const data = handleError(error);
+      const data = handleError(error) as { code: string; message: string };
       if (data) {
         Alert.alert('服务器连接失败', data.message);
       }

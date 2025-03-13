@@ -49,7 +49,8 @@ const UnifiedLoginPage: React.FC = () => {
       console.log('登录SSO成功:', cookies);
       return true;
     } catch (error: any) {
-      const data = handleError(error);
+      // 这个 code 和 msg 是 SSO 提供的，不是我们自己定义的
+      const data = handleError(error) as { code: string; msg: string };
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.msg);
       }
@@ -68,7 +69,7 @@ const UnifiedLoginPage: React.FC = () => {
       ]);
       return true;
     } catch (error: any) {
-      const data = handleError(error);
+      const data = handleError(error) as { code: string; msg: string };
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.msg);
       }

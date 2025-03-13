@@ -66,6 +66,7 @@ export default function LearningCenterPage() {
   // 进入页面时获取token
   useFocusEffect(
     useCallback(() => {
+      setIsLoading(true);
       getToken()
         .then(fetchedToken => {
           setToken(fetchedToken);
@@ -74,7 +75,10 @@ export default function LearningCenterPage() {
         .catch(error => {
           console.error('获取token失败:', error);
           setIsLoading(false);
-          router.push('/(guest)/sso-login');
+          router.replace({
+            pathname: '/(guest)/sso-login',
+            params: { redirectPath: '/toolbox/learning-center' },
+          });
         });
     }, []),
   );
