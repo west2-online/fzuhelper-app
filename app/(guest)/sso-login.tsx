@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Href, Stack, router, useLocalSearchParams } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -33,7 +33,6 @@ const UnifiedLoginPage: React.FC = () => {
   const { handleError } = useSafeResponseSolve();
   const ymtLogin = useRef<YMTLogin | null>(null);
   const ssoLogin = useRef<SSOLogin | null>(null);
-  const { redirectPath } = useLocalSearchParams<{ redirectPath: string }>();
 
   if (!ymtLogin.current) {
     ymtLogin.current = new YMTLogin();
@@ -115,18 +114,10 @@ const UnifiedLoginPage: React.FC = () => {
     const isSSOLogin = handleSSOLogin();
     const isYMTLogin = handleYMTLogin();
     if ((await isSSOLogin) && (await isYMTLogin)) {
-      console.log('redirectPath:', redirectPath);
-      if (redirectPath) {
-        // 如果有重定向路径，直接替换到重定向路径
-        console.log('重定向到:', redirectPath);
-        router.replace(redirectPath as Href);
-      } else {
-        // 否则返回上一页
-        router.back();
-      }
+      router.back();
     }
     setIsLoggingIn(false);
-  }, [isAgree, account, accountPassword, handleSSOLogin, handleYMTLogin, redirectPath]);
+  }, [isAgree, account, accountPassword, handleSSOLogin, handleYMTLogin]);
 
   return (
     <>

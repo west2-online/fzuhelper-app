@@ -17,6 +17,7 @@ import { Text } from '@/components/ui/text';
 
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { DATETIME_SECOND_FORMAT, LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
+import { SSOlogoutAndCleanData as SSOLogout } from '@/lib/sso';
 import YMTLogin, { type IdentifyRespData, type PayCodeRespData } from '@/lib/ymt-login';
 
 const CurrentTime: React.FC = () => {
@@ -65,9 +66,13 @@ export default function YiMaTongPage() {
   const { handleError } = useSafeResponseSolve();
   const [qrWidth, setQrWidth] = useState(0);
 
-  const logoutAndCleanData = useCallback(async () => {
-    await AsyncStorage.multiRemove([YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY]);
+  const SSOlogoutAndCleanData = useCallback(async () => {
+    await SSOLogout();
     setAccessToken(null);
+    setName(null);
+    setPayCodes(undefined);
+    setIdentifyCode(undefined);
+    setLibCodeContent(undefined);
   }, []);
 
   // 刷新支付码和身份码
@@ -96,7 +101,7 @@ export default function YiMaTongPage() {
 
         if (data) {
           if (data.code === 401) {
-            logoutAndCleanData();
+            SSOlogoutAndCleanData();
             toast.info('一码通登录过期，请重新登录');
             return;
           }
@@ -107,7 +112,7 @@ export default function YiMaTongPage() {
         setIsRefreshing(false); // 恢复按钮状态
       }
     },
-    [handleError, logoutAndCleanData],
+    [handleError, SSOlogoutAndCleanData],
   );
 
   // 当 accessToken 变更时，自动刷新
@@ -129,9 +134,9 @@ export default function YiMaTongPage() {
       setLibCodeContent(userid);
     } catch (error) {
       console.error('读取本地数据失败:', error);
-      logoutAndCleanData();
+      SSOlogoutAndCleanData();
     }
-  }, [logoutAndCleanData]);
+  }, [SSOlogoutAndCleanData]);
 
   // 获取焦点时读取本地数据（初始化时，Tab切换时，登录页返回时）
   useFocusEffect(
@@ -159,7 +164,7 @@ export default function YiMaTongPage() {
   const logout = useCallback(() => {
     Alert.alert(
       '确认退出',
-      '您确定要退出吗？',
+      '您确定要退出统一身份认证系统吗？（仅一码通、学习中心等部分功能受影响）',
       [
         {
           text: '取消',
@@ -167,12 +172,12 @@ export default function YiMaTongPage() {
         },
         {
           text: '确定',
-          onPress: logoutAndCleanData,
+          onPress: SSOlogoutAndCleanData,
         },
       ],
       { cancelable: false },
     );
-  }, [logoutAndCleanData]);
+  }, [SSOlogoutAndCleanData]);
 
   return (
     <PageContainer>

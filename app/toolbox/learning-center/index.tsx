@@ -66,6 +66,7 @@ export default function LearningCenterPage() {
   // 进入页面时获取token
   useFocusEffect(
     useCallback(() => {
+      setIsLoading(true);
       getToken()
         .then(fetchedToken => {
           setToken(fetchedToken);

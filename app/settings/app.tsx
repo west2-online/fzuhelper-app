@@ -13,6 +13,7 @@ import LabelSwitch from '@/components/label-switch';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { CourseCache } from '@/lib/course';
+import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
 import { useEffect, useState } from 'react';
@@ -45,7 +46,7 @@ export default function AcademicPage() {
   };
   // 登出
   const handleLogout = () => {
-    Alert.alert('确认退出', '确认要退出登录吗？', [
+    Alert.alert('确认退出', '确认要退出登录吗？(含教务系统、统一身份认证等全部登录内容）', [
       {
         text: '取消',
         style: 'cancel',
@@ -59,6 +60,27 @@ export default function AcademicPage() {
             await LocalUser.clear();
             await AsyncStorage.clear(); // 清空 AsyncStorage
             redirect('/(guest)');
+          } catch (error) {
+            console.error('Error clearing storage:', error);
+            Alert.alert('清理用户数据失败', '无法清理用户数据');
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleSSOLogout = () => {
+    Alert.alert('确认退出', '您确定要退出统一身份认证账户（非教务系统，该账户包含学习中心、一码通等内容）吗？', [
+      {
+        text: '取消',
+        style: 'cancel',
+      },
+      {
+        text: '确定',
+        onPress: async () => {
+          try {
+            await SSOlogoutAndCleanData();
+            toast.success('统一身份认证已退出并清除数据');
           } catch (error) {
             console.error('Error clearing storage:', error);
             Alert.alert('清理用户数据失败', '无法清理用户数据');
@@ -93,7 +115,8 @@ export default function AcademicPage() {
               <LabelEntry leftText="自定义皮肤" />
             </Link>
             <LabelEntry leftText="清除数据" onPress={handleClearData} />
-            <LabelEntry leftText="退出登录" onPress={handleLogout} />
+            <LabelEntry leftText="退出登录(全部)" onPress={handleLogout} />
+            <LabelEntry leftText="退出登录(仅统一身份认证)" onPress={handleSSOLogout} />
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">隐私</Text>
 
