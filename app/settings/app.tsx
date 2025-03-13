@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
-  const [releaseChannel, setReleaseChannel] = useState('release'); // 发布渠道
+  const [releaseChannel, setReleaseChannel] = useState<string | null>(null); // 发布渠道
 
   // 清除数据
   const handleClearData = () => {
@@ -93,6 +93,10 @@ export default function AcademicPage() {
   const handleChangeReleaseChannel = () => {
     setReleaseChannel(prev => (prev === 'release' ? 'beta' : 'release'));
   };
+
+  useEffect(() => {
+    AsyncStorage.getItem(RELEASE_CHANNEL_KEY).then(setReleaseChannel);
+  }, []);
 
   useEffect(() => {
     AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
