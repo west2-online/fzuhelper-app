@@ -43,6 +43,7 @@ export class NotificationManager {
           await requestTrackingPermissionsAsync();
           // 不需要判断授权结果，因为即使用户拒绝了，也不会影响正常使用
         }
+        console.log('Tracking permission status:', status);
       }
       // 避免重复初始化
       ExpoUmengModule.initUmeng();

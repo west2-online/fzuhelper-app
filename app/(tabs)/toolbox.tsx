@@ -1,6 +1,6 @@
 import { Link, useRouter, type Href, type Router } from 'expo-router';
 import { forwardRef, useEffect, useState } from 'react';
-import { Alert, FlatList, Pressable } from 'react-native';
+import { Alert, FlatList, Pressable, useWindowDimensions } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
@@ -16,7 +16,7 @@ import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
 import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
-import StudyCenter from '@/assets/images/toolbox/ic_studycenter.svg';
+import StudyCenterIcon from '@/assets/images/toolbox/ic_studycenter.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
@@ -141,7 +141,7 @@ const DEFAULT_TOOLS: Tool[] = [
   },
   {
     name: '学习中心',
-    icon: StudyCenter,
+    icon: StudyCenterIcon,
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
   },
@@ -197,7 +197,7 @@ const ToolButton = forwardRef<React.ElementRef<typeof Pressable>, ToolButtonProp
     >
       {Icon ? <Icon width="42px" height="42px" /> : null}
       <Text
-        className="w-[50px] text-center align-middle text-text-secondary"
+        className="w-[60px] text-center align-middle text-text-secondary"
         // eslint-disable-next-line react-native/no-inline-styles
         style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
         numberOfLines={1}
@@ -235,6 +235,18 @@ const renderToolButton = (item: Tool, router: Router) => {
 export default function ToolsPage() {
   const { bannerList, toolList } = useToolsPageData();
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+
+  const TOOL_BUTTON_WIDTH = 70; // 每个按钮的宽度（包括间距）
+  const PADDING = 16; // 页面左右边距
+  const MAX_COLUMNS = 5; // 最大列数
+  const MIN_COLUMNS = 1; // 最小列数
+
+  // 计算可用列数
+  const columns = Math.max(
+    MIN_COLUMNS,
+    Math.min(MAX_COLUMNS, Math.floor((screenWidth - PADDING * 2) / TOOL_BUTTON_WIDTH)),
+  );
 
   return (
     <PageContainer className="p-6">
@@ -245,7 +257,7 @@ export default function ToolsPage() {
       <FlatList
         data={toolList}
         keyExtractor={(_, index) => index.toString()}
-        numColumns={5}
+        numColumns={columns} // 使用动态计算的列数
         className="mt-4"
         columnWrapperClassName="justify-between"
         renderItem={({ item }) => renderToolButton(item, router)}
