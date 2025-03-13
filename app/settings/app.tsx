@@ -99,7 +99,7 @@ export default function AcademicPage() {
   }, []);
 
   useEffect(() => {
-    AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
+    if (releaseChannel) AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
   }, [releaseChannel]);
 
   return (
