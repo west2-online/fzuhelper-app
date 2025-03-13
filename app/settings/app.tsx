@@ -91,7 +91,7 @@ export default function AcademicPage() {
   };
 
   const handleChangeReleaseChannel = () => {
-    setReleaseChannel(prev => (prev === 'release' ? 'beta' : 'release'));
+    setReleaseChannel(prev => (prev !== 'beta' ? 'beta' : 'release'));
   };
 
   useEffect(() => {
