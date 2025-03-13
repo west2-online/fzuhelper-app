@@ -18,7 +18,7 @@ const LearningCenterMap = memo(() => {
           className="w-full flex-row overflow-hidden rounded-xl"
         >
           <Image
-            source={require('@/assets/images/toolbox/learning-center/map.jpg')}
+            source={require('@/assets/images/toolbox/learning-center/map.webp')}
             className="aspect-[4022/2475] w-full"
             accessible={true}
             accessibilityLabel="学习中心地图"
@@ -57,7 +57,7 @@ const LearningCenterMap = memo(() => {
               {
                 url: '',
                 props: {
-                  source: require('@/assets/images/toolbox/learning-center/map.jpg'),
+                  source: require('@/assets/images/toolbox/learning-center/map.webp'),
                   styles: {
                     // transform: [{ rotate: '90deg' }], // 旋转图片 90 度 但不知道为什么不生效
                     width: '100%', // 确保宽度填满
