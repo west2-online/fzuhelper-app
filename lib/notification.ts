@@ -5,6 +5,13 @@ import ExpoUmengModule from '@/modules/umeng-bridge';
 import { md5 } from '@/utils/crypto';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 import {
+  PermissionStatus,
+  getTrackingPermissionsAsync,
+  isAvailable,
+  requestTrackingPermissionsAsync,
+} from 'expo-tracking-transparency';
+import { Platform } from 'react-native';
+import {
   ALLOW_PUSH_EVENT_KEYS,
   COURSE_SETTINGS_KEY,
   EXAM_ROOM_KEY,
@@ -27,6 +34,16 @@ export class NotificationManager {
    */
   public static async init() {
     if (!this.hasInit) {
+      // 请求追踪权限，仅限 iOS 且追踪权限可用时，且已经获取过权限
+      // 这个要放在友盟之前，否则弹窗会直接没掉
+      if (Platform.OS === 'ios' && isAvailable()) {
+        // 获取追踪权限状态，如果不是已授权状态，则请求授权
+        const { status } = await getTrackingPermissionsAsync();
+        if (status !== PermissionStatus.GRANTED) {
+          await requestTrackingPermissionsAsync();
+          // 不需要判断授权结果，因为即使用户拒绝了，也不会影响正常使用
+        }
+      }
       // 避免重复初始化
       ExpoUmengModule.initUmeng();
       await this.loadSettings();
