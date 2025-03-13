@@ -125,7 +125,7 @@ const LoginPage: React.FC = () => {
       // 跳转到首页
       redirect('/(tabs)');
     } catch (error: any) {
-      const data = handleError(error);
+      const data = handleError(error) as { code: string; message: string };
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.message);
       }

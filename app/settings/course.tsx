@@ -70,9 +70,9 @@ export default function AcademicPage() {
         selectedSemester: prevSettings.selectedSemester || semesters[0],
       }));
     } catch (error: any) {
-      const data = handleError(error);
+      const data = handleError(error) as { code: string; message: string };
       if (data) {
-        toast.error(data.msg ? data.msg : '未知错误');
+        toast.error(data?.message || '未知错误');
       }
     }
   }, [semesters, handleError]);
@@ -96,10 +96,10 @@ export default function AcademicPage() {
       CourseCache.save(); // 强制保存一次，忽略 SetCourses 的判断
       toast.success('刷新成功');
     } catch (error: any) {
-      const data = handleError(error);
+      const data = handleError(error) as { code: string; message: string };
       console.log(data);
       if (data) {
-        toast.error(data.msg ? data.msg : '未知错误');
+        toast.error(data.message ? data.message : '未知错误');
       }
     } finally {
       setIsRefreshing(false);

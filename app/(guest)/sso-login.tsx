@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, router } from 'expo-router';
+import { Href, Stack, router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -33,6 +33,7 @@ const UnifiedLoginPage: React.FC = () => {
   const { handleError } = useSafeResponseSolve();
   const ymtLogin = useRef<YMTLogin | null>(null);
   const ssoLogin = useRef<SSOLogin | null>(null);
+  const { redirectPath } = useLocalSearchParams<{ redirectPath: string }>();
 
   if (!ymtLogin.current) {
     ymtLogin.current = new YMTLogin();
@@ -49,7 +50,8 @@ const UnifiedLoginPage: React.FC = () => {
       console.log('登录SSO成功:', cookies);
       return true;
     } catch (error: any) {
-      const data = handleError(error);
+      // 这个 code 和 msg 是 SSO 提供的，不是我们自己定义的
+      const data = handleError(error) as { code: string; msg: string };
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.msg);
       }
@@ -68,7 +70,7 @@ const UnifiedLoginPage: React.FC = () => {
       ]);
       return true;
     } catch (error: any) {
-      const data = handleError(error);
+      const data = handleError(error) as { code: string; msg: string };
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.msg);
       }
@@ -113,10 +115,18 @@ const UnifiedLoginPage: React.FC = () => {
     const isSSOLogin = handleSSOLogin();
     const isYMTLogin = handleYMTLogin();
     if ((await isSSOLogin) && (await isYMTLogin)) {
-      router.back();
+      console.log('redirectPath:', redirectPath);
+      if (redirectPath) {
+        // 如果有重定向路径，直接替换到重定向路径
+        console.log('重定向到:', redirectPath);
+        router.replace(redirectPath as Href);
+      } else {
+        // 否则返回上一页
+        router.back();
+      }
     }
     setIsLoggingIn(false);
-  }, [isAgree, account, accountPassword, handleSSOLogin, handleYMTLogin]);
+  }, [isAgree, account, accountPassword, handleSSOLogin, handleYMTLogin, redirectPath]);
 
   return (
     <>

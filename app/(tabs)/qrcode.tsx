@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
-import { Link, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -92,7 +92,7 @@ export default function YiMaTongPage() {
       } catch (error: any) {
         console.error('刷新失败:', error);
 
-        const data = handleError(error);
+        const data = handleError(error) as { code: number; msg: string };
 
         if (data) {
           if (data.code === 401) {

@@ -74,7 +74,10 @@ export default function LearningCenterPage() {
         .catch(error => {
           console.error('获取token失败:', error);
           setIsLoading(false);
-          router.push('/(guest)/sso-login');
+          router.replace({
+            pathname: '/(guest)/sso-login',
+            params: { redirectPath: '/toolbox/learning-center' },
+          });
         });
     }, []),
   );
