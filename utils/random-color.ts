@@ -37,6 +37,11 @@ const courseColors = [
   '#E0B092',
   '#7D89AB',
   '#BBD5B4',
+  '#C6A5B6',
+  '#87B9C1',
+  '#E3A8A1',
+  '#A5C7A6',
+  '#D4B8CE',
 ];
 
 const examColor = '#FF6347'; // 考试的颜色
