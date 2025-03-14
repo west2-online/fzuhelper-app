@@ -42,6 +42,7 @@ type ReleaseChannelType = 'release' | 'beta';
 export default function HomePage() {
   const [userInfo, setUserInfo] = useState<UserInfo>(defaultUserInfo);
   const [termInfo, setTermInfo] = useState<JWCHLocateDateResult>(defaultTermInfo);
+  const [releaseChannel, setReleaseChannel] = useState<ReleaseChannelType | null>(null);
 
   interface MenuItem {
     icon: ImageSourcePropType;
@@ -51,7 +52,7 @@ export default function HomePage() {
   }
 
   // 菜单项数据
-  const menuItems: MenuItem[] = [
+  const menuItems = (releaseChannel: ReleaseChannelType | null): MenuItem[] => [
     {
       icon: CalendarIcon,
       name: '校历',
@@ -124,6 +125,7 @@ export default function HomePage() {
   useEffect(() => {
     const getReleaseChannel = async () => {
       const releaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
+      setReleaseChannel(releaseChannel);
     };
     getReleaseChannel();
   }, []);
@@ -160,7 +162,7 @@ export default function HomePage() {
 
             {/* 菜单列表 */}
             <View className="mt-4 space-y-4">
-              {menuItems.map((item, index) => (
+              {menuItems(releaseChannel).map((item, index) => (
                 <LabelIconEntry
                   key={index}
                   icon={item.icon}

@@ -30,6 +30,7 @@ export default function AboutPage() {
   const [clickCount, setClickCount] = useState(0);
   const { handleError } = useSafeResponseSolve();
   const [updateCheckState, setUpdateCheckState] = useState('点击检查更新');
+  const [releaseChannel, setReleaseChannel] = useState<ReleaseChannelType | null>(null);
 
   const handleCheckUpdate = useCallback(async () => {
     console.log('check update');
@@ -64,6 +65,7 @@ export default function AboutPage() {
   useEffect(() => {
     const getReleaseChannel = async () => {
       const releaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
+      setReleaseChannel(releaseChannel);
     };
     getReleaseChannel();
   }, []);
