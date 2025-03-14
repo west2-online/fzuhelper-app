@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Link, Stack, router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -19,9 +20,11 @@ import IconTransparent from '@/assets/images/ic_launcher_foreground.png';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
+import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
 const CLICK_TO_SHOW_DEVTOOLS = 7;
+type ReleaseChannelType = 'release' | 'beta';
 
 export default function AboutPage() {
   const [clickCount, setClickCount] = useState(0);
@@ -58,6 +61,13 @@ export default function AboutPage() {
     }
   }, [clickCount]);
 
+  useEffect(() => {
+    const getReleaseChannel = async () => {
+      const releaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
+    };
+    getReleaseChannel();
+  }, []);
+
   return (
     <>
       <Stack.Screen options={{ title: '关于' }} />
@@ -82,16 +92,33 @@ export default function AboutPage() {
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
-            <DescriptionListRow>
-              <DescriptionListTerm>
-                <Text className="text-text-secondary">研发团队</Text>
-              </DescriptionListTerm>
-              <DescriptionListDescription>西二在线工作室</DescriptionListDescription>
-            </DescriptionListRow>
+            {Platform.OS === 'ios' && releaseChannel === 'beta' &&(
+              <Pressable onPress={() => Linking.openURL('https://testflight.apple.com/join/UubMBYAm')}>
+                <DescriptionListRow>
+                  <DescriptionListTerm>
+                    <Text className="text-text-secondary">内测计划</Text>
+                  </DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Text>点击前往TestFlight查看</Text>
+                  </DescriptionListDescription>
+                </DescriptionListRow>
+              </Pressable>
+            )}
             <Pressable onPress={() => Linking.openURL('https://site.west2.online/')}>
               <DescriptionListRow>
                 <DescriptionListTerm>
-                  <Text className="text-text-secondary">官方网站</Text>
+                  <Text className="text-text-secondary">研发团队</Text>
+                </DescriptionListTerm>
+                <DescriptionListDescription>
+                  <Text>西二在线工作室</Text>
+                  <Icon name="chevron-forward" size={14} />
+                </DescriptionListDescription>
+              </DescriptionListRow>
+            </Pressable>
+            <Pressable onPress={() => Linking.openURL('https://github.com/west2-online/fzuhelper-app')}>
+              <DescriptionListRow>
+                <DescriptionListTerm>
+                  <Text className="text-text-secondary">项目源码</Text>
                 </DescriptionListTerm>
                 <DescriptionListDescription>
                   <Icon name="chevron-forward" size={14} />

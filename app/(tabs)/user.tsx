@@ -12,6 +12,7 @@ import { getApiV1JwchUserInfo } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
 import { fetchJwchLocateDate } from '@/lib/locate-date';
+import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { JWCHLocateDateResult } from '@/types/data';
 import { UserInfo } from '@/types/user';
 
@@ -35,6 +36,8 @@ const defaultTermInfo: JWCHLocateDateResult = {
   year: -1,
   term: -1,
 };
+
+type ReleaseChannelType = 'release' | 'beta';
 
 export default function HomePage() {
   const [userInfo, setUserInfo] = useState<UserInfo>(defaultUserInfo);
@@ -118,8 +121,11 @@ export default function HomePage() {
     }
   }, [termData]);
 
-  useEffect(async () => {
-    const releaseChannel = await AsyncStorage.getItem(RELEASE_CHANNEL_KEY);
+  useEffect(() => {
+    const getReleaseChannel = async () => {
+      const releaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
+    };
+    getReleaseChannel();
   }, []);
 
   return (
