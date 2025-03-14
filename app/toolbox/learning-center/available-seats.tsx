@@ -40,16 +40,32 @@ const getSpaceArea = (spaceName: string) => {
 const convertSpaceName = (spaceName: string): string => {
   const spaceNumber = Number(spaceName);
 
-  // 如果在 205-476，则是单人座，spaceName 要多加一行
-  if (spaceNumber >= 205 && spaceNumber <= 476) {
-    return `${spaceName}\n单人座`;
+  switch (true) {
+    case spaceNumber >= 205 && spaceNumber <= 476:
+      return `${spaceName}\n单人座`;
+    case spaceNumber >= 617 && spaceNumber <= 620:
+      return `${spaceName}\n沙发 #1`;
+    case spaceNumber >= 621 && spaceNumber <= 624:
+      return `${spaceName}\n沙发 #2`;
+    case spaceNumber >= 625 && spaceNumber <= 628:
+      return `${spaceName}\n沙发 #3`;
+    case spaceNumber >= 629 && spaceNumber <= 632:
+      return `${spaceName}\n沙发 #4`;
+    case spaceNumber >= 633 && spaceNumber <= 636:
+      return `${spaceName}\n沙发 #5`;
+    case spaceNumber >= 637 && spaceNumber <= 640:
+      return `${spaceName}\n沙发 #6`;
+    case spaceNumber >= 641 && spaceNumber <= 646:
+      return `${spaceName}\n沙发 #7`;
+    case spaceNumber >= 647 && spaceNumber <= 652:
+      return `${spaceName}\n沙发 #8`;
+    case spaceNumber >= 653 && spaceNumber <= 658:
+      return `${spaceName}\n沙发 #9`;
+    case spaceNumber >= 659 && spaceNumber <= 664:
+      return `${spaceName}\n沙发 #10`;
+    default:
+      return spaceName;
   }
-
-  // 如果在 617-664，则是沙发坐
-  if (spaceNumber >= 617 && spaceNumber <= 664) {
-    return `${spaceName}\n沙发座`;
-  }
-  return spaceName;
 };
 
 const styles = StyleSheet.create({
