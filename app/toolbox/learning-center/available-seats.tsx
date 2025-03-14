@@ -6,7 +6,7 @@ import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import PageContainer from '@/components/page-container';
