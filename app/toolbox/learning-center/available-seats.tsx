@@ -1,14 +1,13 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
-import { toast } from 'sonner-native';
-
 import LearningCenterMap from '@/components/learning-center/learning-center-map';
 import SeatCard from '@/components/learning-center/seat-card';
 import Loading from '@/components/loading';
 import { TabFlatList } from '@/components/tab-flatlist';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { Dimensions, FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { toast } from 'sonner-native';
 
 import PageContainer from '@/components/page-container';
 import ApiService from '@/utils/learning-center/api-service';
@@ -183,38 +182,40 @@ export default function AvailableSeatsPage() {
         {isRefreshing ? (
           <Loading />
         ) : (
-          <View>
+          <>
             <View className="mx-2 my-3 overflow-hidden rounded-2xl">
               <LearningCenterMap />
             </View>
-            <TabFlatList
-              data={Object.keys(seats).sort()}
-              value={currentTab}
-              onChange={setCurrentTab}
-              flatListOptions={{
-                // TabFlatList的配置项
-                initialNumToRender: 3, // 初始化渲染的tab数量
-              }}
-              renderContent={area => (
-                <View style={{ width: Dimensions.get('window').width }}>
-                  <FlatList
-                    data={seats[area] || []}
-                    removeClippedSubviews={true}
-                    renderItem={({ item }) => (
-                      <View style={{ width: itemWidth }}>
-                        <SeatCard spaceName={convertSpaceName(item)} onPress={() => handleSeatPress(item)} />
-                      </View>
-                    )}
-                    keyExtractor={item => item}
-                    numColumns={5}
-                    initialNumToRender={50}
-                    ListEmptyComponent={ListEmptySeats}
-                    columnWrapperStyle={styles.columnWrapper}
-                  />
-                </View>
-              )}
-            />
-          </View>
+            <View className="flex-1">
+              <TabFlatList
+                data={Object.keys(seats).sort()}
+                value={currentTab}
+                onChange={setCurrentTab}
+                flatListOptions={{
+                  // TabFlatList的配置项
+                  initialNumToRender: 3, // 初始化渲染的tab数量
+                }}
+                renderContent={area => (
+                  <View style={{ width: Dimensions.get('window').width }}>
+                    <FlatList
+                      data={seats[area] || []}
+                      removeClippedSubviews={true}
+                      renderItem={({ item }) => (
+                        <View style={{ width: itemWidth }}>
+                          <SeatCard spaceName={convertSpaceName(item)} onPress={() => handleSeatPress(item)} />
+                        </View>
+                      )}
+                      keyExtractor={item => item}
+                      numColumns={5}
+                      initialNumToRender={50}
+                      ListEmptyComponent={ListEmptySeats}
+                      columnWrapperStyle={styles.columnWrapper}
+                    />
+                  </View>
+                )}
+              />
+            </View>
+          </>
         )}
 
         {/* 确认预约的浮层 */}
