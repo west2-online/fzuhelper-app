@@ -64,11 +64,11 @@ export default function HomePage() {
           );
         } else if (Platform.OS === 'ios') {
           Linking.openURL(
-            'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
+            'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=169341623&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
           );
         } else {
           Linking.openURL(
-            'https://qm.qq.com/cgi-bin/qm/qr?k=Y3PcAhYPFADOcJF-WWTuiBOJCHEstmLd&jump_from=webapi&authKey=ZPnno2EaNogLOiafRzJnXUYLOAmZqmxKaN3ZVPMrOAmiyND35o6dxm4CYOjN2Sx+',
+            'https://qm.qq.com/cgi-bin/qm/qr?k=e7mh6pFzK706glP05IoQ0-WvvK3nlPds&jump_from=webapi&authKey=JigcWCU4RK773M3s4XJwMi1wLejFHpN8gHPyhq0i0BFsSaRhqLH9FhgBiPH5qUOO',
           );
         }
       },
