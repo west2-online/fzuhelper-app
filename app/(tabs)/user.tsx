@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Href, router, Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, ImageSourcePropType, Linking, Platform, View } from 'react-native';
@@ -57,15 +58,26 @@ export default function HomePage() {
       icon: HelpIcon,
       name: '帮助与反馈',
       operation: () => {
-        // 此为测试群，后续可改正式反馈群
         if (Platform.OS === 'android') {
-          Linking.openURL(
-            'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3De7mh6pFzK706glP05IoQ0-WvvK3nlPds',
-          );
+          if (releaseChannel === 'release'){
+            Linking.openURL(
+              'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3De7mh6pFzK706glP05IoQ0-WvvK3nlPds',
+            );
+          }else if(releaseChannel === 'beta'){
+            Linking.openURL(
+              'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3DgJSPzSlxdONFl8CMwAMEeYvZLnR4Dfu4',
+            );
+          }
         } else if (Platform.OS === 'ios') {
-          Linking.openURL(
-            'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=169341623&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
-          );
+          if (releaseChannel === 'release'){
+            Linking.openURL(
+              'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=169341623&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
+            );
+          }else if(releaseChannel === 'beta'){
+            Linking.openURL(
+              'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
+            );
+          }
         } else {
           Linking.openURL(
             'https://qm.qq.com/cgi-bin/qm/qr?k=e7mh6pFzK706glP05IoQ0-WvvK3nlPds&jump_from=webapi&authKey=JigcWCU4RK773M3s4XJwMi1wLejFHpN8gHPyhq0i0BFsSaRhqLH9FhgBiPH5qUOO',
@@ -105,6 +117,10 @@ export default function HomePage() {
       setTermInfo(termData);
     }
   }, [termData]);
+
+  useEffect(async () => {
+    const releaseChannel = await AsyncStorage.getItem(RELEASE_CHANNEL_KEY);
+  }, []);
 
   return (
     <>

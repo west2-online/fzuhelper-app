@@ -142,13 +142,11 @@ export default function AcademicPage() {
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">其他</Text>
 
-            {Platform.OS === 'android' && (
-              <LabelSwitch
-                label="加入内测计划"
-                value={releaseChannel === 'beta'}
-                onValueChange={handleChangeReleaseChannel}
-              />
-            )}
+            <LabelSwitch
+              label="加入内测计划"
+              value={releaseChannel === 'beta'}
+              onValueChange={handleChangeReleaseChannel}
+            />
 
             <Link href="/common/about" asChild>
               <LabelEntry leftText="关于福uu" />
