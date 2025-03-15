@@ -1,44 +1,14 @@
+import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { FlatList, View } from 'react-native';
+
 import DateCard from '@/components/learning-center/date-card';
 import TimeCard from '@/components/learning-center/time-card';
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import dayjs from 'dayjs';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
 
-// 格式化日期
-const formatDate = (date: Date, formatStr: string): string => {
-  const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-  const dayjsDate = dayjs(date);
-
-  // 如果格式字符串中包含自定义的 "EEE"（周几），需要特殊处理
-  if (formatStr === 'EEE') {
-    const weekDay = weekDays[dayjsDate.day()];
-    return `周${weekDay}`;
-  }
-
-  // 使用 dayjs 的格式化功能处理其他格式
-  return dayjsDate.format(formatStr);
-};
-
-// 计算两个时间之间的小时差
-const calculateHoursDifference = (startTime: string, endTime: string): number => {
-  const [startHour, startMinute] = startTime.split(':').map(Number);
-  const [endHour, endMinute] = endTime.split(':').map(Number);
-
-  const startMinutes = startHour * 60 + startMinute;
-  const endMinutes = endHour * 60 + endMinute;
-
-  // 计算分钟差，然后转换为小时
-  return (endMinutes - startMinutes) / 60;
-};
-
-// 添加指定小时到当前日期
-const addHours = (date: Date, hours: number): Date => {
-  return new Date(date.getTime() + hours * 60 * 60 * 1000);
-};
+import { addHours, calculateHoursDifference, formatDate, isTimePast } from '@/utils/learning-center/date';
 
 export default function SeatsPage() {
   const { token } = useLocalSearchParams<{ token: string }>();
@@ -48,24 +18,6 @@ export default function SeatsPage() {
 
   // 生成未来7天的日期
   const dates = useMemo(() => Array.from({ length: 7 }, (_, index) => addHours(new Date(), 24 * index)), []);
-
-  // 判断时间是否已过
-  const isTimePast = useCallback((date: Date, timeStr: string): boolean => {
-    const isToday = formatDate(date, 'YYYY-MM-DD') === formatDate(new Date(), 'YYYY-MM-DD');
-
-    if (!isToday) return false;
-
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-
-    const [hour, minute] = timeStr.split(':').map(Number);
-
-    if (currentHour > hour) return true;
-    if (currentHour === hour && currentMinute >= minute) return true;
-
-    return false;
-  }, []);
 
   // 生成时间段 8:00 - 22:30 每隔30分钟
   const timeSlots = useMemo(() => {
@@ -114,7 +66,7 @@ export default function SeatsPage() {
 
       return 'default';
     },
-    [selectedDate, beginTime, endTime, isInclude, isTimePast],
+    [selectedDate, beginTime, endTime, isInclude],
   );
 
   // 处理时间点击事件
@@ -190,9 +142,9 @@ export default function SeatsPage() {
           keyExtractor={item => item}
           showsHorizontalScrollIndicator={false}
           numColumns={4}
-          columnWrapperStyle={styles.columnWrapper}
+          columnWrapperClassName="flex flex-wrap justify-start w-full"
           renderItem={({ item, index }) => (
-            <View style={styles.timeCardWrapper}>
+            <View className="w-1/4">
               <TimeCard time={item} state={getTimeCardState(item)} onPress={() => handleTimeSelection(item)} />
             </View>
           )}
@@ -206,21 +158,12 @@ export default function SeatsPage() {
               ? `已选择时间段 ${formatDate(selectedDate, 'YYYY年MM月DD日')} ${beginTime} - ${endTime}`
               : ''}
         </Text>
-        <Button disabled={!beginTime || !endTime || beginTime > endTime} onPress={handleCommit}>
-          <Text>确定</Text>
-        </Button>
+        <View className="mx-2 justify-between">
+          <Button disabled={!beginTime || !endTime || beginTime > endTime} onPress={handleCommit}>
+            <Text>确定</Text>
+          </Button>
+        </View>
       </View>
     </PageContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  columnWrapper: {
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    width: '100%',
-  },
-  timeCardWrapper: {
-    width: '25%',
-  },
-});

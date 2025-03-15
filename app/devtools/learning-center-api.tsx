@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/text';
 import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import ApiService from '@/utils/learning-center/api-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
@@ -97,6 +97,11 @@ export default function LearningCenterApi() {
     console.log(response);
   }, [api, appointmentID]);
 
+  // 测试扫码
+  const scan = useCallback(async () => {
+    router.push({ pathname: '/toolbox/learning-center/qr-scanner', params: { appointmentID } });
+  }, [appointmentID]);
+
   // 初始化时读取本地token
   useEffect(() => {
     getToken();
@@ -180,6 +185,9 @@ export default function LearningCenterApi() {
         </Button>
         <Button onPress={cancel} className="my-1">
           <Text>取消 {appointmentID}</Text>
+        </Button>
+        <Button onPress={scan} className="my-1">
+          <Text>强制跳转到 {appointmentID} 的扫码页面</Text>
         </Button>
       </ScrollView>
     </PageContainer>

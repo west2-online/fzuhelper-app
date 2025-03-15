@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, Platform, View } from 'react-native';
+import { PERMISSIONS, RESULTS, check } from 'react-native-permissions';
 import { toast } from 'sonner-native';
 
 import { Button } from '@/components/ui/button';
@@ -93,9 +94,31 @@ export default function HistoryAppointmentCard({
     ]);
   }, [api, id, onRefresh]);
 
+  const checkCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      const result = await check(PERMISSIONS.ANDROID.CAMERA);
+      if (result && result === RESULTS.GRANTED) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (Platform.OS === 'ios') {
+      const result = await check(PERMISSIONS.IOS.CAMERA);
+      if (result && result === RESULTS.GRANTED) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  };
+
   // 处理签到
   const handleSignIn = useCallback(async () => {
     try {
+      if ((await checkCameraPermission()) === false) {
+        toast.error('未授予相机权限，请在[我的]->右上角齿轮->隐私权限设置中检查');
+        return;
+      }
       // 跳转到二维码扫描页面并传递预约ID
       router.push({
         pathname: '/toolbox/learning-center/qr-scanner',
@@ -111,6 +134,8 @@ export default function HistoryAppointmentCard({
     setIsProcessing(true);
     try {
       await api.signOut(id.toString());
+      // 实测需要等待 1 秒服务端才能更新状态
+      await new Promise(resolve => setTimeout(resolve, 1000));
       toast.success('签退成功');
       if (onRefresh) {
         await onRefresh();

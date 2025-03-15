@@ -131,6 +131,30 @@ export interface AppointmentResultData {
   total: null;
 }
 
+// 座位时间段可用状态的数据类型
+export interface TimeDiamond {
+  index: number;
+  timeText: string;
+  occupy: number; // 0: 未占用, 1: 已占用
+  isChecked: boolean;
+}
+
+export interface SeatTimeStatusData {
+  data: {
+    spaceId: number;
+    date: string;
+    timeDiamondList: TimeDiamond[];
+  };
+  code: string;
+  msg: string;
+  dataList: null;
+  pageIndex: null;
+  pageSize: null;
+  currentPage: null;
+  total: null;
+  otherData: null;
+}
+
 class ApiService {
   token: string;
   constructor(token: string) {
@@ -403,6 +427,30 @@ class ApiService {
           throw new Error(`${msg}`);
       }
     }
+  }
+
+  // 查询座位时间段可用状态
+  async querySpaceAppointTime({ spaceId, date }: { spaceId: string; date: string }): Promise<SeatTimeStatusData> {
+    /**
+     * @param spaceId 座位ID
+     * @param date 日期 格式为 yyyy-MM-dd 如2020-03-01
+     * @return SeatTimeStatusData 座位时间段可用状态
+     */
+    console.log('查询座位时段:', spaceId, date);
+    const data = await this.#post({
+      url: `${this.baseUrl}/spaceAppoint/app/querySpaceAppointTime`,
+      formData: {
+        spaceId,
+        date,
+      },
+    });
+    console.log('查询座位时段结果:', data);
+
+    const { code, msg } = data;
+    if (code === '0') {
+      return data as SeatTimeStatusData;
+    }
+    throw new Error(`查询座位时段失败: ${msg}`);
   }
 }
 export default ApiService;
