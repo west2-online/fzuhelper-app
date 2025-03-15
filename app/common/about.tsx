@@ -93,18 +93,6 @@ export default function AboutPage() {
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
-            {Platform.OS === 'ios' && releaseChannel === 'beta' && (
-              <Pressable onPress={() => Linking.openURL('https://testflight.apple.com/join/UubMBYAm')}>
-                <DescriptionListRow>
-                  <DescriptionListTerm>
-                    <Text className="text-text-secondary">内测计划</Text>
-                  </DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Text>点击前往TestFlight查看</Text>
-                  </DescriptionListDescription>
-                </DescriptionListRow>
-              </Pressable>
-            )}
             <Pressable onPress={() => Linking.openURL('https://site.west2.online/')}>
               <DescriptionListRow>
                 <DescriptionListTerm>
@@ -119,9 +107,10 @@ export default function AboutPage() {
             <Pressable onPress={() => router.push('/common/source-codes' as Href)}>
               <DescriptionListRow>
                 <DescriptionListTerm>
-                  <Text className="text-text-secondary">项目源码</Text>
+                  <Text className="text-text-secondary">项目源代码</Text>
                 </DescriptionListTerm>
-                <DescriptionListDescription>
+                <DescriptionListDescription className="flex-row items-center">
+                  <Text>点击查看</Text>
                   <Icon name="chevron-forward" size={14} />
                 </DescriptionListDescription>
               </DescriptionListRow>
