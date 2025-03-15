@@ -271,15 +271,15 @@ export default function AvailableSeatsPage() {
                             {area}：{areas.find(([, , areaCode]) => areaCode === area)?.[3] || ''}
                           </Text>
                           <View className="flex-row items-center">
-                            <View className="flex-row items-center">
+                            <View className="mx-1 flex-row items-center">
                               <View className="mr-1.5 h-3 w-3 rounded-full bg-green-200" />
-                              <Text className="text-sm text-gray-700">
+                              <Text className="text-sm text-text-secondary">
                                 可预约 {getSeatsSummary(seats[area]).available}
                               </Text>
                             </View>
-                            <View className="flex-row items-center">
+                            <View className="mx-1 flex-row items-center">
                               <View className="mr-1.5 h-3 w-3 rounded-full bg-red-200" />
-                              <Text className="text-sm text-gray-700">
+                              <Text className="text-sm text-text-secondary">
                                 已占用 {getSeatsSummary(seats[area]).occupied}
                               </Text>
                             </View>
@@ -337,7 +337,7 @@ export default function AvailableSeatsPage() {
 
                 <View>
                   <Text className="mb-2 text-sm text-primary">座位号码</Text>
-                  <Text className="text-xl font-medium">{selectedSpace}</Text>
+                  <Text className="text-xl font-medium">{convertSpaceName(selectedSpace ?? '')}</Text>
                 </View>
               </View>
             </View>
