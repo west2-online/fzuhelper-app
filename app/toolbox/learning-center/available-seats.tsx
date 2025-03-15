@@ -1,72 +1,38 @@
-import LearningCenterMap from '@/components/learning-center/learning-center-map';
-import SeatCard from '@/components/learning-center/seat-card';
-import Loading from '@/components/loading';
-import { TabFlatList } from '@/components/tab-flatlist';
-import FloatModal from '@/components/ui/float-modal';
-import { Text } from '@/components/ui/text';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 
+import LabelSwitch from '@/components/label-switch';
+import LearningCenterMap from '@/components/learning-center/learning-center-map';
+import SeatCard from '@/components/learning-center/seat-card';
+import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
+import { TabFlatList } from '@/components/tab-flatlist';
+import FloatModal from '@/components/ui/float-modal';
+import { Text } from '@/components/ui/text';
+
 import ApiService from '@/utils/learning-center/api-service';
 import { SeatMappingUtil } from '@/utils/learning-center/seat-mapping';
+import { SeatAreaCharts, SpaceStatus, convertSpaceName } from '@/utils/learning-center/seats';
 
-// 座位分区表
-const areas: [number, number, string, string][] = [
-  [1, 204, 'J区', '多人座'],
-  [205, 268, 'A区', '单人座'],
-  [269, 368, 'B区', '单人座'],
-  [369, 416, 'D区', '单人座'],
-  [417, 476, 'C区', '单人座'],
-  [477, 616, 'I区', '多人座'],
-  [617, 640, 'F区', '沙发座'],
-  [641, 736, 'H区', '多人座、沙发座'],
-  [737, 758, 'G区', '多人座'],
-  [759, 804, 'E区', '多人座'],
-  [805, 837, 'K区', '多人座'],
-  [838, 870, 'L区', '多人座'],
-  [871, 919, 'M区', '多人座'],
-];
+type parmProps = {
+  date: string;
+  beginTime: string;
+  endTime: string;
+  token: string;
+};
+
+type SeatData = {
+  spaceName: string;
+  spaceStatus: number; // 0为未占用，1为已占用
+};
 
 // 获取座位所在区域
 const getSpaceArea = (spaceName: string) => {
   const spaceNumber = Number(spaceName.split('-')[0]);
-  const area = areas.find(([start, end]) => spaceNumber >= start && spaceNumber <= end);
+  const area = SeatAreaCharts.find(([start, end]) => spaceNumber >= start && spaceNumber <= end);
   return area ? area[2] : '其他';
-};
-
-// 转换座位显示名称，这里的 spacename 一律是数字
-const convertSpaceName = (spaceName: string): string => {
-  const spaceNumber = Number(spaceName);
-
-  switch (true) {
-    case spaceNumber >= 205 && spaceNumber <= 476:
-      return `${spaceName}\n单人座`;
-    case spaceNumber >= 617 && spaceNumber <= 620:
-      return `${spaceName}\n沙发 #1`;
-    case spaceNumber >= 621 && spaceNumber <= 624:
-      return `${spaceName}\n沙发 #2`;
-    case spaceNumber >= 625 && spaceNumber <= 628:
-      return `${spaceName}\n沙发 #3`;
-    case spaceNumber >= 629 && spaceNumber <= 632:
-      return `${spaceName}\n沙发 #4`;
-    case spaceNumber >= 633 && spaceNumber <= 636:
-      return `${spaceName}\n沙发 #5`;
-    case spaceNumber >= 637 && spaceNumber <= 640:
-      return `${spaceName}\n沙发 #6`;
-    case spaceNumber >= 641 && spaceNumber <= 646:
-      return `${spaceName}\n沙发 #7`;
-    case spaceNumber >= 647 && spaceNumber <= 652:
-      return `${spaceName}\n沙发 #8`;
-    case spaceNumber >= 653 && spaceNumber <= 658:
-      return `${spaceName}\n沙发 #9`;
-    case spaceNumber >= 659 && spaceNumber <= 664:
-      return `${spaceName}\n沙发 #10`;
-    default:
-      return spaceName;
-  }
 };
 
 const styles = StyleSheet.create({
@@ -93,18 +59,6 @@ const ListEmptySeats: React.FC = memo(() => {
 
 ListEmptySeats.displayName = 'ListEmptySeats';
 
-type parmProps = {
-  date: string;
-  beginTime: string;
-  endTime: string;
-  token: string;
-};
-
-type SeatData = {
-  spaceName: string;
-  spaceStatus: number; // 0为未占用，1为已占用
-};
-
 export default function AvailableSeatsPage() {
   const { date, beginTime, endTime, token } = useLocalSearchParams<parmProps>();
   const api = useMemo(() => new ApiService(token), [token]);
@@ -112,6 +66,7 @@ export default function AvailableSeatsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentTab, setCurrentTab] = useState('4');
   const router = useRouter();
+  const [onlyAvailable, setOnlyAvailable] = useState(false); // 仅显示可用座位
 
   // 确认预约弹层状态
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -134,6 +89,7 @@ export default function AvailableSeatsPage() {
           floor,
         })
         .catch(error => {
+          console.error(`查询${floor}楼座位失败`, error);
           toast.error(`查询${floor}楼座位失败，请稍后重试`);
           return [];
         }),
@@ -141,7 +97,12 @@ export default function AvailableSeatsPage() {
     const results = (await Promise.all(allPromises)).flat();
 
     // 对所有座位按座位号排序
-    const allSeats = results.sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10));
+    let allSeats = results.sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10));
+
+    // 如果只显示可用座位，过滤掉已占用的座位
+    if (onlyAvailable === true) {
+      allSeats = allSeats.filter(seat => seat.spaceStatus === SpaceStatus.Available);
+    }
 
     // 对座位用getSpaceArea进行分区，保留座位状态信息
     const newSeats: Record<string, SeatData[]> = {};
@@ -160,7 +121,7 @@ export default function AvailableSeatsPage() {
     setSeats(newSeats);
 
     setIsRefreshing(false);
-  }, [date, beginTime, endTime, api]);
+  }, [date, beginTime, endTime, api, onlyAvailable]);
 
   // 选中座位
   const handleSeatPress = useCallback(
@@ -229,7 +190,7 @@ export default function AvailableSeatsPage() {
     if (!areaSeats || areaSeats.length === 0) return { total: 0, available: 0 };
 
     const total = areaSeats.length;
-    const available = areaSeats.filter(seat => seat.spaceStatus === 0).length;
+    const available = areaSeats.filter(seat => seat.spaceStatus === SpaceStatus.Available).length;
     const occupied = total - available;
 
     return { total, available, occupied };
@@ -251,6 +212,13 @@ export default function AvailableSeatsPage() {
           <>
             <View className="mx-2 my-3 overflow-hidden rounded-2xl">
               <LearningCenterMap />
+              {/* <LabelSwitch
+                label="仅显示可用座位"
+                value={onlyAvailable}
+                onValueChange={() => {
+                  setOnlyAvailable(prev => !prev);
+                }}
+              /> */}
             </View>
             <View className="flex-1">
               <TabFlatList
@@ -268,7 +236,7 @@ export default function AvailableSeatsPage() {
                       <View className="mx-2 mb-2 px-4 py-3">
                         <View className="flex-row items-center justify-between">
                           <Text className="text-xl font-medium text-primary">
-                            {area}：{areas.find(([, , areaCode]) => areaCode === area)?.[3] || ''}
+                            {area}：{SeatAreaCharts.find(([, , areaCode]) => areaCode === area)?.[3] || ''}
                           </Text>
                           <View className="flex-row items-center">
                             <View className="mx-1 flex-row items-center">
@@ -337,7 +305,10 @@ export default function AvailableSeatsPage() {
 
                 <View>
                   <Text className="mb-2 text-sm text-primary">座位号码</Text>
-                  <Text className="text-xl font-medium">{convertSpaceName(selectedSpace ?? '')}</Text>
+                  {/* 座位号码，将换行符替换为空格 */}
+                  <Text className="text-xl font-medium">
+                    {convertSpaceName(selectedSpace ?? '').replace('\n', ' ')}
+                  </Text>
                 </View>
               </View>
             </View>
