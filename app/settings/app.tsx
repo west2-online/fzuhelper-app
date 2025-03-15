@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Stack } from 'expo-router';
-import { Alert, Platform } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Linking, Platform } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -16,11 +17,10 @@ import { CourseCache } from '@/lib/course';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
-import { useEffect, useState } from 'react';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
-  const [releaseChannel, setReleaseChannel] = useState<string | null>(null); // 发布渠道
+  const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // 发布渠道
 
   // 清除数据
   const handleClearData = () => {
@@ -91,6 +91,24 @@ export default function AcademicPage() {
   };
 
   const handleChangeReleaseChannel = () => {
+    if (Platform.OS === 'ios') {
+      Alert.alert(
+        '内测计划',
+        '苹果内测版 App 由 TestFlight 统一管理，点击确认打开内测指引，如需重新回归正式版可以在 App Store 中重新下载',
+        [
+          {
+            text: '取消',
+            style: 'cancel',
+          },
+          {
+            text: '确定',
+            onPress: async () => {
+              Linking.openURL('https://testflight.apple.com/join/UubMBYAm');
+            },
+          },
+        ],
+      );
+    }
     setReleaseChannel(prev => (prev !== 'beta' ? 'beta' : 'release'));
   };
 
@@ -148,6 +166,9 @@ export default function AcademicPage() {
                 value={releaseChannel === 'beta'}
                 onValueChange={handleChangeReleaseChannel}
               />
+            )}
+            {Platform.OS === 'ios' && (
+              <LabelEntry leftText="TestFlight 内测计划" onPress={handleChangeReleaseChannel} />
             )}
 
             <Link href="/common/about" asChild>

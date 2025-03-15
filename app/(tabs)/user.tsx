@@ -1,5 +1,6 @@
-import { Href, router, Tabs } from 'expo-router';
-import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Href, router, Tabs, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType, Linking, Platform, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
@@ -9,7 +10,7 @@ import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchUserInfo } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
+import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY, RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { fetchJwchLocateDate } from '@/lib/locate-date';
 import { JWCHLocateDateResult } from '@/types/data';
 import { UserInfo } from '@/types/user';
@@ -35,9 +36,12 @@ const defaultTermInfo: JWCHLocateDateResult = {
   term: -1,
 };
 
+type ReleaseChannelType = 'release' | 'beta';
+
 export default function HomePage() {
   const [userInfo, setUserInfo] = useState<UserInfo>(defaultUserInfo);
   const [termInfo, setTermInfo] = useState<JWCHLocateDateResult>(defaultTermInfo);
+  const [releaseChannel, setReleaseChannel] = useState<ReleaseChannelType | null>(null);
 
   interface MenuItem {
     icon: ImageSourcePropType;
@@ -57,18 +61,29 @@ export default function HomePage() {
       icon: HelpIcon,
       name: '帮助与反馈',
       operation: () => {
-        // 此为测试群，后续可改正式反馈群
         if (Platform.OS === 'android') {
-          Linking.openURL(
-            'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3DgJSPzSlxdONFl8CMwAMEeYvZLnR4Dfu4',
-          );
+          if (releaseChannel === 'release') {
+            Linking.openURL(
+              'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3De7mh6pFzK706glP05IoQ0-WvvK3nlPds',
+            );
+          } else if (releaseChannel === 'beta') {
+            Linking.openURL(
+              'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3DgJSPzSlxdONFl8CMwAMEeYvZLnR4Dfu4',
+            );
+          }
         } else if (Platform.OS === 'ios') {
-          Linking.openURL(
-            'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
-          );
+          if (releaseChannel === 'release') {
+            Linking.openURL(
+              'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=169341623&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
+            );
+          } else if (releaseChannel === 'beta') {
+            Linking.openURL(
+              'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
+            );
+          }
         } else {
           Linking.openURL(
-            'https://qm.qq.com/cgi-bin/qm/qr?k=Y3PcAhYPFADOcJF-WWTuiBOJCHEstmLd&jump_from=webapi&authKey=ZPnno2EaNogLOiafRzJnXUYLOAmZqmxKaN3ZVPMrOAmiyND35o6dxm4CYOjN2Sx+',
+            'https://qm.qq.com/cgi-bin/qm/qr?k=e7mh6pFzK706glP05IoQ0-WvvK3nlPds&jump_from=webapi&authKey=JigcWCU4RK773M3s4XJwMi1wLejFHpN8gHPyhq0i0BFsSaRhqLH9FhgBiPH5qUOO',
           );
         }
       },
@@ -105,6 +120,20 @@ export default function HomePage() {
       setTermInfo(termData);
     }
   }, [termData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const getReleaseChannel = async () => {
+        let storedReleaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
+        if (!storedReleaseChannel) {
+          storedReleaseChannel = 'release';
+          await AsyncStorage.setItem(RELEASE_CHANNEL_KEY, storedReleaseChannel);
+        }
+        setReleaseChannel(storedReleaseChannel);
+      };
+      getReleaseChannel();
+    }, []),
+  );
 
   return (
     <>
