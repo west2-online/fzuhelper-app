@@ -147,12 +147,12 @@ const DEFAULT_TOOLS: Tool[] = [
   },
 ];
 
-// 工具函数：处理工具数据，按 5 的倍数填充占位符
-const processTools = (tools: Tool[]) => {
-  const remainder = tools.length % 5;
+// 工具函数：处理工具数据，按列数填充占位符
+const processTools = (tools: Tool[], columns: number) => {
+  const remainder = tools.length % columns;
   if (remainder === 0) return tools; // 不需要填充
 
-  const placeholders = Array(5 - remainder).fill({
+  const placeholders = Array(columns - remainder).fill({
     name: '',
     icon: null,
     type: ToolType.NULL,
@@ -163,7 +163,7 @@ const processTools = (tools: Tool[]) => {
 };
 
 // 自定义 Hook：管理横幅和工具数据
-const useToolsPageData = () => {
+const useToolsPageData = (columns: number) => {
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
   const [toolList, setToolList] = useState<Tool[]>([]);
 
@@ -174,9 +174,10 @@ const useToolsPageData = () => {
       // 此处会进行一层过滤，只显示当前用户类型可用的工具
       processTools(
         DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType)),
+        columns,
       ),
     );
-  }, []);
+  }, [columns]);
 
   return { bannerList, toolList };
 };
@@ -233,8 +234,6 @@ const renderToolButton = (item: Tool, router: Router) => {
 };
 
 export default function ToolsPage() {
-  const { bannerList, toolList } = useToolsPageData();
-  const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
 
   const TOOL_BUTTON_WIDTH = 70; // 每个按钮的宽度（包括间距）
@@ -247,6 +246,9 @@ export default function ToolsPage() {
     MIN_COLUMNS,
     Math.min(MAX_COLUMNS, Math.floor((screenWidth - PADDING * 2) / TOOL_BUTTON_WIDTH)),
   );
+
+  const { bannerList, toolList } = useToolsPageData(columns);
+  const router = useRouter();
 
   return (
     <PageContainer className="p-6">
