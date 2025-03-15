@@ -39,6 +39,8 @@ const config: ExpoConfig = {
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: true, // 允许访问非 HTTPS 的内容
       },
+      NSSupportsLiveActivities: true, // 支持 Live Activity
+      NSSupportsLiveActivitiesFrequentUpdates: true, // 支持 Live Activity 频繁更新
     },
     entitlements: {
       'com.apple.security.application-groups': ['group.FzuHelper.NextCourse'],

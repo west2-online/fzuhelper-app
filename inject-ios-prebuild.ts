@@ -1,9 +1,16 @@
 import { ExpoConfig } from 'expo/config';
-import { withDangerousMod } from 'expo/config-plugins';
+import { withDangerousMod, withXcodeProject } from 'expo/config-plugins';
 import { promises as fs } from 'fs';
 import { join, resolve } from 'path';
 
 function withIOSInject(config: ExpoConfig): ExpoConfig {
+  // 侵入项目，配置 Build Settings
+  config = withXcodeProject(config, xcodeConfig => {
+    const project = xcodeConfig.modResults;
+    // 配置 Build Settings ，以支持 Live Activity
+    return xcodeConfig;
+  });
+
   // 修改 Info.plist 文件可以直接通过 app.config.ts 完成
   // 通过 withDangerousMod 注入 iOS 脚本
   config = withDangerousMod(config, [
