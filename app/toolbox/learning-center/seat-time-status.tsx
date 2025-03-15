@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 import ApiService, { TimeDiamond } from '@/utils/learning-center/api-service';
+import dayjs from 'dayjs';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 type SeatTimeStatusParams = {
@@ -44,7 +45,23 @@ export default function SeatTimeStatusPage() {
           spaceId,
           date,
         });
-        setTimeDiamondList(response.data.timeDiamondList);
+
+        // 获取时间段列表
+        let timeList = [...response.data.timeDiamondList];
+
+        // 如果是当天，则将当前时间之前的时间段标记为已占用
+        const isToday = dayjs().format('YYYY-MM-DD') === date;
+        if (isToday) {
+          const currentTime = dayjs().format('HH:mm');
+          timeList = timeList.map(item => {
+            if (item.timeText < currentTime) {
+              return { ...item, occupy: 1 };
+            }
+            return item;
+          });
+        }
+
+        setTimeDiamondList(timeList);
       } catch (error) {
         console.error('获取座位时间段失败', error);
         toast.error('获取座位时间段数据失败，请稍后重试');
@@ -56,25 +73,27 @@ export default function SeatTimeStatusPage() {
     fetchSeatTimeStatus();
   }, [api, spaceId, date]);
 
-  // 根据占用状态返回对应的样式类名
   const getTimeBlockStyle = (item: TimeDiamond) => {
+    // 基础样式
+    let baseStyle = 'w-[23%] p-3 rounded-lg mb-2.5 mr-[2%] items-center justify-center ';
+
     // 已占用
     if (item.occupy === 1) {
-      return styles.occupiedBlock;
+      return baseStyle + 'bg-[#fee2e2]/80 dark:bg-[#fee2e2]/30 border border-[#f87171]/80';
     }
 
     // 被选为开始或结束时间
     if (item.timeText === beginTime || item.timeText === endTime) {
-      return styles.selectedBlock;
+      return baseStyle + 'bg-[#dbeafe]/80 dark:bg-[#dbeafe]/80 border border-[#3b82f6]/80';
     }
 
     // 在开始和结束时间之间
     if (beginTime && endTime && item.timeText > beginTime && item.timeText < endTime) {
-      return styles.includedBlock;
+      return baseStyle + 'bg-[#eff6ff]/80 dark:bg-[#eff6ff]/60 border border-[#93c5fd]/80';
     }
 
     // 默认可用
-    return styles.availableBlock;
+    return baseStyle + 'bg-[#e6f7e9]/80 dark:bg-[#e6f7e9]/40 border border-[#4ade80]/80';
   };
 
   // 处理时间点击事件
@@ -88,6 +107,21 @@ export default function SeatTimeStatusPage() {
       if (time < beginTime) {
         setBeginTime(time);
       } else if (time > beginTime) {
+        // 计算时间差（小时）
+        const calculateHoursDifference = (start: string, end: string) => {
+          const [startHour, startMinute] = start.split(':').map(Number);
+          const [endHour, endMinute] = end.split(':').map(Number);
+          return endHour - startHour + (endMinute - startMinute) / 60;
+        };
+
+        const hoursDifference = calculateHoursDifference(beginTime, time);
+
+        // 检查是否超过4小时
+        if (hoursDifference > 4) {
+          toast.error('预约时间不能超过4小时，请重新选择');
+          return;
+        }
+
         // 检查从开始到结束的所有时间段是否都可用
         const isAllAvailable = timeDiamondList
           .filter(item => item.timeText > beginTime && item.timeText <= time)
@@ -151,27 +185,27 @@ export default function SeatTimeStatusPage() {
         ) : (
           <ScrollView className="flex-1 px-4 py-2">
             <View className="mb-4">
-              <Text className="text-lg font-semibold">座位号: {spaceName}</Text>
-              <Text className="text-base text-gray-500">日期: {date}</Text>
+              <Text className="text-lg font-semibold text-text-primary">座位号: {spaceName}</Text>
+              <Text className="text-base text-text-secondary">日期: {date}</Text>
             </View>
 
             {/* 图例说明 */}
             <View className="mb-4 flex-row flex-wrap items-center">
               <View className="mb-2 mr-4 flex-row items-center">
-                <View style={[styles.legendBox, styles.availableBlock]} />
-                <Text className="ml-2">可预约</Text>
+                <View className="h-4 w-4 rounded border border-[#4ade80] bg-[#e6f7e9]" />
+                <Text className="ml-2 text-text-primary">可预约</Text>
               </View>
               <View className="mb-2 mr-4 flex-row items-center">
-                <View style={[styles.legendBox, styles.occupiedBlock]} />
-                <Text className="ml-2">已占用</Text>
+                <View className="h-4 w-4 rounded border border-[#f87171] bg-[#fee2e2]" />
+                <Text className="ml-2 text-text-primary">已占用</Text>
               </View>
               <View className="mb-2 mr-4 flex-row items-center">
-                <View style={[styles.legendBox, styles.selectedBlock]} />
-                <Text className="ml-2">已选择</Text>
+                <View className="h-4 w-4 rounded border border-[#3b82f6] bg-[#dbeafe]" />
+                <Text className="ml-2 text-text-primary">已选择</Text>
               </View>
               <View className="mb-2 flex-row items-center">
-                <View style={[styles.legendBox, styles.includedBlock]} />
-                <Text className="ml-2">选择区间</Text>
+                <View className="h-4 w-4 rounded border border-[#93c5fd] bg-[#eff6ff]" />
+                <Text className="ml-2 text-text-primary">选择区间</Text>
               </View>
             </View>
 
@@ -191,12 +225,18 @@ export default function SeatTimeStatusPage() {
               {timeDiamondList.map(item => (
                 <TouchableOpacity
                   key={item.index}
-                  style={[styles.timeBlock, getTimeBlockStyle(item)]}
+                  className={getTimeBlockStyle(item)}
                   disabled={item.occupy === 1}
                   onPress={() => handleTimeSelection(item.timeText, item.occupy)}
                 >
                   <Text
-                    style={[styles.timeText, item.occupy === 1 ? styles.occupiedTimeText : styles.availableTimeText]}
+                    className={`mb-1 w-full text-center text-base ${
+                      item.occupy === 1
+                        ? 'text-text-secondary'
+                        : item.timeText === beginTime || item.timeText === endTime
+                          ? 'font-medium text-primary'
+                          : 'text-text-primary'
+                    }`}
                   >
                     {item.timeText}
                   </Text>
@@ -228,19 +268,19 @@ export default function SeatTimeStatusPage() {
               <View className="rounded-xl p-5">
                 <View className="mb-6">
                   <Text className="mb-2 text-sm text-primary">预约日期</Text>
-                  <Text className="text-xl font-medium">{date}</Text>
+                  <Text className="text-xl font-medium text-text-primary">{date}</Text>
                 </View>
 
                 <View className="mb-6">
                   <Text className="mb-2 text-sm text-primary">预约时段</Text>
-                  <Text className="text-xl font-medium">
+                  <Text className="text-xl font-medium text-text-primary">
                     {beginTime} - {endTime}
                   </Text>
                 </View>
 
                 <View>
                   <Text className="mb-2 text-sm text-primary">座位号码</Text>
-                  <Text className="text-xl font-medium">{spaceName}</Text>
+                  <Text className="text-xl font-medium text-text-primary">{spaceName}</Text>
                 </View>
               </View>
             </View>
@@ -250,50 +290,3 @@ export default function SeatTimeStatusPage() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  timeBlock: {
-    width: '23%',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-    marginRight: '2%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  availableBlock: {
-    backgroundColor: '#e6f7e9',
-    borderColor: '#4ade80',
-    borderWidth: 1,
-  },
-  occupiedBlock: {
-    backgroundColor: '#fee2e2',
-    borderColor: '#f87171',
-    borderWidth: 1,
-  },
-  selectedBlock: {
-    backgroundColor: '#dbeafe',
-    borderColor: '#3b82f6',
-    borderWidth: 2,
-  },
-  includedBlock: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#93c5fd',
-    borderWidth: 1,
-  },
-  timeText: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  availableTimeText: {
-    color: '#111827',
-  },
-  occupiedTimeText: {
-    color: '#9ca3af',
-  },
-  legendBox: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-  },
-});

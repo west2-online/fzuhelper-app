@@ -1,9 +1,8 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
+import { Dimensions, FlatList, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import LabelSwitch from '@/components/label-switch';
 import LearningCenterMap from '@/components/learning-center/learning-center-map';
 import SeatCard from '@/components/learning-center/seat-card';
 import Loading from '@/components/loading';
@@ -35,13 +34,6 @@ const getSpaceArea = (spaceName: string) => {
   return area ? area[2] : '其他';
 };
 
-const styles = StyleSheet.create({
-  columnWrapper: {
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-  },
-});
-
 // 座位列表为空时的组件
 const ListEmptySeats: React.FC = memo(() => {
   return (
@@ -66,7 +58,7 @@ export default function AvailableSeatsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentTab, setCurrentTab] = useState('4');
   const router = useRouter();
-  const [onlyAvailable, setOnlyAvailable] = useState(false); // 仅显示可用座位
+  const [onlyAvailable] = useState(false); // 仅显示可用座位
 
   // 确认预约弹层状态
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -98,6 +90,9 @@ export default function AvailableSeatsPage() {
 
     // 对所有座位按座位号排序
     let allSeats = results.sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10));
+
+    // 过滤掉包含 "-" 字符的非法座位
+    allSeats = allSeats.filter(seat => !seat.spaceName.includes('-'));
 
     // 如果只显示可用座位，过滤掉已占用的座位
     if (onlyAvailable === true) {
@@ -271,7 +266,8 @@ export default function AvailableSeatsPage() {
                       numColumns={5}
                       initialNumToRender={50}
                       ListEmptyComponent={ListEmptySeats}
-                      columnWrapperStyle={styles.columnWrapper}
+                      columnWrapperClassName="flex flex-wrap justify-start"
+                      contentContainerClassName="pb-[34px]"
                     />
                   </View>
                 )}
