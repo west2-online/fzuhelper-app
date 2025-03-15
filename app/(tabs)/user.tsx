@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Href, router, Tabs } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Href, router, Tabs, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType, Linking, Platform, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
@@ -10,9 +10,8 @@ import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchUserInfo } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
+import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY, RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { fetchJwchLocateDate } from '@/lib/locate-date';
-import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { JWCHLocateDateResult } from '@/types/data';
 import { UserInfo } from '@/types/user';
 
@@ -52,7 +51,7 @@ export default function HomePage() {
   }
 
   // 菜单项数据
-  const menuItems = (releaseChannel: ReleaseChannelType | null): MenuItem[] => [
+  const menuItems: MenuItem[] = [
     {
       icon: CalendarIcon,
       name: '校历',
@@ -63,21 +62,21 @@ export default function HomePage() {
       name: '帮助与反馈',
       operation: () => {
         if (Platform.OS === 'android') {
-          if (releaseChannel === 'release'){
+          if (releaseChannel === 'release') {
             Linking.openURL(
               'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3De7mh6pFzK706glP05IoQ0-WvvK3nlPds',
             );
-          }else if(releaseChannel === 'beta'){
+          } else if (releaseChannel === 'beta') {
             Linking.openURL(
               'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3DgJSPzSlxdONFl8CMwAMEeYvZLnR4Dfu4',
             );
           }
         } else if (Platform.OS === 'ios') {
-          if (releaseChannel === 'release'){
+          if (releaseChannel === 'release') {
             Linking.openURL(
               'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=169341623&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
             );
-          }else if(releaseChannel === 'beta'){
+          } else if (releaseChannel === 'beta') {
             Linking.openURL(
               'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
             );
@@ -122,13 +121,15 @@ export default function HomePage() {
     }
   }, [termData]);
 
-  useEffect(() => {
-    const getReleaseChannel = async () => {
-      const releaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
-      setReleaseChannel(releaseChannel);
-    };
-    getReleaseChannel();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const getReleaseChannel = async () => {
+        const storedReleaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
+        setReleaseChannel(storedReleaseChannel);
+      };
+      getReleaseChannel();
+    }, []),
+  );
 
   return (
     <>
@@ -162,7 +163,7 @@ export default function HomePage() {
 
             {/* 菜单列表 */}
             <View className="mt-4 space-y-4">
-              {menuItems(releaseChannel).map((item, index) => (
+              {menuItems.map((item, index) => (
                 <LabelIconEntry
                   key={index}
                   icon={item.icon}

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Stack } from 'expo-router';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
-  const [releaseChannel, setReleaseChannel] = useState<string | null>(null); // 发布渠道
+  const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // 发布渠道
 
   // 清除数据
   const handleClearData = () => {
