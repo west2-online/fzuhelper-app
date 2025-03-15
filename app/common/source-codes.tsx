@@ -8,7 +8,7 @@ import { Text } from '@/components/ui/text';
 export default function SourceCodePage() {
   return (
     <>
-      <Stack.Screen options={{ title: '项目源码' }} />
+      <Stack.Screen options={{ title: '项目源代码' }} />
 
       <PageContainer>
         <ScrollView className="flex-1 rounded-tr-4xl bg-card px-4 pt-8">
