@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Href, Link, Stack, router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -18,18 +17,16 @@ import { Text } from '@/components/ui/text';
 
 import IconTransparent from '@/assets/images/ic_launcher_foreground.png';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { RELEASE_CHANNEL_KEY, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
 const CLICK_TO_SHOW_DEVTOOLS = 7;
-type ReleaseChannelType = 'release' | 'beta';
 
 export default function AboutPage() {
   const [clickCount, setClickCount] = useState(0);
   const { handleError } = useSafeResponseSolve();
   const [updateCheckState, setUpdateCheckState] = useState('点击检查更新');
-  const [releaseChannel, setReleaseChannel] = useState<ReleaseChannelType | null>(null);
 
   const handleCheckUpdate = useCallback(async () => {
     console.log('check update');
@@ -60,14 +57,6 @@ export default function AboutPage() {
       setClickCount(0);
     }
   }, [clickCount]);
-
-  useEffect(() => {
-    const getReleaseChannel = async () => {
-      const storedReleaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
-      setReleaseChannel(storedReleaseChannel);
-    };
-    getReleaseChannel();
-  }, []);
 
   return (
     <>

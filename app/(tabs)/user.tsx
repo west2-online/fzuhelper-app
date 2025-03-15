@@ -124,7 +124,11 @@ export default function HomePage() {
   useFocusEffect(
     useCallback(() => {
       const getReleaseChannel = async () => {
-        const storedReleaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
+        let storedReleaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
+        if (!storedReleaseChannel) {
+          storedReleaseChannel = 'release';
+          await AsyncStorage.setItem(RELEASE_CHANNEL_KEY, storedReleaseChannel);
+        }
         setReleaseChannel(storedReleaseChannel);
       };
       getReleaseChannel();
