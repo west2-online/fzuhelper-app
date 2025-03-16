@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Stack } from 'expo-router';
-import { Alert, Platform } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Linking, Platform } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -16,11 +17,10 @@ import { CourseCache } from '@/lib/course';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
-import { useEffect, useState } from 'react';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
-  const [releaseChannel, setReleaseChannel] = useState<string | null>(null); // 发布渠道
+  const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // (仅 Android) 发布渠道
 
   // 清除数据
   const handleClearData = () => {
@@ -91,15 +91,38 @@ export default function AcademicPage() {
   };
 
   const handleChangeReleaseChannel = () => {
-    setReleaseChannel(prev => (prev !== 'beta' ? 'beta' : 'release'));
+    if (Platform.OS === 'ios') {
+      Alert.alert(
+        '内测计划',
+        '苹果内测版 App 由 TestFlight 统一管理，点击确认打开内测指引，如需重新回归正式版可以在 App Store 中重新下载',
+        [
+          {
+            text: '取消',
+            style: 'cancel',
+          },
+          {
+            text: '确定',
+            onPress: async () => {
+              Linking.openURL('https://testflight.apple.com/join/UubMBYAm');
+            },
+          },
+        ],
+      );
+    } else if (Platform.OS === 'android') {
+      setReleaseChannel(prev => (prev !== 'beta' ? 'beta' : 'release'));
+    }
   };
 
   useEffect(() => {
-    AsyncStorage.getItem(RELEASE_CHANNEL_KEY).then(setReleaseChannel);
+    if (Platform.OS === 'android') {
+      AsyncStorage.getItem(RELEASE_CHANNEL_KEY).then(setReleaseChannel);
+    }
   }, []);
 
   useEffect(() => {
-    if (releaseChannel) AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
+    if (Platform.OS === 'android') {
+      if (releaseChannel) AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
+    }
   }, [releaseChannel]);
 
   return (
@@ -131,7 +154,7 @@ export default function AcademicPage() {
               <LabelEntry leftText="个人信息收集清单" />
             </Link>
             <Link
-              href={getWebViewHref({ url: 'https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#privacy' })}
+              href={getWebViewHref({ url: 'https://fzuhelper.west2.online/onekey/FZUHelper.html#privacy' })}
               asChild
             >
               <LabelEntry leftText="第三方信息共享清单" />
@@ -148,6 +171,9 @@ export default function AcademicPage() {
                 value={releaseChannel === 'beta'}
                 onValueChange={handleChangeReleaseChannel}
               />
+            )}
+            {Platform.OS === 'ios' && (
+              <LabelEntry leftText="TestFlight 内测计划" onPress={handleChangeReleaseChannel} />
             )}
 
             <Link href="/common/about" asChild>
