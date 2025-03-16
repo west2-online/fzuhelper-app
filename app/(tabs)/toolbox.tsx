@@ -145,6 +145,12 @@ const DEFAULT_TOOLS: Tool[] = [
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
   },
+  {
+    name: '公寓报修',
+    icon: StudyCenterIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/domitory-repair',
+  },
 ];
 
 // 工具函数：处理工具数据，按列数填充占位符
