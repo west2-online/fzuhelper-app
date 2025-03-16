@@ -129,7 +129,11 @@ export default function SeatsPage() {
             <DateCard
               date={item.getDate().toString()}
               day={formatDate(item, 'EEE')}
-              onPress={() => setSelectedDate(item)}
+              onPress={() => {
+                setSelectedDate(item);
+                setBeginTime(null);
+                setEndTime(null);
+              }}
               state={formatDate(selectedDate, 'YYYY-MM-DD') === formatDate(item, 'YYYY-MM-DD') ? 'selected' : 'default'}
             />
           )}
