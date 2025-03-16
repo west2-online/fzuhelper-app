@@ -45,8 +45,8 @@ struct ClassInfo {
 
 // 数据模型：课程时间
 struct ClassTime {
-  let weekday: Int
-  let section: Int
+  let weekday: Int // 星期几
+  let section: Int // 第几节
 }
 
 // 工具函数：获取下一节课程
@@ -74,8 +74,10 @@ func getNextClassTime(startTime: TimeInterval) -> ClassTime {
   let calendar = Calendar.current
   let hour = calendar.component(.hour, from: currentDate)
   _ = calendar.component(.minute, from: currentDate)
-  var weekday = calendar.component(.weekday, from: currentDate) - 1  // 使周日为0，周一为1，以此类推
-  if weekday == 0 { weekday = 7 }  // 调整为1-7，周一到周日
+  var weekday = calendar.component(.weekday, from: currentDate)
+
+  // 调整 weekday 为中国大陆习惯：周一 = 1，周日 = 7
+  weekday = (weekday + 5) % 7 + 1
 
   let section: Int
   switch hour {
@@ -116,10 +118,23 @@ func searchNextClassIterative(
   + (cacheCourseData.examData?.values.flatMap { $0 } ?? []) + (
     cacheCourseData.customData?.values.flatMap { $0 } ?? [])
 
+  // 排序：按星期、开始节次排序
+  let sortedCourses = courseBeans.sorted { (course1: ExtendCourse, course2: ExtendCourse) -> Bool in
+    if course1.weekday != course2.weekday {
+      // 按星期几升序排列
+      return course1.weekday < course2.weekday
+    } else if course1.startClass != course2.startClass {
+      // 如果同一天上课，按开始节次升序排列
+      return course1.startClass < course2.startClass
+    } else {
+      // 如果开始节次相同，可按其他规则排序（如课程名称，避免冲突）
+      return course1.name < course2.name
+    }
+  }
+
   // 检查当前时间是否是星期天晚上最后一节课之后的，如果是的话直接切到下一周
   // 注意：currentWeekDay
   if currentWeekday == 6 && currentSection > 11 {
-    // 如果是，则直接从下周开始查找
     currentWeek += 1
     currentWeekday = 1
     currentSection = 1
@@ -128,14 +143,12 @@ func searchNextClassIterative(
   // 只有没超过学期末我们才继续查询
   while currentWeek <= cacheCourseData.maxWeek {
     // 遍历课程
-    for course in courseBeans {
+    for course in sortedCourses {
       // 符合条件: 在开课周内，且当前遍历的节数符合起始课，且符合单双周规则
       if currentWeek >= course.startWeek && currentWeek <= course.endWeek
         && currentWeekday == course.weekday
         && currentSection == course.startClass
-          && (course.single && currentWeek % 2 == 1) || (
-            course.double && currentWeek % 2 == 0
-          )
+        && ((course.single && currentWeek % 2 == 1) || (course.double && currentWeek % 2 == 0))
       {
         return ClassInfo(week: currentWeek, courseBean: course)
       }
