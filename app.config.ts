@@ -6,7 +6,7 @@ const IS_DEV = process.env.APP_VARIANT === 'development';
 const config: ExpoConfig = {
   name: 'fzuhelper',
   slug: 'fzuhelper-app',
-  version: '7.0.0', // 每部分都只能是一位数字
+  version: '7.0.1', // 每部分都只能是一位数字
   githubUrl: 'https://github.com/west2-online/fzuhelper-app',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -16,7 +16,7 @@ const config: ExpoConfig = {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
     bundleIdentifier: IS_DEV ? 'FzuHelper.FzuHelper.dev' : 'FzuHelper.FzuHelper',
-    buildNumber: '7.0.0',
+    buildNumber: '7.0.1',
     bitcode: true,
     supportsTablet: true,
     icon: {
