@@ -78,6 +78,9 @@ struct Provider: AppIntentTimelineProvider {
         startTime =
           sdf.date(from: cacheCourseData?.startDate ?? "")?
           .timeIntervalSince1970
+        
+//        print(startTime ?? "not work")
+//        print(sdf.string(from: Date()))
 
         nextClass = getNextClass(cacheCourseData!, startTime: startTime ?? 0.00)
 
@@ -111,8 +114,7 @@ struct Provider: AppIntentTimelineProvider {
       let currentWeek = getWeeks(
         startTime: startTime ?? 0.00, endTime: currentDate.timeIntervalSince1970
       )
-      let entryDate = Calendar.current.date(
-        byAdding: .minute, value: 5, to: currentDate)!
+      let entryDate = currentDate
       let entry = SimpleEntry(
         date: entryDate,
         courseName: nextClass.courseBean.name,
@@ -163,6 +165,7 @@ struct SimpleEntry: TimelineEntry {
 struct widgetEntryView: View {
   var entry: Provider.Entry
   @Environment(\.colorScheme) var colorScheme
+  @Environment(\.widgetFamily) var widgetFamily  // 获取当前小组件的尺寸类型
 
   var body: some View {
     let backgroundColor: Color = colorScheme == .dark ? .black : .white
@@ -170,63 +173,119 @@ struct widgetEntryView: View {
     let secondaryTextColor = textColor.opacity(0.7)
 
     ZStack {
-      backgroundColor.ignoresSafeArea()
-      VStack(alignment: .leading, spacing: 8) {
-        // 课程名称
-        Text(entry.courseName)
-          .font(.headline)
-          .foregroundColor(textColor)
-          .lineLimit(2)  // 限制最多显示 2 行
-          .truncationMode(
-            .tail
-          )  // 当内容超出 2 行时，尾部显示省略号
-          .multilineTextAlignment(.leading)  // 多行时左对齐
-          .frame(maxWidth: .infinity, alignment: .leading)  // 确保宽度自适应，左对齐
-          .fixedSize(horizontal: false, vertical: true)  // 允许垂直方向的内容自适应
+      if widgetFamily == .accessoryRectangular {
+        // 简化显示内容
+        VStack(alignment: .leading, spacing: 2) {
+          // 课程名称
+          Text(entry.courseName)
+            .font(.headline)
+            .foregroundColor(textColor)
+            .lineLimit(1)  // 限制为 1 行
+            .truncationMode(.tail)
 
-        // 周次信息
-        if entry.courseWeek > 0 {
+          // 教室和时间信息
           HStack {
-            Text(
-              "第 \(entry.courseWeek) 周" + (entry.notCurrentWeek ? "(非本周)" : "")
-            )
-            .font(entry.notCurrentWeek ? .caption : .subheadline)
-            .foregroundColor(secondaryTextColor)
-            .lineLimit(1)
+            Text(entry.courseLocation)
+              .font(.caption)
+              .foregroundColor(secondaryTextColor)
+              .lineLimit(1)
+              .truncationMode(.tail)
+
+            Spacer() // 空间分隔符，推送内容到左右两端
+
+            // 周几，第几周
+            Text("\(entry.courseWeekday)")
+              .font(.caption)
+              .foregroundColor(secondaryTextColor)
+              .lineLimit(1)
+            
+            if entry.courseWeek > 0 {
+              HStack {
+                Text(
+                  (entry.notCurrentWeek ? "(非本周)" : "第 \(entry.courseWeek) 周")
+                )
+                .font(entry.notCurrentWeek ? .caption : .subheadline)
+                .foregroundColor(secondaryTextColor)
+                .lineLimit(1)
+              }
+            }
           }
-        }
-
-        // 课程地点
-        Text(entry.courseLocation)
-          .font(.subheadline)
-          .foregroundColor(secondaryTextColor)
-          .lineLimit(1)
-
-        // 课程时间信息
-        HStack {
-          Text(entry.courseWeekday)
-          Text(entry.courseSection)
-        }
-        .font(.subheadline)
-        .foregroundColor(secondaryTextColor)
-
-        // 备注信息
-        if !entry.courseRemark.isEmpty {
-          Text(entry.courseRemark)
-            .font(.footnote)
-            .foregroundColor(secondaryTextColor)
-            .lineLimit(1)
-        }
-
-        // 更新时间信息
-        if entry.showUpdateTime {
-            Text(entry.date.formattedWithoutYear())
+          // 时间信息
+          HStack {
+            Text("更新于" + entry.date.formattedWithoutYear())
                 .font(.caption)
                 .foregroundColor(secondaryTextColor)
                 .lineLimit(1)
+            
+            Spacer() // 空间分隔符，推送内容到左右两端
+            
+            // 周几
+            Text("\(entry.courseSection)")
+              .font(.caption)
+              .foregroundColor(secondaryTextColor)
+              .lineLimit(1)
+          }
         }
+        .padding(.horizontal, 4)  // 调整内边距
+      } else {
+        backgroundColor.ignoresSafeArea()
+        VStack(alignment: .leading, spacing: 8) {
+          // 课程名称
+          Text(entry.courseName)
+            .font(.headline)
+            .foregroundColor(textColor)
+            .lineLimit(2)  // 限制最多显示 2 行
+            .truncationMode(
+              .tail
+            )  // 当内容超出 2 行时，尾部显示省略号
+            .multilineTextAlignment(.leading)  // 多行时左对齐
+            .frame(maxWidth: .infinity, alignment: .leading)  // 确保宽度自适应，左对齐
+            .fixedSize(horizontal: false, vertical: true)  // 允许垂直方向的内容自适应
+
+          // 周次信息
+          if entry.courseWeek > 0 {
+            HStack {
+              Text(
+                "第 \(entry.courseWeek) 周" + (entry.notCurrentWeek ? "(非本周)" : "")
+              )
+              .font(entry.notCurrentWeek ? .caption : .subheadline)
+              .foregroundColor(secondaryTextColor)
+              .lineLimit(1)
+            }
+          }
+
+          // 课程地点
+          Text(entry.courseLocation)
+            .font(.subheadline)
+            .foregroundColor(secondaryTextColor)
+            .lineLimit(1)
+
+          // 课程时间信息
+          HStack {
+            Text(entry.courseWeekday)
+            Text(entry.courseSection)
+          }
+          .font(.subheadline)
+          .foregroundColor(secondaryTextColor)
+
+          // 备注信息
+          if !entry.courseRemark.isEmpty {
+            Text(entry.courseRemark)
+              .font(.footnote)
+              .foregroundColor(secondaryTextColor)
+              .lineLimit(1)
+          }
+
+          // 更新时间信息
+          if entry.showUpdateTime {
+              Text(entry.date.formattedWithoutYear())
+                  .font(.caption)
+                  .foregroundColor(secondaryTextColor)
+                  .lineLimit(1)
+          }
+        }
+        .padding()
       }
-      .padding()
     }
     .widgetBackground(backgroundColor)
   }
@@ -243,7 +302,9 @@ struct widget: Widget {
     }
     .configurationDisplayName("下一节课上什么")
     .description("显示下一节课程的详细信息")
-    .supportedFamilies([.systemSmall, .systemMedium])  // 只支持小和中
+    .supportedFamilies(
+      [.systemSmall, .systemMedium, .accessoryRectangular]
+    )  // 只支持小和中
   }
 }
 
@@ -255,8 +316,12 @@ struct widget: Widget {
     courseWeekday: "周二", courseSection: "3-4节", courseRemark: "无备注",
     courseWeek: -1, showUpdateTime: true, notCurrentWeek: false)
   SimpleEntry(
-    date: Date(), courseName: "测试课程超级长长长长长长长的时候", courseLocation: "教室B",
+    date: Date(), courseName: "测试课程超级长长长长长长长的时候", courseLocation: "西20-2003",
     courseWeekday: "周二", courseSection: "3-4节", courseRemark: "无备注",
+    courseWeek: -1, showUpdateTime: true, notCurrentWeek: false)
+  SimpleEntry(
+    date: Date(), courseName: "测试课程超级长长长长长长长的时候", courseLocation: "教室也超级长长长长长",
+    courseWeekday: "周二", courseSection: "3-4节", courseRemark: "备注也超级长长长长长长",
     courseWeek: -1, showUpdateTime: true, notCurrentWeek: false)
 }
 

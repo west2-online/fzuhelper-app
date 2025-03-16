@@ -117,15 +117,18 @@ func searchNextClassIterative(
     (cacheCourseData.courseData?.values.flatMap { $0 } ?? [])
   + (cacheCourseData.examData?.values.flatMap { $0 } ?? []) + (
     cacheCourseData.customData?.values.flatMap { $0 } ?? [])
-  
-  // 按照周次、星期几、节次排序课程，确保查找时顺序正确
-  _ = courseBeans.sorted { course1, course2 in
-    if course1.startWeek != course2.startWeek {
-      return course1.startWeek < course2.startWeek
-    } else if course1.weekday != course2.weekday {
+
+  // 排序：按星期、开始节次排序
+  let sortedCourses = courseBeans.sorted { (course1: ExtendCourse, course2: ExtendCourse) -> Bool in
+    if course1.weekday != course2.weekday {
+      // 按星期几升序排列
       return course1.weekday < course2.weekday
-    } else {
+    } else if course1.startClass != course2.startClass {
+      // 如果同一天上课，按开始节次升序排列
       return course1.startClass < course2.startClass
+    } else {
+      // 如果开始节次相同，可按其他规则排序（如课程名称，避免冲突）
+      return course1.name < course2.name
     }
   }
 
@@ -140,14 +143,12 @@ func searchNextClassIterative(
   // 只有没超过学期末我们才继续查询
   while currentWeek <= cacheCourseData.maxWeek {
     // 遍历课程
-    for course in courseBeans {
+    for course in sortedCourses {
       // 符合条件: 在开课周内，且当前遍历的节数符合起始课，且符合单双周规则
       if currentWeek >= course.startWeek && currentWeek <= course.endWeek
         && currentWeekday == course.weekday
         && currentSection == course.startClass
-          && (course.single && currentWeek % 2 == 1) || (
-            course.double && currentWeek % 2 == 0
-          )
+        && ((course.single && currentWeek % 2 == 1) || (course.double && currentWeek % 2 == 0))
       {
         return ClassInfo(week: currentWeek, courseBean: course)
       }
