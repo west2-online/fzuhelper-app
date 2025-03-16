@@ -95,6 +95,7 @@ export default function QrScannerPage() {
   if (hasPermission === null || !permission) {
     return (
       <PageContainer className="flex-1 items-center justify-center bg-background">
+        <Stack.Screen options={{ title: '扫码签到' }} />
         <Text>请求相机权限中...</Text>
       </PageContainer>
     );
@@ -103,8 +104,11 @@ export default function QrScannerPage() {
   if (hasPermission === false) {
     return (
       <PageContainer className="flex-1 items-center justify-center bg-background">
+        <Stack.Screen options={{ title: '扫码签到' }} />
         <Text className="mb-4 text-center">需要相机权限以扫描二维码</Text>
-        <Button onPress={() => router.back()}>返回</Button>
+        <Button onPress={() => router.back()}>
+          <Text>返回</Text>
+        </Button>
       </PageContainer>
     );
   }
