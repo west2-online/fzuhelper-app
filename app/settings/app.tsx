@@ -20,7 +20,7 @@ import { getWebViewHref } from '@/lib/webview';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
-  const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // 发布渠道
+  const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // (仅 Android) 发布渠道
 
   // 清除数据
   const handleClearData = () => {
@@ -108,16 +108,21 @@ export default function AcademicPage() {
           },
         ],
       );
+    } else if (Platform.OS === 'android') {
+      setReleaseChannel(prev => (prev !== 'beta' ? 'beta' : 'release'));
     }
-    setReleaseChannel(prev => (prev !== 'beta' ? 'beta' : 'release'));
   };
 
   useEffect(() => {
-    AsyncStorage.getItem(RELEASE_CHANNEL_KEY).then(setReleaseChannel);
+    if (Platform.OS === 'android') {
+      AsyncStorage.getItem(RELEASE_CHANNEL_KEY).then(setReleaseChannel);
+    }
   }, []);
 
   useEffect(() => {
-    if (releaseChannel) AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
+    if (Platform.OS === 'android') {
+      if (releaseChannel) AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
+    }
   }, [releaseChannel]);
 
   return (
@@ -149,7 +154,7 @@ export default function AcademicPage() {
               <LabelEntry leftText="个人信息收集清单" />
             </Link>
             <Link
-              href={getWebViewHref({ url: 'https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#privacy' })}
+              href={getWebViewHref({ url: 'https://fzuhelper.west2.online/onekey/FZUHelper.html#privacy' })}
               asChild
             >
               <LabelEntry leftText="第三方信息共享清单" />
