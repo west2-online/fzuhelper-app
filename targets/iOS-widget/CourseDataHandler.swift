@@ -45,8 +45,8 @@ struct ClassInfo {
 
 // 数据模型：课程时间
 struct ClassTime {
-  let weekday: Int
-  let section: Int
+  let weekday: Int // 星期几
+  let section: Int // 第几节
 }
 
 // 工具函数：获取下一节课程
@@ -74,8 +74,10 @@ func getNextClassTime(startTime: TimeInterval) -> ClassTime {
   let calendar = Calendar.current
   let hour = calendar.component(.hour, from: currentDate)
   _ = calendar.component(.minute, from: currentDate)
-  var weekday = calendar.component(.weekday, from: currentDate) - 1  // 使周日为0，周一为1，以此类推
-  if weekday == 0 { weekday = 7 }  // 调整为1-7，周一到周日
+  var weekday = calendar.component(.weekday, from: currentDate)
+
+  // 调整 weekday 为中国大陆习惯：周一 = 1，周日 = 7
+  weekday = (weekday + 5) % 7 + 1
 
   let section: Int
   switch hour {
@@ -115,11 +117,21 @@ func searchNextClassIterative(
     (cacheCourseData.courseData?.values.flatMap { $0 } ?? [])
   + (cacheCourseData.examData?.values.flatMap { $0 } ?? []) + (
     cacheCourseData.customData?.values.flatMap { $0 } ?? [])
+  
+  // 按照周次、星期几、节次排序课程，确保查找时顺序正确
+  _ = courseBeans.sorted { course1, course2 in
+    if course1.startWeek != course2.startWeek {
+      return course1.startWeek < course2.startWeek
+    } else if course1.weekday != course2.weekday {
+      return course1.weekday < course2.weekday
+    } else {
+      return course1.startClass < course2.startClass
+    }
+  }
 
   // 检查当前时间是否是星期天晚上最后一节课之后的，如果是的话直接切到下一周
   // 注意：currentWeekDay
   if currentWeekday == 6 && currentSection > 11 {
-    // 如果是，则直接从下周开始查找
     currentWeek += 1
     currentWeekday = 1
     currentSection = 1
