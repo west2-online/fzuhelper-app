@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Href, router, Tabs, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Image, ImageSourcePropType, Linking, Platform, View } from 'react-native';
+import { Alert, Image, ImageSourcePropType, Linking, Platform, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import LabelIconEntry from '@/components/label-icon-entry';
@@ -10,7 +10,7 @@ import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchUserInfo } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY, RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import { EXPIRE_ONE_DAY, JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY, RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { fetchJwchLocateDate } from '@/lib/locate-date';
 import { JWCHLocateDateResult } from '@/types/data';
 import { UserInfo } from '@/types/user';
@@ -72,15 +72,33 @@ export default function HomePage() {
             );
           }
         } else if (Platform.OS === 'ios') {
-          if (releaseChannel === 'release') {
-            Linking.openURL(
-              'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=169341623&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
-            );
-          } else if (releaseChannel === 'beta') {
-            Linking.openURL(
-              'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
-            );
-          }
+          Alert.alert(
+            '请选择版本', // 标题
+            '请选择要跳转的反馈交流群', // 信息
+            [
+              {
+                text: '正式版(AppStore)', // 按钮文字
+                onPress: () => {
+                  Linking.openURL(
+                    'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=169341623&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
+                  );
+                },
+              },
+              {
+                text: '测试版(TestFlight)', // 按钮文字
+                onPress: () => {
+                  Linking.openURL(
+                    'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
+                  );
+                },
+              },
+              {
+                text: '取消', // 取消按钮
+                style: 'cancel', // iOS 专属样式
+              },
+            ],
+            { cancelable: true }, // 是否允许点击对话框外部关闭
+          );
         } else {
           Linking.openURL(
             'https://qm.qq.com/cgi-bin/qm/qr?k=e7mh6pFzK706glP05IoQ0-WvvK3nlPds&jump_from=webapi&authKey=JigcWCU4RK773M3s4XJwMi1wLejFHpN8gHPyhq0i0BFsSaRhqLH9FhgBiPH5qUOO',
@@ -98,14 +116,14 @@ export default function HomePage() {
   const { data: userData } = usePersistedQuery({
     queryKey: [JWCH_USER_INFO_KEY],
     queryFn: () => getApiV1JwchUserInfo(),
-    cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
+    cacheTime: 7 * EXPIRE_ONE_DAY, // 缓存 7 天
   });
 
   // 获取当前学期信息
   const { data: termData } = usePersistedQuery({
     queryKey: [JWCH_CURRENT_SEMESTER_KEY],
     queryFn: fetchJwchLocateDate,
-    cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
+    cacheTime: EXPIRE_ONE_DAY, // 缓存 1 天
   });
 
   // 在组件加载时初始化数据
