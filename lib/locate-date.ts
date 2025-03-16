@@ -1,31 +1,18 @@
-import type { LocateDateResult } from '@/api/interface';
-import { JWCH_LOCATE_DATE_CACHE_KEY, JWCH_LOCATE_DATE_URL } from '@/lib/constants';
-import { get } from '@/modules/native-request';
-import { JWCHLocateDateResult } from '@/types/data';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/*
-这里附上这个 URL 请求的返回内容（文本，这个注释也是它直接返回的，挺幽默）：
-var week = "23"; //定义当前第几周
-var xn = "2024";  //定义当前学年
-var xq = "01";  //定义当前学期
-*/
+import { getApiV1CourseDate } from '@/api/generate';
+import type { LocateDateResult } from '@/api/interface';
+import { JWCH_LOCATE_DATE_CACHE_KEY } from '@/lib/constants';
+import { JWCHLocateDateResult } from '@/types/data';
+
 export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
-  const response = await get(JWCH_LOCATE_DATE_URL, { responseType: 'text' });
+  const response = await getApiV1CourseDate();
 
-  // 确保 data 是字符串
-  const data = typeof response.data === 'string' ? response.data : new TextDecoder('utf-8').decode(response.data);
-
-  // 使用正则表达式解析返回内容
-  const match = data.match(/var week = "(\d+)";\s*\/\/.*\s*var xn = "(\d{4})";\s*\/\/.*\s*var xq = "(\d{2})";/);
-  if (!match) {
-    throw new Error('Failed to parse response from JWCH_LOCATE_DATE_URL');
-  }
-
-  // 提取 week, year, term，并转换为数字
-  const [week, year, term] = match.slice(1).map(Number);
-
-  return { week, year, term };
+  return {
+    week: +response.data.data.week,
+    year: +response.data.data.year,
+    term: +response.data.data.term,
+  };
 }
 
 // 基于教务处的数据定位今天是第几周，以及今天的日期
