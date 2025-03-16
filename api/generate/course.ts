@@ -5,7 +5,11 @@ import request from '../axios';
 
 /** 获取 Locate Date GET /api/v1/course/date https://apifox.com/web/project/3275694/apis/api-264078491-run */
 export async function getApiV1CourseDate(options?: { [key: string]: unknown }) {
-  return request<Record<string, unknown>>('/api/v1/course/date', {
+  return request<{
+    code: string;
+    message: string;
+    data: { week: string; year: string; term: string; date: string };
+  }>('/api/v1/course/date', {
     method: 'GET',
     ...(options || {}),
   });
