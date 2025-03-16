@@ -21,6 +21,7 @@ export default function SeatTimeStatusPage() {
   const { spaceId, date, spaceName, token } = useLocalSearchParams<SeatTimeStatusParams>();
   const [loading, setLoading] = useState<boolean>(true);
   const [timeDiamondList, setTimeDiamondList] = useState<TimeDiamond[]>([]);
+  const [isSeatUnusual, setIsSeatUnusual] = useState<boolean>(false);
   const router = useRouter();
 
   // 时间选择相关状态
@@ -60,6 +61,11 @@ export default function SeatTimeStatusPage() {
             return item;
           });
         }
+
+        // 检查是否所有时间段都是空闲的
+        // 由于该页面只会在上一步的预约查询中显示 “已占用” 的情况下才可以点入，而此时如果发生所有时段均可用，则认为该座位存在异常
+        const allFree = timeList.length > 0 && timeList.every(item => item.occupy === 0);
+        setIsSeatUnusual(allFree);
 
         setTimeDiamondList(timeList);
       } catch (error) {
@@ -189,68 +195,86 @@ export default function SeatTimeStatusPage() {
               <Text className="text-base text-text-secondary">日期: {date}</Text>
             </View>
 
-            {/* 图例说明 */}
-            <View className="mb-4 flex-row flex-wrap items-center">
-              <View className="mb-2 mr-4 flex-row items-center">
-                <View className="h-4 w-4 rounded border border-[#4ade80] bg-[#e6f7e9]" />
-                <Text className="ml-2 text-text-primary">可预约</Text>
-              </View>
-              <View className="mb-2 mr-4 flex-row items-center">
-                <View className="h-4 w-4 rounded border border-[#f87171] bg-[#fee2e2]" />
-                <Text className="ml-2 text-text-primary">已占用</Text>
-              </View>
-              <View className="mb-2 mr-4 flex-row items-center">
-                <View className="h-4 w-4 rounded border border-[#3b82f6] bg-[#dbeafe]" />
-                <Text className="ml-2 text-text-primary">已选择</Text>
-              </View>
-              <View className="mb-2 flex-row items-center">
-                <View className="h-4 w-4 rounded border border-[#93c5fd] bg-[#eff6ff]" />
-                <Text className="ml-2 text-text-primary">选择区间</Text>
-              </View>
-            </View>
+            {/* 座位异常警告 */}
+            {isSeatUnusual ? (
+              <View className="mb-4 rounded-lg bg-yellow-100 p-4 dark:bg-yellow-900/30">
+                <Text className="text-center text-yellow-800 dark:text-yellow-200">
+                  该座位异常，可能是处于维修状态，不可预约
+                </Text>
 
-            {/* 选择提示 */}
-            <View className="mb-4">
-              <Text className="text-center text-primary">
-                {!beginTime && !endTime
-                  ? '请选择开始时间'
-                  : beginTime && !endTime
-                    ? '请选择结束时间'
-                    : `已选择 ${beginTime} - ${endTime}`}
-              </Text>
-            </View>
+                {/* 返回按钮 */}
+                <View className="mt-4">
+                  <Button onPress={() => router.back()}>
+                    <Text className="font-medium text-white">返回选座</Text>
+                  </Button>
+                </View>
+              </View>
+            ) : (
+              <>
+                {/* 图例说明 */}
+                <View className="mb-4 flex-row flex-wrap items-center">
+                  <View className="mb-2 mr-4 flex-row items-center">
+                    <View className="h-4 w-4 rounded border border-[#4ade80] bg-[#e6f7e9]" />
+                    <Text className="ml-2 text-text-primary">可预约</Text>
+                  </View>
+                  <View className="mb-2 mr-4 flex-row items-center">
+                    <View className="h-4 w-4 rounded border border-[#f87171] bg-[#fee2e2]" />
+                    <Text className="ml-2 text-text-primary">已占用</Text>
+                  </View>
+                  <View className="mb-2 mr-4 flex-row items-center">
+                    <View className="h-4 w-4 rounded border border-[#3b82f6] bg-[#dbeafe]" />
+                    <Text className="ml-2 text-text-primary">已选择</Text>
+                  </View>
+                  <View className="mb-2 flex-row items-center">
+                    <View className="h-4 w-4 rounded border border-[#93c5fd] bg-[#eff6ff]" />
+                    <Text className="ml-2 text-text-primary">选择区间</Text>
+                  </View>
+                </View>
 
-            {/* 时间块网格 */}
-            <View className="flex-row flex-wrap justify-start">
-              {timeDiamondList.map(item => (
-                <TouchableOpacity
-                  key={item.index}
-                  className={getTimeBlockStyle(item)}
-                  disabled={item.occupy === 1}
-                  onPress={() => handleTimeSelection(item.timeText, item.occupy)}
-                >
-                  <Text
-                    className={`mb-1 w-full text-center text-base ${
-                      item.occupy === 1
-                        ? 'text-text-secondary'
-                        : item.timeText === beginTime || item.timeText === endTime
-                          ? 'font-medium text-primary'
-                          : 'text-text-primary'
-                    }`}
-                  >
-                    {item.timeText}
+                {/* 选择提示 */}
+                <View className="mb-4">
+                  <Text className="text-center text-primary">
+                    {!beginTime && !endTime
+                      ? '请选择开始时间'
+                      : beginTime && !endTime
+                        ? '请选择结束时间'
+                        : `已选择 ${beginTime} - ${endTime}`}
                   </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                </View>
 
-            {/* 预约按钮 */}
-            {canMakeAppointment && (
-              <View className="mt-8 px-4">
-                <Button onPress={handleAppointment}>
-                  <Text className="font-medium text-white">立即预约</Text>
-                </Button>
-              </View>
+                {/* 时间块网格 */}
+                <View className="flex-row flex-wrap justify-start">
+                  {timeDiamondList.map(item => (
+                    <TouchableOpacity
+                      key={item.index}
+                      className={getTimeBlockStyle(item)}
+                      disabled={item.occupy === 1}
+                      onPress={() => handleTimeSelection(item.timeText, item.occupy)}
+                    >
+                      <Text
+                        className={`mb-1 w-full text-center text-base ${
+                          item.occupy === 1
+                            ? 'text-text-secondary'
+                            : item.timeText === beginTime || item.timeText === endTime
+                              ? 'font-medium text-primary'
+                              : 'text-text-primary'
+                        }`}
+                      >
+                        {item.timeText}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* 预约按钮 */}
+                {canMakeAppointment && (
+                  <View className="mt-8 px-4">
+                    <Button onPress={handleAppointment}>
+                      <Text className="font-medium text-white">立即预约</Text>
+                    </Button>
+                  </View>
+                )}
+              </>
             )}
           </ScrollView>
         )}
