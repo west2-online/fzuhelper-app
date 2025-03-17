@@ -65,7 +65,13 @@ export function TabFlatList({
   return (
     <>
       <Tabs value={value} onValueChange={handleTabChange}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} ref={tabsScrollViewRef}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          ref={tabsScrollViewRef}
+          overScrollMode="never"
+          bounces={false}
+        >
           <TabsList className="flex-row">
             {data.map((item, index) => (
               <TabsTrigger key={index} value={item} className="items-center" style={{ width: tabWidth }}>
