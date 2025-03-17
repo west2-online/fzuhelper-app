@@ -192,7 +192,12 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
           // headerStyle: { backgroundColor: customBackground ? 'transparent' :  },
           // eslint-disable-next-line react/no-unstable-nested-components
           headerLeft: () => (
-            <Pressable onPress={() => flatListRef.current?.scrollToIndex({ index: initialWeek - 1, animated: true })}>
+            <Pressable
+              onPress={() => {
+                setCurrentWeek(initialWeek);
+                flatListRef.current?.scrollToIndex({ index: initialWeek - 1, animated: false });
+              }}
+            >
               <Text className="ml-4 text-2xl font-medium">课程表</Text>
             </Pressable>
           ),
