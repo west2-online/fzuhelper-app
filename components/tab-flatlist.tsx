@@ -3,7 +3,7 @@ import { Text } from '@/components/ui/text';
 import { convertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { JSXElementConstructor, ReactElement, useCallback, useEffect, useRef } from 'react';
-import { Dimensions, FlatList, FlatListProps, ScrollView } from 'react-native';
+import { Dimensions, FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent, ScrollView } from 'react-native';
 
 export interface TabFlatListProps {
   data: string[]; // tab列表数据
@@ -29,6 +29,7 @@ export function TabFlatList({
   const internalTabsScrollViewRef = useRef<ScrollView>(null);
   const tabsScrollViewRef = externalTabsScrollViewRef || internalTabsScrollViewRef;
   const flatListRef = useRef<FlatList<any>>(null);
+  const scrollX = useRef(0);
 
   // 处理 flatList 滚动
   const handleTabChange = (newValue: string) => {
@@ -48,17 +49,18 @@ export function TabFlatList({
     }
   }, [value, screenWidth, data, tabWidth, tabsScrollViewRef]);
 
-  const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: any[] }) => {
-      if (viewableItems.length > 0) {
-        const newValue = viewableItems[0].item;
-        if (newValue !== value) {
-          onChange?.(newValue);
-        }
-      }
-    },
-    [value, onChange],
-  );
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    scrollX.current = contentOffsetX;
+  };
+
+  const handleScrollEnd = useCallback(() => {
+    const index = Math.round(scrollX.current / screenWidth);
+    const newValue = data[Math.min(Math.max(index, 0), data.length - 1)];
+    if (newValue && newValue !== value) {
+      onChange?.(newValue);
+    }
+  }, [value, data, onChange, screenWidth]);
 
   return (
     <>
@@ -84,9 +86,10 @@ export function TabFlatList({
         ref={flatListRef}
         keyExtractor={(_, index) => index.toString()}
         showsHorizontalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
         renderItem={({ item }) => renderContent(item)}
+        onScroll={handleScroll}
+        onMomentumScrollEnd={handleScrollEnd}
+        scrollEventThrottle={16}
         onScrollToIndexFailed={() => {}}
         {...flatListOptions}
       />
