@@ -204,7 +204,7 @@ struct widgetEntryView: View {
                 Text(
                   (entry.notCurrentWeek ? "(非本周)" : "第 \(entry.courseWeek) 周")
                 )
-                .font(entry.notCurrentWeek ? .caption : .subheadline)
+                .font(.caption)
                 .foregroundColor(secondaryTextColor)
                 .lineLimit(1)
               }
