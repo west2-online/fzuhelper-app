@@ -1,3 +1,6 @@
+// 暂时无用，只实现了历史记录的接口，目前使用带ssoCookie的webview打开报修页面
+
+
 import { RejectEnum } from '@/api/enum';
 import { get, post } from '@/modules/native-request';
 import { Buffer } from 'buffer';

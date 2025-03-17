@@ -149,8 +149,12 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '公寓报修',
     icon: ApartmentIcon,
-    type: ToolType.LINK,
-    href: '/toolbox/domitory-repair',
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://sso.fzu.edu.cn/login?service=http:%2F%2Fehall.fzu.edu.cn%2Fssfw%2Fsys%2Fswmssbxapp%2F*default%2Findex.do',
+      title: '公寓报修',
+      sso: true,
+    },
   },
 ];
 

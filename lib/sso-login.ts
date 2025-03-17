@@ -172,6 +172,7 @@ class SSOLogin {
   }
 
   // 获得公寓报修的cookie
+  // 暂时无用，目前直接在webview中打开报修页面
   async getDomitoryRepairCookie(ssoCookie: string) {
     /**
      * @param ssoCookie 登录SSO后的cookie
