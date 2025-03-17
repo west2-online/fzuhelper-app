@@ -190,11 +190,22 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
           headerBackground: !customBackground ? () => <View className="flex-1 bg-card" /> : undefined,
           // headerStyle: { backgroundColor: customBackground ? 'transparent' :  },
           // eslint-disable-next-line react/no-unstable-nested-components
-          headerLeft: () => <Text className="ml-4 text-2xl font-medium">课程表</Text>,
+          headerLeft: () => (
+            <Pressable onPress={() => flatListRef.current?.scrollToIndex({ index: initialWeek - 1, animated: true })}>
+              <Text className="ml-4 text-2xl font-medium">课程表</Text>
+            </Pressable>
+          ),
           // eslint-disable-next-line react/no-unstable-nested-components
           headerTitle: () => (
             <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
-              <Text className="mr-1 text-lg">第 {currentWeek} 周 </Text>
+              <Text className="mr-1 text-lg">
+                第 {currentWeek} 周{' '}
+                {currentWeek === initialWeek &&
+                new Date() >= new Date(currentSemester.start_date) &&
+                new Date() <= new Date(currentSemester.end_date)
+                  ? '(本周)'
+                  : ''}
+              </Text>
               <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
             </Pressable>
           ),
