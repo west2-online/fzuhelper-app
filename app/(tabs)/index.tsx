@@ -89,7 +89,12 @@ export default function HomePage() {
   // 具体加载课程的逻辑在 CoursePage 组件中
   return config && currentWeek && termsData ? (
     <PageContainer refreshBackground>
-      <CoursePage config={config} initialWeek={currentWeek} semesterList={termsData.data.data.terms} />
+      <CoursePage
+        config={config}
+        initialWeek={currentWeek}
+        semesterList={termsData.data.data.terms}
+        currentTerm={termsData.data.data.current_term}
+      />
     </PageContainer>
   ) : (
     <Loading />

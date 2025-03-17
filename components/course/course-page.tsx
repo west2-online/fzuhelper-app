@@ -25,10 +25,11 @@ interface CoursePageProps {
   config: CourseSetting;
   initialWeek: number;
   semesterList: TermsListResponse_Terms;
+  currentTerm: string;
 }
 
 // 课程表页面
-const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterList }) => {
+const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterList, currentTerm }) => {
   const [currentWeek, setCurrentWeek] = useState(initialWeek); // 当前周数
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
@@ -199,12 +200,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
           headerTitle: () => (
             <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
               <Text className="mr-1 text-lg">
-                第 {currentWeek} 周{' '}
-                {currentWeek === initialWeek &&
-                new Date() >= new Date(currentSemester.start_date) &&
-                new Date() <= new Date(currentSemester.end_date)
-                  ? '(本周)'
-                  : ''}
+                第 {currentWeek} 周 {currentWeek === initialWeek && currentTerm === term ? '(本周)' : ''}
               </Text>
               <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
             </Pressable>
