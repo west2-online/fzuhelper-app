@@ -10,7 +10,7 @@ import LoginPrompt from '@/components/sso-login-prompt';
 import { Text } from '@/components/ui/text';
 
 import SSOLogin from '@/lib/sso-login';
-import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
+import { SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
 
 const menuItems: {
   name: string;
@@ -30,46 +30,41 @@ const menuItems: {
   },
 ];
 
-const getToken = async () => {
-  // 首先尝试从本地读取token
-  const tokenStorage = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
-  if (tokenStorage) {
-    console.log('从本地读取到token:', tokenStorage);
-    return tokenStorage;
-  }
-
-  // 本地没有就检查SSO是否登录
+const getCookie = async () => {
+  // 因为cookie过期时间过短，不适合保存在本地，所以每次进入页面都需要重新获取
+  // 检查SSO登录
   const ssoCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
   if (!ssoCookie) {
     console.log('未登录SSO');
     return null;
   }
 
-  // sso登录获取token
+  // sso登录获取报修的cookie
   const ssoLogin = new SSOLogin();
-  const tokenLogin = await ssoLogin.getStudyToken(ssoCookie).catch(error => {
-    console.error('SSO登录获取token失败:', error);
+  console.log('尝试从SSO登录获取cookie：', ssoCookie);
+  const cookieLogin = await ssoLogin.getDomitoryRepairCookie(ssoCookie).catch(error => {
+    console.error('SSO登录获取cookie失败:', error);
     return null;
   });
-  if (tokenLogin) {
-    console.log('通过SSO登录获取到token:', tokenLogin);
-    await AsyncStorage.setItem(LEARNING_CENTER_TOKEN_KEY, tokenLogin);
-    return tokenLogin;
+  if (cookieLogin) {
+    console.log('通过SSO登录获取到cookie:', cookieLogin);
+    return cookieLogin;
+  } else {
+    return null;
   }
-  return null;
 };
 
-export default function LearningCenterPage() {
-  const [token, setToken] = useState<null | string>(null);
+export default function DomitoryRepairPage() {
+  const [cookie, setCookie] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // 进入页面时获取token
   useFocusEffect(
     useCallback(() => {
       setIsLoading(true);
-      getToken()
-        .then(fetchedToken => {
-          setToken(fetchedToken);
+      getCookie()
+        .then(fetchedCookie => {
+          setCookie(fetchedCookie);
           setIsLoading(false);
         })
         .catch(error => {
@@ -82,6 +77,7 @@ export default function LearningCenterPage() {
         });
     }, []),
   );
+
   if (isLoading) {
     return (
       <>
@@ -90,11 +86,12 @@ export default function LearningCenterPage() {
       </>
     );
   }
+
   return (
     <>
       <Stack.Screen options={{ title: '公寓报修' }} />
       <PageContainer>
-        {token ? (
+        {cookie ? (
           <ScrollView className="space-y-4 px-8 pt-4">
             {menuItems.map((item, index) => (
               <LabelEntry
@@ -107,7 +104,7 @@ export default function LearningCenterPage() {
                     ? () =>
                         router.push({
                           pathname: item.route!,
-                          params: { token },
+                          params: { cookie },
                         })
                     : undefined)
                 }
