@@ -1,15 +1,23 @@
 import CookieManager from '@react-native-cookies/cookies';
 import { Stack, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform } from 'react-native';
+import { BackHandler, Platform, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
+import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
-import { JWCH_COOKIES_DOMAIN, YJSY_COOKIES_DOMAIN } from '@/lib/constants';
+import PageContainer from '@/components/page-container';
+import {
+  JWCH_COOKIES_DOMAIN,
+  SSO_LOGIN_COOKIE_DOMAIN,
+  SSO_LOGIN_COOKIE_KEY,
+  YJSY_COOKIES_DOMAIN,
+} from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
-import { toast } from 'sonner-native';
+import { getScriptByURL } from '@/utils/dom-cleaner';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface WebParams {
   url: string; // URL 地址
@@ -25,11 +33,14 @@ export default function Web() {
   const [webpageTitle, setWebpageTitle] = useState('');
   const [currentUrl, setCurrentUrl] = useState(''); // 当前加载的 URL
   const [cookiesSet, setCookiesSet] = useState(false); // 用于控制 Cookie 设置先于 WebView 加载
+  const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
-  const { url, jwch, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const setCookies = async () => {
+      // 教务系统 Cookie
       if (jwch) {
         // 清除 webview cookies
         // await CookieManager.get(JWCH_COOKIES_DOMAIN).then(cookies =>
@@ -76,10 +87,18 @@ export default function Web() {
           ),
         );
       }
+
+      // 统一身份认证 Cookie
+      if (sso) {
+        const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
+        if (SSOCookie) {
+          SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+        }
+      }
       setCookiesSet(true);
     };
     setCookies();
-  }, [jwch, url]);
+  }, [jwch, url, sso]);
 
   // 处理 Android 返回键
   useEffect(() => {
@@ -120,47 +139,57 @@ export default function Web() {
         if (event.title && !title) {
           setWebpageTitle(event.title); // 只有在没有传递 title 参数时才更新标题
         }
+
+        webViewRef.current?.injectJavaScript(getScriptByURL(event.url, colorScheme));
+
+        setTimeout(() => {
+          setInjectedScript(true);
+        }, 200);
       }
     },
-    [title],
+    [title, colorScheme],
   );
 
   return (
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
       <Stack.Screen options={{ title: title || webpageTitle }} />
-      {!cookiesSet ? (
-        <Loading />
-      ) : (
-        <SafeAreaView className="h-full w-full" edges={['bottom']}>
-          {cookiesSet && (
-            <WebView
-              source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
-              ref={webViewRef}
-              sharedCookiesEnabled
-              cacheEnabled // 启用缓存
-              cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
-              javaScriptEnabled // 确保启用 JavaScript
-              //
-              // Android 平台设置
-              onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回（Android）
-              scalesPageToFit // 启用页面缩放（Android）
-              renderToHardwareTextureAndroid // 启用硬件加速（Android）
-              setDisplayZoomControls={false} // 隐藏缩放控件图标（Android）
-              setBuiltInZoomControls // 启用内置缩放控件（Android）
-              //
-              // iOS 平台设置
-              allowsBackForwardNavigationGestures // 启用手势返回（iOS）
-              contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小（iOS）
-              allowsInlineMediaPlayback // 允许内联播放媒体（iOS）
-              //
-              // 事件处理
-              onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
-              onNavigationStateChange={handleNavigationStateChange}
-            />
-          )}
-        </SafeAreaView>
-      )}
+      <PageContainer>
+        {!cookiesSet ? (
+          <Loading />
+        ) : (
+          <SafeAreaView className="h-full w-full bg-background" edges={['bottom']}>
+            {cookiesSet && (
+              <WebView
+                source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
+                ref={webViewRef}
+                sharedCookiesEnabled
+                cacheEnabled // 启用缓存
+                cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
+                javaScriptEnabled // 确保启用 JavaScript
+                //
+                // Android 平台设置
+                onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回（Android）
+                scalesPageToFit // 启用页面缩放（Android）
+                renderToHardwareTextureAndroid // 启用硬件加速（Android）
+                setDisplayZoomControls={false} // 隐藏缩放控件图标（Android）
+                setBuiltInZoomControls // 启用内置缩放控件（Android）
+                //
+                // iOS 平台设置
+                allowsBackForwardNavigationGestures // 启用手势返回（iOS）
+                contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小（iOS）
+                allowsInlineMediaPlayback // 允许内联播放媒体（iOS）
+                //
+                // 事件处理
+                onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
+                onNavigationStateChange={handleNavigationStateChange}
+                // 当脚本未注入完成时隐藏 WebView
+                className={injectedScript ? 'flex-1' : 'hidden bg-background'}
+              />
+            )}
+          </SafeAreaView>
+        )}
+      </PageContainer>
     </>
   );
 }

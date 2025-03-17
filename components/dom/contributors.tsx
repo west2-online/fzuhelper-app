@@ -9,11 +9,13 @@ import type { ColorSchemeName } from 'react-native';
 import '@/global.css';
 
 const ContributorTitle: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <h2 className="mb-4 mt-6 text-2xl font-bold text-foreground">{children}</h2>
+  <h2 className="py-4 text-2xl font-bold text-foreground">{children}</h2>
 );
 
 const ContributorContainer: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <div className="grid grid-cols-1 gap-x-2 gap-y-4 min-[240px]:grid-cols-2 min-[360px]:grid-cols-3">{children}</div>
+  <div className="grid grid-cols-1 gap-x-2 gap-y-4 pb-1 min-[240px]:grid-cols-2 min-[360px]:grid-cols-3">
+    {children}
+  </div>
 );
 
 interface ContributorItemProps {

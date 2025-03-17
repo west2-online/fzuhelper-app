@@ -13,6 +13,7 @@ export const REFRESH_TOKEN_KEY = 'refresh_token';
 
 // 推送管理
 export const ALLOW_PUSH_EVENT_KEYS = 'allow_push_event';
+export const UMENG_JWCH_PUSH_TAG = 'jwch-notice'; // 友盟教务处通知 Tag
 
 // 用户模型
 export const LOCAL_USER_INFO_KEY = 'local_user_info'; // 本地用户信息
@@ -31,8 +32,17 @@ export const JWCH_CURRENT_SEMESTER_KEY = 'jwch_current_semester'; // 当前学�
 export const YJSY_COOKIES_DOMAIN = 'https://yjsglxt.fzu.edu.cn'; // YJSY Cookies 域名
 
 // 一码通
+// 以 YMT_ 开头
 export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
 export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
+
+// SSO 登录
+export const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';
+export const SSO_LOGIN_COOKIE_KEY = 'sso_login_cookie';
+export const SSO_LOGIN_COOKIE_DOMAIN = 'https://sso.fzu.edu.cn';
+
+// 学习空间预约
+export const LEARNING_CENTER_TOKEN_KEY = 'learning_center_token';
 
 // 隐私政策允许情况
 export const IS_PRIVACY_POLICY_AGREED = 'is_privacy_policy_agreed';
@@ -82,6 +92,9 @@ export const CLASS_BREAK_EVENING = [1050, 1140]; // 17:30 - 19:00
 // 考场
 export const EXAM_ROOM_KEY = 'exam_room';
 
+// 成绩
+export const GRADE_LIST_KEY = 'grade_list';
+
 // 历年卷
 export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';
 
@@ -122,3 +135,15 @@ export const NAV_THEME = {
 };
 
 export const EXPIRE_ONE_DAY = 1000 * 60 * 60 * 24; // 一天的毫秒数
+
+export const IOS_APP_GROUP = 'group.FzuHelper.NextCourse'; // iOS App Group，需要保持和 app.config.ts 中的一致
+
+// 日期时间格式化
+export const DATE_FORMAT = 'YYYY/M/D';
+export const TIME_FORMAT = 'HH:mm';
+export const TIME_SECOND_FORMAT = `${TIME_FORMAT}:ss`;
+export const DATETIME_FORMAT = `${DATE_FORMAT} ${TIME_FORMAT}`;
+export const DATETIME_SECOND_FORMAT = `${DATE_FORMAT} ${TIME_SECOND_FORMAT}`;
+
+// 发布通道
+export const RELEASE_CHANNEL_KEY = 'release_channel';

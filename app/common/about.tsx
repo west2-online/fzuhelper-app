@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { Link, Stack, router } from 'expo-router';
+import { Href, Link, Stack, router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Image, Linking, Platform, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -82,18 +82,24 @@ export default function AboutPage() {
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
-            <DescriptionListRow>
-              <DescriptionListTerm>
-                <Text className="text-text-secondary">研发团队</Text>
-              </DescriptionListTerm>
-              <DescriptionListDescription>西二在线工作室</DescriptionListDescription>
-            </DescriptionListRow>
             <Pressable onPress={() => Linking.openURL('https://site.west2.online/')}>
               <DescriptionListRow>
                 <DescriptionListTerm>
-                  <Text className="text-text-secondary">官方网站</Text>
+                  <Text className="text-text-secondary">研发团队</Text>
                 </DescriptionListTerm>
-                <DescriptionListDescription>
+                <DescriptionListDescription className="flex-row items-center">
+                  <Text>西二在线工作室</Text>
+                  <Icon name="chevron-forward" size={14} />
+                </DescriptionListDescription>
+              </DescriptionListRow>
+            </Pressable>
+            <Pressable onPress={() => router.push('/common/source-codes' as Href)}>
+              <DescriptionListRow>
+                <DescriptionListTerm>
+                  <Text className="text-text-secondary">项目源代码</Text>
+                </DescriptionListTerm>
+                <DescriptionListDescription className="flex-row items-center">
+                  <Text>点击查看</Text>
                   <Icon name="chevron-forward" size={14} />
                 </DescriptionListDescription>
               </DescriptionListRow>

@@ -23,7 +23,7 @@ import SplashImage from '@/assets/images/splash.png';
 import SplashLogoIcon from '@/assets/images/splash_logo.png';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import aegis from '@/lib/aegis';
+import { initAegis, setAegisConfig } from '@/lib/aegis';
 import {
   IS_PRIVACY_POLICY_AGREED,
   SPLASH_DATE,
@@ -32,8 +32,8 @@ import {
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
+import { NotificationManager } from '@/lib/notification';
 import { LocalUser } from '@/lib/user';
-import ExpoUmengModule from '@/modules/umeng-bridge';
 import { isAccountExist } from '@/utils/is-account-exist';
 
 ExpoSplashScreen.preventAutoHideAsync();
@@ -54,9 +54,10 @@ export default function SplashScreen() {
   const [hideSystemBars, setHideSystemBars] = useState(true);
 
   // 合规初始化第三方库
-  const initThirdParty = useCallback(() => {
+  const initThirdParty = useCallback(async () => {
     console.log('initUMPush and UMAnalysis');
-    ExpoUmengModule.initUmeng();
+    await NotificationManager.init();
+    initAegis();
   }, []);
 
   const navigateToHome = useCallback(() => {
@@ -154,7 +155,7 @@ export default function SplashScreen() {
     // 在此处开始加载 AEGIS 符合逻辑，同时不需要额外的再 load 一次
     console.log('set AEGIS config for', LocalUser.getUser().userid);
     // Alert.alert('AEGIS', 'set config for ' + LocalUser.getUser().userid);
-    aegis.setConfig({
+    setAegisConfig({
       uin: LocalUser.getUser().userid,
     });
 

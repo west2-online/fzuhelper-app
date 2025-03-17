@@ -1,26 +1,26 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, router } from 'expo-router';
+import { Link, Stack } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, Linking, Platform } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
-import { Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
 
+import LabelSwitch from '@/components/label-switch';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { CourseCache } from '@/lib/course';
+import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
-import { pushToWebViewNormal } from '@/lib/webview';
-import { ScrollView } from 'react-native-gesture-handler';
+import { getWebViewHref } from '@/lib/webview';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
-
-  // 通知推送
-  const handleNotification = () => {
-    router.push('/settings/notifications');
-  };
+  const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // (仅 Android) 发布渠道
 
   // 清除数据
   const handleClearData = () => {
@@ -46,7 +46,7 @@ export default function AcademicPage() {
   };
   // 登出
   const handleLogout = () => {
-    Alert.alert('确认退出', '确认要退出登录吗？', [
+    Alert.alert('确认退出', '确认要退出登录吗？(含教务系统、统一身份认证等全部登录内容）', [
       {
         text: '取消',
         style: 'cancel',
@@ -69,40 +69,116 @@ export default function AcademicPage() {
     ]);
   };
 
+  const handleSSOLogout = () => {
+    Alert.alert('确认退出', '您确定要退出统一身份认证账户（非教务系统，该账户包含学习中心、一码通等内容）吗？', [
+      {
+        text: '取消',
+        style: 'cancel',
+      },
+      {
+        text: '确定',
+        onPress: async () => {
+          try {
+            await SSOlogoutAndCleanData();
+            toast.success('统一身份认证已退出并清除数据');
+          } catch (error) {
+            console.error('Error clearing storage:', error);
+            Alert.alert('清理用户数据失败', '无法清理用户数据');
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleChangeReleaseChannel = () => {
+    if (Platform.OS === 'ios') {
+      Alert.alert(
+        '内测计划',
+        '苹果内测版 App 由 TestFlight 统一管理，点击确认打开内测指引，如需重新回归正式版可以在 App Store 中重新下载',
+        [
+          {
+            text: '取消',
+            style: 'cancel',
+          },
+          {
+            text: '确定',
+            onPress: async () => {
+              Linking.openURL('https://testflight.apple.com/join/UubMBYAm');
+            },
+          },
+        ],
+      );
+    } else if (Platform.OS === 'android') {
+      setReleaseChannel(prev => (prev !== 'beta' ? 'beta' : 'release'));
+    }
+  };
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      AsyncStorage.getItem(RELEASE_CHANNEL_KEY).then(setReleaseChannel);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      if (releaseChannel) AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
+    }
+  }, [releaseChannel]);
+
   return (
     <>
       <Stack.Screen options={{ title: '设置' }} />
 
       <PageContainer>
-        <ScrollView className="flex-1 bg-background px-8 pt-8">
+        <ScrollView className="flex-1 px-8 pt-8">
           <SafeAreaView edges={['bottom']}>
             {/* 菜单列表 */}
             <Text className="mb-2 text-sm text-text-secondary">基本</Text>
 
-            <LabelEntry leftText="通知推送" onPress={handleNotification} />
+            <Link href="/settings/notifications" asChild>
+              <LabelEntry leftText="通知推送" />
+            </Link>
+            <Link href="/settings/appearance" asChild>
+              <LabelEntry leftText="自定义皮肤" />
+            </Link>
             <LabelEntry leftText="清除数据" onPress={handleClearData} />
-            <LabelEntry leftText="退出登录" onPress={handleLogout} />
+            <LabelEntry leftText="退出登录(全部)" onPress={handleLogout} />
+            <LabelEntry leftText="退出登录(仅统一身份认证)" onPress={handleSSOLogout} />
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">隐私</Text>
 
-            <LabelEntry leftText="隐私权限设置" onPress={() => router.push('/settings/permissions')} />
-            <LabelEntry leftText="个人信息收集清单" onPress={() => router.push('/settings/personal-info-list')} />
-            <LabelEntry
-              leftText="第三方信息共享清单"
-              onPress={() =>
-                pushToWebViewNormal(
-                  'https://iosfzuhelper.west2online.com/onekey/FZUHelper.html#third-party',
-                  '第三方信息共享清单',
-                )
-              }
-            />
+            <Link href="/settings/permissions" asChild>
+              <LabelEntry leftText="隐私权限设置" />
+            </Link>
+            <Link href="/settings/personal-info-list" asChild>
+              <LabelEntry leftText="个人信息收集清单" />
+            </Link>
+            <Link
+              href={getWebViewHref({ url: 'https://fzuhelper.west2.online/onekey/FZUHelper.html#privacy' })}
+              asChild
+            >
+              <LabelEntry leftText="第三方信息共享清单" />
+            </Link>
 
             {/* <Text className="mb-2 mt-4 text-sm text-text-secondary">Developer</Text> */}
             {/* <LabelEntry leftText="开发者工具" onPress={() => router.push('/devtools')} /> */}
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">其他</Text>
 
-            <LabelEntry leftText="关于福uu" onPress={() => router.push('/common/about')} />
+            {Platform.OS === 'android' && (
+              <LabelSwitch
+                label="加入内测计划"
+                value={releaseChannel === 'beta'}
+                onValueChange={handleChangeReleaseChannel}
+              />
+            )}
+            {Platform.OS === 'ios' && (
+              <LabelEntry leftText="TestFlight 内测计划" onPress={handleChangeReleaseChannel} />
+            )}
+
+            <Link href="/common/about" asChild>
+              <LabelEntry leftText="关于福uu" />
+            </Link>
           </SafeAreaView>
         </ScrollView>
       </PageContainer>

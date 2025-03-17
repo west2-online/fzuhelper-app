@@ -1,12 +1,16 @@
-import { USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
-import { Href, useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { Alert, Linking } from 'react-native';
 import { toast } from 'sonner-native';
+
+import type { WebParams } from '@/app/common/web';
+import { USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { getWebViewHref } from '@/lib/webview';
 
 export enum ToolType {
   LINK = 'link', // 跳转路由
   URL = 'URL', // 打开网页
   FUNCTION = 'function', // 执行函数
+  WEBVIEW = 'webview', // 打开 WebView
   NULL = 'null', // 空操作
 }
 export type UserType = typeof USER_TYPE_UNDERGRADUATE | typeof USER_TYPE_POSTGRADUATE;
@@ -25,6 +29,10 @@ export type Tool = {
       href: string;
     }
   | {
+      type: ToolType.WEBVIEW;
+      params: WebParams;
+    }
+  | {
       type: ToolType.FUNCTION;
       action: (router: ReturnType<typeof useRouter>) => void | Promise<void>;
     }
@@ -38,8 +46,11 @@ export const toolOnPress = (tool: Tool, router: ReturnType<typeof useRouter>) =>
   switch (tool.type) {
     case ToolType.NULL: // 空操作
       break;
-    case ToolType.LINK: // 跳转路由
+    case ToolType.LINK: // 跳转路由（理论上不会执行到这句）
       router.push(tool.href);
+      break;
+    case ToolType.WEBVIEW: // 打开 WebView（理论上不会执行到这句，会在 renderToolButton 中分流）
+      router.push(getWebViewHref(tool.params));
       break;
     case ToolType.URL: // 打开网页
       Linking.openURL(tool.href).catch(err => Alert.alert('错误', '无法打开链接 (' + err + ')'));

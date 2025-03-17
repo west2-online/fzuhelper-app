@@ -2,10 +2,16 @@ import { RejectEnum } from '@/api/enum';
 import { ACCESS_TOKEN_KEY } from '@/lib/constants';
 import { LocalUser } from '@/lib/user';
 import { get, post } from '@/modules/native-request';
+import { type RejectError } from '@/types/reject-error';
 import { base64, md5 } from '@/utils/crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Buffer } from 'buffer';
+
+// 用于提供类型检查，本文件中所有的 throw 和 Promise.reject 都应该使用这个保证类型安全
+function rejectWith(obj: RejectError) {
+  return Promise.reject(obj);
+}
 
 // const 只会使变量的引用不可变，但不代表变量的内容（如对象或数组）也是不可变的，因此需要补一个 as const
 // 本科生教务系统
@@ -126,10 +132,10 @@ class UserLogin {
     const data = this.#responseToString(_data);
     const result = this.#checkErrors(data);
     if (result) {
-      throw {
+      return rejectWith({
         type: RejectEnum.NativeLoginFailed,
         data: result,
-      };
+      });
     }
 
     const token = /token=(.*?)&/.exec(data)?.[1];
@@ -137,10 +143,10 @@ class UserLogin {
     const num = /num=(.*?)&/.exec(data)?.[1];
 
     if (!token || !id || !num) {
-      throw {
+      return rejectWith({
         type: RejectEnum.NativeLoginFailed,
         data: '教务处未返回有效 Token\n可能原因: 验证码识别失败，教务处正在进行维护',
-      };
+      });
     }
 
     return { token, id, num };
@@ -159,10 +165,10 @@ class UserLogin {
 
     // {"code":200,"info":"登录成功","data":{}}
     if (data.code !== 200) {
-      throw {
+      return rejectWith({
         type: RejectEnum.NativeLoginFailed,
-        data: '教务处服务器 SSOLogin 失败',
-      };
+        data: '教务处服务器 SSOLogin 失败\n可能原因：账号冲突，教务处正在进行维护',
+      });
     }
 
     return true;
@@ -181,10 +187,10 @@ class UserLogin {
     const resId = /id=(.*?)&/.exec(data)?.[1];
 
     if (!resId) {
-      throw {
+      return rejectWith({
         type: RejectEnum.NativeLoginFailed,
-        data: '教务系统用户 ID 获取失败',
-      };
+        data: '教务系统用户 ID 获取失败\n可能原因：账号冲突，教务处正在进行维护',
+      });
     }
 
     return { id: resId };
@@ -210,10 +216,10 @@ class UserLogin {
 
     if (!response.data.data) {
       console.error('自动验证码识别失败,HTTP JSON:', JSON.stringify(response.data));
-      throw {
+      return rejectWith({
         type: RejectEnum.NativeLoginFailed,
         data: '自动验证码识别失败',
-      };
+      });
     }
 
     return response.data.data;
@@ -236,18 +242,23 @@ class UserLogin {
     const data = this.#responseToString(_data);
     const result = this.#checkErrors(data);
     if (result) {
-      throw {
+      return rejectWith({
         type: RejectEnum.NativeLoginFailed,
         data: result,
-      };
+      });
     }
 
     // 下面是判断登录成功的确认，登录成功时会是一个 302，所以直接判断是否有 Location 头即可
     if (!resHeaders.Location) {
-      throw {
+      // 登录失败的话会有一个 alert，大致格式如下，可以尝试进行提取
+      // <script language='javascript' defer>alert('请输入正确的用户名或密码！');</script></form>
+      // 原因有很多，比如短时间内密码试错太多次等
+      const alertRegex = /<script[^>]*>\s*alert\(['"](.+?)['"]\);\s*<\/script>/;
+      const match = data.match(alertRegex);
+      return rejectWith({
         type: RejectEnum.NativeLoginFailed,
-        data: '研究生教务系统登录失败',
-      };
+        data: match ? match[1] : '研究生教务系统登录失败',
+      });
     }
 
     return;
@@ -274,6 +285,7 @@ class UserLogin {
       const { id } = await this.#finishLogin(id0, num);
       identifier = id;
     }
+
     return {
       id: identifier,
       cookies: this.#getCookies(),

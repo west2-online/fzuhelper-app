@@ -1,6 +1,7 @@
-import { Tabs, useNavigation } from 'expo-router';
+import { BlurView } from 'expo-blur';
+import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { Alert, AppState, Platform } from 'react-native';
+import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
 
@@ -32,7 +33,7 @@ export default function TabLayout() {
     try {
       await getApiV1JwchPing(); // 这里是一个 ping 接口，用来测试服务器是否正常
     } catch (error: any) {
-      const data = handleError(error);
+      const data = handleError(error) as { code: string; message: string };
       if (data) {
         Alert.alert('服务器连接失败', data.message);
       }
@@ -68,47 +69,75 @@ export default function TabLayout() {
   }, [handleError]);
 
   return (
-    <Tabs screenOptions={{ headerTitleAlign: 'center' }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: '课程',
-          href: '/',
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <Tabs
+        screenOptions={{
+          headerTitleAlign: 'center',
+          headerShadowVisible: false,
+          headerTransparent: true,
+          tabBarPosition: 'bottom',
+          tabBarStyle: { position: 'absolute', elevation: 0 },
           // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
-          ),
+          tabBarBackground: () =>
+            Platform.OS === 'ios' ? (
+              <BlurView
+                intensity={50}
+                tint="light"
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'transparent', overflow: 'hidden' }}
+              />
+            ) : (
+              // TODO: 目前是使用了 BlurView 来实现毛玻璃效果，但是这个组件在 Android 上会有问题，因此暂时不使用
+              <View className={'flex-1 bg-background/10'} />
+            ),
         }}
-      />
-      <Tabs.Screen
-        name="toolbox"
-        options={{
-          title: '工具箱',
-          href: '/toolbox',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="qrcode"
-        options={{
-          title: '一码通',
-          href: '/qrcode',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'qr-code' : 'qr-code-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="user"
-        options={{
-          title: '我的',
-          href: '/user',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: '课程',
+            href: '/',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="toolbox"
+          options={{
+            title: '工具箱',
+            href: '/toolbox',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="qrcode"
+          options={{
+            title: '一码通',
+            href: '/qrcode',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon name={focused ? 'qr-code' : 'qr-code-outline'} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="user"
+          options={{
+            title: '我的',
+            href: '/user',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
+            ),
+          }}
+        />
+      </Tabs>
+    </>
   );
 }

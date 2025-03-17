@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -41,8 +41,8 @@ const TermContent: React.FC<TermContentProps> = ({ term, onRefresh }) => {
     refetch,
   } = useApiRequest(getApiV1JwchAcademicScores, {}, { errorHandler });
   const lastUpdated = new Date(dataUpdatedAt);
-  const filteredData = (academicData ?? []).filter(it => it.term === term);
-  const summary = calSingleTermSummary(filteredData, term);
+  const filteredData = useMemo(() => (academicData ?? []).filter(it => it.term === term), [academicData, term]);
+  const summary = useMemo(() => calSingleTermSummary(filteredData), [filteredData]);
 
   return (
     <ScrollView

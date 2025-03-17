@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { View, useColorScheme } from 'react-native';
+import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { Icon } from '@/components/Icon';
@@ -70,9 +70,9 @@ export default function AcademicPage() {
         selectedSemester: prevSettings.selectedSemester || semesters[0],
       }));
     } catch (error: any) {
-      const data = handleError(error);
+      const data = handleError(error) as { code: string; message: string };
       if (data) {
-        toast.error(data.msg ? data.msg : '未知错误');
+        toast.error(data?.message || '未知错误');
       }
     }
   }, [semesters, handleError]);
@@ -93,12 +93,13 @@ export default function AcademicPage() {
 
       await AsyncStorage.setItem([COURSE_DATA_KEY, queryTerm].join('__'), JSON.stringify(cacheToStore));
       CourseCache.setCourses(data.data.data);
+      CourseCache.save(); // 强制保存一次，忽略 SetCourses 的判断
       toast.success('刷新成功');
     } catch (error: any) {
-      const data = handleError(error);
+      const data = handleError(error) as { code: string; message: string };
       console.log(data);
       if (data) {
-        toast.error(data.msg ? data.msg : '未知错误');
+        toast.error(data.message ? data.message : '未知错误');
       }
     } finally {
       setIsRefreshing(false);
@@ -181,7 +182,7 @@ export default function AcademicPage() {
       <Stack.Screen options={{ title: '课程表设置' }} />
 
       <PageContainer>
-        <ScrollView className="flex-1 bg-background px-8 pt-8">
+        <ScrollView className="flex-1 px-8 pt-8">
           <SafeAreaView edges={['bottom']}>
             {/* 菜单列表 */}
             <Text className="mb-2 text-sm text-text-secondary">课程数据</Text>

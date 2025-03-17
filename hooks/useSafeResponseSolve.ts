@@ -2,17 +2,12 @@ import { RejectEnum } from '@/api/enum';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { CourseCache } from '@/lib/course';
 import { LocalUser } from '@/lib/user';
+import { type RejectError } from '@/types/reject-error';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import { toast } from 'sonner-native';
 
 // 安全处理网络请求错误，在 api/axios.ts 中遇到错误时会抛出错误，之后会被这个函数捕获（捕获过程由每个页面请求逻辑实现）
-
-interface RejectError {
-  type: RejectEnum; // Type 被精简为只有 6 种，具体查看 api/enum.ts
-  data?: any; // 仅当 type 为 RejectEnum.BizFailed/RejectEnum.NativeLoginFailed/RejectEnum.InternalFailed 时存在
-  // 其中 RejectEnum.NativeLoginFailed 返回的是一个字符串，表示错误信息
-}
 
 // useSafeResponseSolve 适用于安全地处理 Axios 响应错误
 // Axios 的错误对象中包含了 type 字段，这段逻辑会根据 type 的不同进行不同的处理
@@ -101,7 +96,7 @@ export const useSafeResponseSolve = () => {
 
         case RejectEnum.NativeLoginFailed:
           console.error('本地登录异常:', error);
-          Alert.alert('登录错误', error.data);
+          Alert.alert('登录错误', String(error.data));
           break;
 
         default:

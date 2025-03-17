@@ -19,8 +19,6 @@ import { pushToWebViewJWCH } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 import { toast } from 'sonner-native';
 
-const NAVIGATION_TITLE = '学业状况';
-
 const errorHandler = (error: any) => {
   if (error) {
     toast.error(error.msg ? error.msg : '培养计划没有找到');
@@ -80,8 +78,8 @@ export default function AcademicPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: NAVIGATION_TITLE }} />
-      <PageContainer className="bg-background p-4">
+      <Stack.Screen options={{ title: '学业状况' }} />
+      <PageContainer className="p-4">
         {/* 菜单列表 */}
         <View className="mx-4 space-y-4">
           {MENU_ITEMS.filter(

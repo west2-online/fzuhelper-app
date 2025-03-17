@@ -50,8 +50,8 @@ internal fun updateNextClassWidget(
 
     val intent = Intent()
     intent.setClassName(
-        "com.helper.west2ol.fzuhelper",
-        "com.helper.west2ol.fzuhelper.MainActivity"
+        BuildConfig.APPLICATION_ID,
+        BuildConfig.APPLICATION_ID + ".MainActivity"
     )
     val pendingIntent = PendingIntent.getActivity(
         context,
@@ -64,6 +64,7 @@ internal fun updateNextClassWidget(
 
     val cacheCourseData: CacheCourseData
     var nextClass: ClassInfo? = null
+    var hasLocalData = true
     try {
         val jsonData = context
             .getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
@@ -72,13 +73,14 @@ internal fun updateNextClassWidget(
             cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
             nextClass = getNextClass(cacheCourseData)
 //            Log.d("NextClassWidgetProvider", "Loaded widget data: $cacheCourseData")
+        } else {
+            hasLocalData = false
         }
     } catch (e: Exception) {
         Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
     }
 
     if (nextClass != null) {
-
         val name = nextClass.courseBean.name
             .let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
 
@@ -97,12 +99,20 @@ internal fun updateNextClassWidget(
             setTextViewText(R.id.course_section, section)
             setTextViewText(R.id.course_week, "第${nextClass.week}周")
         }
-
-    } else {
+    } else if (hasLocalData) {
         views.apply {
             setTextViewText(R.id.course_name, "放假啦")
             setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 30f)
             setTextViewText(R.id.course_room, null)
+            setTextViewText(R.id.course_weekday, null)
+            setTextViewText(R.id.course_section, null)
+            setTextViewText(R.id.course_week, null)
+        }
+    } else {
+        views.apply {
+            setTextViewText(R.id.course_name, "本地没有数据")
+            setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
+            setTextViewText(R.id.course_room, "请打开课表设置刷新")
             setTextViewText(R.id.course_weekday, null)
             setTextViewText(R.id.course_section, null)
             setTextViewText(R.id.course_week, null)
@@ -164,10 +174,11 @@ fun searchNextClassIterative(
     var currentSection = classTime.section
     val courseBeans = (cacheCourseData.courseData?.values?.flatten()
         ?: emptyList()) + (cacheCourseData.examData?.values?.flatten()
-        ?: emptyList())
+        ?: emptyList()) + (cacheCourseData.customData?.values?.flatten() ?: emptyList())
 
     while (currentWeek <= cacheCourseData.maxWeek) {
         var foundExam: ExtendCourse? = null
+        var foundCustom: ExtendCourse? = null
         var foundOrdinary: ExtendCourse? = null
 
         for (course in courseBeans) {
@@ -181,6 +192,10 @@ fun searchNextClassIterative(
                         foundExam = course
                     }
 
+                    2 -> {
+                        foundCustom = course
+                    }
+
                     0 -> {
                         foundOrdinary = course
                     }
@@ -191,6 +206,8 @@ fun searchNextClassIterative(
         // 优先级：考试>自定义课程>教务处导入课程
         if (foundExam != null) {
             return ClassInfo(currentWeek, foundExam)
+        } else if (foundCustom != null) {
+            return ClassInfo(currentWeek, foundCustom)
         } else if (foundOrdinary != null) {
             return ClassInfo(currentWeek, foundOrdinary)
         }
@@ -271,6 +288,7 @@ data class ExtendCourse(
 data class CacheCourseData(
     val courseData: Map<Int, List<ExtendCourse>>?,   // 课程数据：星期几 -> 课程列表
     val examData: Map<Int, List<ExtendCourse>>?,     // 考试数据：星期几 -> 考试列表
+    val customData: Map<Int, List<ExtendCourse>>?,   // 自定义课程数据：星期几 -> 课程列表
     val startDate: String,                           // 学期开始日期：如2025-02-24
     val maxWeek: Int                                 // 最大周次
 )

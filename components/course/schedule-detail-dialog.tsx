@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Image, Pressable, View } from 'react-native';
+import { Alert, Image, Pressable, View } from 'react-native';
 
 import {
   DescriptionList,
@@ -11,15 +11,16 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 
-import { CourseCache, type ExtendCourse } from '@/lib/course';
+import { CUSTOM_TYPE, CourseCache, type CourseInfo } from '@/lib/course';
 import { pushToWebViewJWCH } from '@/lib/webview';
 
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
+import { Link } from 'expo-router';
 
 interface ScheduleDetailsDialogProps {
   open: boolean;
   onOpenChange?: (open: boolean) => void;
-  schedules: ExtendCourse[];
+  schedules: CourseInfo[];
 }
 
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onOpenChange, schedules }) => {
@@ -44,9 +45,9 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
   }, [schedule.lessonplan, closeDialog]);
 
   const setPriority = useCallback(
-    (index: number) => {
+    (course: CourseInfo) => {
       closeDialog();
-      CourseCache.setPriority(index);
+      CourseCache.setPriority(course);
     },
     [closeDialog],
   );
@@ -72,7 +73,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
             <View className="flex w-full flex-row justify-center">
               <View>
                 <DescriptionList className="mx-6 mb-1 mt-4">
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>教室</Text>
                     </DescriptionListTerm>
@@ -80,7 +81,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text>{schedule.location}</Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>教师</Text>
                     </DescriptionListTerm>
@@ -88,7 +89,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text className="text-wrap break-all">{schedule.teacher}</Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>节数</Text>
                     </DescriptionListTerm>
@@ -98,7 +99,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       </Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>周数</Text>
                     </DescriptionListTerm>
@@ -111,7 +112,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       </Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>备注</Text>
                     </DescriptionListTerm>
@@ -120,7 +121,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                     </DescriptionListDescription>
                   </DescriptionListRow>
                 </DescriptionList>
-                <View className="flex flex-row justify-evenly">
+                <View className="flex flex-row flex-wrap justify-evenly">
                   {schedule.syllabus && (
                     <Button variant="link" onPress={handleSyllabusPress}>
                       <Text className="text-primary">教学大纲</Text>
@@ -131,8 +132,46 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text className="text-primary">授课计划</Text>
                     </Button>
                   )}
+
+                  {schedule.type === CUSTOM_TYPE && (
+                    <>
+                      <Link
+                        href={{
+                          pathname: '/settings/custom-course',
+                          params: {
+                            key: schedule.storageKey,
+                          },
+                        }}
+                        onPress={closeDialog}
+                        asChild
+                      >
+                        <Button variant="link">
+                          <Text className="text-primary">编辑</Text>
+                        </Button>
+                      </Link>
+
+                      <Button
+                        variant="link"
+                        onPress={() => {
+                          Alert.alert('删除自定义课程', '确认要删除该自定义课程吗？', [
+                            { text: '取消', style: 'cancel' },
+                            {
+                              text: '删除',
+                              style: 'destructive',
+                              onPress: () => {
+                                closeDialog();
+                                CourseCache.removeCustomCourse(schedule.storageKey);
+                              },
+                            },
+                          ]);
+                        }}
+                      >
+                        <Text className="text-primary">删除</Text>
+                      </Button>
+                    </>
+                  )}
                   {schedules.length > 1 && scheduleIndex > 0 && (
-                    <Button variant="link" onPress={() => setPriority(schedule.id)}>
+                    <Button variant="link" onPress={() => setPriority(schedule)}>
                       <Text className="text-primary">优先显示</Text>
                     </Button>
                   )}
