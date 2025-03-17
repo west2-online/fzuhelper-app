@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Dimensions } from 'react-native';
+import { Dimensions, PixelRatio } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import ImagePicker from 'react-native-image-crop-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -26,10 +26,11 @@ export default function AppearancePage() {
 
   const selectPicture = useCallback(async () => {
     // 获取屏幕宽高
-    const { width, height } = Dimensions.get('window');
+    const { width, height } = Dimensions.get('screen');
+    const scale = PixelRatio.get();
     ImagePicker.openPicker({
-      width: width,
-      height: height,
+      width: width * scale,
+      height: height * scale,
       mediaType: 'photo',
       cropping: true,
     }).then(async image => {
