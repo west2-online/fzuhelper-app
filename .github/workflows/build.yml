@@ -87,11 +87,9 @@ jobs:
           
           echo "version_code=$version_code" >> $GITHUB_OUTPUT
           echo "version_name=$version_name" >> $GITHUB_OUTPUT
-          {
-            echo "changelog<<BSEOF"
-            cat $changelog
-            echo "BSEOF"
-          } >> "$GITHUB_OUTPUT"
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$changelog" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
           echo "apk_filename=$apk_filename" >> $GITHUB_OUTPUT
       
       - name: Create GitHub Release
