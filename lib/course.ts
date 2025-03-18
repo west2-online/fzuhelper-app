@@ -207,6 +207,7 @@ export class CourseCache {
     // 将数据保存到原生共享存储中，以便在小组件中调用
     const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
     const term = (await readCourseSetting()).selectedSemester;
+    const showNonCurrentWeekCourses = (await readCourseSetting()).showNonCurrentWeekCourses;
     const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
     const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
     if (Platform.OS === 'ios') {
@@ -234,6 +235,7 @@ export class CourseCache {
           customData: this.cachedCustomData,
           startDate: currentTerm.start_date,
           maxWeek: maxWeek,
+          showNonCurrentWeekCourses: showNonCurrentWeekCourses,
         }),
         Constants.expoConfig?.android?.package,
       );

@@ -73,6 +73,10 @@ const config: ExpoConfig = {
               name: 'NextClassWidgetProvider',
               resourceName: '@xml/next_class_widget_provider',
             },
+            {
+              name: 'CourseScheduleWidgetProvider',
+              resourceName: '@xml/course_schedule_widget_provider',
+            },
           ],
           distPlaceholder: 'com.helper.west2ol.fzuhelper',
         },
