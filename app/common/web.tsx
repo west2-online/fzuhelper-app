@@ -167,7 +167,11 @@ export default function Web() {
 
   // 如果传入sso且需要sso登录，则跳转到sso登录页面
   if (needSSOLogin) {
-    return <LoginPrompt message="需要登录到统一身份认证以继续" />;
+    return (
+      <>
+        <LoginPrompt message={`访问${title ?? '当前页面'}需要登录到统一身份认证`} />
+      </>
+    );
   }
 
   return (

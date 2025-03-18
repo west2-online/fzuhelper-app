@@ -158,7 +158,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
-    name: '电动车服务',
+    name: '电动车',
     icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
