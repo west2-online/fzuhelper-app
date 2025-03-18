@@ -151,7 +151,7 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: ApartmentIcon,
     type: ToolType.WEBVIEW,
     params: {
-      url: 'https://sso.fzu.edu.cn/login?service=http:%2F%2Fehall.fzu.edu.cn%2Fssfw%2Fsys%2Fswmssbxapp%2F*default%2Findex.do',
+      url: 'http://ehall.fzu.edu.cn/ssfw/sys/swmssbxapp/*default/index.do',
       title: '公寓报修',
       sso: true,
     },

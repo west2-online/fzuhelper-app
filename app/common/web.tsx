@@ -94,7 +94,7 @@ export default function Web() {
         if (SSOCookie) {
           SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
         } else {
-          router.push({ pathname: '/(guest)/sso-login' });
+          router.push('/(guest)/sso-login');
         }
       }
       setCookiesSet(true);
