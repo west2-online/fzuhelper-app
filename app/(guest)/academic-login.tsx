@@ -21,7 +21,8 @@ import UserLogin from '@/lib/user-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
-const URL_RESET_PASSWORD = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
+const URL_RESET_PASSWORD_UNDERGRADUATE = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
+const URL_RESET_PASSWORD_POSTGRADUATE = 'https://yjsglxt.fzu.edu.cn/ResetPassword.aspx';
 
 const LoginPage: React.FC = () => {
   const loginRef = useRef<UserLogin | null>(null);
@@ -53,17 +54,21 @@ const LoginPage: React.FC = () => {
   const openResetPassword = useCallback(() => {
     Alert.alert(
       '忘记密码',
-      '本科生登录账号为学号，密码为教务处密码。\n\n点击「重置密码」，可前往教务处网站进行密码重置。',
+      isPostGraduate
+        ? '点击「重置密码」，可前往教务处网站进行密码重置。'
+        : '本科生登录账号为学号，密码为教务处密码。\n\n点击「重置密码」，可前往教务处网站进行密码重置。',
       [
         {
           text: '重置密码',
           onPress: () =>
-            Linking.openURL(URL_RESET_PASSWORD).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')')),
+            Linking.openURL(isPostGraduate ? URL_RESET_PASSWORD_POSTGRADUATE : URL_RESET_PASSWORD_UNDERGRADUATE).catch(
+              err => Alert.alert('错误', '无法打开链接(' + err + ')'),
+            ),
         },
         { text: '关闭', style: 'cancel' },
       ],
     );
-  }, []);
+  }, [isPostGraduate]);
 
   // 刷新验证码
   const refreshCaptcha = useCallback(async () => {
