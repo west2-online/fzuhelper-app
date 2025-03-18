@@ -13,7 +13,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 25  # 设置超时防止卡死
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.caching=true -Dorg.gradle.parallel=true"
+      
     permissions:
       contents: write
 
@@ -38,30 +41,34 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.8
+          cache-disabled: false
 
-      - name: Cache node_modules
+      # 分层缓存策略
+      - name: Restore Cache
         uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ${{ github.workspace }}/node_modules
+            ${{ github.workspace }}/android/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties', '**/yarn.lock') }}-v2
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      # 并行安装依赖
+      - name: Install Dependencies
+        run: |
+          yarn install --frozen-lockfile --prefer-offline &
+          ./gradlew :app:dependencies --update-locks &
+          wait
 
       - name: Prebuild
         run: yarn run prebuild:android
-
-      - name: Cache gradle (local)
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/android/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/yarn.lock') }} # 因为要缓存的主要是 gradle 的依赖，所以这里使用 yarn.lock 作为 hashFiles 的参数
 
       - name: Build Release APK
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease --parallel --configure-on-demand
+          ./gradlew app:packageRelease --build-cache --configuration-cache --parallel --configure-on-demand
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
@@ -91,12 +98,18 @@ jobs:
           echo "$changelog" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           echo "apk_filename=$apk_filename" >> $GITHUB_OUTPUT
+
+          if git diff --quiet HEAD^ HEAD android/app; then
+            echo "SKIP_RELEASE=true" >> $GITHUB_ENV
+          fi
       
       - name: Create GitHub Release
+        if: env.SKIP_RELEASE != 'true'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: beta
           name: "Beta"
+          generate_release_notes: true  # 自动生成发布说明
           body: |
             ${{ steps.prepare-assets.outputs.changelog }}
             
