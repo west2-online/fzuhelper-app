@@ -1,9 +1,9 @@
-name: Build APK
+name: Build and Publish APK
 
 on:
   push:
     branches:
-      - master
+      - ci/test
   workflow_dispatch:
 
 concurrency:
@@ -13,6 +13,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout source code
@@ -28,7 +31,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          distribution: microsoft
+          distribution: temurin
           java-version: 17.0
 
       - name: Setup Gradle
@@ -58,7 +61,7 @@ jobs:
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease
+          ./gradlew app:packageRelease --parallel --configure-on-demand
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
@@ -66,18 +69,56 @@ jobs:
           KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
           SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
 
-      - name: Extract Version Info
+      - name: Prepare Release Assets
+        id: prepare-assets
         shell: bash
         run: |
-          echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
-          echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
-          echo "$(git log -3 --pretty=format:"%s%n%b%n")" > android/app/build/outputs/changelog
+          version_code=$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')
+          version_name=$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')
+          changelog=$(git log -3 --pretty=format:"%s%n%b%n")
 
-      - name: Upload outputs
+          echo "$version_code" > version-code
+          echo "$version_name" > version-name
+          echo "$changelog" > changelog
+
+          apk_filename="FzuHelper_${version_name}(${version_code}).apk"
+          cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk "${apk_filename}"
+          echo "$apk_filename" > apk-filename
+          
+          echo "version_code=$version_code" >> $GITHUB_OUTPUT
+          echo "version_name=$version_name" >> $GITHUB_OUTPUT
+          {
+            echo "changelog<<BSEOF"
+            cat $changelog
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "apk_filename=$apk_filename" >> $GITHUB_OUTPUT
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: beta
+          name: "Beta"
+          body: |
+            ${{ steps.prepare-assets.outputs.changelog }}
+            
+            此版本为新架构测试版，请提前加入内测群 1020036141 了解详情
+          prerelease: true
+          files: |
+            ${{ steps.prepare-assets.outputs.apk_filename }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: outputs
-          path: android/app/build/outputs
+          name: release-assets
+          path: |
+            ${{ steps.prepare-assets.outputs.apk_filename }}
+            version-code
+            version-name
+            changelog
+            apk-filename
           retention-days: 0
 
   publish:
@@ -89,20 +130,17 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: outputs
-          path: ${{ github.workspace }}/outputs/
+          name: release-assets
+          path: artifacts
 
-      - name: Extract Version Info
-        id: version-info
+      - name: Load Metadata
+        id: metadata
         shell: bash
         run: |
-          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
-          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
-          {
-            echo "CHANGELOG<<BSEOF"
-            cat $GITHUB_WORKSPACE/outputs/changelog
-            echo "BSEOF"
-          } >> "$GITHUB_OUTPUT"
+          echo "version_code=$(cat artifacts/version-code)" >> $GITHUB_OUTPUT
+          echo "version_name=$(cat artifacts/version-name)" >> $GITHUB_OUTPUT
+          echo "apk_filename=$(cat artifacts/apk-filename)" >> $GITHUB_OUTPUT
+          echo "changelog=$(cat artifacts/changelog)" >> $GITHUB_OUTPUT
 
       - name: Get Upload Params
         id: upload-params
@@ -117,9 +155,7 @@ jobs:
       - name: Upload to UPYUN
         id: upload-apk
         run: |
-          cd $GITHUB_WORKSPACE/outputs/apk/release
-          mv app-arm64-v8a-release.apk $APK_FILENAME
-          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \
+          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \          
             -F "file=@$APK_FILENAME" \
             -F "policy=$UPYUN_POLICY" \
             -F "authorization=$UPYUN_AUTH")
@@ -128,7 +164,7 @@ jobs:
 
           echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_OUTPUT"
         env:
-          APK_FILENAME: FzuHelper_${{ steps.version-info.outputs.APP_VERSION_NAME }}(${{ steps.version-info.outputs.APP_VERSION_CODE }}).apk
+          APK_FILENAME: "artifacts/${{ steps.metadata.outputs.apk_filename }}"
           UPYUN_POLICY: ${{ steps.upload-params.outputs.UPYUN_POLICY }}
           UPYUN_AUTH: ${{ steps.upload-params.outputs.UPYUN_AUTH }}
 
@@ -147,7 +183,7 @@ jobs:
           CHANNEL: beta
           FORCE: true
           ANDROID_UPDATE_PWD: ${{ secrets.ANDROID_UPDATE_PWD }}
-          APP_VERSION_NAME: ${{ steps.version-info.outputs.APP_VERSION_NAME }}
-          APP_VERSION_CODE: ${{ steps.version-info.outputs.APP_VERSION_CODE }}
-          CHANGELOG: ${{ steps.version-info.outputs.CHANGELOG }}
+          APP_VERSION_NAME: ${{ steps.metadata.outputs.version_name }}
+          APP_VERSION_CODE: ${{ steps.metadata.outputs.version_code }}
+          CHANGELOG: ${{ steps.metadata.outputs.changelog }}
           DOWNLOAD_URL: ${{ steps.upload-apk.outputs.DOWNLOAD_URL }}
