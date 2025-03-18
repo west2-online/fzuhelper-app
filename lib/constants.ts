@@ -147,3 +147,5 @@ export const DATETIME_SECOND_FORMAT = `${DATE_FORMAT} ${TIME_SECOND_FORMAT}`;
 
 // 发布通道
 export const RELEASE_CHANNEL_KEY = 'release_channel';
+
+export const DARKEN_BACKGROUND_KEY = 'darken_background';

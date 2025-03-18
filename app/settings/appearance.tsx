@@ -9,17 +9,27 @@ import { toast } from 'sonner-native';
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 
+import LabelSwitch from '@/components/label-switch';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { deleteBackgroundImage, hasCustomBackground, setBackgroundImage } from '@/lib/appearance';
+import {
+  deleteBackgroundImage,
+  getDarkenBackground,
+  hasCustomBackground,
+  setBackgroundImage,
+  setDarkenBackground,
+} from '@/lib/appearance';
 
 export default function AppearancePage() {
   const [customBackground, setCustomBackground] = useState(false);
+  const [darkenBackground, setIsDarkenBackground] = useState(false);
   const redirect = useRedirectWithoutHistory();
 
   useEffect(() => {
     const checkBackground = async () => {
       const result = await hasCustomBackground();
       setCustomBackground(result);
+      const darken = await getDarkenBackground();
+      setIsDarkenBackground(darken);
     };
     checkBackground();
   }, []);
@@ -37,11 +47,11 @@ export default function AppearancePage() {
       console.log(image.path);
       try {
         await setBackgroundImage(image.path);
-        toast.success('设置成功, 应用将重启');
+        toast.success('设置成功，应用将重启');
         redirect('/(guest)');
       } catch (err) {
         console.log('error', err);
-        toast.error('设置失败: ' + err);
+        toast.error('设置失败：' + err);
       }
       return image;
     });
@@ -50,11 +60,11 @@ export default function AppearancePage() {
   const restoreDefault = useCallback(async () => {
     try {
       await deleteBackgroundImage();
-      toast.success('恢复默认成功, 应用将重启');
+      toast.success('恢复默认成功，应用将重启');
       redirect('/(guest)');
     } catch (err) {
       console.log('error', err);
-      toast.error('恢复默认失败: ' + err);
+      toast.error('恢复默认失败：' + err);
     }
   }, [redirect]);
 
@@ -66,7 +76,21 @@ export default function AppearancePage() {
         <ScrollView className="flex-1 px-8 pt-8">
           <SafeAreaView edges={['bottom']}>
             <LabelEntry leftText={'选择图片'} onPress={selectPicture} />
-            {customBackground && <LabelEntry leftText={'恢复默认'} onPress={restoreDefault} />}
+            {customBackground && (
+              <>
+                <LabelEntry leftText={'恢复默认'} onPress={restoreDefault} />
+                <LabelSwitch
+                  label="壁纸压暗"
+                  value={darkenBackground}
+                  onValueChange={async () => {
+                    await setDarkenBackground(!darkenBackground);
+                    setIsDarkenBackground(!darkenBackground);
+                    toast.success('设置成功，应用将重启');
+                    redirect('/(guest)');
+                  }}
+                />
+              </>
+            )}
           </SafeAreaView>
         </ScrollView>
       </PageContainer>
