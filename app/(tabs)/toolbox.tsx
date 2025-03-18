@@ -167,6 +167,16 @@ const DEFAULT_TOOLS: Tool[] = [
       sso: true,
     },
   },
+  {
+    name: '校本化',
+    icon: ElectroCarIcon, //https://oss.fzu.edu.cn/fileApi/my-bucket/y81hGf_AzVLPeAnNPx5uo.png
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://api.uyiban.com/base/c/rgsid/login',
+      title: '校本化',
+      sso: true,
+    },
+  },
 ];
 
 // 工具函数：处理工具数据，按列数填充占位符
