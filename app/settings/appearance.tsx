@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Dimensions, PixelRatio } from 'react-native';
+import { Alert, Dimensions, PixelRatio } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import ImagePicker from 'react-native-image-crop-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -48,6 +48,7 @@ export default function AppearancePage() {
   useEffect(() => {
     const initTheme = async () => {
       const storedTheme = await getColorScheme();
+      console.log('storedTheme', storedTheme);
       setTheme(storedTheme);
     };
     initTheme();
@@ -127,7 +128,8 @@ export default function AppearancePage() {
           onConfirm={async value => {
             setTheme(value);
             await setColorScheme(value);
-            toast.success('设置成功，重启应用生效');
+            Alert.alert('需要重启', '设置成功，请手动重启应用以更新主题');
+            setPickerVisible(false);
           }}
         />
       </PageContainer>
