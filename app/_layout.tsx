@@ -1,8 +1,9 @@
+import { getColorScheme } from '@/lib/appearance';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
-import { colorScheme } from 'nativewind';
-import { useColorScheme } from 'react-native';
+import { useColorScheme } from 'nativewind';
+import { useEffect } from 'react';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -15,18 +16,24 @@ import { cn } from '@/lib/utils';
 
 import '../global.css';
 
-// 此处配置 NativeWind 的颜色方案
-colorScheme.set('system');
-
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
 export default function RootLayout() {
-  const currentColorScheme = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
+
+  useEffect(() => {
+    (async () => {
+      const storedTheme = await getColorScheme();
+      // 此处配置 NativeWind 的颜色方案
+      // console.log('storedTheme', storedTheme);
+      setColorScheme(storedTheme);
+    })();
+  }, [setColorScheme]);
 
   return (
     <SafeAreaProvider>
       <QueryProvider>
         {/* 此处配置 Expo Router 封装的 React Navigation 系列组件的浅色/深色主题 */}
-        <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <KeyboardProvider>
             <GestureHandlerRootView>
               <Stack

@@ -147,3 +147,8 @@ export const DATETIME_SECOND_FORMAT = `${DATE_FORMAT} ${TIME_SECOND_FORMAT}`;
 
 // 发布通道
 export const RELEASE_CHANNEL_KEY = 'release_channel';
+
+// 主题设置
+export const COLOR_SCHEME_KEY = 'color_scheme';
+// 壁纸压暗
+export const DARKEN_BACKGROUND_KEY = 'darken_background';

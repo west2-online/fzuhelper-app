@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { COLOR_SCHEME_KEY } from '@/lib/constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ImageSourcePropType, Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
+import { DARKEN_BACKGROUND_KEY } from './constants';
 
 const hasCustomBackground = async () => {
   const path = getBackgroundImagePath();
@@ -41,4 +43,29 @@ const deleteBackgroundImage = async () => {
   await ReactNativeBlobUtil.fs.unlink(path);
 };
 
-export { deleteBackgroundImage, getBackgroundImage, getBackgroundImagePath, hasCustomBackground, setBackgroundImage };
+const getDarkenBackground = async () => {
+  return (await AsyncStorage.getItem(DARKEN_BACKGROUND_KEY)) === 'true';
+};
+
+const setDarkenBackground = async (value: boolean) => {
+  await AsyncStorage.setItem(DARKEN_BACKGROUND_KEY, value ? 'true' : 'false');
+};
+
+export async function getColorScheme(): Promise<'light' | 'dark' | 'system'> {
+  const stored = await AsyncStorage.getItem(COLOR_SCHEME_KEY);
+  return stored === 'light' || stored === 'dark' ? stored : 'system';
+}
+
+export async function setColorScheme(value: 'light' | 'dark' | 'system'): Promise<void> {
+  await AsyncStorage.setItem(COLOR_SCHEME_KEY, value);
+}
+
+export {
+  deleteBackgroundImage,
+  getBackgroundImage,
+  getBackgroundImagePath,
+  getDarkenBackground,
+  hasCustomBackground,
+  setBackgroundImage,
+  setDarkenBackground,
+};
