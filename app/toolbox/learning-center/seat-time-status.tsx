@@ -15,10 +15,14 @@ type SeatTimeStatusParams = {
   date: string;
   spaceName: string;
   token: string;
+  isOccupied?: string;
+  // 新增参数：座位是否被占用
+  // 部分可能在维修的座位在根据时间查询座位中会显示为已占用，但是在根据座位号查询时会显示为所有时间段均可用
+  // 这里我们需要根据这个参数来判断座位是否异常，当所有时间段均可用时，且 isOccupied === '1'，则说明该座位异常
 };
 
 export default function SeatTimeStatusPage() {
-  const { spaceId, date, spaceName, token } = useLocalSearchParams<SeatTimeStatusParams>();
+  const { spaceId, date, spaceName, token, isOccupied } = useLocalSearchParams<SeatTimeStatusParams>();
   const [loading, setLoading] = useState<boolean>(true);
   const [timeDiamondList, setTimeDiamondList] = useState<TimeDiamond[]>([]);
   const [isSeatUnusual, setIsSeatUnusual] = useState<boolean>(false);
@@ -63,9 +67,10 @@ export default function SeatTimeStatusPage() {
         }
 
         // 检查是否所有时间段都是空闲的
-        // 由于该页面只会在上一步的预约查询中显示 “已占用” 的情况下才可以点入，而此时如果发生所有时段均可用，则认为该座位存在异常
         const allFree = timeList.length > 0 && timeList.every(item => item.occupy === 0);
-        setIsSeatUnusual(allFree);
+
+        // 只有当前座位已被占用（isOccupied === '1'）且所有时间段都是空闲的，才判断为座位异常
+        setIsSeatUnusual(allFree && isOccupied === '1');
 
         setTimeDiamondList(timeList);
       } catch (error) {
@@ -77,7 +82,7 @@ export default function SeatTimeStatusPage() {
     };
 
     fetchSeatTimeStatus();
-  }, [api, spaceId, date]);
+  }, [api, spaceId, date, isOccupied]);
 
   const getTimeBlockStyle = (item: TimeDiamond) => {
     // 基础样式
@@ -197,7 +202,7 @@ export default function SeatTimeStatusPage() {
 
             {/* 座位异常警告 */}
             {isSeatUnusual ? (
-              <View className="mb-4 rounded-lg bg-yellow-100 p-4 dark:bg-yellow-900/30">
+              <View className="mb-4 rounded-lg bg-yellow-200 p-4 dark:bg-yellow-900/30">
                 <Text className="text-center text-yellow-800 dark:text-yellow-200">
                   该座位异常，可能是处于维修状态，不可预约
                 </Text>

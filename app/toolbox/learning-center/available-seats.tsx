@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Dimensions, FlatList, View } from 'react-native';
+import { Dimensions, FlatList, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import ConfirmReservationModal from '@/components/learning-center/confirm-reservation-modal';
@@ -9,7 +9,6 @@ import SeatCard from '@/components/learning-center/seat-card';
 import SeatOverview from '@/components/learning-center/seat-overview';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
-import { PagerViewTab } from '@/components/page-view-tab';
 import { TabFlatList } from '@/components/tab-flatlist';
 import { Text } from '@/components/ui/text';
 
@@ -122,7 +121,7 @@ export default function AvailableSeatsPage() {
 
   // 跳转到座位时间段查看页面
   const puthToSeatTimeStatus = useCallback(
-    async (spaceName: string) => {
+    async (spaceName: string, isOccupied: boolean = true) => {
       try {
         // 初始化座位映射并获取spaceId
         await SeatMappingUtil.initialize();
@@ -140,6 +139,7 @@ export default function AvailableSeatsPage() {
             date,
             spaceName,
             token,
+            isOccupied: isOccupied ? '1' : '0', // 传递座位占用状态
           },
         });
       } catch (error) {
@@ -155,34 +155,11 @@ export default function AvailableSeatsPage() {
     async (spaceName: string, isAvailable: boolean) => {
       // 如果座位可用，显示预约确认弹窗
       if (isAvailable) {
-        // 跳出一个 Alert，询问是查看座位可用情况还是直接预约
-        Alert.alert(
-          '座位号 ' + spaceName, // 标题
-          '你可以直接预约这个座位，或者查看这个座位在当天的占用情况', // 信息
-          [
-            {
-              text: '查看占用情况', // 按钮文字
-              onPress: () => {
-                puthToSeatTimeStatus(spaceName);
-              },
-            },
-            {
-              text: '直接预约', // 按钮文字
-              onPress: () => {
-                setSelectedSpace(spaceName);
-                setConfirmVisible(true);
-              },
-            },
-            {
-              text: '取消', // 取消按钮
-              style: 'cancel', // iOS 专属样式
-            },
-          ],
-          { cancelable: true }, // 是否允许点击对话框外部关闭
-        );
+        setSelectedSpace(spaceName);
+        setConfirmVisible(true);
       } else {
         // 如果座位已被占用，跳转到座位时间段查看页面
-        puthToSeatTimeStatus(spaceName);
+        puthToSeatTimeStatus(spaceName, true); // 传递占用状态为true
       }
     },
     [puthToSeatTimeStatus],
@@ -291,6 +268,7 @@ export default function AvailableSeatsPage() {
           visible={confirmVisible}
           onClose={() => setConfirmVisible(false)}
           onConfirm={handleConfirm}
+          onViewStatus={selectedSpace ? () => puthToSeatTimeStatus(selectedSpace, false) : undefined} // 传递占用状态为false
           date={date}
           beginTime={beginTime}
           endTime={endTime}
