@@ -167,7 +167,7 @@ class UserLogin {
     if (data.code !== 200) {
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
-        data: '教务处服务器 SSOLogin 失败',
+        data: '教务处服务器 SSOLogin 失败\n可能原因：账号冲突，教务处正在进行维护',
       });
     }
 
@@ -189,7 +189,7 @@ class UserLogin {
     if (!resId) {
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
-        data: '教务系统用户 ID 获取失败',
+        data: '教务系统用户 ID 获取失败\n可能原因：账号冲突，教务处正在进行维护',
       });
     }
 
@@ -250,9 +250,14 @@ class UserLogin {
 
     // 下面是判断登录成功的确认，登录成功时会是一个 302，所以直接判断是否有 Location 头即可
     if (!resHeaders.Location) {
+      // 登录失败的话会有一个 alert，大致格式如下，可以尝试进行提取
+      // <script language='javascript' defer>alert('请输入正确的用户名或密码！');</script></form>
+      // 原因有很多，比如短时间内密码试错太多次等
+      const alertRegex = /<script[^>]*>\s*alert\(['"](.+?)['"]\);\s*<\/script>/;
+      const match = data.match(alertRegex);
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
-        data: '研究生教务系统登录失败',
+        data: match ? match[1] : '研究生教务系统登录失败',
       });
     }
 

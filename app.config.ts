@@ -1,12 +1,14 @@
 import { type ExpoConfig } from 'expo/config';
 import 'ts-node/register'; // Add this to import TypeScript files
 
+import { version } from './package.json';
+
 const IS_DEV = process.env.APP_VARIANT === 'development';
 
 const config: ExpoConfig = {
   name: 'fzuhelper',
   slug: 'fzuhelper-app',
-  version: '7.0.1', // 每部分都只能是一位数字
+  version,
   githubUrl: 'https://github.com/west2-online/fzuhelper-app',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -16,7 +18,7 @@ const config: ExpoConfig = {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
     bundleIdentifier: IS_DEV ? 'FzuHelper.FzuHelper.dev' : 'FzuHelper.FzuHelper',
-    buildNumber: '7.0.1',
+    buildNumber: version,
     bitcode: true,
     supportsTablet: true,
     icon: {

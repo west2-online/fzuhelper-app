@@ -2,7 +2,7 @@ import { ImageBackground, View, type ViewProps } from 'react-native';
 
 import { cn } from '@/lib/utils';
 
-import { getBackgroundImage, hasCustomBackground } from '@/lib/appearance';
+import { getBackgroundImage, getDarkenBackground, hasCustomBackground } from '@/lib/appearance';
 import { useBottomTabBarHeight as originalUseBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useEffect, useState } from 'react';
@@ -26,11 +26,14 @@ export default function PageContainer({ className, refreshBackground, ...otherPr
   const bottomTabBarHeight = useSafeBottomTabBarHeight();
   const headerheight = useHeaderHeight();
   const [customBackground, setCustomBackground] = useState(false);
+  const [darkenBackground, setDarkenBackground] = useState(false);
 
   useEffect(() => {
     const checkBackground = async () => {
       const result = await hasCustomBackground();
       setCustomBackground(result);
+      const darken = await getDarkenBackground();
+      setDarkenBackground(darken);
     };
     checkBackground();
   }, []);
@@ -39,6 +42,7 @@ export default function PageContainer({ className, refreshBackground, ...otherPr
     <>
       {customBackground ? (
         <ImageBackground source={getBackgroundImage(refreshBackground ?? false)} className="flex-1">
+          {darkenBackground && <View className="absolute h-full w-full bg-[#00000050]" />}
           <View
             className={cn('flex-1', className)}
             style={{ paddingBottom: bottomTabBarHeight, paddingTop: headerheight }}

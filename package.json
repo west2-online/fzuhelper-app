@@ -1,7 +1,9 @@
 {
   "name": "fzuhelper-app",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "//": "下面的 version 每一位都只能是【一位】数字！！！",
+  "version": "7.0.1",
+  "private": true,
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -123,6 +125,5 @@
     "react-native-svg-transformer": "^1.5.0",
     "react-test-renderer": "18.2.0",
     "typescript": "~5.3.3"
-  },
-  "private": true
+  }
 }

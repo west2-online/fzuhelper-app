@@ -73,7 +73,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
             <View className="flex w-full flex-row justify-center">
               <View>
                 <DescriptionList className="mx-6 mb-1 mt-4">
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>教室</Text>
                     </DescriptionListTerm>
@@ -81,7 +81,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text>{schedule.location}</Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>教师</Text>
                     </DescriptionListTerm>
@@ -89,7 +89,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text className="text-wrap break-all">{schedule.teacher}</Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>节数</Text>
                     </DescriptionListTerm>
@@ -99,7 +99,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       </Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>周数</Text>
                     </DescriptionListTerm>
@@ -112,7 +112,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       </Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow>
+                  <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>备注</Text>
                     </DescriptionListTerm>
