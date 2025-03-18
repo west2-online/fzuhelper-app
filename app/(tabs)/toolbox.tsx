@@ -8,6 +8,7 @@ import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
 import ApartmentIcon from '@/assets/images/toolbox/ic_apartment.svg';
 import ApplicationIcon from '@/assets/images/toolbox/ic_application.svg';
+import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
 import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
 import FileIcon from '@/assets/images/toolbox/ic_file.svg';
 import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
@@ -153,6 +154,16 @@ const DEFAULT_TOOLS: Tool[] = [
     params: {
       url: 'http://ehall.fzu.edu.cn/ssfw/sys/swmssbxapp/*default/index.do',
       title: '公寓报修',
+      sso: true,
+    },
+  },
+  {
+    name: '电动车服务',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://sso.fzu.edu.cn/login?service=http://doorwxoa.fzu.edu.cn/appCas/index',
+      title: '电动车服务',
       sso: true,
     },
   },
