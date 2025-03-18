@@ -139,7 +139,7 @@ export default function AcademicPage() {
               <LabelEntry leftText="通知推送" />
             </Link>
             <Link href="/settings/appearance" asChild>
-              <LabelEntry leftText="自定义皮肤" />
+              <LabelEntry leftText="主题换肤" />
             </Link>
             <LabelEntry leftText="清除数据" onPress={handleClearData} />
             <LabelEntry leftText="退出登录(全部)" onPress={handleLogout} />
