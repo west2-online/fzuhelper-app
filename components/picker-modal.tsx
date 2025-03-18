@@ -22,7 +22,10 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
 
   useEffect(() => {
     setTempValue(value);
-  }, [value]);
+    if (visible) {
+      setTempValue(value);
+    }
+  }, [value, visible]);
 
   const handleConfirm = () => {
     onConfirm(tempValue);
