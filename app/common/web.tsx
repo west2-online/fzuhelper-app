@@ -91,6 +91,7 @@ export default function Web() {
 
     // 统一身份认证 Cookie
     if (sso) {
+      await CookieManager.clearAll();
       const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
       if (SSOCookie) {
         SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
