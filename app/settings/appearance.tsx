@@ -89,7 +89,7 @@ export default function AppearancePage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '自定义皮肤' }} />
+      <Stack.Screen options={{ title: '主题换肤' }} />
 
       <PageContainer>
         <ScrollView className="flex-1 px-8 pt-6">
