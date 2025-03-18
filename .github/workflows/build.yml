@@ -68,7 +68,7 @@ jobs:
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease --build-cache --configuration-cache --parallel --configure-on-demand
+          ./gradlew app:packageRelease --build-cache --configuration-cache --parallel --configure-on-demand --configuration-cache-problems=warn
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
