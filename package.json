@@ -90,6 +90,7 @@
     "react-native-image-zoom-viewer": "^3.0.1",
     "react-native-keyboard-controller": "^1.15.2",
     "react-native-mime-types": "^2.5.0",
+    "react-native-pager-view": "^6.7.0",
     "react-native-permissions": "^5.2.5",
     "react-native-qrcode-svg": "^6.3.12",
     "react-native-reanimated": "~3.16.7",

@@ -3,12 +3,14 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Dimensions, FlatList, View } from 'react-native';
 import { toast } from 'sonner-native';
 
+import ConfirmReservationModal from '@/components/learning-center/confirm-reservation-modal';
 import LearningCenterMap from '@/components/learning-center/learning-center-map';
 import SeatCard from '@/components/learning-center/seat-card';
+import SeatOverview from '@/components/learning-center/seat-overview';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
+import { PagerViewTab } from '@/components/page-view-tab';
 import { TabFlatList } from '@/components/tab-flatlist';
-import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 
 import ApiService from '@/utils/learning-center/api-service';
@@ -212,7 +214,7 @@ export default function AvailableSeatsPage() {
 
   // 计算每个区域的座位总数和可用座位数
   const getSeatsSummary = useCallback((areaSeats: SeatData[]) => {
-    if (!areaSeats || areaSeats.length === 0) return { total: 0, available: 0 };
+    if (!areaSeats || areaSeats.length === 0) return { total: 0, available: 0, occupied: 0 };
 
     const total = areaSeats.length;
     const available = areaSeats.filter(seat => seat.spaceStatus === SpaceStatus.Available).length;
@@ -252,34 +254,12 @@ export default function AvailableSeatsPage() {
                 onChange={setCurrentTab}
                 flatListOptions={{
                   // TabFlatList的配置项
-                  initialNumToRender: 3, // 初始化渲染的tab数量
+                  initialNumToRender: 10, // 初始化渲染的tab数量
                 }}
                 renderContent={area => (
-                  <View style={{ width: Dimensions.get('window').width }}>
+                  <View style={{ width: screenWidth }}>
                     {/* 座位概览信息 */}
-                    {seats[area] && (
-                      <View className="mx-2 mb-2 px-4 py-3">
-                        <View className="flex-row items-center justify-between">
-                          <Text className="text-xl font-medium text-primary">
-                            {area}：{SeatAreaCharts.find(([, , areaCode]) => areaCode === area)?.[3] || ''}
-                          </Text>
-                          <View className="flex-row items-center">
-                            <View className="mx-1 flex-row items-center">
-                              <View className="mr-1.5 h-3 w-3 rounded-full bg-green-200" />
-                              <Text className="text-sm text-text-secondary">
-                                可预约 {getSeatsSummary(seats[area]).available}
-                              </Text>
-                            </View>
-                            <View className="mx-1 flex-row items-center">
-                              <View className="mr-1.5 h-3 w-3 rounded-full bg-red-200" />
-                              <Text className="text-sm text-text-secondary">
-                                已占用 {getSeatsSummary(seats[area]).occupied}
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
-                    )}
+                    <SeatOverview area={area} seats={seats} getSeatsSummary={getSeatsSummary} />
                     <FlatList
                       data={seats[area] || []}
                       removeClippedSubviews={true}
@@ -307,39 +287,15 @@ export default function AvailableSeatsPage() {
         )}
 
         {/* 确认预约的浮层 */}
-        {confirmVisible && (
-          <FloatModal
-            visible={confirmVisible}
-            title="确认预约"
-            onClose={() => setConfirmVisible(false)}
-            onConfirm={handleConfirm}
-          >
-            <View className="space-y-8 px-2">
-              {/* 预约信息卡片 */}
-              <View className="rounded-xl p-5">
-                <View className="mb-6">
-                  <Text className="mb-2 text-sm text-primary">预约日期</Text>
-                  <Text className="text-xl font-medium">{date}</Text>
-                </View>
-
-                <View className="mb-6">
-                  <Text className="mb-2 text-sm text-primary">预约时段</Text>
-                  <Text className="text-xl font-medium">
-                    {beginTime} - {endTime}
-                  </Text>
-                </View>
-
-                <View>
-                  <Text className="mb-2 text-sm text-primary">座位号码</Text>
-                  {/* 座位号码，将换行符替换为空格 */}
-                  <Text className="text-xl font-medium">
-                    {convertSpaceName(selectedSpace ?? '').replace('\n', ' ')}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </FloatModal>
-        )}
+        <ConfirmReservationModal
+          visible={confirmVisible}
+          onClose={() => setConfirmVisible(false)}
+          onConfirm={handleConfirm}
+          date={date}
+          beginTime={beginTime}
+          endTime={endTime}
+          selectedSpace={selectedSpace}
+        />
       </PageContainer>
     </>
   );
