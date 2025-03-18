@@ -65,6 +65,7 @@ export default function AppearancePage() {
     }).then(async image => {
       console.log(image.path);
       try {
+        await setDarkenBackground(true); // 默认压暗，用户可以手动关闭
         await setBackgroundImage(image.path);
         toast.success('设置成功，应用将重启');
         redirect('/(guest)');
