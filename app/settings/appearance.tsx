@@ -10,18 +10,29 @@ import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 
 import LabelSwitch from '@/components/label-switch';
+import PickerModal from '@/components/picker-modal';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import {
   deleteBackgroundImage,
+  getColorScheme,
   getDarkenBackground,
   hasCustomBackground,
   setBackgroundImage,
+  setColorScheme,
   setDarkenBackground,
 } from '@/lib/appearance';
+
+const THEME_OPTIONS: { value: 'light' | 'dark' | 'system'; label: string }[] = [
+  { value: 'light', label: '日间模式' },
+  { value: 'dark', label: '夜间模式' },
+  { value: 'system', label: '跟随系统' },
+];
 
 export default function AppearancePage() {
   const [customBackground, setCustomBackground] = useState(false);
   const [darkenBackground, setIsDarkenBackground] = useState(false);
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   const redirect = useRedirectWithoutHistory();
 
   useEffect(() => {
@@ -32,6 +43,14 @@ export default function AppearancePage() {
       setIsDarkenBackground(darken);
     };
     checkBackground();
+  }, []);
+
+  useEffect(() => {
+    const initTheme = async () => {
+      const storedTheme = await getColorScheme();
+      setTheme(storedTheme);
+    };
+    initTheme();
   }, []);
 
   const selectPicture = useCallback(async () => {
@@ -73,8 +92,13 @@ export default function AppearancePage() {
       <Stack.Screen options={{ title: '自定义皮肤' }} />
 
       <PageContainer>
-        <ScrollView className="flex-1 px-8 pt-8">
+        <ScrollView className="flex-1 px-8 pt-6">
           <SafeAreaView edges={['bottom']}>
+            <LabelEntry
+              leftText={'主题模式'}
+              rightText={THEME_OPTIONS.find(option => option.value === theme)?.label}
+              onPress={() => setPickerVisible(true)}
+            />
             <LabelEntry leftText={'选择图片'} onPress={selectPicture} />
             {customBackground && (
               <>
@@ -93,6 +117,18 @@ export default function AppearancePage() {
             )}
           </SafeAreaView>
         </ScrollView>
+        <PickerModal
+          title="主题模式"
+          visible={pickerVisible}
+          data={THEME_OPTIONS}
+          value={theme}
+          onClose={() => setPickerVisible(false)}
+          onConfirm={async value => {
+            setTheme(value);
+            await setColorScheme(value);
+            toast.success('设置成功，重启应用生效');
+          }}
+        />
       </PageContainer>
     </>
   );
