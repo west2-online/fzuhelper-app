@@ -163,8 +163,8 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
-      url: 'https://sso.fzu.edu.cn/login?service=http://doorwxoa.fzu.edu.cn/appCas/index',
-      title: '电动车服务',
+      url: 'http://doorwxoa.fzu.edu.cn/appCas/index',
+      title: '电动车管理',
       sso: true,
     },
   },
