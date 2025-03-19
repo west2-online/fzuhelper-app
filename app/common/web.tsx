@@ -1,5 +1,5 @@
 import CookieManager from '@react-native-cookies/cookies';
-import { Stack, router, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
+import { Stack, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -93,8 +93,6 @@ export default function Web() {
         const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
         if (SSOCookie) {
           SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
-        } else {
-          router.push({ pathname: '/(guest)/sso-login' });
         }
       }
       setCookiesSet(true);

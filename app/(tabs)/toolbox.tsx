@@ -6,7 +6,6 @@ import type { SvgProps } from 'react-native-svg';
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
-import ApartmentIcon from '@/assets/images/toolbox/ic_apartment.svg';
 import ApplicationIcon from '@/assets/images/toolbox/ic_application.svg';
 import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
 import FileIcon from '@/assets/images/toolbox/ic_file.svg';
@@ -145,16 +144,6 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: StudyCenterIcon,
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
-  },
-  {
-    name: '公寓报修',
-    icon: ApartmentIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://sso.fzu.edu.cn/login?service=http:%2F%2Fehall.fzu.edu.cn%2Fssfw%2Fsys%2Fswmssbxapp%2F*default%2Findex.do',
-      title: '公寓报修',
-      sso: true,
-    },
   },
 ];
 
