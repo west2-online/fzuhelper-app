@@ -21,6 +21,7 @@ import {
   setColorScheme,
   setDarkenBackground,
 } from '@/lib/appearance';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 
 const THEME_OPTIONS: { value: 'light' | 'dark' | 'system'; label: string }[] = [
   { value: 'light', label: '日间模式' },
@@ -59,23 +60,26 @@ export default function AppearancePage() {
     const { width, height } = Dimensions.get('screen');
     const scale = PixelRatio.get();
     ImagePicker.openPicker({
-      width: width * scale,
-      height: height * scale,
       mediaType: 'photo',
-      cropping: true,
-    }).then(async image => {
-      console.log(image.path);
-      try {
+    })
+      .then(async image => {
+        // https://github.com/ivpusic/react-native-image-crop-picker/issues/1367#issuecomment-841350648
+        let croppedImage = await ImagePicker.openCropper({
+          path: image.path,
+          width: width * scale,
+          height: height * scale,
+          mediaType: 'photo',
+        });
         await setDarkenBackground(true); // 默认压暗，用户可以手动关闭
-        await setBackgroundImage(image.path);
+        await setBackgroundImage(croppedImage.path);
+        await ReactNativeBlobUtil.fs.unlink(image.path);
         toast.success('设置成功，应用将重启');
         redirect('/(guest)');
-      } catch (err) {
+      })
+      .catch(err => {
         console.log('error', err);
         toast.error('设置失败：' + err);
-      }
-      return image;
-    });
+      });
   }, [redirect]);
 
   const restoreDefault = useCallback(async () => {
@@ -101,7 +105,7 @@ export default function AppearancePage() {
               rightText={THEME_OPTIONS.find(option => option.value === theme)?.label}
               onPress={() => setPickerVisible(true)}
             />
-            <LabelEntry leftText={'选择图片'} onPress={selectPicture} />
+            <LabelEntry leftText={'选择壁纸'} onPress={selectPicture} />
             {customBackground && (
               <>
                 <LabelEntry leftText={'恢复默认'} onPress={restoreDefault} />
