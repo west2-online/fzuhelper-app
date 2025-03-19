@@ -9,24 +9,22 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
-import com.helper.west2ol.fzuhelper.databinding.NextClassWidgetConfigurationBinding
+import com.helper.west2ol.fzuhelper.updateNextClassWidget
 
 
 class NextClassWidgetConfigureActivity : AppCompatActivity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
-    private lateinit var binding: NextClassWidgetConfigurationBinding
 
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private lateinit var showLastUpdateTimeSwitch: Switch
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = NextClassWidgetConfigurationBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.next_class_widget_configuration)
         setResult(RESULT_CANCELED)
 
-        showLastUpdateTimeSwitch = binding.showLastUpdateTimeSwitch
-        binding.confirmButton.setOnClickListener(onClickListener)
+        showLastUpdateTimeSwitch = findViewById(R.id.show_last_update_time_switch)
+        findViewById<View>(R.id.confirm_button).setOnClickListener(onClickListener)
 
         appWidgetId = intent?.extras?.getInt(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
@@ -52,7 +50,7 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
         )
 
         val appWidgetManager = AppWidgetManager.getInstance(context)
-        updateAppWidget(context, appWidgetManager, appWidgetId)
+        updateNextClassWidget(context, appWidgetManager, appWidgetId)
 
         val resultValue = Intent()
         resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
@@ -60,5 +58,3 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
         finish()
     }
 }
-
-
