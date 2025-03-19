@@ -39,7 +39,6 @@ class CourseScheduleWidgetService : RemoteViewsService() {
         }
 
         override fun getViewAt(position: Int): RemoteViews {
-            Log.e("CourseScheduleWidgetFactory", "onUpdate1")
             val itemWeekdays = arrayOf(
                 R.id.item_week_day_0,
                 R.id.item_week_day_1,
@@ -96,7 +95,6 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             } else {
                 return remoteViews
             }
-            Log.e("CourseScheduleWidgetFactory", "cacheCourseData: $cacheCourseData")
 
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.PRC)
             val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
