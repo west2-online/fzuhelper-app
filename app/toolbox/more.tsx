@@ -1,12 +1,10 @@
 // 目前仍有缺漏
-import { Stack, useRouter, type Router } from 'expo-router';
-import React from 'react';
-import { FlatList, useWindowDimensions } from 'react-native';
-import type { SvgProps } from 'react-native-svg';
+import { Stack, useRouter } from 'expo-router';
+import { ScrollView, View } from 'react-native';
 
 import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
+import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
-import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
 import { getWebViewHref } from '@/lib/webview';
@@ -104,16 +102,17 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  {
-    name: '学习资料分享',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/studyShare/app/index',
-      title: '学习资料分享',
-      sso: true,
-    },
-  },
+  // 不如历年卷
+  // {
+  //   name: '学习资料分享',
+  //   icon: ElectroCarIcon,
+  //   type: ToolType.WEBVIEW,
+  //   params: {
+  //     url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/studyShare/app/index',
+  //     title: '学习资料分享',
+  //     sso: true,
+  //   },
+  // },
   {
     name: '实名身份核验',
     icon: ElectroCarIcon,
@@ -274,16 +273,17 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  {
-    name: '公寓报修',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'http://ehall.fzu.edu.cn/ssfw/sys/ssbxapp/*default/index.do',
-      title: '公寓报修',
-      sso: true,
-    },
-  },
+  // 已经在工具箱主页面提供
+  // {
+  //   name: '公寓报修',
+  //   icon: ElectroCarIcon,
+  //   type: ToolType.WEBVIEW,
+  //   params: {
+  //     url: 'http://ehall.fzu.edu.cn/ssfw/sys/ssbxapp/*default/index.do',
+  //     title: '公寓报修',
+  //     sso: true,
+  //   },
+  // },
   {
     name: '节能监管平台',
     icon: ElectroCarIcon,
@@ -336,84 +336,40 @@ const MORE_TOOLS: Tool[] = [
   },
 ];
 
-// 工具函数：处理工具数据，按列数填充占位符
-const processTools = (tools: Tool[], columns: number) => {
-  const remainder = tools.length % columns;
-  if (remainder === 0) return tools; // 不需要填充
-
-  const placeholders = Array(columns - remainder).fill({
-    name: '',
-    icon: null,
-    type: ToolType.NULL,
-    data: '',
-  });
-
-  return [...tools, ...placeholders];
-};
-
-// 工具按钮组件
-const ToolButton: React.FC<{
-  name: string;
-  icon?: React.FC<SvgProps>;
-  onPress: () => void;
-}> = ({ icon: Icon, name, onPress }) => (
-  <Button className="mb-3 h-auto w-auto items-center justify-center bg-transparent" size="icon" onPress={onPress}>
-    {Icon ? <Icon width="42px" height="42px" /> : null}
-    <Text className="w-[60px] text-center align-middle text-text-secondary" numberOfLines={1} ellipsizeMode="tail">
-      {name}
-    </Text>
-  </Button>
-);
-
-// 渲染工具按钮
-const renderToolButton = (item: Tool, router: Router) => {
-  if (item.type === ToolType.NULL) {
-    return <ToolButton name="" onPress={() => {}} />;
-  }
-
-  if (item.type === ToolType.WEBVIEW && item.params) {
-    return (
-      <ToolButton
-        name={item.name}
-        icon={item.icon}
-        onPress={() => {
-          router.push(getWebViewHref(item.params));
-        }}
-      />
-    );
-  }
-
-  return <ToolButton name={item.name} icon={item.icon} onPress={() => toolOnPress(item, router)} />;
-};
-
 export default function MoreToolsPage() {
   const router = useRouter();
-  const { width: screenWidth } = useWindowDimensions();
-
-  const TOOL_BUTTON_WIDTH = 70;
-  const PADDING = 16;
-  const MAX_COLUMNS = 5;
-  const MIN_COLUMNS = 1;
-
-  // 计算可用列数
-  const columns = Math.max(
-    MIN_COLUMNS,
-    Math.min(MAX_COLUMNS, Math.floor((screenWidth - PADDING * 2) / TOOL_BUTTON_WIDTH)),
-  );
-
-  const toolList = processTools(MORE_TOOLS, columns);
 
   return (
     <PageContainer>
       <Stack.Screen options={{ title: '更多工具' }} />
-      <FlatList
-        data={toolList}
-        keyExtractor={(_, index) => index.toString()}
-        numColumns={columns}
-        className="mt-4 px-6"
-        columnWrapperClassName="justify-between"
-        renderItem={({ item }) => renderToolButton(item, router)}
-      />
+      {/* 友情提示 */}
+      <View className="mx-4 space-y-4">
+        <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+        <Text className="my-2 text-base text-text-secondary">1. 部分服务需要校内网络环境（FZU）或科研网络环境</Text>
+        <Text className="my-2 text-base text-text-secondary">
+          2. 以下功能均需要登录统一身份认证平台，如果提示登录异常，可以在我的-右上角设置中退出登录后重新尝试
+        </Text>
+        <Text className="my-2 text-base text-text-secondary">
+          3. App 仅提供跳转便利，不负责维护内容与功能，页面可能出现无法加载的情况
+        </Text>
+        <Text className="my-2 text-lg font-bold text-text-secondary">功能一览</Text>
+      </View>
+      {/* 工具列表 */}
+      <ScrollView className="mx-4 space-y-4">
+        {MORE_TOOLS.map((item, index) => (
+          <LabelEntry
+            key={index}
+            leftText={item.name}
+            onPress={() => {
+              if (item.type === ToolType.WEBVIEW && item.params) {
+                router.push(getWebViewHref(item.params));
+              } else {
+                toolOnPress(item, router);
+              }
+            }}
+          />
+        ))}
+      </ScrollView>
     </PageContainer>
   );
 }

@@ -169,7 +169,7 @@ export default function Web() {
   if (needSSOLogin) {
     return (
       <>
-        <LoginPrompt message={`访问${title ?? '当前页面'}需要登录到统一身份认证`} />
+        <LoginPrompt message={`登录统一身份认证平台，访问${title ?? '当前'}服务`} />
       </>
     );
   }
