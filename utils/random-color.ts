@@ -1,22 +1,5 @@
-// 由于随机颜色太丑陋了，我们使用了固定颜色
-export const nonCurrentWeekCourses = '#DDDDDF'; // 非本周课程的颜色
+export const nonCurrentWeekCourseColor = '#DEDEDE'; // 非本周课程的颜色
 const courseColors = [
-  // '#FFF39F9D',
-  // '#FF9FA5D5',
-  // '#FF83B6B1',
-  // '#FFFDC683',
-  // '#FFEB90B1',
-  // '#FF92C5F2',
-  // '#FFA4D1A6',
-  // '#7Cffb300',
-  // '#7C8e24aa',
-  // '#7C00acc1',
-  // '#7C7cb342',
-  // '#7C6D5041',
-  // '#7C5e35b1',
-  // '#7Cc0ca33',
-  // '#7C6d4c41',
-  // '#7C311b92',
   '#7A6068',
   '#8D5270',
   '#5A9DBD',
@@ -91,13 +74,23 @@ const generateRandomColor = (courseName: string): string => {
  * 根据颜色模式获取课程颜色
  */
 export const getCourseColor = (color: string, darkmode: boolean): string => {
-  // 深色主题下，对颜色进行按位与 0xC0FFFFFF 的处理，使颜色变得更加柔和
+  // 深色主题下，对颜色增加透明度，使颜色变得更加柔和
   let processedColor = color;
+  // 非本周颜色单独处理
+  if (color === nonCurrentWeekCourseColor && darkmode) return '#DEDEDEDE';
   if (darkmode) {
-    // eslint-disable-next-line no-bitwise
-    processedColor = `#${(parseInt(color.slice(1), 16) & 0xc0ffffff).toString(16).padStart(6, '0').toUpperCase()}`;
+    if (color.length === 7) {
+      // 6 位颜色 (#RRGGBB) → 变成 #RRGGBBC0（加上 75% 透明度）
+      processedColor += 'C0';
+    }
   }
+  // console.log('color', color, processedColor);
   return processedColor;
+};
+
+export const getTextColor = (bgColor: string, darkmode: boolean): string => {
+  if (bgColor === nonCurrentWeekCourseColor) return '#00000033';
+  return darkmode ? '#FFFFFFDE' : '#FFFFFF';
 };
 
 /**
