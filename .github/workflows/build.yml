@@ -99,13 +99,8 @@ jobs:
           echo "$changelog" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           echo "apk_filename=$apk_filename" >> $GITHUB_OUTPUT
-
-          if git diff HEAD^; then
-            echo "SKIP_RELEASE=true" >> $GITHUB_ENV
-          fi
       
       - name: Create GitHub PreRelease
-        if: env.SKIP_RELEASE != 'true'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: alpha
