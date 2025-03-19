@@ -3,7 +3,7 @@ name: Build and Publish APK
 on:
   push:
     branches:
-      - master
+      - ci/test
     tags:
       - '*'
   workflow_dispatch:
@@ -173,7 +173,7 @@ jobs:
           body: ${{ steps.changelog.outputs.changelog }}
           prerelease: ${{ contains(github.ref_name, '-') }}  # 包含连字符视为预发布
           files: |
-          ${{ steps.prepare-assets.outputs.apk_filename }}
+            ${{ steps.prepare-assets.outputs.apk_filename }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
     
