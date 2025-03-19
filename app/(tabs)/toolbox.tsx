@@ -14,6 +14,7 @@ import FileIcon from '@/assets/images/toolbox/ic_file.svg';
 import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
 import GraduationIcon from '@/assets/images/toolbox/ic_graduation.svg';
 import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
+import MoreIcon from '@/assets/images/toolbox/ic_more.svg';
 import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
@@ -179,7 +180,7 @@ const DEFAULT_TOOLS: Tool[] = [
   },
   {
     name: '更多',
-    icon: StudyCenterIcon,
+    icon: MoreIcon,
     type: ToolType.LINK,
     href: '/toolbox/more',
   },
