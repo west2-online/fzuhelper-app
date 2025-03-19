@@ -70,13 +70,11 @@ export default function AppearancePage() {
           height: height * scale,
           mediaType: 'photo',
         });
-        console.log(image.path);
         await setDarkenBackground(true); // 默认压暗，用户可以手动关闭
         await setBackgroundImage(croppedImage.path);
         await ReactNativeBlobUtil.fs.unlink(image.path);
         toast.success('设置成功，应用将重启');
         redirect('/(guest)');
-        return image;
       })
       .catch(err => {
         console.log('error', err);
