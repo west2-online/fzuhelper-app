@@ -28,6 +28,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      # 分层缓存策略
+      - name: Restore Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ${{ github.workspace }}/node_modules
+            ${{ github.workspace }}/android/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties', '**/yarn.lock') }}-v2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,17 +55,6 @@ jobs:
         with:
           gradle-version: 8.8
           cache-disabled: false
-
-      # 分层缓存策略
-      - name: Restore Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ${{ github.workspace }}/node_modules
-            ${{ github.workspace }}/android/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties', '**/yarn.lock') }}-v2
 
       # 并行安装依赖
       - name: Install Dependencies
