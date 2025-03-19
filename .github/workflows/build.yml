@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - '*'
   workflow_dispatch:
 
 concurrency:
@@ -103,7 +105,7 @@ jobs:
             echo "SKIP_RELEASE=true" >> $GITHUB_ENV
           fi
       
-      - name: Create GitHub Release
+      - name: Create GitHub PreRelease
         if: env.SKIP_RELEASE != 'true'
         uses: softprops/action-gh-release@v1
         with:
@@ -120,6 +122,61 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
       
+      - name: Validate tag format
+        id: validate-tag
+        run: |
+          if [[ ! ${{ github.ref_name }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "⚠️ 跳过非标准版本tag: ${{ github.ref_name }}"
+            echo "skip_release=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Get version info
+        if: steps.validate-tag.outputs.skip_release != 'true'
+        id: version-info
+        run: |
+          CURRENT_VERSION=${GITHUB_REF_NAME}
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+          git fetch --tags --force
+          ALL_TAGS=$(git tag -l "*.*.*" --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')
+          
+          PREV_TAG=$(echo "$ALL_TAGS" | grep -B1 "$GITHUB_REF_NAME" | head -n1)
+          
+          [ -z "$PREV_TAG" ] && PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        if: steps.validate-tag.outputs.skip_release != 'true'
+        id: changelog
+        run: |
+          CHANGELOG=$(git log --pretty=format:"- [%%h] %%s (by %%an)" \
+            --date=short \
+            --no-merges \
+            ${{ steps.version-info.outputs.prev_tag }}..HEAD | sed 's/%/%%/g')
+
+          COMPARE_URL="https://github.com/${{ github.repository }}/compare/${{ steps.version-info.outputs.prev_tag }}...${{ github.ref_name }}"
+          
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "## [${{ steps.version-info.outputs.current_version }}]($COMPARE_URL)" >> $GITHUB_OUTPUT
+          echo "### $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.validate-tag.outputs.skip_release != 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.version-info.outputs.current_version }}
+          generate_release_notes: true  # 自动生成发布说明
+          body: ${{ steps.changelog.outputs.changelog }}
+          prerelease: ${{ contains(github.ref_name, '-') }}  # 包含连字符视为预发布
+          files: |
+          ${{ steps.prepare-assets.outputs.apk_filename }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+    
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
