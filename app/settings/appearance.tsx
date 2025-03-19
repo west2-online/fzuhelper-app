@@ -71,16 +71,11 @@ export default function AppearancePage() {
           mediaType: 'photo',
         });
         console.log(image.path);
+        await setDarkenBackground(true); // 默认压暗，用户可以手动关闭
+        await setBackgroundImage(croppedImage.path);
         await ReactNativeBlobUtil.fs.unlink(image.path);
-        try {
-          await setDarkenBackground(true); // 默认压暗，用户可以手动关闭
-          await setBackgroundImage(croppedImage.path);
-          toast.success('设置成功，应用将重启');
-          redirect('/(guest)');
-        } catch (err) {
-          console.log('error', err);
-          toast.error('设置失败：' + err);
-        }
+        toast.success('设置成功，应用将重启');
+        redirect('/(guest)');
         return image;
       })
       .catch(err => {
