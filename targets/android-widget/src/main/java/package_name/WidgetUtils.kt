@@ -1,6 +1,8 @@
 package com.helper.west2ol.fzuhelper
 
 import androidx.annotation.Keep
+import android.content.Context
+import android.content.SharedPreferences
 
 /**
  * 课程扩展类，包含课程基本信息和额外属性
@@ -49,4 +51,20 @@ fun getWeeks(startTime: Long, endTime: Long): Int {
     return if (res <= 0) {
         1
     } else res
+}
+
+fun getSharedPreference(context: Context): SharedPreferences {
+    return context.getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
+}
+
+fun saveWidgetConfig(context: Context, appWidgetId: Int,key: String,value: Int) {
+    getSharedPreference(context).edit().putInt("$appWidgetId$key", value).commit()
+}
+
+fun loadWidgetConfig(context: Context, appWidgetId: Int, key: String): Int {
+    return getSharedPreference(context).getInt("$appWidgetId$key", 0)
+}
+
+fun deleteWidgetConfig(context: Context, appWidgetId: Int , key: String) {
+    getSharedPreference(context).edit().remove("$appWidgetId$key").commit()
 }

@@ -37,6 +37,9 @@ android {
     versionCode 1
     versionName "0.6.3"
   }
+  buildFeatures{
+    viewBinding=true
+  }
   lintOptions {
     abortOnError false
   }

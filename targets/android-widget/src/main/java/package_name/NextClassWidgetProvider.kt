@@ -15,6 +15,8 @@ import java.util.Calendar
 import java.util.Locale
 import com.helper.west2ol.fzuhelper.CacheCourseData
 import com.helper.west2ol.fzuhelper.getWeeks
+import com.helper.west2ol.fzuhelper.loadWidgetConfig
+import com.helper.west2ol.fzuhelper.deleteWidgetConfig
 
 /**
  * Implementation of App Widget functionality.
@@ -30,6 +32,12 @@ class NextClassWidgetProvider : AppWidgetProvider() {
             appWidgetManager.getAppWidgetIds(ComponentName(context, this::class.java)).contains(it)
         }.forEach {
             updateNextClassWidget(context, appWidgetManager, it)
+        }
+    }
+
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        for (appWidgetId in appWidgetIds) {
+            deleteWidgetConfig(context, appWidgetId, "showLastUpdateTime")
         }
     }
 
@@ -118,6 +126,15 @@ internal fun updateNextClassWidget(
             setTextViewText(R.id.course_section, null)
             setTextViewText(R.id.course_week, null)
         }
+    }
+
+    if (loadWidgetConfig(context, appWidgetId, "showLastUpdateTime")==1){
+        val currentDateTime = Calendar.getInstance()
+        val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
+        val formattedDate = sdf.format(currentDateTime.time)
+        views.setTextViewText(R.id.last_update_time, "上次更新时间:$formattedDate")
+    }else{
+        views.setTextViewText(R.id.last_update_time, "")
     }
 
     appWidgetManager.updateAppWidget(appWidgetId, views)

@@ -2,6 +2,11 @@
         package="com.west2online.nativewidget">
 
         <application>
+            <activity android:name="com.helper.west2ol.fzuhelper.NextClassWidgetConfigureActivity">
+                <intent-filter>
+                    <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+                </intent-filter>
+            </activity>
             <service
                 android:name="com.helper.west2ol.fzuhelper.CourseScheduleWidgetService"
                 android:exported="false"
