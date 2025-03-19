@@ -3,7 +3,7 @@ name: Build and Publish APK
 on:
   push:
     branches:
-      - ci/test
+      - master
   workflow_dispatch:
 
 concurrency:
@@ -107,8 +107,8 @@ jobs:
         if: env.SKIP_RELEASE != 'true'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: beta
-          name: "Beta"
+          tag_name: alpha
+          name: "Alpha"
           generate_release_notes: true  # 自动生成发布说明
           body: |
             ${{ steps.prepare-assets.outputs.changelog }}
