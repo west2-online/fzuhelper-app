@@ -60,7 +60,6 @@ jobs:
       - name: Install Dependencies
         run: |
           yarn install --frozen-lockfile --prefer-offline &
-          ./gradlew :app:dependencies --update-locks &
           wait
 
       - name: Prebuild
@@ -101,7 +100,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
           echo "apk_filename=$apk_filename" >> $GITHUB_OUTPUT
 
-          if git diff --quiet HEAD^ HEAD android/app; then
+          if git diff HEAD^; then
             echo "SKIP_RELEASE=true" >> $GITHUB_ENV
           fi
       
