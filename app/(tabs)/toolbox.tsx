@@ -177,6 +177,12 @@ const DEFAULT_TOOLS: Tool[] = [
       sso: true,
     },
   },
+  {
+    name: '更多',
+    icon: StudyCenterIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/more',
+  },
 ];
 
 // 工具函数：处理工具数据，按列数填充占位符
