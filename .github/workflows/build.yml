@@ -38,7 +38,7 @@ jobs:
             ${{ github.workspace }}/node_modules
             ${{ github.workspace }}/android/.gradle
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-          key-store: |
+          restore-keys: |
             ${{ runner.os }}-
 
       - name: Setup Node.js
