@@ -3,7 +3,7 @@
 
         <application>
             <service
-                android:name=".CourseScheduleWidgetService"
+                android:name="com.helper.west2ol.fzuhelper.CourseScheduleWidgetService"
                 android:exported="false"
                 android:permission="android.permission.BIND_REMOTEVIEWS" />
         </application>
