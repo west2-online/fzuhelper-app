@@ -3,20 +3,16 @@ package com.helper.west2ol.fzuhelper
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
-import android.content.Context
-import android.widget.RemoteViews
-import android.util.Log
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.util.TypedValue.COMPLEX_UNIT_SP
+import android.widget.RemoteViews
 import com.google.gson.Gson
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import com.helper.west2ol.fzuhelper.CacheCourseData
-import com.helper.west2ol.fzuhelper.getWeeks
-import com.helper.west2ol.fzuhelper.loadWidgetConfig
-import com.helper.west2ol.fzuhelper.deleteWidgetConfig
 
 /**
  * Implementation of App Widget functionality.
@@ -128,12 +124,12 @@ internal fun updateNextClassWidget(
         }
     }
 
-    if (loadWidgetConfig(context, appWidgetId, "showLastUpdateTime")==1){
+    if (loadWidgetConfig(context, appWidgetId, "showLastUpdateTime")) {
         val currentDateTime = Calendar.getInstance()
         val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
         val formattedDate = sdf.format(currentDateTime.time)
-        views.setTextViewText(R.id.last_update_time, "上次更新时间:$formattedDate")
-    }else{
+        views.setTextViewText(R.id.last_update_time, "更新于 $formattedDate")
+    } else {
         views.setTextViewText(R.id.last_update_time, "")
     }
 

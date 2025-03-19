@@ -2,20 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
 
-    <Switch
+    <Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:navigationIcon="?attr/homeAsUpIndicator"
+        android:title="下一节课设置" />
+
+    <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/show_last_update_time_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="显示上次更新时间" />
+        android:layout_marginHorizontal="20dp"
+        android:text="显示上次更新时间"
+        android:textSize="16sp" />
 
-    <Button
-        android:id="@+id/confirm_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="确认" />
 
 </LinearLayout>
