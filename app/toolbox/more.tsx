@@ -23,6 +23,16 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
+  {
+    name: '迎新服务',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'http://ehall.fzu.edu.cn/fxfw/sys/swmyxapp/*default/index.do',
+      title: '迎新服务',
+      sso: true,
+    },
+  },
   // {
   //   // 不可用
   //   name: '马上就办',
@@ -94,6 +104,16 @@ const MORE_TOOLS: Tool[] = [
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/curriculumVitae/app/index',
       title: '个人简历',
+      sso: true,
+    },
+  },
+  {
+    name: '可信电子文档系统',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://sso.fzu.edu.cn/login?service=http%3A%2F%2Fetrust.fzu.edu.cn%2Fapi%2Fcas%2Flogin%3Fsource%3Dmobile',
+      title: '可信电子文档系统',
       sso: true,
     },
   },
