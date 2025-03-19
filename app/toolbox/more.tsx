@@ -1,14 +1,17 @@
 // 目前仍有缺漏
-import { Stack, useRouter } from 'expo-router';
-import { ScrollView, View } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { Pressable, ScrollView } from 'react-native';
 
 import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
-import { Text } from '@/components/ui/text';
 
+import FAQModal from '@/components/FAQModal';
+import { Icon } from '@/components/Icon';
+import { FAQ_MORE } from '@/lib/FAQ';
 import { getWebViewHref } from '@/lib/webview';
 import { ToolType, toolOnPress, type Tool } from '@/utils/tools';
+import { useCallback, useState } from 'react';
 
 // 更多页面中的工具列表
 const MORE_TOOLS: Tool[] = [
@@ -380,22 +383,24 @@ const MORE_TOOLS: Tool[] = [
 
 export default function MoreToolsPage() {
   const router = useRouter();
-
+  const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
+  // 处理 Modal 显示事件
+  const handleModalVisible = useCallback(() => {
+    setShowFAQ(prev => !prev);
+  }, []);
   return (
     <PageContainer>
-      <Stack.Screen options={{ title: '更多工具' }} />
-      {/* 友情提示 */}
-      <View className="mx-4 space-y-4">
-        <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
-        <Text className="my-2 text-base text-text-secondary">1. 部分服务需要校内网络环境（FZU）或科研网络环境</Text>
-        <Text className="my-2 text-base text-text-secondary">
-          2. 以下功能均需要登录统一身份认证平台，如果提示登录异常，可以在我的-右上角设置中退出登录后重新尝试
-        </Text>
-        <Text className="my-2 text-base text-text-secondary">
-          3. App 仅提供跳转便利，不负责维护内容与功能，页面可能出现无法加载的情况
-        </Text>
-        <Text className="my-2 text-lg font-bold text-text-secondary">功能一览</Text>
-      </View>
+      <Tabs.Screen
+        options={{
+          title: '更多工具',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: () => (
+            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
+              <Icon name="help-circle-outline" size={26} className="mr-4" />
+            </Pressable>
+          ),
+        }}
+      />
       {/* 工具列表 */}
       <ScrollView className="mx-4 space-y-4">
         {MORE_TOOLS.map((item, index) => (
@@ -412,6 +417,7 @@ export default function MoreToolsPage() {
           />
         ))}
       </ScrollView>
+      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_MORE} />
     </PageContainer>
   );
 }
