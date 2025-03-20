@@ -54,6 +54,12 @@ export default function SeatTimeStatusPage() {
         // 获取时间段列表
         let timeList = [...response.data.timeDiamondList];
 
+        // 检查是否所有时间段都是空闲的
+        const allFree = timeList.length > 0 && timeList.every(item => item.occupy === 0);
+
+        // 只有当前座位已被占用（isOccupied === '1'）且所有时间段都是空闲的，才判断为座位异常
+        setIsSeatUnusual(allFree && isOccupied === '1');
+
         // 如果是当天，则将当前时间之前的时间段标记为已占用
         const isToday = dayjs().format('YYYY-MM-DD') === date;
         if (isToday) {
@@ -65,12 +71,6 @@ export default function SeatTimeStatusPage() {
             return item;
           });
         }
-
-        // 检查是否所有时间段都是空闲的
-        const allFree = timeList.length > 0 && timeList.every(item => item.occupy === 0);
-
-        // 只有当前座位已被占用（isOccupied === '1'）且所有时间段都是空闲的，才判断为座位异常
-        setIsSeatUnusual(allFree && isOccupied === '1');
 
         setTimeDiamondList(timeList);
       } catch (error) {
