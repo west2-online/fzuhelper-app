@@ -149,7 +149,7 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                     }
                 } else {
                     //忽略仅持续一周的自定义课程
-                    if (!cacheCourseData.showNonCurrentWeekCourses || kc.type > 0) continue
+                    if (cacheCourseData.showNonCurrentWeekCourses != true || kc.type > 0) continue
                     var flag = 0
                     for (j in kc.startClass..kc.endClass) {
                         //如果该坑已被某课程占领就设置标记位以忽略本课程,该位置本周没课的课程可能有很多,仅保留第一个

@@ -206,10 +206,12 @@ export class CourseCache {
 
     // 将数据保存到原生共享存储中，以便在小组件中调用
     const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
-    const term = (await readCourseSetting()).selectedSemester;
-    const showNonCurrentWeekCourses = (await readCourseSetting()).showNonCurrentWeekCourses;
+    const courseSettings = await readCourseSetting();
+    const term = courseSettings.selectedSemester;
     const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
     const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+    const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
+    const showListenFreeCourses = courseSettings.showListenFreeCourses;
     if (Platform.OS === 'ios') {
       // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
       // 只能在常量中定义这个 identifier
@@ -236,6 +238,7 @@ export class CourseCache {
           startDate: currentTerm.start_date,
           maxWeek: maxWeek,
           showNonCurrentWeekCourses: showNonCurrentWeekCourses,
+          showListenFreeCourses: showListenFreeCourses,
         }),
         Constants.expoConfig?.android?.package,
       );
@@ -327,6 +330,7 @@ export class CourseCache {
 
   /**
    * 计算摘要并和当前缓存的摘要进行比较
+   * @param type - 课程类型
    * @param data - 课程数据
    * @returns 是否和当前缓存的数据一致
    */
@@ -345,8 +349,7 @@ export class CourseCache {
 
   /**
    * 手动为某门课程设置优先级（不含考试）
-   * @param courseID - 课程 ID
-   * @param priority - 优先级
+   * @param course - 课程信息
    */
   public static async setPriority(course: CourseInfo): Promise<void> {
     if (!this.cachedData) {
@@ -402,6 +405,8 @@ export class CourseCache {
   /**
    * 导入考场到课表中
    * @param exam - 考场数据
+   * @param semesterStart
+   * @param semesterEnd
    * @returns 导入成功数量
    */
   public static mergeExamCourses(exam: MergedExamData[], semesterStart: string, semesterEnd: string) {
@@ -730,6 +735,7 @@ export const defaultCourseSetting: CourseSetting = {
   calendarExportEnabled: false,
   showNonCurrentWeekCourses: false,
   exportExamToCourseTable: false,
+  showListenFreeCourses: false,
 };
 
 // 将传入的 courseSetting 与 defaultCourseSetting 合并

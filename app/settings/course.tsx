@@ -177,6 +177,15 @@ export default function AcademicPage() {
     });
   }, []);
 
+  const handleShowListenFreeCourses = useCallback(() => {
+    setSettings(prevSettings => {
+      return {
+        ...prevSettings,
+        showListenFreeCourses: !prevSettings.showListenFreeCourses,
+      };
+    });
+  }, []);
+
   return (
     <>
       <Stack.Screen options={{ title: '课程表设置' }} />
@@ -230,10 +239,17 @@ export default function AcademicPage() {
             />
 
             <LabelSwitch
-              label="在课表中显示相同学期的考场"
+              label="显示免听课程"
+              value={settings.showListenFreeCourses}
+              onValueChange={handleShowListenFreeCourses}
+            />
+
+            <LabelSwitch
+              label="显示本学期考场"
               value={settings.exportExamToCourseTable}
               onValueChange={handleExportExamToCourseTable}
             />
+
             <View className="space-y-4">
               <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
               <Text className="my-2 text-base text-text-secondary">
