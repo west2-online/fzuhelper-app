@@ -11,7 +11,7 @@ import {
 } from '@/lib/constants';
 import { MergedExamData } from '@/types/academic';
 import { randomUUID } from '@/utils/crypto';
-import generateRandomColor, { clearColorMapping, getExamColor } from '@/utils/random-color';
+import { courseColors, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
 import * as ExpoWidgetsModule from '@bittingz/expo-widgets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -69,7 +69,7 @@ const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析�
 const MAX_PRIORITY = 10000; // 普通课程最大优先级，达到这个优先级后会重新计数
 const EXAM_PRIORITY = 20002; // 考试优先级，我们取巧一下，比最大的优先级还要大
 export const DEFAULT_PRIORITY = 1; // 默认优先级
-const DEFAULT_STARTID = 1000; // 默认 ID 起始值
+const DEFAULT_STARTID = 0; // 默认 ID 起始值
 
 export class CourseCache {
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
@@ -499,6 +499,8 @@ export class CourseCache {
    * @returns 按天归类的课程数据
    */
   public static setCourses(tempData: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
+    // 初始化 ID
+    this.startID = DEFAULT_STARTID;
     // 更新时间戳
     this.lastCourseUpdateTime = new Date().toLocaleString();
     // 生成当前 tempData 的 digest
@@ -512,19 +514,14 @@ export class CourseCache {
     // 否则，重新处理数据
     const schedules = this.parseCourses(tempData); // 解析课程数据
 
-    clearColorMapping(); // 清空颜色映射
-    const courseColorMap: Record<string, string> = {}; // 用于存储课程与颜色的映射关系
-
     // 为每个课程生成颜色并扩展数据
     const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
-      if (!courseColorMap[schedule.name]) {
-        courseColorMap[schedule.name] = generateRandomColor(schedule.name);
-      }
+      const id = this.allocateID(); // 分配一个新的 ID
       return {
         ...schedule,
-        color: courseColorMap[schedule.name],
+        color: courseColors[id % courseColors.length],
         priority: DEFAULT_PRIORITY, // 默认优先级
-        id: this.allocateID(), // 分配一个新的 ID
+        id: id,
         type: COURSE_TYPE,
       };
     });

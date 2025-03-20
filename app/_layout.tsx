@@ -14,6 +14,8 @@ import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
 import { cn } from '@/lib/utils';
 
+import patchTextComponent from '@/utils/patch-text-component';
+import patchTextRender from '@/utils/patch-text-render';
 import '../global.css';
 
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
@@ -28,6 +30,16 @@ export default function RootLayout() {
       setColorScheme(storedTheme);
     })();
   }, [setColorScheme]);
+
+  useEffect(() => {
+    // https://github.com/facebook/react-native/issues/15114#issuecomment-2422537975
+    try {
+      patchTextComponent();
+      patchTextRender();
+    } catch (e) {
+      console.error('Failed to patch text component', e);
+    }
+  }, []);
 
   return (
     <SafeAreaProvider>

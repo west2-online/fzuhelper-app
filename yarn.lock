@@ -9080,6 +9080,11 @@ react-fast-compare@^3.2.0, react-fast-compare@^3.2.2:
   resolved "https://registry.yarnpkg.com/react-fast-compare/-/react-fast-compare-3.2.2.tgz#929a97a532304ce9fee4bcae44234f1ce2c21d49"
   integrity sha512-nsO+KSNgo1SbJqJEYRE9ERzo7YtYbou/OqjSQKxV7jcKox7+usiUVZOAC+XnDOABXggQTno0Y1CpVnuWEc1boQ==
 
+react-fast-hoc@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.npmjs.org/react-fast-hoc/-/react-fast-hoc-0.3.2.tgz#270187cd2da3793ac90161e1014daa4562f116f8"
+  integrity sha512-YmR0TCcljZqXT9R/9bm9XxqNX18HjXT+Han/4ER0Ewsxc/1qX+kLbG9q9HhLcluFbN4diTt9z4C30OgWOmbh7g==
+
 react-freeze@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/react-freeze/-/react-freeze-1.0.4.tgz#cbbea2762b0368b05cbe407ddc9d518c57c6f3ad"
