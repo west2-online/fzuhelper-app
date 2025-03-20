@@ -16,8 +16,28 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
+        android:height="50dp"
         android:text="显示上次更新时间"
         android:textSize="16sp" />
 
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/show_as_square"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:height="50dp"
+        android:text="显示为正方形"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/refresh_data"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:height="50dp"
+        android:gravity="center_vertical"
+        android:text="刷新数据"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="16sp" />
 
 </LinearLayout>

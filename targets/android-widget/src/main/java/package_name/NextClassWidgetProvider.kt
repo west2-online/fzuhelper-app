@@ -6,13 +6,16 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
+import android.util.TypedValue
 import android.util.TypedValue.COMPLEX_UNIT_SP
 import android.widget.RemoteViews
 import com.google.gson.Gson
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.max
 
 /**
  * Implementation of App Widget functionality.
@@ -133,6 +136,33 @@ internal fun updateNextClassWidget(
         views.setTextViewText(R.id.last_update_time, "")
     }
 
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (loadWidgetConfig(
+                context,
+                appWidgetId,
+                "showAsSquare"
+            )
+        ) {
+            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val minWidth =
+                options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 100)
+            val minHeight =
+                options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
+
+            val marginBottom = max(minHeight - minWidth, 0)
+
+            views.setViewLayoutMargin(
+                R.id.container, RemoteViews.MARGIN_BOTTOM,
+                marginBottom.toFloat(), TypedValue.COMPLEX_UNIT_DIP
+            )
+
+        } else {
+            views.setViewLayoutMargin(
+                R.id.container, RemoteViews.MARGIN_BOTTOM,
+                0f, TypedValue.COMPLEX_UNIT_DIP
+            )
+        }
+    }
     appWidgetManager.updateAppWidget(appWidgetId, views)
 }
 
