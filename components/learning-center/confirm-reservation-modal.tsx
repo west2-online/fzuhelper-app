@@ -48,7 +48,13 @@ const ConfirmReservationModal: React.FC<ConfirmReservationModalProps> = ({
             <Text className="text-xl font-medium">{selectedSpace?.replace('\n', ' ') || '无'}</Text>
           </View>
           {onViewStatus && (
-            <TouchableOpacity className="mt-6 items-center rounded-lg bg-primary py-3" onPress={onViewStatus}>
+            <TouchableOpacity
+              className="mt-6 items-center rounded-lg bg-primary py-3"
+              onPress={() => {
+                onViewStatus();
+                onClose();
+              }}
+            >
               <Text className="font-medium text-secondary">查询更多可用时间段</Text>
             </TouchableOpacity>
           )}
