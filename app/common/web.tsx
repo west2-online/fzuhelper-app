@@ -16,7 +16,7 @@ import {
   SSO_LOGIN_COOKIE_KEY,
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
 import { getScriptByURL } from '@/utils/dom-cleaner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -93,7 +93,8 @@ export default function Web() {
     if (sso) {
       await CookieManager.clearAll();
       const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
-      if (SSOCookie) {
+      const isSSOLogin = SSOCookie ? await checkCookieSSO({ cookies: SSOCookie }) : false;
+      if (isSSOLogin && SSOCookie) {
         SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
       } else {
         setNeedSSOLogin(true);
