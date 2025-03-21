@@ -173,7 +173,7 @@ export default function AcademicPage() {
               <LabelEntry leftText="个人信息收集清单" />
             </Link>
             <Link
-              href={getWebViewHref({ url: 'https://fzuhelper.west2.online/onekey/FZUHelper.html#privacy' })}
+              href={getWebViewHref({ url: 'https://fzuhelper.west2.online/onekey/FZUHelper.html#third-party' })}
               asChild
             >
               <LabelEntry leftText="第三方信息共享清单" />
