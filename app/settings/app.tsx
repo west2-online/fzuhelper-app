@@ -1,7 +1,8 @@
+/* eslint-disable react-native/no-inline-styles */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking, Modal, Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -10,7 +11,6 @@ import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
-import LabelSwitch from '@/components/label-switch';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { CourseCache } from '@/lib/course';
@@ -18,9 +18,84 @@ import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
 
+// 新建一个下拉选择组件，用于 Android 平台内测计划设置
+function ReleaseChannelPicker({
+  value,
+  onValueChange,
+}: {
+  value: string | null;
+  onValueChange: (val: string) => void;
+}) {
+  const [visible, setVisible] = useState(false);
+  const [buttonLayout, setButtonLayout] = useState<{ x: number; y: number; width: number; height: number } | null>(
+    null,
+  );
+
+  const options = [
+    { label: '正式版', value: 'release' },
+    { label: 'Beta版', value: 'beta' },
+    { label: 'Alpha版', value: 'alpha' },
+  ];
+
+  const handleSelect = (optionValue: string) => {
+    onValueChange(optionValue);
+    setVisible(false);
+  };
+
+  return (
+    <>
+      <View onLayout={e => setButtonLayout(e.nativeEvent.layout)}>
+        <LabelEntry
+          leftText="更新通道"
+          onPress={() => setVisible(true)}
+          rightText={options.find(opt => opt.value === value)?.label}
+        />
+      </View>
+
+      {visible && buttonLayout && (
+        <Modal transparent animationType="fade" visible={visible} onRequestClose={() => setVisible(false)}>
+          <Pressable style={{ flex: 1 }} onPress={() => setVisible(false)}>
+            <View
+              style={{
+                position: 'absolute',
+                top: buttonLayout.y + buttonLayout.height,
+                right: buttonLayout.x + 30,
+                width: buttonLayout.width - 200,
+                backgroundColor: 'white',
+                borderColor: '#ccc',
+                borderWidth: 1,
+                borderRadius: 4,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 5,
+              }}
+            >
+              {options.map((option, index) => (
+                <TouchableOpacity
+                  key={option.value}
+                  onPress={() => handleSelect(option.value)}
+                  style={{
+                    padding: 12,
+                    borderBottomWidth: index < options.length - 1 ? 1 : 0,
+                    borderBottomColor: '#eee',
+                  }}
+                >
+                  <Text>{option.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Pressable>
+        </Modal>
+      )}
+    </>
+  );
+}
+
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
-  const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // (仅 Android) 发布渠道
+  const [releaseChannel, setReleaseChannel] = useState<'release' | 'beta' | 'alpha' | null>('release'); // (仅 Android) 发布渠道
 
   // 清除数据
   const handleClearData = () => {
@@ -108,20 +183,20 @@ export default function AcademicPage() {
           },
         ],
       );
-    } else if (Platform.OS === 'android') {
-      setReleaseChannel(prev => (prev !== 'beta' ? 'beta' : 'release'));
     }
   };
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      AsyncStorage.getItem(RELEASE_CHANNEL_KEY).then(setReleaseChannel);
+      AsyncStorage.getItem(RELEASE_CHANNEL_KEY).then(value => {
+        setReleaseChannel((value as 'release' | 'beta' | 'alpha') || 'release');
+      });
     }
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      if (releaseChannel) AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
+    if (Platform.OS === 'android' && releaseChannel) {
+      AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
     }
   }, [releaseChannel]);
 
@@ -166,10 +241,9 @@ export default function AcademicPage() {
             <Text className="mb-2 mt-4 text-sm text-text-secondary">其他</Text>
 
             {Platform.OS === 'android' && (
-              <LabelSwitch
-                label="加入内测计划"
-                value={releaseChannel === 'beta'}
-                onValueChange={handleChangeReleaseChannel}
+              <ReleaseChannelPicker
+                value={releaseChannel}
+                onValueChange={(val: string) => setReleaseChannel(val as 'release' | 'beta' | 'alpha')}
               />
             )}
             {Platform.OS === 'ios' && (

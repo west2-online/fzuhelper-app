@@ -77,10 +77,10 @@ export default function AboutPage() {
               <DescriptionListRow>
                 <DescriptionListTerm>
                   <Text className="text-text-secondary">版本更新</Text>
+                  <RedDot right={-20} top={7} />
                 </DescriptionListTerm>
                 <DescriptionListDescription className="flex-row items-center">
                   <Text>{Platform.OS === 'ios' ? '点击前往 App Store 查看' : updateCheckState}</Text>
-                  <RedDot right={90} top={6} />
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>

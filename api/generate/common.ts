@@ -109,6 +109,13 @@ export async function getApiV2VersionAndroid(options?: {
         changelog: string;
         url: string;
       };
+      alpha: {
+        version_code: string;
+        version_name: string;
+        force: boolean;
+        changelog: string;
+        url: string;
+      };
     };
   }>('/api/v2/version/android', {
     method: 'GET',
