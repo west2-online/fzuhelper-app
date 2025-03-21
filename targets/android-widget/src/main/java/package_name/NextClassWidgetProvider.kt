@@ -37,6 +37,7 @@ class NextClassWidgetProvider : AppWidgetProvider() {
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
             deleteWidgetConfig(context, appWidgetId, "showLastUpdateTime")
+            deleteWidgetConfig(context, appWidgetId, "showAsSquare")
         }
     }
 
