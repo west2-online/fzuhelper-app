@@ -170,6 +170,85 @@ class SSOLogin {
     console.log('提取到的token:', token);
     return token;
   }
+
+  // 获得公寓报修的cookie
+  // 暂时无用，目前直接在webview中打开报修页面
+  async getDomitoryRepairCookie(ssoCookie: string) {
+    /**
+     * @param ssoCookie 登录SSO后的cookie
+     * @returns 公寓报修的cookie
+     */
+
+    if (ssoCookie === '') {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: 'SSOcookie不能为空,请先登录',
+      };
+    }
+
+    let resp;
+    let cookie; // 用于保存公寓报修cookie
+    try {
+      // 通过统一认证访问“宿舍报修”页面
+      resp = await this.#get({
+        url: 'https://sso.fzu.edu.cn/login?service=http:%2F%2Fehall.fzu.edu.cn%2Fssfw%2Fsys%2Fswmssbxapp%2F*default%2Findex.do',
+        headers: {
+          Cookie: ssoCookie,
+        },
+      });
+      // 返回重定向后的url，这个url就是“宿舍报修”页面的url,访问该url不需要携带cookie，通过url路径中的ticket作为凭证
+      resp = await this.#get({
+        url: resp.headers.Location,
+      });
+      // 访问后会有返回一个_WEU的cookie,后续的流程都用到这个cookie
+      const WEU = extractKV(resp.headers['Set-Cookie'], '_WEU');
+      cookie = `_WEU=${WEU}`;
+
+      // 第一次更新cookie
+      resp = await this.#get({
+        url: 'http://ehall.fzu.edu.cn/ssfw/sys/emappagelog/config/swmssbxapp.do',
+        headers: {
+          Cookie: cookie,
+        },
+      });
+      console.log('第一次更新cookie:', resp.headers);
+      console.log('响应体', JSON.parse(Buffer.from(resp.data).toString('utf-8')));
+
+      // 第二次更新cookie
+      resp = await this.#post({
+        url: 'http://ehall.fzu.edu.cn/ssfw/sys/xgutilapp/MobileCommon/getSelRoleConfig.do',
+        headers: {
+          Cookie: cookie,
+        },
+        formData: {
+          data: '{"APPID":"4970001248812463","APPNAME":"swmssbxapp"}',
+        },
+      });
+      cookie = `_WEU=${extractKV(resp.headers['Set-Cookie'], '_WEU')}`;
+      console.log('第二次更新cookie:', resp.headers);
+      console.log('响应体', JSON.parse(Buffer.from(resp.data).toString('utf-8')));
+
+      // 这登录真是糖丸了，最后一次更新cookie
+      resp = await this.#post({
+        url: 'http://ehall.fzu.edu.cn/ssfw/sys/xgutilapp/MobileCommon/getMenuInfo.do',
+        headers: {
+          Cookie: cookie,
+        },
+        formData: { data: '{"APPID":"4970001248812463","APPNAME":"swmssbxapp"}' },
+      });
+      cookie = `_WEU=${extractKV(resp.headers['Set-Cookie'], '_WEU')}`;
+      console.log('第三次更新cookie:', resp.headers);
+      console.log('响应体', JSON.parse(Buffer.from(resp.data).toString('utf-8')));
+
+      return cookie;
+    } catch (error) {
+      console.error('无法从SSO登录到公寓报修:', error);
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '无法从SSO登录到公寓报修',
+      };
+    }
+  }
 }
 
 function encrypt(raw_password: string, keyBase64: string): string {

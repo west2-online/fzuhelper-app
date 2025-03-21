@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, router } from 'expo-router';
+import { Stack, router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import {
   SSO_LOGIN_COOKIE_KEY,
+  SSO_LOGIN_USER_KEY,
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
   YMT_ACCESS_TOKEN_KEY,
@@ -22,6 +23,11 @@ import {
 import SSOLogin from '@/lib/sso-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 import YMTLogin from '@/lib/ymt-login';
+
+interface SSOUser {
+  account: string;
+  password: string;
+}
 
 const URL_FORGET_PASSWORD = 'https://idself.fzu.edu.cn/public/client/phone/retrieve';
 
@@ -33,6 +39,7 @@ const UnifiedLoginPage: React.FC = () => {
   const { handleError } = useSafeResponseSolve();
   const ymtLogin = useRef<YMTLogin | null>(null);
   const ssoLogin = useRef<SSOLogin | null>(null);
+  const isStoredSSOUser = useRef(false);
 
   if (!ymtLogin.current) {
     ymtLogin.current = new YMTLogin();
@@ -41,11 +48,28 @@ const UnifiedLoginPage: React.FC = () => {
     ssoLogin.current = new SSOLogin();
   }
 
+  useFocusEffect(
+    useCallback(() => {
+      const getSSOUser = async () => {
+        const storedSSOUser = await AsyncStorage.getItem(SSO_LOGIN_USER_KEY);
+        if (storedSSOUser) {
+          const SSOUser = JSON.parse(storedSSOUser) as SSOUser;
+          setAccount(SSOUser.account);
+          setAccountPassword(SSOUser.password);
+          isStoredSSOUser.current = true;
+          toast.success('检测到上次登录的账号，已自动填充');
+        }
+      };
+      getSSOUser();
+    }, []),
+  );
+
   // 处理SSO登录逻辑
   const handleSSOLogin = useCallback(async () => {
     try {
       const cookies = await ssoLogin.current!.login(account, accountPassword);
       await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookies);
+      await AsyncStorage.setItem(SSO_LOGIN_USER_KEY, JSON.stringify({ account: account, password: accountPassword }));
       console.log('登录SSO成功:', cookies);
       return true;
     } catch (error: any) {

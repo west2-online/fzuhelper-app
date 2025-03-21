@@ -119,6 +119,11 @@ export default function HomePage() {
               <Text>Learning Center API</Text>
             </Button>
           </Link>
+          <Link href="/devtools/domitory-repair-api" asChild>
+            <Button>
+              <Text>Domitory Repair API</Text>
+            </Button>
+          </Link>
 
           {/* Toast 示例 */}
           <Text className="m-3 my-4 text-lg font-bold">Toast</Text>

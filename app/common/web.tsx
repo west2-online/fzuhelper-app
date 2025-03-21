@@ -1,5 +1,5 @@
 import CookieManager from '@react-native-cookies/cookies';
-import { Stack, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,13 +9,16 @@ import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
+import LoginPrompt from '@/components/sso-login-prompt';
 import {
   JWCH_COOKIES_DOMAIN,
   SSO_LOGIN_COOKIE_DOMAIN,
   SSO_LOGIN_COOKIE_KEY,
+  SSO_LOGIN_USER_KEY,
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import SSOLogin from '@/lib/sso-login';
+import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
 import { getScriptByURL } from '@/utils/dom-cleaner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -33,72 +36,113 @@ export default function Web() {
   const [webpageTitle, setWebpageTitle] = useState('');
   const [currentUrl, setCurrentUrl] = useState(''); // 当前加载的 URL
   const [cookiesSet, setCookiesSet] = useState(false); // 用于控制 Cookie 设置先于 WebView 加载
+  const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
   const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const colorScheme = useColorScheme();
 
-  useEffect(() => {
-    const setCookies = async () => {
-      // 教务系统 Cookie
-      if (jwch) {
-        // 清除 webview cookies
-        // await CookieManager.get(JWCH_COOKIES_DOMAIN).then(cookies =>
-        //   Promise.all(
-        //     Object.values(cookies).map(c =>
-        //       CookieManager.set(JWCH_COOKIES_DOMAIN, { ...c, value: 'deleted', expires: '1970-01-01T00:00:00.000Z' }),
-        //     ),
-        //   ),
-        // );
+  const setCookies = useCallback(async () => {
+    // 教务系统 Cookie
+    if (jwch) {
+      // 清除 webview cookies
+      // await CookieManager.get(JWCH_COOKIES_DOMAIN).then(cookies =>
+      //   Promise.all(
+      //     Object.values(cookies).map(c =>
+      //       CookieManager.set(JWCH_COOKIES_DOMAIN, { ...c, value: 'deleted', expires: '1970-01-01T00:00:00.000Z' }),
+      //     ),
+      //   ),
+      // );
 
-        // 上面代码在安卓平台有问题，会导致过期 cookie 也被发送
-        await CookieManager.clearAll();
+      // 上面代码在安卓平台有问题，会导致过期 cookie 也被发送
+      await CookieManager.clearAll();
 
-        const cookieValid = await LocalUser.checkCredentials();
-        if (!cookieValid) {
-          // 如果 Cookie 无效，则重新登录
-          const userInfo = LocalUser.getUser();
-          if (!userInfo.password || !userInfo.userid) {
-            toast.error('登录失效，请重新登录');
-            return;
-          } else {
-            await LocalUser.login();
-          }
+      const cookieValid = await LocalUser.checkCredentials();
+      if (!cookieValid) {
+        // 如果 Cookie 无效，则重新登录
+        const userInfo = LocalUser.getUser();
+        if (!userInfo.password || !userInfo.userid) {
+          toast.error('登录失效，请重新登录');
+          return;
+        } else {
+          await LocalUser.login();
         }
-        const credentials = LocalUser.getCredentials();
+      }
+      const credentials = LocalUser.getCredentials();
 
-        if (!credentials.cookies) {
-          toast.error('登录失败，请稍后再试');
+      if (!credentials.cookies) {
+        toast.error('登录失败，请稍后再试');
+        return;
+      }
+
+      // 根据 URL 是否已有查询参数来决定连接符
+      const separator = url.includes('?') ? '&' : '?';
+      setCurrentUrl(`${url}${separator}id=${credentials.identifier}`);
+
+      // 设置 JWCH Cookie
+      await Promise.all(
+        credentials.cookies.split(';').map(c =>
+          CookieManager.setFromResponse(
+            // 依据用户类型置入不同的域名 Cookie
+            LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? YJSY_COOKIES_DOMAIN : JWCH_COOKIES_DOMAIN,
+            c,
+          ),
+        ),
+      );
+    }
+
+    // 统一身份认证 Cookie
+    if (sso) {
+      await CookieManager.clearAll();
+      const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
+      const isSSOLogin = SSOCookie ? await checkCookieSSO({ cookies: SSOCookie }) : false;
+
+      // 存在ssocookie且cookie有效
+      if (isSSOLogin && SSOCookie) {
+        SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+      } else if (SSOCookie) {
+        // 存在ssocookie但cookie无效,需要自动重登
+        const ssoLogin = new SSOLogin();
+        const userData = await AsyncStorage.getItem(SSO_LOGIN_USER_KEY);
+        if (!userData) {
+          setNeedSSOLogin(true);
           return;
         }
-
-        // 根据 URL 是否已有查询参数来决定连接符
-        const separator = url.includes('?') ? '&' : '?';
-        setCurrentUrl(`${url}${separator}id=${credentials.identifier}`);
-
-        // 设置 JWCH Cookie
-        await Promise.all(
-          credentials.cookies.split(';').map(c =>
-            CookieManager.setFromResponse(
-              // 依据用户类型置入不同的域名 Cookie
-              LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? YJSY_COOKIES_DOMAIN : JWCH_COOKIES_DOMAIN,
-              c,
-            ),
-          ),
-        );
-      }
-
-      // 统一身份认证 Cookie
-      if (sso) {
-        const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
-        if (SSOCookie) {
-          SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+        const { account, password } = JSON.parse(userData);
+        const cookieLogin = await ssoLogin.login(account, password).catch(error => {
+          console.error('SSO登录获取cookie失败:', error);
+          return null;
+        });
+        toast.info('登录已过期,正在尝试重新登录');
+        if (cookieLogin) {
+          cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+          await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookieLogin);
+        } else {
+          // 重登失败，跳转到登录页面
+          toast.error('自动重登失败');
+          await AsyncStorage.removeItem(SSO_LOGIN_COOKIE_KEY);
+          setNeedSSOLogin(true);
         }
+      } else {
+        // 不存在ssocookie
+        setNeedSSOLogin(true);
       }
-      setCookiesSet(true);
-    };
-    setCookies();
+    }
+    setCookiesSet(true);
   }, [jwch, url, sso]);
+
+  // 在页面获得焦点时执行
+  useFocusEffect(
+    useCallback(() => {
+      // 重置状态，准备重新加载
+      setInjectedScript(false);
+      setCookiesSet(false);
+      setNeedSSOLogin(false);
+
+      // 执行设置Cookie的逻辑
+      setCookies();
+    }, [setCookies]),
+  );
 
   // 处理 Android 返回键
   useEffect(() => {
@@ -149,6 +193,15 @@ export default function Web() {
     },
     [title, colorScheme],
   );
+
+  // 如果传入sso且需要sso登录，则跳转到sso登录页面
+  if (needSSOLogin) {
+    return (
+      <>
+        <LoginPrompt message={`登录统一身份认证平台，访问${title ?? '当前'}服务`} />
+      </>
+    );
+  }
 
   return (
     <>
