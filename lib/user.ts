@@ -20,6 +20,10 @@ interface LoginCredentials {
   cookies: string; // 传递给教务系统的 Cookie Raw
 }
 
+interface SSOCredentials {
+  cookies: string; // 传递给统一认证的 Cookie Raw
+}
+
 export const USER_TYPE_UNDERGRADUATE = 'undergraduate'; // 本科生
 export const USER_TYPE_POSTGRADUATE = 'graduate'; // 研究生
 
@@ -249,6 +253,22 @@ async function checkCookieYJSY(credentials: LoginCredentials) {
   });
   const decodedText = Buffer.from(resp.data).toString('utf-8');
   if (decodedText.includes('当前登录用户已过期') || decodedText.includes('系统错误')) {
+    return false;
+  }
+
+  return true;
+}
+// （统一认证登录）检查 SSO 的 Cookie 是否有效，如果无效，重新自动登录
+export async function checkCookieSSO(credentials: SSOCredentials) {
+  const COOKIE_CHECK_URL = 'https://sso.fzu.edu.cn/login'; // 尝试访问学生个人信息页面
+  if (!credentials.cookies) {
+    return false;
+  }
+  const resp = await get(COOKIE_CHECK_URL, {
+    REFERER: 'https://sso.fzu.edu.cn',
+    Cookie: credentials.cookies,
+  });
+  if (resp.status === 200) {
     return false;
   }
 

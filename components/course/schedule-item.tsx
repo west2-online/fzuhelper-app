@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/text';
 
 import OverlapIcon from '@/assets/images/course/overlap.svg';
 import { SCHEDULE_ITEM_MARGIN, type CourseInfo } from '@/lib/course';
-import { getCourseColor } from '@/utils/random-color';
+import { getCourseColor, getTextColor } from '@/utils/random-color';
 
 import ScheduleDetailsDialog from './schedule-detail-dialog';
 
@@ -31,10 +31,18 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
           }}
           onPress={() => setDetailsDialogOpen(true)}
         >
-          <Text className="line-clamp-3 truncate text-wrap break-all text-center text-[11px] text-white">
+          <Text
+            className="line-clamp-3 truncate text-wrap break-all text-center text-[11px]"
+            style={{ color: getTextColor(color, colorScheme === 'dark') }}
+          >
             {schedules[0].name}
           </Text>
-          <Text className="mt-1 text-wrap break-all text-center text-[11px] text-white">{schedules[0].location}</Text>
+          <Text
+            className="mt-1 text-wrap break-all text-center text-[11px]"
+            style={{ color: getTextColor(color, colorScheme === 'dark') }}
+          >
+            {schedules[0].location}
+          </Text>
 
           {schedules.length > 1 && (
             <View className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-[3px] bg-white">
