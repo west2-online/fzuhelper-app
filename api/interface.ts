@@ -3,7 +3,7 @@ export interface CourseSetting {
   calendarExportEnabled: boolean;
   showNonCurrentWeekCourses: boolean;
   exportExamToCourseTable: boolean;
-  showListenFreeCourses: boolean;
+  hiddenCoursesWithoutAttendances: boolean;
 }
 
 export interface LocateDateResult {

@@ -177,11 +177,11 @@ export default function AcademicPage() {
     });
   }, []);
 
-  const handleShowListenFreeCourses = useCallback(() => {
+  const handleHiddenCoursesWithoutAttendances = useCallback(() => {
     setSettings(prevSettings => {
       return {
         ...prevSettings,
-        showListenFreeCourses: !prevSettings.showListenFreeCourses,
+        hiddenCoursesWithoutAttendances: !prevSettings.hiddenCoursesWithoutAttendances,
       };
     });
   }, []);
@@ -240,8 +240,8 @@ export default function AcademicPage() {
 
             <LabelSwitch
               label="显示免听课程"
-              value={settings.showListenFreeCourses}
-              onValueChange={handleShowListenFreeCourses}
+              value={settings.hiddenCoursesWithoutAttendances}
+              onValueChange={handleHiddenCoursesWithoutAttendances}
             />
 
             <LabelSwitch

@@ -43,6 +43,7 @@ export async function getApiV1JwchCourseList(
       syllabus: string;
       rawScheduleRules: string;
       rawAdjust: string;
+      examType: string;
     }[];
   }>('/api/v1/jwch/course/list', {
     method: 'GET',

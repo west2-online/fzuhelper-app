@@ -27,6 +27,7 @@ data class ExtendCourse(
     val remark: String,          // 备注
 //    val syllabus: String,        // 课程大纲
 //    val lessonplan: String       // 教学计划
+    val examType: String,        // 考试类型
 )
 
 /**
@@ -40,8 +41,7 @@ data class CacheCourseData(
     val startDate: String,                          // 学期开始日期：如2025-02-24
     val maxWeek: Int,                               // 最大周次
     val showNonCurrentWeekCourses: Boolean?,        // 是否显示非当前周的课程
-    val showListenFreeCourses: Boolean?,            // 是否显示免听课程
-    val listenFreeCourseList: List<String>?,        // 免听课程列表
+    val hiddenCoursesWithoutAttendances: Boolean?,            // 是否显示免听课程
 )
 
 

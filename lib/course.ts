@@ -213,7 +213,7 @@ export class CourseCache {
     const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
     const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
     const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
-    const showListenFreeCourses = courseSettings.showListenFreeCourses;
+    const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
     if (Platform.OS === 'ios') {
       // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
       // 只能在常量中定义这个 identifier
@@ -240,7 +240,7 @@ export class CourseCache {
           startDate: currentTerm.start_date,
           maxWeek: maxWeek,
           showNonCurrentWeekCourses: showNonCurrentWeekCourses,
-          showListenFreeCourses: showListenFreeCourses,
+          hiddenCoursesWithoutAttendances: hiddenCoursesWithoutAttendances,
           listenFreeCoursesList: gradeList, //TODO: need change later
         }),
         Constants.expoConfig?.android?.package,
@@ -738,7 +738,7 @@ export const defaultCourseSetting: CourseSetting = {
   calendarExportEnabled: false,
   showNonCurrentWeekCourses: false,
   exportExamToCourseTable: false,
-  showListenFreeCourses: false,
+  hiddenCoursesWithoutAttendances: false,
 };
 
 // 将传入的 courseSetting 与 defaultCourseSetting 合并
