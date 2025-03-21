@@ -14,8 +14,10 @@ import {
   JWCH_COOKIES_DOMAIN,
   SSO_LOGIN_COOKIE_DOMAIN,
   SSO_LOGIN_COOKIE_KEY,
+  SSO_LOGIN_USER_KEY,
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
+import SSOLogin from '@/lib/sso-login';
 import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
 import { getScriptByURL } from '@/utils/dom-cleaner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -94,9 +96,35 @@ export default function Web() {
       await CookieManager.clearAll();
       const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
       const isSSOLogin = SSOCookie ? await checkCookieSSO({ cookies: SSOCookie }) : false;
+
+      // 存在ssocookie且cookie有效
       if (isSSOLogin && SSOCookie) {
         SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+      } else if (SSOCookie) {
+        // 存在ssocookie但cookie无效,需要自动重登
+        const ssoLogin = new SSOLogin();
+        const userData = await AsyncStorage.getItem(SSO_LOGIN_USER_KEY);
+        if (!userData) {
+          setNeedSSOLogin(true);
+          return;
+        }
+        const { account, password } = JSON.parse(userData);
+        const cookieLogin = await ssoLogin.login(account, password).catch(error => {
+          console.error('SSO登录获取cookie失败:', error);
+          return null;
+        });
+        toast.info('登录已过期,正在尝试重新登录');
+        if (cookieLogin) {
+          cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+          await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookieLogin);
+        } else {
+          // 重登失败，跳转到登录页面
+          toast.error('自动重登失败');
+          await AsyncStorage.removeItem(SSO_LOGIN_COOKIE_KEY);
+          setNeedSSOLogin(true);
+        }
       } else {
+        // 不存在ssocookie
         setNeedSSOLogin(true);
       }
     }
