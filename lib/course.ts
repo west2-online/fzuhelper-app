@@ -241,7 +241,7 @@ export class CourseCache {
           maxWeek: maxWeek,
           showNonCurrentWeekCourses: showNonCurrentWeekCourses,
           showListenFreeCourses: showListenFreeCourses,
-          gradeList: gradeList,
+          listenFreeCoursesList: gradeList, //TODO: need change later
         }),
         Constants.expoConfig?.android?.package,
       );

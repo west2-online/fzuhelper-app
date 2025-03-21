@@ -96,8 +96,8 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                 return remoteViews
             }
 
-            val gradeList = cacheCourseData.gradeList?:"null"
-            Log.e("CourseScheduleWidgetFactory", "gradeList: $gradeList")
+            val showListenFreeCourses = cacheCourseData.showListenFreeCourses?: false
+            val listenFreeCourseList = cacheCourseData.listenFreeCourseList ?: emptyList()
 
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.PRC)
             val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
@@ -120,7 +120,9 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             val mark2 = Array(8) { IntArray(12) { 0 } }
             //先给本周有课的课程需要的位置占坑,防止被本周没课的课程抢占
             for (kc in courseBeans) {
-                if (kc.startWeek <= week && kc.endWeek >= week && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))) {
+                if (kc.startWeek <= week && kc.endWeek >= week
+                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))
+                    && (showListenFreeCourses || !listenFreeCourseList.contains(kc.name))) {
                     for (j in kc.startClass..kc.endClass) {
                         //自定义课程优先于普通课程
                         if (kc.type == 0) {
@@ -134,7 +136,9 @@ class CourseScheduleWidgetService : RemoteViewsService() {
 
             for (i in 0 until courseBeans.size) {
                 val kc = courseBeans[i]
-                if (kc.startWeek <= week && kc.endWeek >= week && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))) {
+                if (kc.startWeek <= week && kc.endWeek >= week
+                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))
+                    && (showListenFreeCourses || !listenFreeCourseList.contains(kc.name))) {
                     var flag = 0
                     for (j in kc.startClass..kc.endClass) {
                         //如果该坑已被某课程占领就设置标记位以忽略本课程,防止某些极端情况下出现课程冲突
@@ -152,7 +156,8 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                     }
                 } else {
                     //忽略仅持续一周的自定义课程
-                    if (cacheCourseData.showNonCurrentWeekCourses != true || kc.type > 0) continue
+                    if (cacheCourseData.showNonCurrentWeekCourses != true || kc.type > 0
+                        || (!showListenFreeCourses && listenFreeCourseList.contains(kc.name))) continue
                     var flag = 0
                     for (j in kc.startClass..kc.endClass) {
                         //如果该坑已被某课程占领就设置标记位以忽略本课程,该位置本周没课的课程可能有很多,仅保留第一个

@@ -34,14 +34,14 @@ data class ExtendCourse(
  */
 @Keep
 data class CacheCourseData(
-    val courseData: Map<Int, List<ExtendCourse>>?,   // 课程数据：星期几 -> 课程列表
-    val examData: Map<Int, List<ExtendCourse>>?,     // 考试数据：星期几 -> 考试列表
-    val customData: Map<Int, List<ExtendCourse>>?,   // 自定义课程数据：星期几 -> 课程列表
-    val startDate: String,                           // 学期开始日期：如2025-02-24
-    val maxWeek: Int,                                // 最大周次
-    val showNonCurrentWeekCourses: Boolean?,         // 是否显示非当前周的课程
-    val showListenFreeCourses: Boolean?,             // 是否显示免听课程
-    val gradeList: String?,
+    val courseData: Map<Int, List<ExtendCourse>>?,  // 课程数据：星期几 -> 课程列表
+    val examData: Map<Int, List<ExtendCourse>>?,    // 考试数据：星期几 -> 考试列表
+    val customData: Map<Int, List<ExtendCourse>>?,  // 自定义课程数据：星期几 -> 课程列表
+    val startDate: String,                          // 学期开始日期：如2025-02-24
+    val maxWeek: Int,                               // 最大周次
+    val showNonCurrentWeekCourses: Boolean?,        // 是否显示非当前周的课程
+    val showListenFreeCourses: Boolean?,            // 是否显示免听课程
+    val listenFreeCourseList: List<String>?,        // 免听课程列表
 )
 
 
