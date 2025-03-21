@@ -96,6 +96,9 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                 return remoteViews
             }
 
+            val gradeList = cacheCourseData.gradeList?:"null"
+            Log.e("CourseScheduleWidgetFactory", "gradeList: $gradeList")
+
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.PRC)
             val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
             val week = getWeeks(startTime, System.currentTimeMillis())

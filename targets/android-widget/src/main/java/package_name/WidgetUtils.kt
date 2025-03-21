@@ -41,6 +41,7 @@ data class CacheCourseData(
     val maxWeek: Int,                                // 最大周次
     val showNonCurrentWeekCourses: Boolean?,         // 是否显示非当前周的课程
     val showListenFreeCourses: Boolean?,             // 是否显示免听课程
+    val gradeList: String?,
 )
 
 

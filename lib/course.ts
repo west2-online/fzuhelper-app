@@ -8,6 +8,7 @@ import {
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
   IOS_APP_GROUP,
+  GRADE_LIST_KEY,
 } from '@/lib/constants';
 import { MergedExamData } from '@/types/academic';
 import { randomUUID } from '@/utils/crypto';
@@ -205,6 +206,7 @@ export class CourseCache {
     );
 
     // 将数据保存到原生共享存储中，以便在小组件中调用
+    const gradeList = JSON.parse((await AsyncStorage.getItem(GRADE_LIST_KEY)) ?? '[]');
     const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
     const courseSettings = await readCourseSetting();
     const term = courseSettings.selectedSemester;
@@ -239,6 +241,7 @@ export class CourseCache {
           maxWeek: maxWeek,
           showNonCurrentWeekCourses: showNonCurrentWeekCourses,
           showListenFreeCourses: showListenFreeCourses,
+          gradeList: gradeList,
         }),
         Constants.expoConfig?.android?.package,
       );
