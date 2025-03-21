@@ -6,28 +6,34 @@ import type { SvgProps } from 'react-native-svg';
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
+import ApartmentIcon from '@/assets/images/toolbox/ic_apartment.svg';
 import ApplicationIcon from '@/assets/images/toolbox/ic_application.svg';
+import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
 import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
 import FileIcon from '@/assets/images/toolbox/ic_file.svg';
 import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
 import GraduationIcon from '@/assets/images/toolbox/ic_graduation.svg';
 import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
+import LostFoundIcon from '@/assets/images/toolbox/ic_lostandfound.svg';
+import MoreIcon from '@/assets/images/toolbox/ic_more.svg';
 import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
 import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
 import StudyCenterIcon from '@/assets/images/toolbox/ic_studycenter.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
+import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
 import Banner, { type BannerContent } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { showIgnorableAlert } from '@/lib/common-settings';
 
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { cn } from '@/lib/utils';
-import { getWebViewHref } from '@/lib/webview';
+import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 
 // 工具类型的枚举
@@ -144,6 +150,90 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: StudyCenterIcon,
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
+  },
+  {
+    name: '公寓报修',
+    icon: ApartmentIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      // 使用可忽略的提示
+      await showIgnorableAlert(
+        'apartment_repair_permission', // 提示的唯一标识符
+        '权限提示',
+        '公寓报修需要上传图片或拍照，如果无法拍照/图片无法上传，请检查是否已授予相机/相册权限',
+        // 被忽略时直接执行的操作
+        () => pushToWebViewSSO('http://ehall.fzu.edu.cn/ssfw/sys/swmssbxapp/*default/index.do', '公寓报修'),
+        // 普通按钮
+        [
+          {
+            text: '暂不打开',
+            style: 'cancel',
+          },
+          {
+            text: '打开',
+            onPress: () => {
+              pushToWebViewSSO('http://ehall.fzu.edu.cn/ssfw/sys/swmssbxapp/*default/index.do', '公寓报修');
+            },
+          },
+        ],
+        { cancelable: true },
+      );
+    },
+  },
+  {
+    name: '电动车',
+    icon: ElectroCarIcon,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      // 使用可忽略的提示
+      await showIgnorableAlert(
+        'electrocar_network_tip', // 提示的唯一标识符
+        '网络提示',
+        '电动车管理页面需要较好的校园网环境，可能会加载较慢或无法打开，如果遇到问题请尝试切换网络环境',
+        // 被忽略时直接执行的操作
+        () => pushToWebViewSSO('http://doorwxoa.fzu.edu.cn/appCas/index', '电动车管理'),
+        // 普通按钮
+        [
+          {
+            text: '暂不打开',
+            style: 'cancel',
+          },
+          {
+            text: '打开',
+            onPress: () => {
+              pushToWebViewSSO('http://doorwxoa.fzu.edu.cn/appCas/index', '电动车管理');
+            },
+          },
+        ],
+        { cancelable: true },
+      );
+    },
+  },
+  {
+    name: '校本化',
+    icon: XiaoBenIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://api.uyiban.com/base/c/rgsid/login',
+      title: '校本化',
+      sso: true,
+    },
+  },
+  {
+    name: '失物招领',
+    icon: LostFoundIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/lostAndFound/app',
+      title: '失物招领',
+      sso: true,
+    },
+  },
+  {
+    name: '更多',
+    icon: MoreIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/more',
   },
 ];
 

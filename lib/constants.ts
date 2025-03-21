@@ -38,6 +38,7 @@ export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 
 // SSO 登录
 export const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';
+export const SSO_LOGIN_USER_KEY = 'sso_login_user';
 export const SSO_LOGIN_COOKIE_KEY = 'sso_login_cookie';
 export const SSO_LOGIN_COOKIE_DOMAIN = 'https://sso.fzu.edu.cn';
 
@@ -152,3 +153,6 @@ export const RELEASE_CHANNEL_KEY = 'release_channel';
 export const COLOR_SCHEME_KEY = 'color_scheme';
 // 壁纸压暗
 export const DARKEN_BACKGROUND_KEY = 'darken_background';
+
+// 通用设置
+export const COMMON_SETTINGS_KEY = 'common_settings';

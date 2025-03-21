@@ -239,7 +239,7 @@ export default function AcademicPage() {
             />
 
             <LabelSwitch
-              label="显示免听课程"
+              label="隐藏免听课程"
               value={settings.hiddenCoursesWithoutAttendances}
               onValueChange={handleHiddenCoursesWithoutAttendances}
             />
