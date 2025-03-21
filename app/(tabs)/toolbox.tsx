@@ -14,6 +14,7 @@ import FileIcon from '@/assets/images/toolbox/ic_file.svg';
 import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
 import GraduationIcon from '@/assets/images/toolbox/ic_graduation.svg';
 import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
+import LostFoundIcon from '@/assets/images/toolbox/ic_lostandfound.svg';
 import MoreIcon from '@/assets/images/toolbox/ic_more.svg';
 import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
@@ -21,8 +22,10 @@ import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
 import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
 import StudyCenterIcon from '@/assets/images/toolbox/ic_studycenter.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
+import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
+
 import Banner, { type BannerContent } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
@@ -30,7 +33,7 @@ import { Text } from '@/components/ui/text';
 
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { cn } from '@/lib/utils';
-import { getWebViewHref } from '@/lib/webview';
+import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 
 // 工具类型的枚举
@@ -151,30 +154,68 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '公寓报修',
     icon: ApartmentIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'http://ehall.fzu.edu.cn/ssfw/sys/swmssbxapp/*default/index.do',
-      title: '公寓报修',
-      sso: true,
+    type: ToolType.FUNCTION,
+    action: () => {
+      Alert.alert(
+        '权限提示',
+        '公寓报修需要上传图片或拍照，如果无法拍照/图片无法上传，请检查是否已授予相机/相册权限',
+        [
+          {
+            text: '暂不打开',
+            style: 'cancel', // iOS 上会显示为取消按钮样式
+          },
+          {
+            text: '打开',
+            onPress: () => {
+              pushToWebViewSSO('http://ehall.fzu.edu.cn/ssfw/sys/swmssbxapp/*default/index.do', '公寓报修');
+            },
+          },
+        ],
+        { cancelable: true },
+      );
     },
   },
   {
     name: '电动车',
     icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'http://doorwxoa.fzu.edu.cn/appCas/index',
-      title: '电动车管理',
-      sso: true,
+    type: ToolType.FUNCTION,
+    action: () => {
+      Alert.alert(
+        '网络提示',
+        '电动车管理页面需要较好的校园网环境，可能会加载较慢或无法打开，如果遇到问题请尝试切换网络环境',
+        [
+          {
+            text: '暂不打开',
+            style: 'cancel', // iOS 上会显示为取消按钮样式
+          },
+          {
+            text: '打开',
+            onPress: () => {
+              pushToWebViewSSO('http://doorwxoa.fzu.edu.cn/appCas/index', '电动车管理');
+            },
+          },
+        ],
+        { cancelable: true },
+      );
     },
   },
   {
     name: '校本化',
-    icon: ElectroCarIcon, //https://oss.fzu.edu.cn/fileApi/my-bucket/y81hGf_AzVLPeAnNPx5uo.png
+    icon: XiaoBenIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://api.uyiban.com/base/c/rgsid/login',
       title: '校本化',
+      sso: true,
+    },
+  },
+  {
+    name: '失物招领',
+    icon: LostFoundIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/lostAndFound/app',
+      title: '失物招领',
       sso: true,
     },
   },

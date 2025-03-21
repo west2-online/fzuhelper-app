@@ -48,6 +48,10 @@ export async function pushToWebViewNormal(url: string, title: string | undefined
   router.push(getWebViewHrefNormal(url, title));
 }
 
+export function pushToWebViewSSO(url: string, title: string | undefined = undefined) {
+  router.push(getWebViewHrefSSO(url, title));
+}
+
 export async function replaceToWebViewJWCH(url: string, title: string | undefined = undefined) {
   router.replace(getWebViewHrefJWCH(url, title));
 }

@@ -130,16 +130,17 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  {
-    name: '失物招领',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/lostAndFound/app',
-      title: '失物招领',
-      sso: true,
-    },
-  },
+  // 首页已有
+  // {
+  //   name: '失物招领',
+  //   icon: ElectroCarIcon,
+  //   type: ToolType.WEBVIEW,
+  //   params: {
+  //     url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/lostAndFound/app',
+  //     title: '失物招领',
+  //     sso: true,
+  //   },
+  // },
   // 不如历年卷
   // {
   //   name: '学习资料分享',
@@ -402,7 +403,7 @@ export default function MoreToolsPage() {
         }}
       />
       {/* 工具列表 */}
-      <ScrollView className="mx-4 space-y-4">
+      <ScrollView className="mx-4 space-y-4" showsVerticalScrollIndicator={false}>
         {MORE_TOOLS.map((item, index) => (
           <LabelEntry
             key={index}
