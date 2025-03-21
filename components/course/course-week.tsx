@@ -1,4 +1,5 @@
-import { memo, useMemo } from 'react';
+import dayjs from 'dayjs';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, type LayoutRectangle } from 'react-native';
 
 import DayItem from '@/components/course/day-item';
@@ -16,6 +17,7 @@ interface CourseWeekProps {
   schedulesByDays: Record<number, CourseInfo[]>;
   showNonCurrentWeekCourses: boolean;
   showExam: boolean;
+  hiddenCoursesWithoutAttendances: boolean;
   flatListLayout: LayoutRectangle;
 }
 
@@ -26,27 +28,39 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
   startDate,
   schedulesByDays,
   showNonCurrentWeekCourses,
+  hiddenCoursesWithoutAttendances,
   showExam,
   flatListLayout,
 }) => {
   const month = useMemo(() => new Date(startDate).getMonth() + 1, [startDate]);
+  const [currentDate, setCurrentDate] = useState(dayjs());
+
+  useEffect(() => {
+    // TODO: 需要做一个优化，由于这个 course-week 组件是嵌套在 FlatList 中的，因此刷新时候会同时刷新多个 course-week 组件
+    // 我们期望的应该是只刷新正在呈现的 course-week 组件，但是从性能角度出发，不会有很大影响
+    const interval = setInterval(() => {
+      setCurrentDate(dayjs());
+    }, 1000 * 60); // 每分钟更新一次
+
+    return () => clearInterval(interval); // 组件卸载时清除定时器
+  }, []);
+
   // 头部日期
   const headerDays = useMemo(() => {
     const today = new Date();
     today.setHours(today.getHours() + 8);
     return Array.from({ length: 7 }, (_, i) => {
-      const newDate = new Date(startDate);
-      newDate.setDate(newDate.getDate() + i);
-      const isToday = newDate.toISOString().split('T')[0] === today.toISOString().split('T')[0];
+      const newDate = dayjs(startDate).add(i, 'day');
+      const isToday = newDate.isSame(currentDate, 'day');
       return {
         key: newDate.toISOString(),
         day: DAYS[i],
-        date: newDate.getDate(),
+        date: newDate.date(),
         isToday,
         isWeekend: i >= 5,
       };
     });
-  }, [startDate]);
+  }, [startDate, currentDate]);
 
   return (
     <View className="flex flex-col" style={{ width: flatListLayout.width }}>
@@ -85,6 +99,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
                 showExam={showExam}
                 schedulesOnDay={schedulesByDays[i] || []}
                 isShowNonCurrentWeekCourses={showNonCurrentWeekCourses}
+                hiddenCoursesWithoutAttendances={hiddenCoursesWithoutAttendances}
                 flatListLayout={{
                   ...flatListLayout,
                   width: flatListLayout.width - LEFT_TIME_COLUMN_WIDTH,

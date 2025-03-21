@@ -4,7 +4,14 @@ import { View, type LayoutRectangle } from 'react-native';
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
 
-import { COURSE_TYPE, CUSTOM_TYPE, EXAM_TYPE, SCHEDULE_ITEM_MIN_HEIGHT, type CourseInfo } from '@/lib/course';
+import {
+  COURSE_TYPE,
+  COURSE_WITHOUT_ATTENDANCE,
+  CUSTOM_TYPE,
+  EXAM_TYPE,
+  SCHEDULE_ITEM_MIN_HEIGHT,
+  type CourseInfo,
+} from '@/lib/course';
 import { nonCurrentWeekCourseColor } from '@/utils/random-color';
 
 interface CourseScheduleItemDataBase {
@@ -22,6 +29,7 @@ interface CalendarColProps {
   schedulesOnDay: CourseInfo[];
   isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
   showExam: boolean; // 是否显示考试
+  hiddenCoursesWithoutAttendances: boolean; // 是否隐藏免听的课程
   flatListLayout: LayoutRectangle;
 }
 
@@ -30,6 +38,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
   week,
   schedulesOnDay,
   isShowNonCurrentWeekCourses,
+  hiddenCoursesWithoutAttendances,
   showExam,
   flatListLayout,
 }) => {
@@ -51,7 +60,8 @@ const CalendarCol: React.FC<CalendarColProps> = ({
           s.startWeek <= week && // 卡起始时间范围
           s.endWeek >= week && // 卡结束时间范围
           ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)) && // 检查单双周
-          (s.type === COURSE_TYPE || (showExam && s.type === EXAM_TYPE) || s.type === CUSTOM_TYPE), // 判断课程类型
+          (s.type === COURSE_TYPE || (showExam && s.type === EXAM_TYPE) || s.type === CUSTOM_TYPE) && // 判断课程类型
+          (!hiddenCoursesWithoutAttendances || !s.examType.includes(COURSE_WITHOUT_ATTENDANCE)), // 是否隐藏免听课程
       )
       .sort((a, b) => b.priority - a.priority);
 
@@ -158,7 +168,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     }
 
     return res;
-  }, [schedulesOnDay, isShowNonCurrentWeekCourses, week, showExam]);
+  }, [schedulesOnDay, isShowNonCurrentWeekCourses, week, showExam, hiddenCoursesWithoutAttendances]);
 
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>

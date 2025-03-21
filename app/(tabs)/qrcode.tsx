@@ -56,6 +56,9 @@ export default function YiMaTongPage() {
     ymtLoginRef.current = new YMTLogin();
   }
 
+  // 新增加载状态
+  const [isLoading, setIsLoading] = useState(true);
+
   const [accessToken, setAccessToken] = useState<string | null>(null); // 访问令牌
   const [name, setName] = useState<string | null>(null); // 用户名
   const [payCodes, setPayCodes] = useState<PayCodeRespData[]>(); // 支付码
@@ -135,6 +138,9 @@ export default function YiMaTongPage() {
     } catch (error) {
       console.error('读取本地数据失败:', error);
       SSOlogoutAndCleanData();
+    } finally {
+      // 无论成功失败都关闭加载状态
+      setIsLoading(false);
     }
   }, [SSOlogoutAndCleanData]);
 
@@ -181,7 +187,11 @@ export default function YiMaTongPage() {
 
   return (
     <PageContainer>
-      {accessToken ? (
+      {isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <Loading />
+        </View>
+      ) : accessToken ? (
         <View className="flex-1">
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="mt-6 flex-1 items-center">
             <TabsList className="ml-auto w-auto flex-row">

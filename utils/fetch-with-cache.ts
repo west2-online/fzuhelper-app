@@ -40,7 +40,7 @@ export async function fetchWithCache<TQueryFnData>(
     // 如果请求失败且有过期缓存，返回过期缓存
     if (persistedData) {
       const parsedData: CachedData<TQueryFnData> = JSON.parse(persistedData);
-      toast.error('目标请求失败，已使用过期缓存数据');
+      toast.error('目标请求失败，已使用过期缓存数据，请检查网络连接。CacheKey: ' + cacheKey);
       return parsedData.data;
     }
 
