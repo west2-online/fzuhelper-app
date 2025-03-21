@@ -12,6 +12,8 @@ import android.util.TypedValue
 import android.util.TypedValue.COMPLEX_UNIT_SP
 import android.widget.RemoteViews
 import com.google.gson.Gson
+import com.west2online.nativewidget.BuildConfig
+import com.west2online.nativewidget.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -59,8 +61,8 @@ internal fun updateNextClassWidget(
 
     val intent = Intent()
     intent.setClassName(
-        BuildConfig.APPLICATION_ID,
-        BuildConfig.APPLICATION_ID + ".MainActivity"
+        "com.helper.west2ol.fzuhelper",
+        "com.helper.west2ol.fzuhelper" + ".MainActivity"
     )
     val pendingIntent = PendingIntent.getActivity(
         context,

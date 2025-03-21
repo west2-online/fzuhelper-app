@@ -23,7 +23,7 @@ if (useManagedAndroidSdkVersions) {
     }
   }
   project.android {
-    compileSdkVersion safeExtGet("compileSdkVersion", 34)
+    compileSdk safeExtGet("compileSdkVersion", 35)
     defaultConfig {
       minSdkVersion safeExtGet("minSdkVersion", 21)
       targetSdkVersion safeExtGet("targetSdkVersion", 34)
@@ -40,4 +40,9 @@ android {
   lintOptions {
     abortOnError false
   }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.code.gson:gson:2.11.0'
 }

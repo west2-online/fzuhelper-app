@@ -13,6 +13,7 @@ import java.util.Calendar
 import java.util.Locale
 import com.helper.west2ol.fzuhelper.CacheCourseData
 import com.helper.west2ol.fzuhelper.getWeeks
+import com.west2online.nativewidget.R
 
 class CourseScheduleWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent?): RemoteViewsFactory {

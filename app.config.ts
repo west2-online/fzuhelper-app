@@ -1,6 +1,5 @@
 import { type ExpoConfig } from 'expo/config';
 import 'ts-node/register'; // Add this to import TypeScript files
-
 import { version } from './package.json';
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
@@ -63,25 +62,6 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-localization',
-    [
-      '@bittingz/expo-widgets',
-      {
-        android: {
-          src: './targets/android-widget',
-          widgets: [
-            {
-              name: 'NextClassWidgetProvider',
-              resourceName: '@xml/next_class_widget_provider',
-            },
-            {
-              name: 'CourseScheduleWidgetProvider',
-              resourceName: '@xml/course_schedule_widget_provider',
-            },
-          ],
-          distPlaceholder: 'com.helper.west2ol.fzuhelper',
-        },
-      },
-    ],
     'expo-router',
     [
       'react-native-permissions',

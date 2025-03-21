@@ -3,13 +3,13 @@ package com.helper.west2ol.fzuhelper
 import android.appwidget.AppWidgetManager
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.Toolbar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import com.west2online.nativewidget.R
 
 
 class NextClassWidgetConfigureActivity : AppCompatActivity() {

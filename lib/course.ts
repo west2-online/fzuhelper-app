@@ -7,19 +7,19 @@ import {
   COURSE_CURRENT_CACHE_KEY,
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
-  IOS_APP_GROUP,
   GRADE_LIST_KEY,
+  IOS_APP_GROUP,
 } from '@/lib/constants';
 import { MergedExamData } from '@/types/academic';
 import { randomUUID } from '@/utils/crypto';
 import { courseColors, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
-import * as ExpoWidgetsModule from '@bittingz/expo-widgets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
 import { getWeeksBySemester } from './locate-date';
+import { setWidgetData } from '@/modules/native-widget';
 
 export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
   JwchCourseListResponse_CourseScheduleRule;
@@ -232,7 +232,7 @@ export class CourseCache {
       ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
     } else if (Platform.OS === 'android') {
-      ExpoWidgetsModule.setWidgetData(
+      setWidgetData(
         JSON.stringify({
           courseData: this.cachedData,
           examData: this.cachedExamData,
@@ -271,7 +271,7 @@ export class CourseCache {
       storage.set(COURSE_CURRENT_CACHE_KEY, '');
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
     } else if (Platform.OS === 'android') {
-      ExpoWidgetsModule.setWidgetData('', Constants.expoConfig?.android?.package);
+      setWidgetData('', Constants.expoConfig?.android?.package);
     }
   }
 

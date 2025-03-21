@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:description="@string/course_schedule_widget_description"
     android:initialKeyguardLayout="@layout/course_schedule_widget_provider"
     android:initialLayout="@layout/course_schedule_widget_provider"
     android:minWidth="250dp"
