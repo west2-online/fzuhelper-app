@@ -20,6 +20,7 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
+import RedDot from '@/components/ui/red-dot';
 
 const CLICK_TO_SHOW_DEVTOOLS = 7;
 
@@ -77,8 +78,9 @@ export default function AboutPage() {
                 <DescriptionListTerm>
                   <Text className="text-text-secondary">版本更新</Text>
                 </DescriptionListTerm>
-                <DescriptionListDescription>
+                <DescriptionListDescription className="flex-row items-center">
                   <Text>{Platform.OS === 'ios' ? '点击前往 App Store 查看' : updateCheckState}</Text>
+                  <RedDot right={90} top={6} />
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>

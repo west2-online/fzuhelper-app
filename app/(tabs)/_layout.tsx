@@ -8,6 +8,7 @@ import { TabBarIcon } from '@/components/TabBarIcon';
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
+import RedDot from '@/components/ui/red-dot';
 
 const NAVIGATION_TITLE = '首页';
 
@@ -133,7 +134,10 @@ export default function TabLayout() {
             href: '/user',
             // eslint-disable-next-line react/no-unstable-nested-components
             tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
+              <>
+                <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
+                <RedDot right={1} top={1} />
+              </>
             ),
           }}
         />

@@ -19,6 +19,7 @@ import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
 import EcardIcon from '@/assets/images/my/ic_ecard.png';
 import HelpIcon from '@/assets/images/my/ic_help.png';
+import RedDot from '@/components/ui/red-dot';
 
 const defaultUserInfo: UserInfo = {
   stu_id: '未知',
@@ -190,6 +191,7 @@ export default function HomePage() {
                   key={index}
                   icon={item.icon}
                   label={item.name}
+                  reddot={item.name === '关于我们'}
                   onPress={() => {
                     if (item.link) {
                       router.push(item.link);
