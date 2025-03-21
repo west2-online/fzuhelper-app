@@ -17,6 +17,7 @@ interface CourseWeekProps {
   schedulesByDays: Record<number, CourseInfo[]>;
   showNonCurrentWeekCourses: boolean;
   showExam: boolean;
+  hiddenCoursesWithoutAttendances: boolean;
   flatListLayout: LayoutRectangle;
 }
 
@@ -27,6 +28,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
   startDate,
   schedulesByDays,
   showNonCurrentWeekCourses,
+  hiddenCoursesWithoutAttendances,
   showExam,
   flatListLayout,
 }) => {
@@ -97,6 +99,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
                 showExam={showExam}
                 schedulesOnDay={schedulesByDays[i] || []}
                 isShowNonCurrentWeekCourses={showNonCurrentWeekCourses}
+                hiddenCoursesWithoutAttendances={hiddenCoursesWithoutAttendances}
                 flatListLayout={{
                   ...flatListLayout,
                   width: flatListLayout.width - LEFT_TIME_COLUMN_WIDTH,

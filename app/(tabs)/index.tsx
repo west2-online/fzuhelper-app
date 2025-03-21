@@ -9,7 +9,7 @@ import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import PageContainer from '@/components/page-container';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
+import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
 import { CourseCache, normalizeCourseSetting } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
@@ -24,7 +24,7 @@ export default function HomePage() {
   const { data: termsData } = usePersistedQuery({
     queryKey: [COURSE_TERMS_LIST_KEY],
     queryFn: () => getApiV1TermsList(),
-    cacheTime: 7 * 1000 * 60 * 60 * 24, // 缓存 7 天
+    cacheTime: 7 * EXPIRE_ONE_DAY, // 缓存 7 天
   });
 
   // loadData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）

@@ -140,6 +140,13 @@ export default function AcademicPage() {
     forceRefreshCourseData();
   }, [isRefreshing, forceRefreshCourseData]);
 
+  const handleHiddenCoursesWithoutAttendances = useCallback(() => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      hiddenCoursesWithoutAttendances: !prevSettings.hiddenCoursesWithoutAttendances,
+    }));
+  }, []);
+
   // 控制导出到本地日历
   const handleExportToCalendar = useCallback(async () => {
     // setSettings(prevSettings => ({
@@ -227,6 +234,12 @@ export default function AcademicPage() {
               label="显示非本周课程"
               value={settings.showNonCurrentWeekCourses}
               onValueChange={handleShowNonCurrentWeekCourses}
+            />
+
+            <LabelSwitch
+              label="隐藏免听课程"
+              value={settings.hiddenCoursesWithoutAttendances}
+              onValueChange={handleHiddenCoursesWithoutAttendances}
             />
 
             <LabelSwitch

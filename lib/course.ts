@@ -63,6 +63,7 @@ export const TOP_CALENDAR_HEIGHT = 72;
 export const COURSE_TYPE = 0;
 export const EXAM_TYPE = 1;
 export const CUSTOM_TYPE = 2;
+export const COURSE_WITHOUT_ATTENDANCE = '免听';
 
 const NO_LOADING_MSG = '未加载';
 const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析时间段
@@ -728,6 +729,7 @@ export const defaultCourseSetting: CourseSetting = {
   calendarExportEnabled: false,
   showNonCurrentWeekCourses: false,
   exportExamToCourseTable: false,
+  hiddenCoursesWithoutAttendances: false,
 };
 
 // 将传入的 courseSetting 与 defaultCourseSetting 合并
