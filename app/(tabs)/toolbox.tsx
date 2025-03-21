@@ -25,11 +25,11 @@ import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
-
 import Banner, { type BannerContent } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { showIgnorableAlert } from '@/lib/common-settings';
 
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { cn } from '@/lib/utils';
@@ -155,14 +155,19 @@ const DEFAULT_TOOLS: Tool[] = [
     name: '公寓报修',
     icon: ApartmentIcon,
     type: ToolType.FUNCTION,
-    action: () => {
-      Alert.alert(
+    action: async () => {
+      // 使用可忽略的提示
+      await showIgnorableAlert(
+        'apartment_repair_permission', // 提示的唯一标识符
         '权限提示',
         '公寓报修需要上传图片或拍照，如果无法拍照/图片无法上传，请检查是否已授予相机/相册权限',
+        // 被忽略时直接执行的操作
+        () => pushToWebViewSSO('http://ehall.fzu.edu.cn/ssfw/sys/swmssbxapp/*default/index.do', '公寓报修'),
+        // 普通按钮
         [
           {
             text: '暂不打开',
-            style: 'cancel', // iOS 上会显示为取消按钮样式
+            style: 'cancel',
           },
           {
             text: '打开',
@@ -179,14 +184,19 @@ const DEFAULT_TOOLS: Tool[] = [
     name: '电动车',
     icon: ElectroCarIcon,
     type: ToolType.FUNCTION,
-    action: () => {
-      Alert.alert(
+    action: async () => {
+      // 使用可忽略的提示
+      await showIgnorableAlert(
+        'electrocar_network_tip', // 提示的唯一标识符
         '网络提示',
         '电动车管理页面需要较好的校园网环境，可能会加载较慢或无法打开，如果遇到问题请尝试切换网络环境',
+        // 被忽略时直接执行的操作
+        () => pushToWebViewSSO('http://doorwxoa.fzu.edu.cn/appCas/index', '电动车管理'),
+        // 普通按钮
         [
           {
             text: '暂不打开',
-            style: 'cancel', // iOS 上会显示为取消按钮样式
+            style: 'cancel',
           },
           {
             text: '打开',

@@ -1,3 +1,4 @@
+import { CommonSettingsManager } from '@/lib/common-settings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -125,6 +126,23 @@ export default function AcademicPage() {
     }
   }, [releaseChannel]);
 
+  // 添加重置忽略设置的函数
+  const handleResetIgnoredAlerts = () => {
+    Alert.alert('确认重置', '是否要重置所有已忽略的提示？重置后，所有提示都将再次显示。', [
+      {
+        text: '取消',
+        style: 'cancel',
+      },
+      {
+        text: '重置',
+        onPress: async () => {
+          await CommonSettingsManager.resetAllIgnoredAlerts();
+          toast.success('已重置所有忽略的提示');
+        },
+      },
+    ]);
+  };
+
   return (
     <>
       <Stack.Screen options={{ title: '设置' }} />
@@ -144,6 +162,7 @@ export default function AcademicPage() {
             <LabelEntry leftText="清除数据" onPress={handleClearData} />
             <LabelEntry leftText="退出登录(全部)" onPress={handleLogout} />
             <LabelEntry leftText="退出登录(仅统一身份认证)" onPress={handleSSOLogout} />
+            <LabelEntry leftText="重置忽略的提示" onPress={handleResetIgnoredAlerts} />
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">隐私</Text>
 

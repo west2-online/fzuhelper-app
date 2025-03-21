@@ -153,3 +153,6 @@ export const RELEASE_CHANNEL_KEY = 'release_channel';
 export const COLOR_SCHEME_KEY = 'color_scheme';
 // 壁纸压暗
 export const DARKEN_BACKGROUND_KEY = 'darken_background';
+
+// 通用设置
+export const COMMON_SETTINGS_KEY = 'common_settings';
