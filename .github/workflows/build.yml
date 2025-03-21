@@ -16,9 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 25  # 设置超时防止卡死
-    env:
-      GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.caching=true -Dorg.gradle.parallel=true"
-      
+
     permissions:
       contents: write
 
@@ -33,10 +31,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
+            ~/.gradle
             ${{ github.workspace }}/node_modules
-            ${{ github.workspace }}/android/.gradle
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-
@@ -71,7 +67,8 @@ jobs:
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease --build-cache --parallel --configure-on-demand
+          ./gradlew app:packageRelease --daemon --build-cache --parallel --configure-on-demand --max-workers=1024 \
+            -D org.gradle.jvmargs="-Xmx12g -Xms12g -XX:MetaspaceSize=12g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
