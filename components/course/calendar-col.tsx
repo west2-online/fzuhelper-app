@@ -5,7 +5,7 @@ import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
 
 import { COURSE_TYPE, CUSTOM_TYPE, EXAM_TYPE, SCHEDULE_ITEM_MIN_HEIGHT, type CourseInfo } from '@/lib/course';
-import { nonCurrentWeekCourses } from '@/utils/random-color';
+import { nonCurrentWeekCourseColor } from '@/utils/random-color';
 
 interface CourseScheduleItemDataBase {
   schedules: CourseInfo[];
@@ -126,7 +126,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
         mainCourses.push({
           schedules: [s],
           span: s.endClass - s.startClass + 1,
-          color: nonCurrentWeekCourses,
+          color: nonCurrentWeekCourseColor,
         });
 
         // 标记已占用
