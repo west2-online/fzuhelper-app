@@ -3,7 +3,7 @@ name: Build and Publish APK
 on:
   push:
     branches:
-      - ci/test
+      - master
     tags:
       - '*'
   workflow_dispatch:
