@@ -162,6 +162,20 @@ const config: ExpoConfig = {
         imageWidth: 200,
       },
     ],
+    [
+      'expo-quick-actions',
+      {
+        iosActions: [
+          {
+            id: '1',
+            title: '一码通',
+            subtitle: '一键跳转一码通',
+            icon: 'symbol:qrcode',
+            params: { href: '/qrcode' },
+          },
+        ],
+      },
+    ],
     './with-android-theme',
     './with-android-localization',
     '@bacons/apple-targets', // Apple Targets (e.g. widget)
