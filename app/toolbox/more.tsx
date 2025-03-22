@@ -28,12 +28,22 @@ const MORE_TOOLS: Tool[] = [
     },
   },
   {
-    name: '迎新服务',
+    name: '讲座报告',
     icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
-      url: 'http://ehall.fzu.edu.cn/fxfw/sys/swmyxapp/*default/index.do',
-      title: '迎新服务',
+      url: 'https://www.fzu.edu.cn/jzbg.htm',
+      title: '讲座报告',
+      sso: true,
+    },
+  },
+  {
+    name: '考证信息查询',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://app.fzu.edu.cn/appService/guidance/app/searchExam',
+      title: '考证信息查询',
       sso: true,
     },
   },
@@ -102,6 +112,16 @@ const MORE_TOOLS: Tool[] = [
     },
   },
   {
+    name: '一表通',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://sso.fzu.edu.cn/login?service=https://mybt.fzu.edu.cn/login',
+      title: '一表通',
+      sso: true,
+    },
+  },
+  {
     name: '个人简历',
     icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
@@ -153,6 +173,16 @@ const MORE_TOOLS: Tool[] = [
   //     sso: true,
   //   },
   // },
+  {
+    name: '迎新服务',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'http://ehall.fzu.edu.cn/fxfw/sys/swmyxapp/*default/index.do',
+      title: '迎新服务',
+      sso: true,
+    },
+  },
   {
     name: '实名身份核验',
     icon: ElectroCarIcon,
@@ -213,17 +243,17 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  {
-    // 不可用
-    name: '校园网接入指南',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://app.fzu.edu.cn/appService/guidance/app/articleInfo',
-      title: '校园网接入指南',
-      sso: true,
-    },
-  },
+  // {
+  //   // 不可用
+  //   name: '校园网接入指南',
+  //   icon: ElectroCarIcon,
+  //   type: ToolType.WEBVIEW,
+  //   params: {
+  //     url: 'https://app.fzu.edu.cn/appService/guidance/app/articleInfo',
+  //     title: '校园网接入指南',
+  //     sso: true,
+  //   },
+  // },
   {
     name: '校园风光',
     icon: ElectroCarIcon,
@@ -251,6 +281,16 @@ const MORE_TOOLS: Tool[] = [
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/backToSchool/app/index',
       title: '集体返校预约',
+      sso: true,
+    },
+  },
+  {
+    name: '党员培训',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://sso.fzu.edu.cn/login?service=https://oss.fzu.edu.cn/api/auth/cas/connector/login?applicationUrl=https://oss.fzu.edu.cn/gbpxMobileUserApp',
+      title: '党员培训',
       sso: true,
     },
   },
