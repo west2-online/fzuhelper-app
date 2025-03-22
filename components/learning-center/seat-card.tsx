@@ -1,24 +1,26 @@
-import React, { memo } from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { memo } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 
-const SeatCard: React.FC<{
+import { cn } from '@/lib/utils';
+
+interface SeatCardProps {
   spaceName: string;
   onPress: () => void;
   isAvailable?: boolean;
-}> = memo(({ spaceName, onPress, isAvailable = true }) => {
-  // 根据是否可用设置不同的背景色
-  const bgColorClass = isAvailable ? 'bg-green-200' : 'bg-red-200';
-  const textColorClass = isAvailable ? 'text-green-800' : 'text-red-800';
+}
 
-  return (
+const SeatCard: React.FC<SeatCardProps> = ({ spaceName, onPress, isAvailable = true }) => (
+  <View className="flex h-[56px] flex-1 p-1">
     <TouchableOpacity
       onPress={onPress}
-      className={`m-1 flex flex-1 items-center justify-center rounded-lg ${bgColorClass} py-4`}
+      className={cn(
+        'flex flex-1 items-center justify-center rounded-lg py-4',
+        isAvailable ? 'bg-green-200' : 'bg-red-200',
+      )}
     >
-      <Text className={`text-center ${textColorClass}`}>{spaceName}</Text>
+      <Text className={cn('text-center', isAvailable ? 'text-green-800' : 'text-red-800')}>{spaceName}</Text>
     </TouchableOpacity>
-  );
-});
-SeatCard.displayName = 'SeatCard';
+  </View>
+);
 
-export default SeatCard;
+export default memo(SeatCard);
