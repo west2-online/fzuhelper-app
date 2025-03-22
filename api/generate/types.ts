@@ -8,6 +8,10 @@ export type getApiV1CommonClassroomEmptyParams = {
   endTime?: string;
 };
 
+export type getApiV1CourseCalendarSubscribeParams = {
+  token?: string;
+};
+
 export type getApiV1JwchClassroomExamParams = {
   /** 学期 202401(研究生2023-2024-2) */
   term?: string;

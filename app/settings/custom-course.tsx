@@ -119,7 +119,7 @@ export default function CourseAddPage() {
           title: '自定义课程',
           // eslint-disable-next-line react/no-unstable-nested-components
           headerRight: () => (
-            <Pressable onPress={() => handleSave(course)}>
+            <Pressable onPress={() => handleSave(course)} disabled={disabled}>
               <Text>保存</Text>
             </Pressable>
           ),

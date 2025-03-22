@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
@@ -13,12 +13,11 @@ import { Text } from '@/components/ui/text';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
+import { getApiV1JwchCourseList, getApiV1JwchTermList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
-import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
+import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY } from '@/lib/constants';
 import { CourseCache, defaultCourseSetting, readCourseSetting } from '@/lib/course';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
@@ -53,12 +52,6 @@ export default function AcademicPage() {
   useUpdateEffect(() => {
     saveSettingsToStorage(settings);
   }, [settings, saveSettingsToStorage]);
-
-  // 获取完整学期数据
-  const { data: termListData } = usePersistedQuery({
-    queryKey: [COURSE_TERMS_LIST_KEY],
-    queryFn: getApiV1TermsList,
-  });
 
   // 获取用户就读学期数据
   const getTermsData = useCallback(async () => {
@@ -149,27 +142,8 @@ export default function AcademicPage() {
 
   // 控制导出到本地日历
   const handleExportToCalendar = useCallback(async () => {
-    // setSettings(prevSettings => ({
-    //   ...prevSettings,
-    //   calendarExportEnabled: !prevSettings.calendarExportEnabled,
-    // }));
-
-    // if (!courseData) {
-    //   toast.error('课程数据为空，无法导出到日历'); // 这个理论上不可能触发
-    //   return;
-    // }
-    if (!termListData) {
-      toast.error('学期数据为空，无法导出到日历'); // 这个理论上也不可能触发
-      return;
-    }
-    // const startDate = semesterList.find(item => item.term === settings.selectedSemester)?.start_date;
-    // if (!startDate) {
-    //   toast.error('无法获取学期开始时间，无法导出到日历');
-    //   return;
-    // }
-
-    // await exportCourseToNativeCalendar(courseData.data.data, startDate);
-  }, [termListData]);
+    router.push('/settings/calendar');
+  }, []);
 
   // 控制导入考场到课表
   const handleExportExamToCourseTable = useCallback(() => {
@@ -221,14 +195,9 @@ export default function AcademicPage() {
               }}
             />
 
-            <Text className="mb-2 mt-4 text-sm text-text-secondary">开关设置</Text>
+            <LabelEntry leftText="在系统日历中订阅课表" onPress={handleExportToCalendar} />
 
-            <LabelSwitch
-              label="导出到本地日历（正在升级）"
-              value={settings.calendarExportEnabled}
-              onValueChange={handleExportToCalendar}
-              disabled
-            />
+            <Text className="mb-2 mt-4 text-sm text-text-secondary">开关设置</Text>
 
             <LabelSwitch
               label="显示非本周课程"
