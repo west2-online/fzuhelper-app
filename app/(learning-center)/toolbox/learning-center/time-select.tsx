@@ -1,4 +1,4 @@
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
@@ -11,7 +11,6 @@ import { Text } from '@/components/ui/text';
 import { addHours, calculateHoursDifference, formatDate, isTimePast } from '@/utils/learning-center/date';
 
 export default function SeatsPage() {
-  const { token } = useLocalSearchParams<{ token: string }>();
   // 修改默认日期，如果当前时间晚于或等于22:00则为次日
   const now = new Date();
   const defaultDate = now.getHours() >= 22 ? new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) : now;
@@ -111,10 +110,9 @@ export default function SeatsPage() {
         date: formattedDate,
         beginTime,
         endTime,
-        token,
       },
     });
-  }, [selectedDate, beginTime, endTime, token]);
+  }, [selectedDate, beginTime, endTime]);
 
   return (
     <PageContainer>

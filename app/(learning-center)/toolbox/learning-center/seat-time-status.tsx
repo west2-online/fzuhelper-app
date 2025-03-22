@@ -3,7 +3,8 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
-import ApiService, { TimeDiamond } from '@/utils/learning-center/api-service';
+import { useLearningCenterApi } from '@/context/learning-center';
+import { TimeDiamond } from '@/utils/learning-center/api-service';
 import dayjs from 'dayjs';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -14,7 +15,6 @@ type SeatTimeStatusParams = {
   spaceId: string;
   date: string;
   spaceName: string;
-  token: string;
   isOccupied?: string;
   // 新增参数：座位是否被占用
   // 部分可能在维修的座位在根据时间查询座位中会显示为已占用，但是在根据座位号查询时会显示为所有时间段均可用
@@ -22,7 +22,7 @@ type SeatTimeStatusParams = {
 };
 
 export default function SeatTimeStatusPage() {
-  const { spaceId, date, spaceName, token, isOccupied } = useLocalSearchParams<SeatTimeStatusParams>();
+  const { spaceId, date, spaceName, isOccupied } = useLocalSearchParams<SeatTimeStatusParams>();
   const [loading, setLoading] = useState<boolean>(true);
   const [timeDiamondList, setTimeDiamondList] = useState<TimeDiamond[]>([]);
   const [isSeatUnusual, setIsSeatUnusual] = useState<boolean>(false);
@@ -35,14 +35,12 @@ export default function SeatTimeStatusPage() {
   // 确认预约浮层状态
   const [confirmVisible, setConfirmVisible] = useState(false);
 
-  const api = useMemo(() => {
-    return token ? new ApiService(token) : null;
-  }, [token]);
+  const api = useLearningCenterApi();
 
   // 获取座位时间段数据
   useEffect(() => {
     const fetchSeatTimeStatus = async () => {
-      if (!api || !spaceId || !date) return;
+      if (!spaceId || !date) return;
 
       try {
         setLoading(true);
@@ -180,12 +178,12 @@ export default function SeatTimeStatusPage() {
 
       toast.success('预约成功');
       // 跳转到预约历史页面
-      router.replace({ pathname: '/toolbox/learning-center/history', params: { token } });
+      router.replace('/toolbox/learning-center/history');
     } catch (error: any) {
       toast.error(`预约失败: ${error.message}`);
     }
     setConfirmVisible(false);
-  }, [api, date, beginTime, endTime, spaceName, router, token]);
+  }, [api, date, beginTime, endTime, spaceName, router]);
 
   return (
     <>
