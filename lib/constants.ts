@@ -148,6 +148,7 @@ export const DATETIME_SECOND_FORMAT = `${DATE_FORMAT} ${TIME_SECOND_FORMAT}`;
 
 // 发布通道
 export const RELEASE_CHANNEL_KEY = 'release_channel';
+export const RELEASE_UPDATE_KEY = 'release_update';
 
 // 主题设置
 export const COLOR_SCHEME_KEY = 'color_scheme';

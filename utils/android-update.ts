@@ -1,6 +1,6 @@
 import type { VersionAndroidResponse_Data } from '@/api/backend';
 import { getApiV2VersionAndroid } from '@/api/generate';
-import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import { RELEASE_CHANNEL_KEY, RELEASE_UPDATE_KEY } from '@/lib/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -68,6 +68,10 @@ const showAndroidUpdateDialog = (data: VersionAndroidResponse_Data) => {
   Alert.alert(`发现新版本 ${data.version_name}`, `更新内容：\n\n${data.changelog}`, buttons);
 };
 
+const showAndroidUpdateRedDot = () => {
+  AsyncStorage.setItem(RELEASE_UPDATE_KEY, 'true');
+};
+
 type ReleaseChannelType = 'release' | 'beta' | 'alpha';
 
 const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: UpdateCallbacks) => {
@@ -94,4 +98,4 @@ const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: 
   }
 };
 
-export { checkAndroidUpdate, downloadAndInstallApk, showAndroidUpdateDialog };
+export { checkAndroidUpdate, downloadAndInstallApk, showAndroidUpdateDialog, showAndroidUpdateRedDot };

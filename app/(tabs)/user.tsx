@@ -19,7 +19,6 @@ import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
 import EcardIcon from '@/assets/images/my/ic_ecard.png';
 import HelpIcon from '@/assets/images/my/ic_help.png';
-import RedDot from '@/components/ui/red-dot';
 
 const defaultUserInfo: UserInfo = {
   stu_id: '未知',

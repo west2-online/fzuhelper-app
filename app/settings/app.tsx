@@ -2,7 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Linking, Modal, Platform, Pressable, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Modal, Platform, Pressable, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -12,6 +12,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import { hasCustomBackground } from '@/lib/appearance';
 import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { CourseCache } from '@/lib/course';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
@@ -30,6 +31,8 @@ function ReleaseChannelPicker({
   const [buttonLayout, setButtonLayout] = useState<{ x: number; y: number; width: number; height: number } | null>(
     null,
   );
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const options = [
     { label: '正式版', value: 'release' },
@@ -42,6 +45,15 @@ function ReleaseChannelPicker({
     setVisible(false);
   };
 
+  const [customBackground, setCustomBackground] = useState(false);
+
+  useEffect(() => {
+    const checkBackground = async () => {
+      const result = await hasCustomBackground();
+      setCustomBackground(result);
+    };
+    checkBackground();
+  }, []);
   return (
     <>
       <View onLayout={e => setButtonLayout(e.nativeEvent.layout)}>
@@ -58,11 +70,11 @@ function ReleaseChannelPicker({
             <View
               style={{
                 position: 'absolute',
-                top: buttonLayout.y + buttonLayout.height,
+                top: buttonLayout.y + buttonLayout.height / 2,
                 right: buttonLayout.x + 30,
                 width: buttonLayout.width - 200,
-                backgroundColor: 'white',
-                borderColor: '#ccc',
+                backgroundColor: customBackground ? 'transparent' : isDark ? '#121212ff' : '#f7f7f7ff',
+                borderColor: isDark ? '#555' : '#ccc',
                 borderWidth: 1,
                 borderRadius: 4,
                 shadowColor: '#000',
@@ -79,7 +91,7 @@ function ReleaseChannelPicker({
                   style={{
                     padding: 12,
                     borderBottomWidth: index < options.length - 1 ? 1 : 0,
-                    borderBottomColor: '#eee',
+                    borderBottomColor: isDark ? '#555' : '#eee',
                   }}
                 >
                   <Text>{option.label}</Text>

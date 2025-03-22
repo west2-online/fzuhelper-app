@@ -6,9 +6,9 @@ import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
 import { TabBarIcon } from '@/components/TabBarIcon';
 
 import { getApiV1JwchPing } from '@/api/generate';
+import RedDot from '@/components/ui/red-dot';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
-import RedDot from '@/components/ui/red-dot';
 
 const NAVIGATION_TITLE = '首页';
 

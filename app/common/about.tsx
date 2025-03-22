@@ -16,11 +16,11 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import IconTransparent from '@/assets/images/ic_launcher_foreground.png';
+import RedDot from '@/components/ui/red-dot';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
-import RedDot from '@/components/ui/red-dot';
 
 const CLICK_TO_SHOW_DEVTOOLS = 7;
 
