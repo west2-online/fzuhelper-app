@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -10,15 +10,14 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import LearningCenterSeatsList from '@/components/learning-center-seats-list';
+import { useLearningCenterApi } from '@/context/learning-center';
 import type { SeatData } from '@/types/learning-center';
-import ApiService from '@/utils/learning-center/api-service';
 import { SeatMappingUtil } from '@/utils/learning-center/seat-mapping';
 
 type parmProps = {
   date: string;
   beginTime: string;
   endTime: string;
-  token: string;
 };
 
 // 座位列表为空时的组件
@@ -37,8 +36,8 @@ const ListEmptySeats: React.FC = memo(() => (
 ListEmptySeats.displayName = 'ListEmptySeats';
 
 export default function AvailableSeatsPage() {
-  const { date, beginTime, endTime, token } = useLocalSearchParams<parmProps>();
-  const api = useMemo(() => new ApiService(token), [token]);
+  const { date, beginTime, endTime } = useLocalSearchParams<parmProps>();
+  const api = useLearningCenterApi();
   const [seats, setSeats] = useState<SeatData[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
@@ -103,7 +102,6 @@ export default function AvailableSeatsPage() {
             spaceId,
             date,
             spaceName,
-            token,
             isOccupied: isOccupied ? '1' : '0', // 传递座位占用状态
           },
         });
@@ -112,7 +110,7 @@ export default function AvailableSeatsPage() {
         toast.error('该座位已被占用，无法查看详情');
       }
     },
-    [router, date, token],
+    [router, date],
   );
 
   // 选中座位
@@ -142,7 +140,7 @@ export default function AvailableSeatsPage() {
         });
         toast.success('预约成功');
         // 跳转到预约历史页面
-        router.replace({ pathname: '/toolbox/learning-center/history', params: { token } });
+        router.replace('/toolbox/learning-center/history');
       } catch (error: any) {
         toast.error(`预约失败: ${error.message}`);
         // 不需要提供预约失败字样，因为错误信息已经包含了
@@ -150,7 +148,7 @@ export default function AvailableSeatsPage() {
         setConfirmVisible(false);
       }
     },
-    [api, date, router, token],
+    [api, date, router],
   );
 
   useEffect(() => {

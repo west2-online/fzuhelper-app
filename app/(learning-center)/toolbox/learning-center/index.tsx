@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import LabelEntry from '@/components/label-entry';
@@ -9,6 +9,7 @@ import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
 import { Text } from '@/components/ui/text';
 
+import { LearningCenterContext } from '@/context/learning-center';
 import SSOLogin from '@/lib/sso-login';
 import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
 
@@ -60,8 +61,8 @@ const getToken = async () => {
 };
 
 export default function LearningCenterPage() {
-  const [token, setToken] = useState<null | string>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { token, setToken } = useContext(LearningCenterContext);
 
   // 进入页面时获取token
   useFocusEffect(
@@ -69,7 +70,7 @@ export default function LearningCenterPage() {
       setIsLoading(true);
       getToken()
         .then(fetchedToken => {
-          setToken(fetchedToken);
+          setToken(fetchedToken || '');
           setIsLoading(false);
         })
         .catch(error => {
@@ -80,8 +81,9 @@ export default function LearningCenterPage() {
             params: { redirectPath: '/toolbox/learning-center' },
           });
         });
-    }, []),
+    }, [setToken]),
   );
+
   if (isLoading) {
     return (
       <>
@@ -90,9 +92,11 @@ export default function LearningCenterPage() {
       </>
     );
   }
+
   return (
     <>
       <Stack.Screen options={{ title: '学习中心' }} />
+
       <PageContainer>
         {token ? (
           <ScrollView className="space-y-4 px-8 pt-4">
