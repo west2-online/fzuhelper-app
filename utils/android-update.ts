@@ -68,8 +68,12 @@ const showAndroidUpdateDialog = (data: VersionAndroidResponse_Data) => {
   Alert.alert(`发现新版本 ${data.version_name}`, `更新内容：\n\n${data.changelog}`, buttons);
 };
 
-const showAndroidUpdateRedDot = () => {
-  AsyncStorage.setItem(RELEASE_UPDATE_KEY, 'true');
+const showAndroidUpdateRedDot = (show: boolean) => {
+  if (show) {
+    AsyncStorage.setItem(RELEASE_UPDATE_KEY, 'true');
+  } else {
+    AsyncStorage.setItem(RELEASE_UPDATE_KEY, 'false');
+  }
 };
 
 type ReleaseChannelType = 'release' | 'beta' | 'alpha';

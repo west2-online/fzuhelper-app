@@ -10,7 +10,13 @@ import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchUserInfo } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { EXPIRE_ONE_DAY, JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY, RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import {
+  EXPIRE_ONE_DAY,
+  JWCH_CURRENT_SEMESTER_KEY,
+  JWCH_USER_INFO_KEY,
+  RELEASE_CHANNEL_KEY,
+  RELEASE_UPDATE_KEY,
+} from '@/lib/constants';
 import { fetchJwchLocateDate } from '@/lib/locate-date';
 import { JWCHLocateDateResult } from '@/types/data';
 import { UserInfo } from '@/types/user';
@@ -36,12 +42,13 @@ const defaultTermInfo: JWCHLocateDateResult = {
   term: -1,
 };
 
-type ReleaseChannelType = 'release' | 'beta';
+type ReleaseChannelType = 'release' | 'beta' | 'alpha';
 
 export default function HomePage() {
   const [userInfo, setUserInfo] = useState<UserInfo>(defaultUserInfo);
   const [termInfo, setTermInfo] = useState<JWCHLocateDateResult>(defaultTermInfo);
   const [releaseChannel, setReleaseChannel] = useState<ReleaseChannelType | null>(null);
+  const [releaseUpdate, setReleaseUpdate] = useState<string>('false');
 
   interface MenuItem {
     icon: ImageSourcePropType;
@@ -66,7 +73,7 @@ export default function HomePage() {
             Linking.openURL(
               'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3De7mh6pFzK706glP05IoQ0-WvvK3nlPds',
             );
-          } else if (releaseChannel === 'beta') {
+          } else if (releaseChannel === 'beta' || 'alpha') {
             Linking.openURL(
               'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3DgJSPzSlxdONFl8CMwAMEeYvZLnR4Dfu4',
             );
@@ -153,6 +160,18 @@ export default function HomePage() {
     }, []),
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      const getRedDOt = async () => {
+        let storedRedDot = (await AsyncStorage.getItem(RELEASE_UPDATE_KEY)) as string | null;
+        if (storedRedDot) {
+          setReleaseUpdate(storedRedDot);
+        }
+      };
+      getRedDOt();
+    }, []),
+  );
+
   return (
     <>
       <PageContainer>
@@ -190,7 +209,7 @@ export default function HomePage() {
                   key={index}
                   icon={item.icon}
                   label={item.name}
-                  reddot={item.name === '关于我们'}
+                  reddot={item.name === '关于我们' && releaseUpdate === 'true'}
                   onPress={() => {
                     if (item.link) {
                       router.push(item.link);

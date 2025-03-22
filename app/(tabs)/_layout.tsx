@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur';
-import { Stack, Tabs, useNavigation } from 'expo-router';
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { Stack, Tabs, useFocusEffect, useNavigation } from 'expo-router';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
@@ -8,7 +8,9 @@ import { TabBarIcon } from '@/components/TabBarIcon';
 import { getApiV1JwchPing } from '@/api/generate';
 import RedDot from '@/components/ui/red-dot';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
+import { RELEASE_UPDATE_KEY } from '@/lib/constants';
+import { checkAndroidUpdate, showAndroidUpdateRedDot } from '@/utils/android-update';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NAVIGATION_TITLE = '首页';
 
@@ -17,6 +19,7 @@ export default function TabLayout() {
   const navigation = useNavigation();
   const appState = useRef(AppState.currentState);
   const { handleError } = useSafeResponseSolve();
+  const [releaseUpdate, setReleaseUpdate] = useState<string>('false');
   useLayoutEffect(() => {
     // 设置标题栏为不可见，但必须设置标题，否则当你进入其他页面时，返回 button 只能显示文件夹
     navigation.setOptions({ title: NAVIGATION_TITLE, headerShown: false });
@@ -63,11 +66,25 @@ export default function TabLayout() {
     if (Platform.OS === 'android') {
       checkAndroidUpdate(handleError, {
         onUpdate: data => {
-          showAndroidUpdateDialog(data);
+          showAndroidUpdateRedDot(true);
         },
       });
     }
   }, [handleError]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const getRedDOt = async () => {
+        let storedRedDot = (await AsyncStorage.getItem(RELEASE_UPDATE_KEY)) as string | null;
+        if (storedRedDot === null) {
+          storedRedDot = 'false';
+          await AsyncStorage.setItem(RELEASE_UPDATE_KEY, storedRedDot);
+        }
+        setReleaseUpdate(storedRedDot);
+      };
+      getRedDOt();
+    }, []),
+  );
 
   return (
     <>
@@ -136,7 +153,7 @@ export default function TabLayout() {
             tabBarIcon: ({ color, focused }) => (
               <>
                 <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
-                <RedDot right={1} top={1} />
+                {releaseUpdate === 'true' && <RedDot right={1} top={1} />}
               </>
             ),
           }}

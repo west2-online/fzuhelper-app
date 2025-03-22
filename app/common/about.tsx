@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { Href, Link, Stack, router } from 'expo-router';
+import { Href, Link, Stack, router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Image, Linking, Platform, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,9 +18,10 @@ import { Text } from '@/components/ui/text';
 import IconTransparent from '@/assets/images/ic_launcher_foreground.png';
 import RedDot from '@/components/ui/red-dot';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import { RELEASE_UPDATE_KEY, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
-import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
+import { checkAndroidUpdate, showAndroidUpdateDialog, showAndroidUpdateRedDot } from '@/utils/android-update';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CLICK_TO_SHOW_DEVTOOLS = 7;
 
@@ -28,6 +29,7 @@ export default function AboutPage() {
   const [clickCount, setClickCount] = useState(0);
   const { handleError } = useSafeResponseSolve();
   const [updateCheckState, setUpdateCheckState] = useState('点击检查更新');
+  const [releaseUpdate, setReleaseUpdate] = useState<string>('false');
 
   const handleCheckUpdate = useCallback(async () => {
     console.log('check update');
@@ -40,13 +42,16 @@ export default function AboutPage() {
         onUpdate: data => {
           setUpdateCheckState('发现新版本');
           showAndroidUpdateDialog(data);
+          showAndroidUpdateRedDot(true);
         },
         onNoUpdate: () => {
           setUpdateCheckState('已经是最新版本');
+          showAndroidUpdateRedDot(false);
         },
         onError: error => {
           toast.error(error);
           setUpdateCheckState('检查更新失败，请稍后再试');
+          showAndroidUpdateRedDot(false);
         },
       });
     }
@@ -58,6 +63,19 @@ export default function AboutPage() {
       setClickCount(0);
     }
   }, [clickCount]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const getRedDOt = async () => {
+        let storedRedDot = (await AsyncStorage.getItem(RELEASE_UPDATE_KEY)) as string | null;
+        if (storedRedDot) {
+          console.log('storedRedDot', storedRedDot);
+          setReleaseUpdate(storedRedDot);
+        }
+      };
+      getRedDOt();
+    }, []),
+  );
 
   return (
     <>
@@ -77,7 +95,7 @@ export default function AboutPage() {
               <DescriptionListRow>
                 <DescriptionListTerm>
                   <Text className="text-text-secondary">版本更新</Text>
-                  <RedDot right={-20} top={7} />
+                  {releaseUpdate === 'true' && <RedDot right={-20} top={7} />}
                 </DescriptionListTerm>
                 <DescriptionListDescription className="flex-row items-center">
                   <Text>{Platform.OS === 'ios' ? '点击前往 App Store 查看' : updateCheckState}</Text>

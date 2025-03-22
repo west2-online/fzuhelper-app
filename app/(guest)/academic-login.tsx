@@ -19,7 +19,7 @@ import { JWCH_USER_INFO_KEY, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/li
 import { LocalUser, USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewNormal } from '@/lib/webview';
-import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
+import { checkAndroidUpdate, showAndroidUpdateRedDot } from '@/utils/android-update';
 
 const URL_RESET_PASSWORD_UNDERGRADUATE = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
 const URL_RESET_PASSWORD_POSTGRADUATE = 'https://yjsglxt.fzu.edu.cn/ResetPassword.aspx';
@@ -146,7 +146,7 @@ const LoginPage: React.FC = () => {
     if (Platform.OS === 'android') {
       checkAndroidUpdate(handleError, {
         onUpdate: data => {
-          showAndroidUpdateDialog(data);
+          showAndroidUpdateRedDot(true);
         },
       });
     }
