@@ -73,7 +73,7 @@ export default function HomePage() {
             Linking.openURL(
               'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3De7mh6pFzK706glP05IoQ0-WvvK3nlPds',
             );
-          } else if (releaseChannel === 'beta' || 'alpha') {
+          } else if (releaseChannel === 'beta' || releaseChannel === 'alpha') {
             Linking.openURL(
               'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3DgJSPzSlxdONFl8CMwAMEeYvZLnR4Dfu4',
             );
