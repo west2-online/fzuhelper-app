@@ -12,7 +12,10 @@ import { addHours, calculateHoursDifference, formatDate, isTimePast } from '@/ut
 
 export default function SeatsPage() {
   const { token } = useLocalSearchParams<{ token: string }>();
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  // 修改默认日期，如果当前时间晚于或等于22:00则为次日
+  const now = new Date();
+  const defaultDate = now.getHours() >= 22 ? new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) : now;
+  const [selectedDate, setSelectedDate] = useState(defaultDate);
   const [beginTime, setBeginTime] = useState<string | null>(null);
   const [endTime, setEndTime] = useState<string | null>(null);
 
