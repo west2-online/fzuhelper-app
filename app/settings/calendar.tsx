@@ -1,18 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Stack } from 'expo-router';
+import { Link, Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import LabelEntry from '@/components/label-entry';
+import LabelSwitch from '@/components/label-switch';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchCourseCalendarToken } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
-import LabelSwitch from '@/components/label-switch';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
 import {
   CALENDAR_SUBSCRIPTION_PREFIX,
@@ -117,17 +117,22 @@ export default function PersonalInfoListPage() {
             <View className="space-y-4">
               <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
               <Text className="my-2 text-base text-text-secondary">
-                【注意】订阅链接不可随意发给他人或传播到互联网上！一旦订阅链接泄漏，您的课程信息也会一并泄漏，请确保只在您的个人设备上使用订阅。
+                注意：订阅链接切忌随意发送给他人或传播到互联网上！拥有订阅链接的人可以直接看到您的课程信息，请确保只在您的个人设备上使用订阅，以免造成数据泄露。
               </Text>
               <Text className="my-2 text-base text-text-secondary">
-                1. 日历订阅不会自动同步教务处课程变动。如果您的课程发生变动，只需要重新打开App，不需要更换订阅链接。
+                1. 日历订阅不会自动同步教务处课程变动。如果您的课程发生变动，只需要重新打开 App
+                进入「课表设置」点击「刷新数据」即可，不需要更换订阅链接。
               </Text>
               <Text className="my-2 text-base text-text-secondary">
                 2. 订阅只支持订阅最新学期（即当前学期）的课表数据。
               </Text>
               <Text className="my-2 text-base text-text-secondary">
-                3. App
-                只提供标准的日历订阅支持。如果您需要更多个性化的功能，可以参考我们的项目开源代码（我的-关于我们-项目源代码），并在此基础上自行修改。
+                {/* 本来想写 fzuhelper-server 的，但是感觉 fzu-ics 这个上手更简单一些 */}
+                3. App 默认只提供基础的日历订阅支持。如果您需要更多个性化的功能，可以参考{' '}
+                <Link href="https://github.com/renbaoshuo/fzu-ics">
+                  <Text className="text-primary">github.com/renbaoshuo/fzu-ics</Text>
+                </Link>{' '}
+                来自行实现相关逻辑。
               </Text>
             </View>
           </SafeAreaView>
