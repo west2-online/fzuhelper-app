@@ -233,6 +233,7 @@ fun searchNextClassIterative(
                 && ((course.single && currentWeek % 2 == 1) || (course.double && currentWeek % 2 == 0))
                 && currentWeekday == course.weekday
                 && currentSection == course.startClass
+                && (!cacheCourseData.hiddenCoursesWithoutAttendances || !course.examType.contains("免听"))
             ) {
                 when (course.type) {
                     1 -> {
