@@ -13,12 +13,11 @@ import { Text } from '@/components/ui/text';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getApiV1JwchCourseList, getApiV1JwchTermList, getApiV1TermsList } from '@/api/generate';
+import { getApiV1JwchCourseList, getApiV1JwchTermList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
-import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY } from '@/lib/constants';
+import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY } from '@/lib/constants';
 import { CourseCache, defaultCourseSetting, readCourseSetting } from '@/lib/course';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
@@ -53,12 +52,6 @@ export default function AcademicPage() {
   useUpdateEffect(() => {
     saveSettingsToStorage(settings);
   }, [settings, saveSettingsToStorage]);
-
-  // 获取完整学期数据
-  const { data: termListData } = usePersistedQuery({
-    queryKey: [COURSE_TERMS_LIST_KEY],
-    queryFn: getApiV1TermsList,
-  });
 
   // 获取用户就读学期数据
   const getTermsData = useCallback(async () => {
