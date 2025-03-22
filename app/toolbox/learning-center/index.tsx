@@ -113,39 +113,40 @@ export default function LearningCenterPage() {
                 }
               />
             ))}
-            <View className="space-y-4">
-              <Text className="my-4 text-lg font-bold text-text-secondary">预约流程</Text>
-              <Text className="text-base text-text-secondary">
-                打开"预约座位" -&gt; 选择时间段 -&gt; 查找可用座位 -&gt; 确认预约
-              </Text>
-            </View>
-            <View className="space-y-4">
-              <Text className="my-4 text-lg font-bold text-text-secondary">签到流程</Text>
-              <Text className="text-base text-text-secondary">
-                进入学习中心 -&gt; 打开"我的预约" -&gt; 扫码签到 -&gt; 签到成功
-              </Text>
-            </View>
-            <View className="space-y-4">
-              <Text className="my-4 text-lg font-bold text-text-secondary">友情提示</Text>
-              <Text className="text-base text-text-secondary">
-                1. 一个人只能最多同时预约 3 个座位，最多只能预约 4 小时
-              </Text>
-              <Text className="text-base text-text-secondary">
-                2. 如果时间段里有已经预约过的座位，会查询不到任何结果
-              </Text>
-              <Text className="text-base text-text-secondary">
-                3. 请按时签到、签退，迟到、早退频繁的同学会暂时被禁止预约
-              </Text>
-              <Text className="text-base text-text-secondary">
-                4. 如果无法在"我的预约"中扫码签到，请检查是否给予本应用相机权限
-              </Text>
-              <Text className="text-base text-text-secondary">
-                5. 学习中心预约服务器硬件条件有限，访问速度可能较慢，请耐心等待
-              </Text>
-              <Text className="text-base text-text-secondary">
-                6. 学习中心地址：福州大学旗山校区研究生科研楼（晋江楼） 4-5 层
-              </Text>
-            </View>
+
+            {[
+              {
+                title: '预约流程',
+                content: [
+                  '打开"预约座位" -> 选择时间段 -> 查找可用座位 -> 确认预约',
+                  '同时可在"座位状态"页面中点击"已占用"的座位，查看该座位当天的可用时段',
+                ],
+              },
+              {
+                title: '签到流程',
+                content: ['打开"我的预约" -> 扫码签到 -> 签到成功'],
+              },
+              {
+                title: '友情提示',
+                content: [
+                  '1. 一个人只能最多同时预约 3 个座位，最多只能预约 4 小时',
+                  '2. 如果某一时间段里存在有效预约，则该时间段查询不到座位',
+                  '3. 请按时签到、签退，迟到、早退频繁的同学会暂时被禁止预约',
+                  '4. 如果无法在"我的预约"中扫码签到，请检查是否给予本应用相机权限',
+                  '5. 学习中心预约服务器硬件条件有限，访问速度可能较慢，请耐心等待',
+                  '6. 学习中心地址：福州大学旗山校区研究生科研楼（晋江楼） 4-5 层',
+                ],
+              },
+            ].map((section, index) => (
+              <View key={index} className="my-4 space-y-4">
+                <Text className="mb-2 text-lg font-bold text-text-secondary">{section.title}</Text>
+                {section.content.map((item, idx) => (
+                  <Text key={idx} className="text-base text-text-secondary">
+                    {item}
+                  </Text>
+                ))}
+              </View>
+            ))}
           </ScrollView>
         ) : (
           <LoginPrompt message="登录统一身份认证平台，享受学习中心服务" />

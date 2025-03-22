@@ -9200,6 +9200,11 @@ react-native-mime-types@^2.5.0:
   dependencies:
     mime-db "~1.52.0"
 
+react-native-pager-view@^6.7.0:
+  version "6.7.0"
+  resolved "https://registry.yarnpkg.com/react-native-pager-view/-/react-native-pager-view-6.7.0.tgz#88f2520e85f07ce55f3f56c57d6637249a215160"
+  integrity sha512-sutxKiMqBuQrEyt4mLaLNzy8taIC7IuYpxfcwQBXfSYBSSpAa0qE9G1FXlP/iXqTSlFgBXyK7BESsl9umOjECQ==
+
 react-native-permissions@^5.2.5:
   version "5.2.5"
   resolved "https://registry.yarnpkg.com/react-native-permissions/-/react-native-permissions-5.2.5.tgz#c431b7dc15213dd87cebad0ba5658eaf7c30efd3"

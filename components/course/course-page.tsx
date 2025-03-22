@@ -50,7 +50,12 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
   const flatListRef = useRef<FlatList>(null);
 
   // 从设置中读取相关信息（比如当前选择的学期，是否显示非本周课程），设置项由上级组件传入
-  const { selectedSemester: term, showNonCurrentWeekCourses, exportExamToCourseTable } = config;
+  const {
+    selectedSemester: term,
+    showNonCurrentWeekCourses,
+    exportExamToCourseTable,
+    hiddenCoursesWithoutAttendances,
+  } = config;
 
   // 以下是处理学期的数据
   // 将学期数据转换为 Map，方便后续使用
@@ -243,6 +248,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
             startDate={item.firstDate}
             schedulesByDays={schedulesByDays}
             showNonCurrentWeekCourses={showNonCurrentWeekCourses}
+            hiddenCoursesWithoutAttendances={hiddenCoursesWithoutAttendances}
             showExam={exportExamToCourseTable}
             flatListLayout={flatListLayout}
           />

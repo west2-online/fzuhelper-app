@@ -154,3 +154,6 @@ export const RELEASE_UPDATE_KEY = 'release_update';
 export const COLOR_SCHEME_KEY = 'color_scheme';
 // 壁纸压暗
 export const DARKEN_BACKGROUND_KEY = 'darken_background';
+
+// 通用设置
+export const COMMON_SETTINGS_KEY = 'common_settings';

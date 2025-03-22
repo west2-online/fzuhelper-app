@@ -1,9 +1,11 @@
-name: Build APK
+name: Build and Publish APK
 
 on:
   push:
     branches:
       - master
+    tags:
+      - '*'
   workflow_dispatch:
 
 concurrency:
@@ -13,12 +15,27 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 25  # 设置超时防止卡死
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      # 分层缓存策略
+      - name: Restore Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle
+            ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,37 +45,30 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          distribution: microsoft
+          distribution: temurin
           java-version: 17.0
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.8
+          cache-disabled: false
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      # 并行安装依赖
+      - name: Install Dependencies
+        run: |
+          yarn install --frozen-lockfile --prefer-offline &
+          wait
 
       - name: Prebuild
         run: yarn run prebuild:android
-
-      - name: Cache gradle (local)
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/android/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/yarn.lock') }} # 因为要缓存的主要是 gradle 的依赖，所以这里使用 yarn.lock 作为 hashFiles 的参数
 
       - name: Build Release APK
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease
+          ./gradlew app:packageRelease --daemon --build-cache --parallel --configure-on-demand --max-workers=1024 \
+            -D org.gradle.jvmargs="-Xmx12g -Xms12g -XX:MetaspaceSize=12g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
@@ -66,18 +76,125 @@ jobs:
           KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
           SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
 
-      - name: Extract Version Info
+      - name: Delete alpha release using GitHub CLI
+        run: |
+          if gh release view alpha; then
+            gh release delete alpha --yes
+          else
+            echo "No alpha release exists."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Prepare Release Assets
+        id: prepare-assets
         shell: bash
         run: |
-          echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
-          echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
-          echo "$(git log -3 --pretty=format:"%s%n%b%n")" > android/app/build/outputs/changelog
+          version_code=$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')
+          version_name=$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')
+          changelog=$(git log -3 --pretty=format:"%s%n%b%n")
 
-      - name: Upload outputs
+          echo "$version_code" > version-code
+          echo "$version_name" > version-name
+          echo "$changelog" > changelog
+
+          apk_filename="FzuHelper_${version_name}(${version_code}).apk"
+          cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk "${apk_filename}"
+          echo "$apk_filename" > apk-filename
+          
+          echo "version_code=$version_code" >> $GITHUB_OUTPUT
+          echo "version_name=$version_name" >> $GITHUB_OUTPUT
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$changelog" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "apk_filename=$apk_filename" >> $GITHUB_OUTPUT
+
+          if git diff --quiet HEAD^ HEAD; then
+            echo "无代码变动，跳过发布"
+            echo "SKIP_RELEASE=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create GitHub PreRelease
+        if: steps.prepare-assets.outputs.SKIP_RELEASE != 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: alpha
+          name: "Alpha"
+          body: |
+            ${{ steps.prepare-assets.outputs.changelog }}
+            
+            此版本为新架构测试版，请提前加入内测群 1020036141 了解详情
+          prerelease: true
+          files: |
+            ${{ steps.prepare-assets.outputs.apk_filename }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      
+      - name: Validate tag format
+        id: validate-tag
+        run: |
+          if [[ ! ${{ github.ref_name }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "⚠️ 跳过非标准版本tag: ${{ github.ref_name }}"
+            echo "skip_release=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Get version info
+        if: steps.validate-tag.outputs.skip_release != 'true'
+        id: version-info
+        run: |
+          CURRENT_VERSION=${GITHUB_REF_NAME}
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+          git fetch --tags --force
+          ALL_TAGS=$(git tag -l "*.*.*" --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')
+          
+          PREV_TAG=$(echo "$ALL_TAGS" | grep -B1 "$GITHUB_REF_NAME" | head -n1)
+          
+          [ -z "$PREV_TAG" ] && PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        if: steps.validate-tag.outputs.skip_release != 'true'
+        id: changelog
+        run: |
+          CHANGELOG=$(git log --pretty=format:"- [%%h] %%s (by %%an)" \
+            --date=short \
+            --no-merges \
+            ${{ steps.version-info.outputs.prev_tag }}..HEAD | sed 's/%/%%/g')
+
+          COMPARE_URL="https://github.com/${{ github.repository }}/compare/${{ steps.version-info.outputs.prev_tag }}...${{ github.ref_name }}"
+          
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "## [${{ steps.version-info.outputs.current_version }}]($COMPARE_URL)" >> $GITHUB_OUTPUT
+          echo "### $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.validate-tag.outputs.skip_release != 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.version-info.outputs.current_version }}
+          generate_release_notes: true  # 自动生成发布说明
+          body: ${{ steps.changelog.outputs.changelog }}
+          prerelease: false
+          files: |
+            ${{ steps.prepare-assets.outputs.apk_filename }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+    
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: outputs
-          path: android/app/build/outputs
+          name: release-assets
+          path: |
+            ${{ steps.prepare-assets.outputs.apk_filename }}
+            version-code
+            version-name
+            changelog
+            apk-filename
           retention-days: 0
 
   publish:
@@ -89,20 +206,17 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: outputs
-          path: ${{ github.workspace }}/outputs/
+          name: release-assets
+          path: artifacts
 
-      - name: Extract Version Info
-        id: version-info
+      - name: Load Metadata
+        id: metadata
         shell: bash
         run: |
-          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
-          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
-          {
-            echo "CHANGELOG<<BSEOF"
-            cat $GITHUB_WORKSPACE/outputs/changelog
-            echo "BSEOF"
-          } >> "$GITHUB_OUTPUT"
+          echo "version_code=$(cat artifacts/version-code)" >> $GITHUB_OUTPUT
+          echo "version_name=$(cat artifacts/version-name)" >> $GITHUB_OUTPUT
+          echo "apk_filename=$(cat artifacts/apk-filename)" >> $GITHUB_OUTPUT
+          echo "changelog=$(cat artifacts/changelog)" >> $GITHUB_OUTPUT
 
       - name: Get Upload Params
         id: upload-params
@@ -117,9 +231,7 @@ jobs:
       - name: Upload to UPYUN
         id: upload-apk
         run: |
-          cd $GITHUB_WORKSPACE/outputs/apk/release
-          mv app-arm64-v8a-release.apk $APK_FILENAME
-          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \
+          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \          
             -F "file=@$APK_FILENAME" \
             -F "policy=$UPYUN_POLICY" \
             -F "authorization=$UPYUN_AUTH")
@@ -128,7 +240,7 @@ jobs:
 
           echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_OUTPUT"
         env:
-          APK_FILENAME: FzuHelper_${{ steps.version-info.outputs.APP_VERSION_NAME }}(${{ steps.version-info.outputs.APP_VERSION_CODE }}).apk
+          APK_FILENAME: "artifacts/${{ steps.metadata.outputs.apk_filename }}"
           UPYUN_POLICY: ${{ steps.upload-params.outputs.UPYUN_POLICY }}
           UPYUN_AUTH: ${{ steps.upload-params.outputs.UPYUN_AUTH }}
 
@@ -147,7 +259,7 @@ jobs:
           CHANNEL: beta
           FORCE: true
           ANDROID_UPDATE_PWD: ${{ secrets.ANDROID_UPDATE_PWD }}
-          APP_VERSION_NAME: ${{ steps.version-info.outputs.APP_VERSION_NAME }}
-          APP_VERSION_CODE: ${{ steps.version-info.outputs.APP_VERSION_CODE }}
-          CHANGELOG: ${{ steps.version-info.outputs.CHANGELOG }}
+          APP_VERSION_NAME: ${{ steps.metadata.outputs.version_name }}
+          APP_VERSION_CODE: ${{ steps.metadata.outputs.version_code }}
+          CHANGELOG: ${{ steps.metadata.outputs.changelog }}
           DOWNLOAD_URL: ${{ steps.upload-apk.outputs.DOWNLOAD_URL }}
