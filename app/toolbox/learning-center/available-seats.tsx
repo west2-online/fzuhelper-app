@@ -1,20 +1,18 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, FlatList, View } from 'react-native';
+import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import ConfirmReservationModal from '@/components/learning-center/confirm-reservation-modal';
 import LearningCenterMap from '@/components/learning-center/learning-center-map';
-import SeatCard from '@/components/learning-center/seat-card';
-import SeatOverview from '@/components/learning-center/seat-overview';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
-import { TabFlatList } from '@/components/tab-flatlist';
 import { Text } from '@/components/ui/text';
 
+import LearningCenterSeatsList from '@/components/learning-center-seats-list';
+import type { SeatData } from '@/types/learning-center';
 import ApiService from '@/utils/learning-center/api-service';
 import { SeatMappingUtil } from '@/utils/learning-center/seat-mapping';
-import { SeatAreaCharts, SpaceStatus, convertSpaceName } from '@/utils/learning-center/seats';
 
 type parmProps = {
   date: string;
@@ -23,104 +21,71 @@ type parmProps = {
   token: string;
 };
 
-type SeatData = {
-  spaceName: string;
-  spaceStatus: number; // 0为未占用，1为已占用
-};
-
-// 获取座位所在区域
-const getSpaceArea = (spaceName: string) => {
-  const spaceNumber = Number(spaceName.split('-')[0]);
-  const area = SeatAreaCharts.find(([start, end]) => spaceNumber >= start && spaceNumber <= end);
-  return area ? area[2] : '其他';
-};
-
 // 座位列表为空时的组件
-const ListEmptySeats: React.FC = memo(() => {
-  return (
-    <PageContainer>
-      <View className="flex-1 items-center justify-center py-8">
-        <Text className="text-center text-text-secondary">
-          暂无座位数据，请稍后重试
-          {'\n'}
-          （或当前时间段已存在一个有效预约）
-        </Text>
-      </View>
-    </PageContainer>
-  );
-});
+const ListEmptySeats: React.FC = memo(() => (
+  <PageContainer>
+    <View className="flex-1 items-center justify-center py-8">
+      <Text className="text-center text-text-secondary">
+        暂无座位数据，请稍后重试
+        {'\n'}
+        （或当前时间段已存在一个有效预约）
+      </Text>
+    </View>
+  </PageContainer>
+));
 
 ListEmptySeats.displayName = 'ListEmptySeats';
 
 export default function AvailableSeatsPage() {
   const { date, beginTime, endTime, token } = useLocalSearchParams<parmProps>();
   const api = useMemo(() => new ApiService(token), [token]);
-  const [seats, setSeats] = useState<Record<string, SeatData[]>>({});
+  const [seats, setSeats] = useState<SeatData[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [currentTab, setCurrentTab] = useState('4');
   const router = useRouter();
-  const [onlyAvailable] = useState(false); // 仅显示可用座位
 
   // 确认预约弹层状态
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState<string | null>(null);
 
-  // 计算座位卡片固定宽度
-  const screenWidth = Dimensions.get('window').width;
-  const itemWidth = screenWidth / 5;
-
   // 获取数据
-  const fetchSeatStatus = useCallback(async () => {
-    setIsRefreshing(true);
-    const ALL_FLOORS = ['4', '5'] as const;
-    const allPromises = ALL_FLOORS.map(floor =>
-      api
-        .querySeatStatus({
-          date,
-          beginTime,
-          endTime,
-          floor,
-        })
-        .catch(error => {
-          console.error(`查询${floor}楼座位失败`, error);
-          toast.error(`查询${floor}楼座位失败，请稍后重试`);
-          return [];
-        }),
-    );
-    const results = (await Promise.all(allPromises)).flat();
+  const fetchSeatStatus = useCallback(
+    async (date: string, begin: string, end: string) => {
+      setIsRefreshing(true);
 
-    // 对所有座位按座位号排序
-    let allSeats = results.sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10));
+      const results = (
+        await Promise.all(
+          ['4', '5'].map(floor =>
+            api
+              .querySeatStatus({
+                date,
+                beginTime: begin,
+                endTime: end,
+                floor,
+              })
+              .catch(error => {
+                console.error(`查询 ${floor} 层座位失败`, error);
+                toast.error(`查询 ${floor} 层座位失败，请稍后重试。`);
+                return [];
+              }),
+          ),
+        )
+      )
+        .flat()
+        // 对所有座位按座位号排序
+        .sort((a, b) => parseInt(a.spaceName, 10) - parseInt(b.spaceName, 10))
+        // 过滤掉包含 "-" 字符的非法座位
+        .filter(seat => !seat.spaceName.includes('-'));
 
-    // 过滤掉包含 "-" 字符的非法座位
-    allSeats = allSeats.filter(seat => !seat.spaceName.includes('-'));
+      // 更新数据
+      setSeats(results.map(seat => ({ spaceName: seat.spaceName, spaceStatus: seat.spaceStatus })));
 
-    // 如果只显示可用座位，过滤掉已占用的座位
-    if (onlyAvailable === true) {
-      allSeats = allSeats.filter(seat => seat.spaceStatus === SpaceStatus.Available);
-    }
-
-    // 对座位用getSpaceArea进行分区，保留座位状态信息
-    const newSeats: Record<string, SeatData[]> = {};
-    allSeats.forEach(seat => {
-      const area = getSpaceArea(seat.spaceName);
-      if (!newSeats[area]) {
-        newSeats[area] = [];
-      }
-      newSeats[area].push({
-        spaceName: seat.spaceName,
-        spaceStatus: seat.spaceStatus,
-      });
-    });
-
-    // 更新数据
-    setSeats(newSeats);
-
-    setIsRefreshing(false);
-  }, [date, beginTime, endTime, api, onlyAvailable]);
+      setIsRefreshing(false);
+    },
+    [api],
+  );
 
   // 跳转到座位时间段查看页面
-  const puthToSeatTimeStatus = useCallback(
+  const pushToSeatTimeStatus = useCallback(
     async (spaceName: string, isOccupied: boolean = true) => {
       try {
         // 初始化座位映射并获取spaceId
@@ -159,55 +124,48 @@ export default function AvailableSeatsPage() {
         setConfirmVisible(true);
       } else {
         // 如果座位已被占用，跳转到座位时间段查看页面
-        puthToSeatTimeStatus(spaceName, true); // 传递占用状态为true
+        pushToSeatTimeStatus(spaceName, true); // 传递占用状态为true
       }
     },
-    [puthToSeatTimeStatus],
+    [pushToSeatTimeStatus],
   );
 
   // 处理预约请求
-  const handleConfirm = useCallback(async () => {
-    try {
-      await api.makeAppointment({
-        date,
-        beginTime,
-        endTime,
-        spaceName: selectedSpace!,
-      });
-      toast.success('预约成功');
-      // 跳转到预约历史页面
-      // router.back(); // 回到上一个地方
-      router.replace({ pathname: '/toolbox/learning-center/history', params: { token } });
-    } catch (error: any) {
-      toast.error(`预约失败: ${error.message}`);
-      // 不需要提供预约失败字样，因为错误信息已经包含了
-    }
-    setConfirmVisible(false);
-  }, [api, date, beginTime, endTime, selectedSpace, router, token]);
+  const handleConfirm = useCallback(
+    async (begin: string, end: string, selected: string) => {
+      try {
+        await api.makeAppointment({
+          date,
+          beginTime: begin,
+          endTime: end,
+          spaceName: selected,
+        });
+        toast.success('预约成功');
+        // 跳转到预约历史页面
+        router.replace({ pathname: '/toolbox/learning-center/history', params: { token } });
+      } catch (error: any) {
+        toast.error(`预约失败: ${error.message}`);
+        // 不需要提供预约失败字样，因为错误信息已经包含了
+      } finally {
+        setConfirmVisible(false);
+      }
+    },
+    [api, date, router, token],
+  );
 
   useEffect(() => {
-    fetchSeatStatus();
-  }, [fetchSeatStatus]);
-
-  // 计算每个区域的座位总数和可用座位数
-  const getSeatsSummary = useCallback((areaSeats: SeatData[]) => {
-    if (!areaSeats || areaSeats.length === 0) return { total: 0, available: 0, occupied: 0 };
-
-    const total = areaSeats.length;
-    const available = areaSeats.filter(seat => seat.spaceStatus === SpaceStatus.Available).length;
-    const occupied = total - available;
-
-    return { total, available, occupied };
-  }, []);
+    fetchSeatStatus(date, beginTime, endTime);
+  }, [fetchSeatStatus, date, beginTime, endTime]);
 
   // 如果没有座位数据，且不是正在刷新状态，则说明没有座位数据
-  if (Object.keys(seats).length === 0 && !isRefreshing) {
+  if (!seats.length && !isRefreshing) {
     return <ListEmptySeats />;
   }
 
   return (
     <>
       <Stack.Screen options={{ title: '座位状态' }} />
+
       <PageContainer>
         {/* 座位列表 */}
         {isRefreshing ? (
@@ -225,40 +183,7 @@ export default function AvailableSeatsPage() {
               /> */}
             </View>
             <View className="flex-1">
-              <TabFlatList
-                data={Object.keys(seats).sort()}
-                value={currentTab}
-                onChange={setCurrentTab}
-                flatListOptions={{
-                  // TabFlatList的配置项
-                  initialNumToRender: 10, // 初始化渲染的tab数量
-                }}
-                renderContent={area => (
-                  <View style={{ width: screenWidth }}>
-                    {/* 座位概览信息 */}
-                    <SeatOverview area={area} seats={seats} getSeatsSummary={getSeatsSummary} />
-                    <FlatList
-                      data={seats[area] || []}
-                      removeClippedSubviews={true}
-                      renderItem={({ item }) => (
-                        <View style={{ width: itemWidth }}>
-                          <SeatCard
-                            spaceName={convertSpaceName(item.spaceName)}
-                            onPress={() => handleSeatPress(item.spaceName, item.spaceStatus === 0)}
-                            isAvailable={item.spaceStatus === 0}
-                          />
-                        </View>
-                      )}
-                      keyExtractor={item => item.spaceName}
-                      numColumns={5}
-                      initialNumToRender={50}
-                      ListEmptyComponent={ListEmptySeats}
-                      columnWrapperClassName="flex flex-wrap justify-start"
-                      contentContainerClassName="pb-[34px]"
-                    />
-                  </View>
-                )}
-              />
+              <LearningCenterSeatsList data={seats} onSeatPress={handleSeatPress} />
             </View>
           </>
         )}
@@ -267,8 +192,8 @@ export default function AvailableSeatsPage() {
         <ConfirmReservationModal
           visible={confirmVisible}
           onClose={() => setConfirmVisible(false)}
-          onConfirm={handleConfirm}
-          onViewStatus={selectedSpace ? () => puthToSeatTimeStatus(selectedSpace, false) : undefined} // 传递占用状态为false
+          onConfirm={() => handleConfirm(beginTime, endTime, selectedSpace!)}
+          onViewStatus={selectedSpace ? () => pushToSeatTimeStatus(selectedSpace, false) : undefined} // 传递占用状态为false
           date={date}
           beginTime={beginTime}
           endTime={endTime}

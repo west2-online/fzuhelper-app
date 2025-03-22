@@ -1,7 +1,11 @@
+import type { SeatData } from '@/types/learning-center';
+
 export enum SpaceStatus {
   Available = 0,
   Occupied = 1,
 }
+
+export const SEAT_ITEM_HEIGHT = 64;
 
 // 座位分区表
 export const SeatAreaCharts: [number, number, string, string][] = [
@@ -50,4 +54,33 @@ export const convertSpaceName = (spaceName: string): string => {
     default:
       return spaceName;
   }
+};
+
+// 获取座位所在区域
+export const getSpaceArea = (spaceName: string) => {
+  const spaceNumber = Number(spaceName.split('-')[0]);
+  const area = SeatAreaCharts.find(([start, end]) => spaceNumber >= start && spaceNumber <= end);
+  return area ? area[2] : '其他';
+};
+
+// 根据区域分组座位
+export const groupSeatsByArea = (seats: SeatData[]) =>
+  seats.reduce(
+    (acc, item) => {
+      const area = getSpaceArea(item.spaceName);
+      acc[area] = acc[area] || [];
+      acc[area].push(item);
+      return acc;
+    },
+    {} as Record<string, SeatData[]>,
+  );
+
+export const getSeatsSummary = (areaSeats: SeatData[]) => {
+  if (!areaSeats || areaSeats.length === 0) return { total: 0, available: 0, occupied: 0 };
+
+  const total = areaSeats.length;
+  const available = areaSeats.filter(seat => seat.spaceStatus === SpaceStatus.Available).length;
+  const occupied = total - available;
+
+  return { total, available, occupied };
 };

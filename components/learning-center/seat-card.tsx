@@ -1,24 +1,34 @@
-import React, { memo } from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { memo } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 
-const SeatCard: React.FC<{
+import { cn } from '@/lib/utils';
+import { SEAT_ITEM_HEIGHT } from '@/utils/learning-center/seats';
+
+interface SeatCardProps {
   spaceName: string;
   onPress: () => void;
   isAvailable?: boolean;
-}> = memo(({ spaceName, onPress, isAvailable = true }) => {
-  // 根据是否可用设置不同的背景色
-  const bgColorClass = isAvailable ? 'bg-green-200' : 'bg-red-200';
-  const textColorClass = isAvailable ? 'text-green-800' : 'text-red-800';
+}
+
+const SeatCard: React.FC<SeatCardProps> = ({ spaceName, onPress, isAvailable = true }) => {
+  const [line1, line2] = spaceName.split('\n');
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      className={`m-1 flex flex-1 items-center justify-center rounded-lg ${bgColorClass} py-4`}
-    >
-      <Text className={`text-center ${textColorClass}`}>{spaceName}</Text>
-    </TouchableOpacity>
+    <View className={cn('flex flex-1 p-1')} style={{ height: SEAT_ITEM_HEIGHT }}>
+      <TouchableOpacity
+        onPress={onPress}
+        className={cn(
+          'flex flex-1 items-center justify-center rounded-lg py-2',
+          isAvailable ? 'bg-green-200' : 'bg-red-200',
+        )}
+      >
+        <Text className={cn('text-center', isAvailable ? 'text-green-800' : 'text-red-800')}>{line1}</Text>
+        {line2 && (
+          <Text className={cn('text-center text-xs', isAvailable ? 'text-green-800' : 'text-red-800')}>{line2}</Text>
+        )}
+      </TouchableOpacity>
+    </View>
   );
-});
-SeatCard.displayName = 'SeatCard';
+};
 
-export default SeatCard;
+export default memo(SeatCard);
