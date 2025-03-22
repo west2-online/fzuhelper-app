@@ -17,17 +17,20 @@ const SeatOverview: React.FC<SeatOverviewProps> = ({ area, areaSeats }) => {
   return (
     <View className="mb-2 bg-card px-4 py-3">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xl font-medium text-primary">
-          {area}：{SeatAreaCharts.find(([, , areaCode]) => areaCode === area)?.[3] || ''}
-        </Text>
+        <View className="flex flex-row items-center gap-2">
+          <Text className="text-xl font-medium text-primary">{area}</Text>
+          <Text className="text-base text-foreground">
+            {SeatAreaCharts.find(([, , areaCode]) => areaCode === area)?.[3] || ''}
+          </Text>
+        </View>
         <View className="flex-row items-center">
           <View className="mx-1 flex-row items-center">
             <View className="mr-1.5 h-3 w-3 rounded-full bg-green-200" />
-            <Text className="text-sm text-text-secondary">可预约 {summary.available}</Text>
+            <Text className="text-sm text-text-secondary">{summary.available}</Text>
           </View>
           <View className="mx-1 flex-row items-center">
             <View className="mr-1.5 h-3 w-3 rounded-full bg-red-200" />
-            <Text className="text-sm text-text-secondary">已占用 {summary.occupied}</Text>
+            <Text className="text-sm text-text-secondary">{summary.occupied}</Text>
           </View>
         </View>
       </View>
