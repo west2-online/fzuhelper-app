@@ -8,6 +8,7 @@
 
 import SwiftUI
 import WidgetKit
+import ActivityKit
 
 // TimelineProvider 负责生成小组件的内容
 struct Provider: AppIntentTimelineProvider {
@@ -128,6 +129,24 @@ struct Provider: AppIntentTimelineProvider {
         notCurrentWeek: nextClass.week != currentWeek
       )
       entries.append(entry)
+      
+      
+      // MARK: 额外的 LiveActivity 功能
+      // 检查是否需要启动 LiveActivity
+      if let classStartTime = calculateClassStartTime(nextClass: nextClass) {
+        let timeUntilStart = classStartTime.timeIntervalSinceNow;
+        
+        // 返回的是秒，所以是 1800 秒（30 * 60）
+        if timeUntilStart <= 18000 && timeUntilStart > 0 {
+          // 如果符合条件，且没有启动过 Activity，则启动
+          if Activity<NextCourseActivityAttributes>.activities.isEmpty {
+            startNextCourseLiveActivity(
+              nextClass: nextClass,
+              currentWeek: currentWeek
+            );
+          }
+        }
+      }
     } else {
       // 数据正常，且没有下一节课，那么就是放假了
       let entryDate = Date()

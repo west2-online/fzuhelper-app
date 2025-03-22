@@ -9,10 +9,16 @@ struct ConfigurationAppIntent: WidgetConfigurationIntent {
   // 上次更新时间
   @Parameter(title: "显示上次更新时间", default: true)
   var showLastUpdateTime: Bool
+  
+  // 上课前 30 分钟激活 LiveActivity（实时活动）
+  @Parameter(title: "上课前30分钟激活实时活动", default: true)
+  var enableLiveActivity: Bool
 
   static var parameterSummary: some ParameterSummary {
-    Summary("显示上次更新时间") {
+    Summary("编辑小组件配置") {
       \.$showLastUpdateTime
+      \.$enableLiveActivity
     }
+    
   }
 }
