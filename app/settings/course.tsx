@@ -52,6 +52,7 @@ export default function AcademicPage() {
   // 设置变化时保存设置
   useUpdateEffect(() => {
     saveSettingsToStorage(settings);
+    // 保证设置同步到小部件
     CourseCache.save();
   }, [settings, saveSettingsToStorage]);
 
