@@ -212,7 +212,7 @@ struct widgetEntryView: View {
           }
           // 时间信息
           HStack {
-            Text("更新于" + entry.date.formattedWithoutYear())
+            Text("更新于" + entry.date.formattedTimeOnly())
                 .font(.caption)
                 .foregroundColor(secondaryTextColor)
                 .lineLimit(1)
@@ -278,7 +278,7 @@ struct widgetEntryView: View {
 
           // 更新时间信息
           if entry.showUpdateTime {
-              Text(entry.date.formattedWithoutYear())
+              Text(entry.date.formattedTimeOnly())
                   .font(.caption)
                   .foregroundColor(secondaryTextColor)
                   .lineLimit(1)
@@ -342,9 +342,9 @@ extension View {
 
 // 添加格式化日期的拓展
 extension Date {
-    func formattedWithoutYear() -> String {
+    func formattedTimeOnly() -> String {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MM/dd HH:mm" // 自定义日期格式，不包含年份
+        dateFormatter.dateFormat = "HH:mm" // 自定义日期格式，不包含年月日
         return dateFormatter.string(from: self)
     }
 }

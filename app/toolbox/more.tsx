@@ -1,17 +1,19 @@
 // 目前仍有缺漏
 import { Tabs, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
+import FAQModal from '@/components/FAQModal';
+import { Icon } from '@/components/Icon';
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 
-import FAQModal from '@/components/FAQModal';
-import { Icon } from '@/components/Icon';
 import { FAQ_MORE } from '@/lib/FAQ';
-import { getWebViewHref } from '@/lib/webview';
+import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
 import { ToolType, toolOnPress, type Tool } from '@/utils/tools';
-import { useCallback, useState } from 'react';
 
 // 更多页面中的工具列表
 const MORE_TOOLS: Tool[] = [
@@ -19,20 +21,29 @@ const MORE_TOOLS: Tool[] = [
     // 会跳出提示：请重新登录，但实际上是可以正常使用的
     name: '福大邮箱',
     icon: ElectroCarIcon,
+    type: ToolType.FUNCTION,
+    action: () => {
+      toast.info('请忽略重新登录提示，可以正常使用，校方正在修复中');
+      pushToWebViewSSO('https://app.fzu.edu.cn/appService/mailbox/app/freeMailbox', '福大邮箱');
+    },
+  },
+  {
+    name: '讲座报告',
+    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
-      url: 'https://app.fzu.edu.cn/appService/mailbox/app/freeMailbox',
-      title: '福大邮箱',
+      url: 'https://www.fzu.edu.cn/jzbg.htm',
+      title: '讲座报告',
       sso: true,
     },
   },
   {
-    name: '迎新服务',
+    name: '考证信息查询',
     icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
-      url: 'http://ehall.fzu.edu.cn/fxfw/sys/swmyxapp/*default/index.do',
-      title: '迎新服务',
+      url: 'https://app.fzu.edu.cn/appService/guidance/app/searchExam',
+      title: '考证信息查询',
       sso: true,
     },
   },
@@ -101,6 +112,16 @@ const MORE_TOOLS: Tool[] = [
     },
   },
   {
+    name: '一表通',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://sso.fzu.edu.cn/login?service=https://mybt.fzu.edu.cn/login',
+      title: '一表通',
+      sso: true,
+    },
+  },
+  {
     name: '个人简历',
     icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
@@ -152,6 +173,16 @@ const MORE_TOOLS: Tool[] = [
   //     sso: true,
   //   },
   // },
+  {
+    name: '迎新服务',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'http://ehall.fzu.edu.cn/fxfw/sys/swmyxapp/*default/index.do',
+      title: '迎新服务',
+      sso: true,
+    },
+  },
   {
     name: '实名身份核验',
     icon: ElectroCarIcon,
@@ -212,17 +243,17 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  {
-    // 不可用
-    name: '校园网接入指南',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://app.fzu.edu.cn/appService/guidance/app/articleInfo',
-      title: '校园网接入指南',
-      sso: true,
-    },
-  },
+  // {
+  //   // 不可用
+  //   name: '校园网接入指南',
+  //   icon: ElectroCarIcon,
+  //   type: ToolType.WEBVIEW,
+  //   params: {
+  //     url: 'https://app.fzu.edu.cn/appService/guidance/app/articleInfo',
+  //     title: '校园网接入指南',
+  //     sso: true,
+  //   },
+  // },
   {
     name: '校园风光',
     icon: ElectroCarIcon,
@@ -250,6 +281,16 @@ const MORE_TOOLS: Tool[] = [
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/backToSchool/app/index',
       title: '集体返校预约',
+      sso: true,
+    },
+  },
+  {
+    name: '党员培训',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://sso.fzu.edu.cn/login?service=https://oss.fzu.edu.cn/api/auth/cas/connector/login?applicationUrl=https://oss.fzu.edu.cn/gbpxMobileUserApp',
+      title: '党员培训',
       sso: true,
     },
   },
@@ -391,34 +432,36 @@ export default function MoreToolsPage() {
   }, []);
   return (
     <PageContainer>
-      <Tabs.Screen
-        options={{
-          title: '更多工具',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-              <Icon name="help-circle-outline" size={26} className="mr-4" />
-            </Pressable>
-          ),
-        }}
-      />
-      {/* 工具列表 */}
-      <ScrollView className="mx-4 space-y-4" showsVerticalScrollIndicator={false}>
-        {MORE_TOOLS.map((item, index) => (
-          <LabelEntry
-            key={index}
-            leftText={item.name}
-            onPress={() => {
-              if (item.type === ToolType.WEBVIEW && item.params) {
-                router.push(getWebViewHref(item.params));
-              } else {
-                toolOnPress(item, router);
-              }
-            }}
-          />
-        ))}
-      </ScrollView>
-      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_MORE} />
+      <SafeAreaView edges={['bottom']}>
+        <Tabs.Screen
+          options={{
+            title: '更多工具',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            headerRight: () => (
+              <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
+                <Icon name="help-circle-outline" size={26} className="mr-4" />
+              </Pressable>
+            ),
+          }}
+        />
+        {/* 工具列表 */}
+        <ScrollView className="mx-4" showsVerticalScrollIndicator={false}>
+          {MORE_TOOLS.map((item, index) => (
+            <LabelEntry
+              key={index}
+              leftText={item.name}
+              onPress={() => {
+                if (item.type === ToolType.WEBVIEW && item.params) {
+                  router.push(getWebViewHref(item.params));
+                } else {
+                  toolOnPress(item, router);
+                }
+              }}
+            />
+          ))}
+        </ScrollView>
+        <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_MORE} />
+      </SafeAreaView>
     </PageContainer>
   );
 }
