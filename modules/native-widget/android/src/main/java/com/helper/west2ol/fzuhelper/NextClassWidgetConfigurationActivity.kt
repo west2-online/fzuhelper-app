@@ -16,9 +16,6 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
     private lateinit var binding: NextClassWidgetConfigurationBinding
 
-    private lateinit var showLastUpdateTimeSwitch: SwitchCompat
-    private lateinit var showAsSquareSwitch: SwitchCompat
-
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = NextClassWidgetConfigurationBinding.inflate(layoutInflater)
