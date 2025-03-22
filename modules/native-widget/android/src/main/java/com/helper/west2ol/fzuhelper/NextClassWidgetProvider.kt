@@ -219,9 +219,15 @@ fun searchNextClassIterative(
     var currentWeek = week
     var currentWeekday = classTime.weekday
     var currentSection = classTime.section
-    val courseBeans = (cacheCourseData.courseData?.values?.flatten()
+    var courseBeans = (cacheCourseData.courseData?.values?.flatten()
         ?: emptyList()) + (cacheCourseData.examData?.values?.flatten()
         ?: emptyList()) + (cacheCourseData.customData?.values?.flatten() ?: emptyList())
+
+    courseBeans = if (cacheCourseData.hiddenCoursesWithoutAttendances?:false ) {
+        courseBeans.filter { it.type != 0 || !it.examType.contains("免听") }
+    }else {
+        courseBeans.sortedBy { !it.examType.contains("免听") }
+    }
 
     while (currentWeek <= cacheCourseData.maxWeek) {
         var foundExam: ExtendCourse? = null
@@ -233,7 +239,6 @@ fun searchNextClassIterative(
                 && ((course.single && currentWeek % 2 == 1) || (course.double && currentWeek % 2 == 0))
                 && currentWeekday == course.weekday
                 && currentSection == course.startClass
-                && (!cacheCourseData.hiddenCoursesWithoutAttendances || !course.examType.contains("免听"))
             ) {
                 when (course.type) {
                     1 -> {

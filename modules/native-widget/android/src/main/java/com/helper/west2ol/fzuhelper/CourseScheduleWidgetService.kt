@@ -97,15 +97,19 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                 return remoteViews
             }
 
-            val hiddenCoursesWithoutAttendances = cacheCourseData.hiddenCoursesWithoutAttendances?: false
-
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.PRC)
             val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
             val week = getWeeks(startTime, System.currentTimeMillis())
 
-            val courseBeans = (cacheCourseData.courseData?.values?.flatten()
+            var courseBeans = (cacheCourseData.courseData?.values?.flatten()
                 ?: emptyList()) + (cacheCourseData.examData?.values?.flatten()
                 ?: emptyList()) + (cacheCourseData.customData?.values?.flatten() ?: emptyList())
+
+            courseBeans = if (cacheCourseData.hiddenCoursesWithoutAttendances?:false ) {
+                courseBeans.filter { it.type != 0 || !it.examType.contains("免听") }
+            }else {
+                courseBeans.sortedBy { !it.examType.contains("免听") }
+            }
 
             //生成左边的序号
             for (i in 1..11) {
@@ -121,8 +125,7 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             //先给本周有课的课程需要的位置占坑,防止被本周没课的课程抢占
             for (kc in courseBeans) {
                 if (kc.startWeek <= week && kc.endWeek >= week
-                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))
-                    && (!hiddenCoursesWithoutAttendances || !kc.examType.contains("免听"))) {
+                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))) {
                     for (j in kc.startClass..kc.endClass) {
                         //自定义课程优先于普通课程
                         if (kc.type == 0) {
@@ -137,8 +140,7 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             for (i in 0 until courseBeans.size) {
                 val kc = courseBeans[i]
                 if (kc.startWeek <= week && kc.endWeek >= week
-                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))
-                    && (!hiddenCoursesWithoutAttendances || !kc.examType.contains("免听"))) {
+                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))) {
                     var flag = 0
                     for (j in kc.startClass..kc.endClass) {
                         //如果该坑已被某课程占领就设置标记位以忽略本课程,防止某些极端情况下出现课程冲突
@@ -156,8 +158,7 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                     }
                 } else {
                     //忽略仅持续一周的自定义课程
-                    if (cacheCourseData.showNonCurrentWeekCourses != true || kc.type > 0
-                        || (hiddenCoursesWithoutAttendances && kc.examType.contains("免听"))) continue
+                    if (cacheCourseData.showNonCurrentWeekCourses != true || kc.type > 0) continue
                     var flag = 0
                     for (j in kc.startClass..kc.endClass) {
                         //如果该坑已被某课程占领就设置标记位以忽略本课程,该位置本周没课的课程可能有很多,仅保留第一个
