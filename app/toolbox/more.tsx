@@ -1,17 +1,18 @@
 // 目前仍有缺漏
 import { Tabs, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView } from 'react-native';
+import { toast } from 'sonner-native';
 
 import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
+import FAQModal from '@/components/FAQModal';
+import { Icon } from '@/components/Icon';
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 
-import FAQModal from '@/components/FAQModal';
-import { Icon } from '@/components/Icon';
 import { FAQ_MORE } from '@/lib/FAQ';
-import { getWebViewHref } from '@/lib/webview';
+import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
 import { ToolType, toolOnPress, type Tool } from '@/utils/tools';
-import { useCallback, useState } from 'react';
 
 // 更多页面中的工具列表
 const MORE_TOOLS: Tool[] = [
@@ -19,11 +20,10 @@ const MORE_TOOLS: Tool[] = [
     // 会跳出提示：请重新登录，但实际上是可以正常使用的
     name: '福大邮箱',
     icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://app.fzu.edu.cn/appService/mailbox/app/freeMailbox',
-      title: '福大邮箱',
-      sso: true,
+    type: ToolType.FUNCTION,
+    action: () => {
+      toast.info('请忽略重新登录提示，可以正常使用，校方正在修复中');
+      pushToWebViewSSO('https://app.fzu.edu.cn/appService/mailbox/app/freeMailbox', '福大邮箱');
     },
   },
   {
