@@ -1,4 +1,6 @@
 import { BlurView } from 'expo-blur';
+import * as QuickActions from 'expo-quick-actions';
+import { useQuickActionRouting, type RouterAction } from 'expo-quick-actions/router';
 import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
@@ -13,6 +15,8 @@ const NAVIGATION_TITLE = '首页';
 
 // 进入这个 Layout，我们视为进入 app 主页面，因此会设置一些额外逻辑，比如关于 app 状态的一些信息
 export default function TabLayout() {
+  useQuickActionRouting();
+
   const navigation = useNavigation();
   const appState = useRef(AppState.currentState);
   const { handleError } = useSafeResponseSolve();
@@ -67,6 +71,16 @@ export default function TabLayout() {
       });
     }
   }, [handleError]);
+
+  useEffect(() => {
+    QuickActions.setItems<RouterAction>([
+      {
+        id: '1',
+        title: '一码通',
+        params: { href: '/qrcode' },
+      },
+    ]);
+  }, []);
 
   return (
     <>
