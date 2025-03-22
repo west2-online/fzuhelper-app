@@ -8,7 +8,6 @@ import { toast } from 'sonner-native';
 
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
-import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchCourseCalendarToken } from '@/api/generate';
@@ -106,12 +105,14 @@ export default function PersonalInfoListPage() {
               value={settings.calendarExportEnabled}
               onValueChange={handleSubscribeChange}
             />
-            <View className={(settings.calendarExportEnabled ? '' : 'hidden') + 'my-2'}>
-              <Text className="my-2 text-sm text-text-secondary">订阅地址（点击可复制）</Text>
-              <Text onPress={copySubscribeUrl} className="break-words bg-transparent text-sm text-text-primary">
-                {settings.calendarSubscribeUrl}
-              </Text>
-            </View>
+            {settings.calendarExportEnabled && (
+              <View>
+                <Text className="my-2 text-sm text-text-secondary">订阅地址（点击可复制）</Text>
+                <Text onPress={copySubscribeUrl} className="break-words bg-transparent text-sm text-text-primary">
+                  {settings.calendarSubscribeUrl}
+                </Text>
+              </View>
+            )}
 
             <View className="space-y-4">
               <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
