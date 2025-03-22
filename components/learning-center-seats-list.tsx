@@ -8,7 +8,7 @@ import SeatCard from '@/components/learning-center/seat-card';
 import SeatOverview from '@/components/learning-center/seat-overview';
 import { cn } from '@/lib/utils';
 import type { SeatData } from '@/types/learning-center';
-import { convertSpaceName, groupSeatsByArea, SpaceStatus } from '@/utils/learning-center/seats';
+import { SEAT_ITEM_HEIGHT, SpaceStatus, convertSpaceName, groupSeatsByArea } from '@/utils/learning-center/seats';
 
 interface Section {
   title: string;
@@ -95,7 +95,7 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
             ))}
             {item.length < NUM_COLUMNS &&
               Array.from({ length: NUM_COLUMNS - item.length }).map((_, index) => (
-                <View key={index} className="flex h-[56px] flex-1" />
+                <View key={index} className="flex flex-1 p-1" style={{ height: SEAT_ITEM_HEIGHT }} />
               ))}
           </View>
         )}
@@ -114,8 +114,8 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
         initialNumToRender={20}
         getItemLayout={(_, index) => ({
           index,
-          length: 56,
-          offset: 56 * index,
+          length: SEAT_ITEM_HEIGHT,
+          offset: SEAT_ITEM_HEIGHT * index,
         })}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
       />

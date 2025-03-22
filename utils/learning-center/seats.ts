@@ -5,6 +5,8 @@ export enum SpaceStatus {
   Occupied = 1,
 }
 
+export const SEAT_ITEM_HEIGHT = 64;
+
 // 座位分区表
 export const SeatAreaCharts: [number, number, string, string][] = [
   [1, 204, 'J区', '多人座'],
