@@ -730,6 +730,7 @@ export const defaultCourseSetting: CourseSetting = {
   showNonCurrentWeekCourses: false,
   exportExamToCourseTable: false,
   hiddenCoursesWithoutAttendances: false,
+  calendarSubscribeUrl: '',
 };
 
 // 将传入的 courseSetting 与 defaultCourseSetting 合并
