@@ -52,6 +52,7 @@ export default function AcademicPage() {
   // 设置变化时保存设置
   useUpdateEffect(() => {
     saveSettingsToStorage(settings);
+    CourseCache.save();
   }, [settings, saveSettingsToStorage]);
 
   // 获取完整学期数据
