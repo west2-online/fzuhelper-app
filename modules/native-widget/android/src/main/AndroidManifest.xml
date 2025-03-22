@@ -1,0 +1,48 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="com.west2online.nativewidget">
+
+        <application>
+            <activity android:name="com.helper.west2ol.fzuhelper.NextClassWidgetConfigureActivity"
+                android:exported="true">
+                <intent-filter>
+                    <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+                </intent-filter>
+            </activity>
+
+            <receiver
+                android:name="com.helper.west2ol.fzuhelper.NextClassWidgetProvider"
+                android:exported="true"
+                android:label="@string/next_class_widget_description">
+                <intent-filter>
+                    <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                </intent-filter>
+                <intent-filter>
+                    <action android:name="fzuhelper.UPDATE_ACTION" />
+                </intent-filter>
+
+                <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/next_class_widget_provider" />
+            </receiver>
+            <receiver
+                android:name="com.helper.west2ol.fzuhelper.CourseScheduleWidgetProvider"
+                android:exported="true"
+                android:label="@string/course_schedule_widget_description">
+                <intent-filter>
+                    <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                </intent-filter>
+
+                <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/course_schedule_widget_provider" />
+            </receiver>
+
+            <service
+                android:name="com.helper.west2ol.fzuhelper.CourseScheduleWidgetService"
+                android:exported="false"
+                android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+
+        </application>
+
+</manifest>

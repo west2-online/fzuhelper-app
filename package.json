@@ -27,7 +27,6 @@
     "@babel/plugin-transform-runtime": "^7.25.9",
     "@babel/preset-typescript": "^7.26.0",
     "@bacons/apple-targets": "^0.2.1",
-    "@bittingz/expo-widgets": "^2.5.0",
     "@expo/vector-icons": "^14.0.2",
     "@quidone/react-native-wheel-picker": "^1.4.0",
     "@react-native-async-storage/async-storage": "1.23.1",

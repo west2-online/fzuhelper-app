@@ -51,6 +51,8 @@ export default function AcademicPage() {
   // 设置变化时保存设置
   useUpdateEffect(() => {
     saveSettingsToStorage(settings);
+    // 保证设置同步到小部件
+    CourseCache.save();
   }, [settings, saveSettingsToStorage]);
 
   // 获取用户就读学期数据
@@ -133,13 +135,6 @@ export default function AcademicPage() {
     forceRefreshCourseData();
   }, [isRefreshing, forceRefreshCourseData]);
 
-  const handleHiddenCoursesWithoutAttendances = useCallback(() => {
-    setSettings(prevSettings => ({
-      ...prevSettings,
-      hiddenCoursesWithoutAttendances: !prevSettings.hiddenCoursesWithoutAttendances,
-    }));
-  }, []);
-
   // 控制导出到本地日历
   const handleExportToCalendar = useCallback(async () => {
     router.push('/settings/calendar');
@@ -154,6 +149,15 @@ export default function AcademicPage() {
       return {
         ...prevSettings,
         exportExamToCourseTable: !prevSettings.exportExamToCourseTable,
+      };
+    });
+  }, []);
+
+  const handleHiddenCoursesWithoutAttendances = useCallback(() => {
+    setSettings(prevSettings => {
+      return {
+        ...prevSettings,
+        hiddenCoursesWithoutAttendances: !prevSettings.hiddenCoursesWithoutAttendances,
       };
     });
   }, []);
@@ -212,10 +216,11 @@ export default function AcademicPage() {
             />
 
             <LabelSwitch
-              label="在课表中显示相同学期的考场"
+              label="显示本学期考场"
               value={settings.exportExamToCourseTable}
               onValueChange={handleExportExamToCourseTable}
             />
+
             <View className="space-y-4">
               <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
               <Text className="my-2 text-base text-text-secondary">
