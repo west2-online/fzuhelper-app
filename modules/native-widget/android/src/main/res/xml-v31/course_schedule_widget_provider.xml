@@ -4,6 +4,9 @@
     android:initialLayout="@layout/course_schedule_widget_provider"
     android:minWidth="250dp"
     android:minHeight="110dp"
+    android:previewLayout="@layout/course_schedule_widget_provider"
     android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="3"
+    android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen" />
