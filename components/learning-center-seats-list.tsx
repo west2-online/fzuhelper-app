@@ -28,10 +28,22 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
   const isAutoScrolling = useRef(false);
   const insets = useSafeAreaInsets();
 
-  const groupedData = useMemo(
-    () => Object.entries(groupSeatsByArea(data)).map(([title, data]) => ({ title, data })),
-    [data],
-  );
+  const groupedData = useMemo(() => {
+    const groupedByArea = groupSeatsByArea(data);
+
+    const areasWithData = Object.keys(groupedByArea).filter(
+      area => groupedByArea[area] && groupedByArea[area].length > 0,
+    );
+
+    // 按照区域名称字母顺序排序（A区、B区、C区...）
+    areasWithData.sort();
+
+    return areasWithData.map(title => ({
+      title,
+      data: groupedByArea[title],
+    }));
+  }, [data]);
+
   const sortedKeys = useMemo(() => groupedData.map(item => item.title), [groupedData]);
   const chunkedGroupedData = useMemo(
     () =>
