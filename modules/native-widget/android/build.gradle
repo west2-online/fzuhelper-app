@@ -33,6 +33,9 @@ if (useManagedAndroidSdkVersions) {
 
 android {
   namespace "com.west2online.nativewidget"
+    buildFeatures {
+        viewBinding = true
+    }
   defaultConfig {
     versionCode 1
     versionName "0.6.3"
