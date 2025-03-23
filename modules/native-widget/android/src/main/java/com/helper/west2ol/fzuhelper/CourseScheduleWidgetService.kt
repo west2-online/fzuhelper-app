@@ -101,15 +101,14 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
             val week = getWeeks(startTime, System.currentTimeMillis())
 
-            var courseBeans = (cacheCourseData.courseData?.values?.flatten()
-                ?: emptyList()) + (cacheCourseData.examData?.values?.flatten()
-                ?: emptyList()) + (cacheCourseData.customData?.values?.flatten() ?: emptyList())
-
-            courseBeans = if (cacheCourseData.hiddenCoursesWithoutAttendances?:false ) {
-                courseBeans.filter { it.type != 0 || !it.examType.contains("免听") }
-            }else {
-                courseBeans.sortedBy { !it.examType.contains("免听") }
-            }
+            val courseBeans = (cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run{
+                if (cacheCourseData.hiddenCoursesWithoutAttendances?:false ) {
+                    courseBeans.filter { !it.examType.contains("免听") }
+                }else {
+                    courseBeans.sortedBy { it.examType.contains("免听") }
+                }
+            } + (cacheCourseData.examData?.values?.flatten() ?: emptyList()) +
+                    (cacheCourseData.customData?.values?.flatten() ?: emptyList())
 
             //生成左边的序号
             for (i in 1..11) {

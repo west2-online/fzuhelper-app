@@ -28,7 +28,7 @@ open class CourseScheduleWidgetProvider : AppWidgetProvider() {
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
             )
-            views.setPendingIntentTemplate(R.id.schedule_root, pendingIntent)
+            views.setPendingIntentTemplate(R.id.list_view, pendingIntent)
             views.setOnClickPendingIntent(R.id.schedule_root, pendingIntent)
 
             val intent2 = Intent(context, CourseScheduleWidgetService::class.java).apply {

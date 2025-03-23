@@ -1,6 +1,7 @@
 package com.helper.west2ol.fzuhelper
 
 import android.appwidget.AppWidgetManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.TextView
@@ -27,6 +28,7 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            setResult(RESULT_CANCELED)
             finish()
             return
         }
@@ -76,6 +78,9 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
         }
 
         binding.toolbar.setNavigationOnClickListener {
+            val resultValue = Intent()
+            resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            setResult(RESULT_OK, resultValue)
             finish()
         }
     }
