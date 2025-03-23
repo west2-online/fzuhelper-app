@@ -1,7 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useContext, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import LabelEntry from '@/components/label-entry';
 import Loading from '@/components/loading';
@@ -30,6 +31,14 @@ const menuItems: {
     description: '查看过往预约记录',
   },
 ];
+
+// 返回按钮组件
+const BackButton = () => (
+  <TouchableOpacity onPress={() => router.back()} className="ml-2 flex-row items-center">
+    <Ionicons name="chevron-back" size={24} color="#007AFF" />
+    <Text className="text-primary">返回</Text>
+  </TouchableOpacity>
+);
 
 const getToken = async () => {
   // 首先尝试从本地读取token
@@ -87,7 +96,12 @@ export default function LearningCenterPage() {
   if (isLoading) {
     return (
       <>
-        <Stack.Screen options={{ title: '学习中心' }} />
+        <Stack.Screen
+          options={{
+            title: '学习中心',
+            headerLeft: BackButton,
+          }}
+        />
         <Loading />
       </>
     );
@@ -95,7 +109,12 @@ export default function LearningCenterPage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '学习中心' }} />
+      <Stack.Screen
+        options={{
+          title: '学习中心',
+          headerLeft: BackButton,
+        }}
+      />
 
       <PageContainer>
         {token ? (
