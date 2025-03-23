@@ -21,6 +21,7 @@ const config: ExpoConfig = {
     buildNumber: version,
     bitcode: true,
     supportsTablet: true,
+    associatedDomains: ['applinks:fzuhelperapp.west2.online'], // 支持 Apple Universal Link 功能
     icon: {
       // 此处影响的主要是自动变更的桌面图标，参考：https://support.apple.com/zh-cn/guide/iphone/iph385473442/ios
       dark: './assets/images/icon/dark.png',
@@ -38,6 +39,7 @@ const config: ExpoConfig = {
       NSPhotoLibraryUsageDescription: '我们需要申请相册权限以提供上传头像等功能',
       LSApplicationQueriesSchemes: ['itms-apps'],
       CFBundleAllowMixedLocalizations: true,
+      CFBundleURLName: 'MEWHFZ92DY.FzuHelper.FzuHelper', // URL Scheme，用于跳转到 App，CFBundleURLSchemes Expo 已经帮忙配置好了
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: true, // 允许访问非 HTTPS 的内容
       },
