@@ -212,11 +212,30 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '校本化',
     icon: XiaoBenIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://api.uyiban.com/base/c/rgsid/login',
-      title: '校本化',
-      sso: true,
+    type: ToolType.FUNCTION,
+    action: async () => {
+      // 使用可忽略的提示
+      await showIgnorableAlert(
+        'yiban_location_tip', // 提示的唯一标识符
+        '定位权限提示',
+        '我们注意到，由于易班系统原因，在一些设备上无法实现定位签到功能，如果遇到此类问题请在易班 App 中操作',
+        // 被忽略时直接执行的操作
+        () => pushToWebViewSSO('https://api.uyiban.com/base/c/rgsid/login', '校本化'),
+        // 普通按钮
+        [
+          {
+            text: '暂不打开',
+            style: 'cancel',
+          },
+          {
+            text: '打开',
+            onPress: () => {
+              pushToWebViewSSO('https://api.uyiban.com/base/c/rgsid/login', '校本化');
+            },
+          },
+        ],
+        { cancelable: true },
+      );
     },
   },
   {
