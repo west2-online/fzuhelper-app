@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useContext, useState } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import LabelEntry from '@/components/label-entry';
 import Loading from '@/components/loading';
@@ -99,7 +99,7 @@ export default function LearningCenterPage() {
         <Stack.Screen
           options={{
             title: '学习中心',
-            headerLeft: BackButton,
+            ...(Platform.OS === 'ios' ? { headerLeft: BackButton } : {}),
           }}
         />
         <Loading />
@@ -112,7 +112,7 @@ export default function LearningCenterPage() {
       <Stack.Screen
         options={{
           title: '学习中心',
-          headerLeft: BackButton,
+          ...(Platform.OS === 'ios' ? { headerLeft: BackButton } : {}),
         }}
       />
 
