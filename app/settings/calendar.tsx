@@ -127,12 +127,8 @@ export default function PersonalInfoListPage() {
                 2. 订阅只支持订阅最新学期（即当前学期）的课表数据。
               </Text>
               <Text className="my-2 text-base text-text-secondary">
-                {/* 本来想写 fzuhelper-server 的，但是感觉 fzu-ics 这个上手更简单一些 */}
-                3. App 默认只提供基础的日历订阅支持。如果您需要更多个性化的功能，可以参考{' '}
-                <Link href="https://github.com/renbaoshuo/fzu-ics">
-                  <Text className="text-primary">github.com/renbaoshuo/fzu-ics</Text>
-                </Link>{' '}
-                来自行实现相关逻辑。
+                3. App
+                默认只提供基础的日历订阅支持。如果您需要更多个性化的功能，可以参考服务端代码（我的-关于-项目源代码）来自行实现相关逻辑。
               </Text>
             </View>
           </SafeAreaView>
