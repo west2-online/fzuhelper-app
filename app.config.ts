@@ -35,6 +35,7 @@ const config: ExpoConfig = {
       NSCalendarsFullAccessUsageDescription: '我们需要申请日历权限以导出课表、考场安排等内容到日历',
       NSCameraUsageDescription: '我们需要申请相机权限以提供拍照上传头像、学习中心扫码签到等功能',
       NSPhotoLibraryUsageDescription: '我们需要申请相册权限以提供上传头像等功能',
+      NSLocationWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       LSApplicationQueriesSchemes: ['itms-apps'],
       CFBundleAllowMixedLocalizations: true,
       NSAppTransportSecurity: {
@@ -66,7 +67,7 @@ const config: ExpoConfig = {
     [
       'react-native-permissions',
       {
-        iosPermissions: ['Camera', 'Calendars', 'Notifications'],
+        iosPermissions: ['Camera', 'Calendars', 'Notifications', 'LocationWhenInUse'],
       },
     ],
     [
