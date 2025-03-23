@@ -1,4 +1,3 @@
-import { getColorScheme } from '@/lib/appearance';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
@@ -12,10 +11,13 @@ import { Toaster } from 'sonner-native';
 
 import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
-import { cn } from '@/lib/utils';
 
+import { getColorScheme } from '@/lib/appearance';
+import { StackNavigatorScreenOptions } from '@/lib/constants';
+import { cn } from '@/lib/utils';
 import patchTextComponent from '@/utils/patch-text-component';
 import patchTextRender from '@/utils/patch-text-render';
+
 import '../global.css';
 
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
@@ -48,13 +50,7 @@ export default function RootLayout() {
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <KeyboardProvider>
             <GestureHandlerRootView>
-              <Stack
-                screenOptions={{
-                  animation: 'ios_from_right',
-                  headerTitleAlign: 'center',
-                  headerTransparent: true,
-                }}
-              >
+              <Stack screenOptions={StackNavigatorScreenOptions}>
                 <Stack.Screen name="/(guest)" />
                 <Stack.Screen name="+not-found" />
               </Stack>
