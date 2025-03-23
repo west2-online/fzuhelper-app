@@ -12,6 +12,7 @@ import { Toaster } from 'sonner-native';
 import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
 
+import { LearningCenterContextProvider } from '@/context/learning-center';
 import { getColorScheme } from '@/lib/appearance';
 import { StackNavigatorScreenOptions } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -50,15 +51,17 @@ export default function RootLayout() {
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <KeyboardProvider>
             <GestureHandlerRootView>
-              <Stack screenOptions={StackNavigatorScreenOptions}>
-                <Stack.Screen name="/(guest)" />
-                <Stack.Screen name="+not-found" />
-              </Stack>
+              <LearningCenterContextProvider>
+                <Stack screenOptions={StackNavigatorScreenOptions}>
+                  <Stack.Screen name="/(guest)" />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
 
-              <Toaster cn={cn} position="top-center" duration={2500} offset={100} />
-              <PortalHost />
-              <SystemBars style="auto" />
-              <DownloadProgress />
+                <Toaster cn={cn} position="top-center" duration={2500} offset={100} />
+                <PortalHost />
+                <SystemBars style="auto" />
+                <DownloadProgress />
+              </LearningCenterContextProvider>
             </GestureHandlerRootView>
           </KeyboardProvider>
         </ThemeProvider>
