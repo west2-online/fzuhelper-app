@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, Platform, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import QRCode from 'react-native-qrcode-svg';
 import { toast } from 'sonner-native';
@@ -15,10 +15,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 
+import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { DATETIME_SECOND_FORMAT, LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import { SSOlogoutAndCleanData as SSOLogout } from '@/lib/sso';
 import YMTLogin, { type IdentifyRespData, type PayCodeRespData } from '@/lib/ymt-login';
+import { isAccountExist } from '@/utils/is-account-exist';
 
 const CurrentTime: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(dayjs().format(DATETIME_SECOND_FORMAT));
@@ -68,6 +70,7 @@ export default function YiMaTongPage() {
   const [isRefreshing, setIsRefreshing] = useState(false); //
   const { handleError } = useSafeResponseSolve();
   const [qrWidth, setQrWidth] = useState(0);
+  const redirect = useRedirectWithoutHistory();
 
   const SSOlogoutAndCleanData = useCallback(async () => {
     await SSOLogout();
@@ -84,6 +87,11 @@ export default function YiMaTongPage() {
       setIsRefreshing(true); // 触发重新渲染
 
       console.log('刷新中...', currentAccessToken);
+
+      // 在这里检查账号是否存在是为了规避一个情况：当没有账号登录时，直接通过一码通跳到这个页面
+      if (Platform.OS === 'ios' && !(await isAccountExist())) {
+        redirect('/(guest)'); // 直接强制它回开屏页
+      }
 
       try {
         const [newPayCodes, newIdentifyCode] = await Promise.all([
@@ -124,6 +132,9 @@ export default function YiMaTongPage() {
       refresh(accessToken);
     }
   }, [accessToken, refresh]);
+
+  // 这是为了解决一个比较深的 case，当使用 Universal Link 打开 App，Expo-Router 会自动跳到这个页面
+  // 但此时可能你是首次打开 app 或仍然未登录，我们使用
 
   const getLocalData = useCallback(async () => {
     try {

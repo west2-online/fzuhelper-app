@@ -52,6 +52,7 @@ export default function SplashScreen() {
   const [splashType, setSplashType] = useState(1);
   const [countdown, setCountdown] = useState(3);
   const [hideSystemBars, setHideSystemBars] = useState(true);
+  // const { method } = useLocalSearchParams<{ method: string }>();
 
   // 合规初始化第三方库
   const initThirdParty = useCallback(async () => {
@@ -64,6 +65,11 @@ export default function SplashScreen() {
     setHideSystemBars(false);
     // 延迟使得系统栏恢复显示
     setTimeout(() => {
+      // 我们判断传入的参数，如果含 qrcode 则跳转到 qrcode 页面
+      // 目前暂时不使用这套方案，但是暂时留置，和 _layout.tsx 中的监听代码留置一样。
+      // if (method === 'qrcode') {
+      //   redirect('/(tabs)/qrcode');
+      // }
       redirect('/(tabs)');
     }, 1);
   }, [redirect]);
@@ -164,6 +170,7 @@ export default function SplashScreen() {
 
   // 当用户同意隐私政策时我们触发安装第三方依赖（友盟）和检查登录状态
   const onPrivacyAgree = useCallback(async () => {
+    console.log('onPrivacyAgree');
     setShouldShowPrivacyAgree(false);
     initThirdParty();
     checkLoginStatus();
