@@ -1,6 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -8,7 +8,7 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
-import ApiService from '@/utils/learning-center/api-service';
+import { useLearningCenterApi } from '@/context/learning-center';
 
 export default function QrScannerPage() {
   const router = useRouter();
@@ -17,8 +17,7 @@ export default function QrScannerPage() {
   const [scanned, setScanned] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
-  const { token } = useLocalSearchParams<{ token: string }>();
-  const api = useMemo(() => new ApiService(token), [token]);
+  const api = useLearningCenterApi();
 
   useEffect(() => {
     (async () => {

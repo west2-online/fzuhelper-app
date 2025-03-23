@@ -1,6 +1,7 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Stack } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import HistoryAppointmentCard from '@/components/learning-center/history-appointment-card';
@@ -8,20 +9,18 @@ import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
-import ApiService, { compareAppointments, fetchAppointmentsData } from '@/utils/learning-center/api-service';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLearningCenterApi } from '@/context/learning-center';
+import { compareAppointments, fetchAppointmentsData } from '@/utils/learning-center/api-service';
 
 const PAGE_SIZE = 30; // 每次请求返回的数据量
 
 export default function HistoryPage() {
-  const { token } = useLocalSearchParams<{ token: string }>(); // 从路由参数中获取token
   const [page, setPage] = useState(1); // 当前页数
   const [data, setData] = useState<fetchAppointmentsData[]>([]); // 预约记录数据
   const [isRefreshing, setIsRefreshing] = useState(true); // 控制刷新状态
   const [isBottom, setIsBottom] = useState(false); // 判断是否请求了所有的数据
   const insets = useSafeAreaInsets();
-
-  const api = useMemo(() => new ApiService(token), [token]);
+  const api = useLearningCenterApi();
 
   // 请求数据
   const fetchData = useCallback(

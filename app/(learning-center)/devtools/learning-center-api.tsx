@@ -1,16 +1,15 @@
-// 用于测试api 的页面
+// 用于测试 api 的页面
 
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
-import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
-import ApiService from '@/utils/learning-center/api-service';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LearningCenterContext } from '@/context/learning-center';
 import { router, Stack } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
+
 // 用于生成符合后端要求的日期格式
 const formatDate = (timestamp: number) => {
   const date = new Date(timestamp);
@@ -27,14 +26,7 @@ export default function LearningCenterApi() {
   const [spaceName, setSpaceName] = useState('');
   const [floor, setFloor] = useState('');
   const [appointmentID, setAppointmentID] = useState('');
-  const [token, setToken] = useState('');
-  const api = useMemo(() => new ApiService(token), [token]);
-
-  // 读取本地token
-  const getToken = useCallback(async () => {
-    const result = await AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY);
-    setToken(result ?? '');
-  }, []);
+  const { api, token, setToken } = useContext(LearningCenterContext);
 
   // 错误处理
   const handleError = (error: any) => {
@@ -102,20 +94,11 @@ export default function LearningCenterApi() {
     router.push({ pathname: '/toolbox/learning-center/qr-scanner', params: { appointmentID } });
   }, [appointmentID]);
 
-  // 初始化时读取本地token
-  useEffect(() => {
-    getToken();
-  }, [getToken]);
-
   return (
     <PageContainer className="p-4">
       <ScrollView>
         <Stack.Screen options={{ title: '学习中心', headerTransparent: true }} />
         <Input value={token} onChangeText={setToken} placeholder="token" className="my-1" />
-
-        <Button onPress={getToken} className="my-1">
-          <Text>读取本地token</Text>
-        </Button>
 
         {/* 测试预约历史 */}
         <Button onPress={history} className="my-1">
