@@ -84,5 +84,4 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
             finish()
         }
     }
-
 }

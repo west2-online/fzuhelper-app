@@ -7,12 +7,14 @@ import android.util.TypedValue.COMPLEX_UNIT_DIP
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import android.util.Log
+import android.widget.Toast
 import com.google.gson.Gson
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import com.helper.west2ol.fzuhelper.CacheCourseData
 import com.helper.west2ol.fzuhelper.getWeeks
+import com.helper.west2ol.fzuhelper.getCourseBeans
 import com.west2online.nativewidget.R
 
 class CourseScheduleWidgetService : RemoteViewsService() {
@@ -94,6 +96,7 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             if (jsonData != "") {
                 cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
             } else {
+                Toast.makeText(context, "没有课表数据", Toast.LENGTH_SHORT).show()
                 return remoteViews
             }
 
@@ -101,21 +104,15 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
             val week = getWeeks(startTime, System.currentTimeMillis())
 
-            val courseBeans = (cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run{
-                if (cacheCourseData.hiddenCoursesWithoutAttendances?:false ) {
-                    filter { !(it?.examType?.contains("免听")?:false) }
-                }else {
-                    sortedBy { it?.examType?.contains("免听")?:false }
-                }
-            } + (cacheCourseData.examData?.values?.flatten() ?: emptyList()) +
-                    (cacheCourseData.customData?.values?.flatten() ?: emptyList())
+            val courseBeans = getCourseBeans(context,cacheCourseData)
 
             //生成左边的序号
             for (i in 1..11) {
-                val remoteViews2 = RemoteViews(context.packageName, R.layout.widget_view_0)
-                remoteViews2.setTextViewText(R.id.tv_name, i.toString())
-                remoteViews2.setTextColor(R.id.tv_name, Color.GRAY)
-                remoteViews.addView(R.id.item_week_day_0, remoteViews2)
+                RemoteViews(context.packageName, R.layout.widget_view_0).apply {
+                    setTextViewText(R.id.tv_name, i.toString())
+                    setTextColor(R.id.tv_name, Color.GRAY)
+                    remoteViews.addView(R.id.item_week_day_0, this)
+                }
             }
 
             // 添加课程信息
@@ -188,20 +185,22 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                                 name = name.substring(0, 11)
                                 name += "..."
                             }
-                            remoteViews2.setTextViewText(R.id.tv_name, name + "\n\n" + kc.location)
                             val bg = if (preCourseIndex > 0) {
                                 bgCourses[kc.id % bgCourses.size]
                             } else {
                                 R.drawable.bg_course_0
                             }
-                            remoteViews2.setInt(R.id.tv_name, "setBackgroundResource", bg)
                             val color = if (preCourseIndex > 0) {
                                 Color.WHITE
                             } else {
                                 Color.GRAY
                             }
-                            remoteViews2.setTextColor(R.id.tv_name, color)
-                            remoteViews2.setTextViewTextSize(R.id.tv_name, COMPLEX_UNIT_DIP, 10f)
+                            remoteViews2.apply {
+                                setTextViewText(R.id.tv_name, name + "\n\n" + kc.location)
+                                setInt(R.id.tv_name, "setBackgroundResource", bg)
+                                setTextColor(R.id.tv_name, color)
+                                setTextViewTextSize(R.id.tv_name, COMPLEX_UNIT_DIP, 10f)
+                            }
                             //remoteViews2.setFloat(R.id.tv_name, "setAlpha", 0.78f)
                         }
                         remoteViews.addView(itemWeekdays[i], remoteViews2)

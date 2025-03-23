@@ -14,6 +14,7 @@ import android.widget.RemoteViews
 import com.google.gson.Gson
 import com.west2online.nativewidget.BuildConfig
 import com.west2online.nativewidget.R
+import com.helper.west2ol.fzuhelper.getCourseBeans
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -82,7 +83,7 @@ internal fun updateNextClassWidget(
             .getString("widgetdata", "")
         if (jsonData != "") {
             cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
-            nextClass = getNextClass(cacheCourseData)
+            nextClass = getNextClass(context,cacheCourseData)
 //            Log.d("NextClassWidgetProvider", "Loaded widget data: $cacheCourseData")
         } else {
             hasLocalData = false
@@ -91,92 +92,87 @@ internal fun updateNextClassWidget(
         Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
     }
 
-    if (nextClass != null) {
-        val name = nextClass.courseBean.name
-            .let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
-
-        views.apply {
-            setTextViewText(R.id.course_name, name)
-            setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
-            setTextViewText(R.id.course_room, nextClass.courseBean.location)
+    views.apply {
+        if (nextClass != null) {
+            val name = nextClass.courseBean.name
+                .let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
             val section: String = nextClass.courseBean.remark.ifEmpty {
                 "${nextClass.courseBean.startClass}-${nextClass.courseBean.endClass}节"
             }
 
+            setTextViewText(R.id.course_name, name)
+            setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
+            setTextViewText(R.id.course_room, nextClass.courseBean.location)
             setTextViewText(
                 R.id.course_weekday,
                 "周${getWeekChinese(nextClass.courseBean.weekday)}"
             )
             setTextViewText(R.id.course_section, section)
             setTextViewText(R.id.course_week, "第${nextClass.week}周")
-        }
-    } else if (hasLocalData) {
-        views.apply {
-            setTextViewText(R.id.course_name, "放假啦")
-            setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 30f)
-            setTextViewText(R.id.course_room, null)
-            setTextViewText(R.id.course_weekday, null)
-            setTextViewText(R.id.course_section, null)
-            setTextViewText(R.id.course_week, null)
-        }
-    } else {
-        views.apply {
-            setTextViewText(R.id.course_name, "本地没有数据")
-            setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
-            setTextViewText(R.id.course_room, "请打开课表设置刷新")
-            setTextViewText(R.id.course_weekday, null)
-            setTextViewText(R.id.course_section, null)
-            setTextViewText(R.id.course_week, null)
-        }
-    }
-
-    if (loadWidgetConfig(context, appWidgetId, "showLastUpdateTime")) {
-        val currentDateTime = Calendar.getInstance()
-        val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
-        val formattedDate = sdf.format(currentDateTime.time)
-        views.setTextViewText(R.id.last_update_time, "更新于 $formattedDate")
-    } else {
-        views.setTextViewText(R.id.last_update_time, "")
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if (loadWidgetConfig(
-                context,
-                appWidgetId,
-                "showAsSquare"
-            )
-        ) {
-            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-            val minWidth =
-                options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 100)
-            val minHeight =
-                options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
-
-            val marginBottom = max(minHeight - minWidth, 0)
-
-            views.setViewLayoutMargin(
-                R.id.container, RemoteViews.MARGIN_BOTTOM,
-                marginBottom.toFloat(), TypedValue.COMPLEX_UNIT_DIP
-            )
-
         } else {
-            views.setViewLayoutMargin(
-                R.id.container, RemoteViews.MARGIN_BOTTOM,
-                0f, TypedValue.COMPLEX_UNIT_DIP
-            )
+            if (hasLocalData) {
+                setTextViewText(R.id.course_name, "放假啦")
+                setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 30f)
+                setTextViewText(R.id.course_room, null)
+            } else {
+                setTextViewText(R.id.course_name, "本地没有数据")
+                setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
+                setTextViewText(R.id.course_room, "请打开课表设置刷新")
+            }
+            setTextViewText(R.id.course_weekday, null)
+            setTextViewText(R.id.course_section, null)
+            setTextViewText(R.id.course_week, null)
+        }
+
+        if (loadWidgetConfig(context, appWidgetId, "showLastUpdateTime")) {
+            val currentDateTime = Calendar.getInstance()
+            val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
+            val formattedDate = sdf.format(currentDateTime.time)
+            setTextViewText(R.id.last_update_time, "更新于 $formattedDate")
+        } else {
+            setTextViewText(R.id.last_update_time, "")
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (loadWidgetConfig(
+                    context,
+                    appWidgetId,
+                    "showAsSquare"
+                )
+            ) {
+                val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+                val minWidth =
+                    options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 100)
+                val minHeight =
+                    options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
+
+                val marginBottom = max(minHeight - minWidth, 0)
+
+                setViewLayoutMargin(
+                    R.id.container, RemoteViews.MARGIN_BOTTOM,
+                    marginBottom.toFloat(), TypedValue.COMPLEX_UNIT_DIP
+                )
+
+            } else {
+                setViewLayoutMargin(
+                    R.id.container, RemoteViews.MARGIN_BOTTOM,
+                    0f, TypedValue.COMPLEX_UNIT_DIP
+                )
+            }
         }
     }
+
     appWidgetManager.updateAppWidget(appWidgetId, views)
 }
 
 
 // 返回下一节课程
-fun getNextClass(cacheCourseData: CacheCourseData): ClassInfo? {
+fun getNextClass(context: Context,cacheCourseData: CacheCourseData): ClassInfo? {
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.PRC)
     val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
     val week = getWeeks(startTime, System.currentTimeMillis())
     val classTime = getNextClassTime(startTime)
-    return searchNextClassIterative(cacheCourseData, week, classTime)
+    return searchNextClassIterative(context,cacheCourseData, week, classTime)
 }
 
 // 判断当前时间是一周的第几节课，返回下一节课的时间
@@ -212,6 +208,7 @@ fun getNextClassTime(startTime: Long): ClassTime {
 }
 
 fun searchNextClassIterative(
+    context: Context,
     cacheCourseData: CacheCourseData,
     week: Int,
     classTime: ClassTime
@@ -219,14 +216,7 @@ fun searchNextClassIterative(
     var currentWeek = week
     var currentWeekday = classTime.weekday
     var currentSection = classTime.section
-    val courseBeans = (cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run{
-        if (cacheCourseData.hiddenCoursesWithoutAttendances?:false ) {
-            filter { !(it?.examType?.contains("免听")?:false) }
-        }else {
-            sortedBy { it?.examType?.contains("免听")?:false }
-        }
-    } + (cacheCourseData.examData?.values?.flatten() ?: emptyList()) +
-            (cacheCourseData.customData?.values?.flatten() ?: emptyList())
+    val courseBeans = getCourseBeans(context,cacheCourseData)
 
     while (currentWeek <= cacheCourseData.maxWeek) {
         var foundExam: ExtendCourse? = null

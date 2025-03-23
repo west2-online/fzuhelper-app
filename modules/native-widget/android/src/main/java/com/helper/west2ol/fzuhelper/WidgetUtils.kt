@@ -1,5 +1,7 @@
 package com.helper.west2ol.fzuhelper
 
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.Keep
 import android.content.Context
 import android.content.SharedPreferences
@@ -70,3 +72,18 @@ fun loadWidgetConfig(context: Context, appWidgetId: Int, key: String): Boolean {
 fun deleteWidgetConfig(context: Context, appWidgetId: Int , key: String) {
     getSharedPreference(context).edit().remove("$appWidgetId$key").commit()
 }
+
+fun getCourseBeans(context: Context, cacheCourseData: CacheCourseData): List<ExtendCourse> = try {
+        (cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run {
+            if (cacheCourseData.hiddenCoursesWithoutAttendances ?: false) {
+                filter { !(it?.examType?.contains("免听") ?: false) }
+            } else {
+                sortedBy { it?.examType?.contains("免听") ?: false }
+            }
+        } + (cacheCourseData.examData?.values?.flatten() ?: emptyList()) +
+                (cacheCourseData.customData?.values?.flatten() ?: emptyList())
+    } catch (e: Exception) {
+        Toast.makeText(context, "获取课程数据失败", Toast.LENGTH_SHORT).show()
+        Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
+        emptyList()
+    }
