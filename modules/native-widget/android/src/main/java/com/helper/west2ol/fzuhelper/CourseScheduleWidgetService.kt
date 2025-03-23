@@ -103,9 +103,9 @@ class CourseScheduleWidgetService : RemoteViewsService() {
 
             val courseBeans = (cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run{
                 if (cacheCourseData.hiddenCoursesWithoutAttendances?:false ) {
-                    courseBeans.filter { !it.examType.contains("免听") }
+                    filter { !it.examType.contains("免听") }
                 }else {
-                    courseBeans.sortedBy { it.examType.contains("免听") }
+                    sortedBy { it.examType.contains("免听") }
                 }
             } + (cacheCourseData.examData?.values?.flatten() ?: emptyList()) +
                     (cacheCourseData.customData?.values?.flatten() ?: emptyList())
