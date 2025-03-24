@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_done"
+        android:icon="@drawable/ic_done"
+        android:title="完成"
+        android:showAsAction="always"
+        tools:ignore="AppCompatResource" />
+</menu>
