@@ -24,6 +24,7 @@ fzuhelper-app 是一个使用 React Native 跨端技术开发的客户端应用�
   <img src="./images/preview/empty-room.jpeg" alt="空教室" style="width: 200px; margin-right: 10px;">
   <img src="./images/preview/exam-room.jpeg" alt="考场" style="width: 200px; margin-right: 10px;">
   <img src="./images/preview/qrcode.jpeg" alt="二维码" style="width: 200px; margin-right: 10px;">
+  <img src="./images/preview/paper.jpeg" alt="二维码" style="width: 200px; margin-right: 10px;">
 </div>
 </details>
 
