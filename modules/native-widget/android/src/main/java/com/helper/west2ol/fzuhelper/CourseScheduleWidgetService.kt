@@ -6,16 +6,10 @@ import android.graphics.Color
 import android.util.TypedValue.COMPLEX_UNIT_DIP
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
-import android.util.Log
-import android.widget.Toast
 import com.google.gson.Gson
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
-import com.helper.west2ol.fzuhelper.CacheCourseData
-import com.helper.west2ol.fzuhelper.getWeeks
-import com.helper.west2ol.fzuhelper.getCourseBeans
 import com.west2online.nativewidget.R
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class CourseScheduleWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent?): RemoteViewsFactory {
@@ -96,7 +90,6 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             if (jsonData != "") {
                 cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
             } else {
-                Toast.makeText(context, "没有课表数据", Toast.LENGTH_SHORT).show()
                 return remoteViews
             }
 
@@ -104,7 +97,7 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
             val week = getWeeks(startTime, System.currentTimeMillis())
 
-            val courseBeans = getCourseBeans(context,cacheCourseData)
+            val courseBeans = getCourseBeans(cacheCourseData)
 
             //生成左边的序号
             for (i in 1..11) {
@@ -121,7 +114,8 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             //先给本周有课的课程需要的位置占坑,防止被本周没课的课程抢占
             for (kc in courseBeans) {
                 if (kc.startWeek <= week && kc.endWeek >= week
-                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))) {
+                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))
+                ) {
                     for (j in kc.startClass..kc.endClass) {
                         //自定义课程优先于普通课程
                         if (kc.type == 0) {
@@ -136,7 +130,8 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             for (i in 0 until courseBeans.size) {
                 val kc = courseBeans[i]
                 if (kc.startWeek <= week && kc.endWeek >= week
-                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))) {
+                    && ((kc.single && week % 2 == 1) || (kc.double && week % 2 == 0))
+                ) {
                     var flag = 0
                     for (j in kc.startClass..kc.endClass) {
                         //如果该坑已被某课程占领就设置标记位以忽略本课程,防止某些极端情况下出现课程冲突
@@ -179,7 +174,8 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                     if (j == 12 || (j != 1 && mark2[i][j] != preCourseIndex)) {
                         val remoteViews2 = RemoteViews(context.packageName, widgetViews[count])
                         if (preCourseIndex != 0) {
-                            val kc = courseBeans[if (preCourseIndex > 0) preCourseIndex - 1 else -(preCourseIndex + 1)]
+                            val kc =
+                                courseBeans[if (preCourseIndex > 0) preCourseIndex - 1 else -(preCourseIndex + 1)]
                             var name = kc.name
                             if (name.length >= 13) {
                                 name = name.substring(0, 11)

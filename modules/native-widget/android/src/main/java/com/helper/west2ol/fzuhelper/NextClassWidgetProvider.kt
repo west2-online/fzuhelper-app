@@ -12,9 +12,7 @@ import android.util.TypedValue
 import android.util.TypedValue.COMPLEX_UNIT_SP
 import android.widget.RemoteViews
 import com.google.gson.Gson
-import com.west2online.nativewidget.BuildConfig
 import com.west2online.nativewidget.R
-import com.helper.west2ol.fzuhelper.getCourseBeans
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -83,7 +81,7 @@ internal fun updateNextClassWidget(
             .getString("widgetdata", "")
         if (jsonData != "") {
             cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
-            nextClass = getNextClass(context,cacheCourseData)
+            nextClass = getNextClass(cacheCourseData)
 //            Log.d("NextClassWidgetProvider", "Loaded widget data: $cacheCourseData")
         } else {
             hasLocalData = false
@@ -167,12 +165,12 @@ internal fun updateNextClassWidget(
 
 
 // 返回下一节课程
-fun getNextClass(context: Context,cacheCourseData: CacheCourseData): ClassInfo? {
+fun getNextClass(cacheCourseData: CacheCourseData): ClassInfo? {
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.PRC)
     val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
     val week = getWeeks(startTime, System.currentTimeMillis())
     val classTime = getNextClassTime(startTime)
-    return searchNextClassIterative(context,cacheCourseData, week, classTime)
+    return searchNextClassIterative(cacheCourseData, week, classTime)
 }
 
 // 判断当前时间是一周的第几节课，返回下一节课的时间
@@ -208,7 +206,6 @@ fun getNextClassTime(startTime: Long): ClassTime {
 }
 
 fun searchNextClassIterative(
-    context: Context,
     cacheCourseData: CacheCourseData,
     week: Int,
     classTime: ClassTime
@@ -216,7 +213,7 @@ fun searchNextClassIterative(
     var currentWeek = week
     var currentWeekday = classTime.weekday
     var currentSection = classTime.section
-    val courseBeans = getCourseBeans(context,cacheCourseData)
+    val courseBeans = getCourseBeans(cacheCourseData)
 
     while (currentWeek <= cacheCourseData.maxWeek) {
         var foundExam: ExtendCourse? = null
