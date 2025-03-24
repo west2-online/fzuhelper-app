@@ -160,6 +160,12 @@ const config: ExpoConfig = {
             params: { href: '/qrcode' },
           },
         ],
+        androidIcons: {
+          qrcode: {
+            foregroundImage: './assets/images/qr_action.png',
+            backgroundColor: '#FFFFFF',
+          },
+        },
       },
     ],
     './with-android-theme',

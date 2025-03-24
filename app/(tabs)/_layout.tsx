@@ -1,9 +1,9 @@
 import { BlurView } from 'expo-blur';
 import * as QuickActions from 'expo-quick-actions';
-import { useQuickActionRouting, type RouterAction } from 'expo-quick-actions/router';
-import { Redirect, Stack, Tabs, router, useNavigation, usePathname } from 'expo-router';
+import { type RouterAction, useQuickActionRouting } from 'expo-quick-actions/router';
+import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { Alert, AppState, Linking, Platform, StyleSheet, View } from 'react-native';
+import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
 
@@ -79,6 +79,7 @@ export default function TabLayout() {
         id: '1',
         title: '一码通',
         params: { href: '/qrcode' },
+        icon: 'qrcode',
       },
     ]);
   }, []);
