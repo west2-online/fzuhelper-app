@@ -9,6 +9,12 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1JwchUserInfo } from '@/api/generate';
+import {
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListRow,
+  DescriptionListTerm,
+} from '@/components/DescriptionList';
 import { JWCH_USER_INFO_KEY } from '@/lib/constants';
 
 export default function PersonalInfoListPage() {
@@ -45,13 +51,36 @@ export default function PersonalInfoListPage() {
           <SafeAreaView edges={['bottom']}>
             <Text className="mb-2 text-sm text-text-secondary">你可以查阅当前我们对你的个人信息的收集情况。</Text>
 
-            <LabelEntry leftText="姓名" rightText={userInfo.name} disabled />
-            <LabelEntry leftText="学号" rightText={userInfo.stu_id} disabled />
-            <LabelEntry leftText="性别" rightText={userInfo.sex} disabled />
-            <LabelEntry leftText="生日" rightText={userInfo.birthday} disabled />
-            <LabelEntry leftText="学院" rightText={userInfo.college} disabled />
-            <LabelEntry leftText="年级" rightText={userInfo.grade} disabled />
-            <LabelEntry leftText="专业" rightText={userInfo.major} disabled />
+            <DescriptionList>
+              <DescriptionListRow>
+                <DescriptionListTerm>姓名</DescriptionListTerm>
+                <DescriptionListDescription>{userInfo.name}</DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>学号</DescriptionListTerm>
+                <DescriptionListDescription>{userInfo.stu_id}</DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>性别</DescriptionListTerm>
+                <DescriptionListDescription>{userInfo.sex}</DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>生日</DescriptionListTerm>
+                <DescriptionListDescription>{userInfo.birthday}</DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>学院</DescriptionListTerm>
+                <DescriptionListDescription>{userInfo.college}</DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>年级</DescriptionListTerm>
+                <DescriptionListDescription>{userInfo.grade}</DescriptionListDescription>
+              </DescriptionListRow>
+              <DescriptionListRow>
+                <DescriptionListTerm>专业</DescriptionListTerm>
+                <DescriptionListDescription>{userInfo.major}</DescriptionListDescription>
+              </DescriptionListRow>
+            </DescriptionList>
           </SafeAreaView>
         </ScrollView>
       </PageContainer>

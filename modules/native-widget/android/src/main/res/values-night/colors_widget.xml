@@ -1,0 +1,6 @@
+<resources>
+    <color name="foreground">#E9E9E9</color>
+    <color name="background">#1A1A1B</color>
+    <color name="unneeded_foreground">#C1C1C1</color>
+    <color name="course_color0">#282828</color>
+</resources>

@@ -1,0 +1,26 @@
+<resources>
+    <color name="weekday_background">#992196F3</color>
+    <color name="unneeded_foreground">#66000000</color>
+    <color name="foreground">#000000</color>
+    <color name="background">#F5F5F5</color>
+
+    <color name="course_color0">#7Ce0e0e0</color>
+    <color name="course_color1">#FFF39F9D</color>
+    <color name="course_color2">#FF9FA5D5</color>
+    <color name="course_color3">#FF83B6B1</color>
+    <color name="course_color4">#FFFDC683</color>
+    <color name="course_color5">#FFEB90B1</color>
+    <color name="course_color6">#FF92C5F2</color>
+    <color name="course_color7">#FFA4D1A6</color>
+    <color name="course_color8">#7Cffb300</color>
+    <color name="course_color9">#7C8e24aa</color>
+    <color name="course_color10">#7C00acc1</color>
+    <color name="course_color11">#7C7cb342</color>
+    <color name="course_color12">#7C6D5041</color>
+    <color name="course_color13">#7C5e35b1</color>
+    <color name="course_color14">#7Cc0ca33</color>
+    <color name="course_color15">#7C6d4c41</color>
+    <color name="course_color16">#7C311b92</color>
+
+    <color name="transparent">#00ffffff</color>
+</resources>

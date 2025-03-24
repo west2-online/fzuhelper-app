@@ -13,12 +13,12 @@ import { MergedExamData } from '@/types/academic';
 import { randomUUID } from '@/utils/crypto';
 import { courseColors, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
-import * as ExpoWidgetsModule from '@bittingz/expo-widgets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
 import { getWeeksBySemester } from './locate-date';
+import { setWidgetData } from '@/modules/native-widget';
 
 export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
   JwchCourseListResponse_CourseScheduleRule;
@@ -207,9 +207,12 @@ export class CourseCache {
 
     // 将数据保存到原生共享存储中，以便在小组件中调用
     const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
-    const term = (await readCourseSetting()).selectedSemester;
+    const courseSettings = await readCourseSetting();
+    const term = courseSettings.selectedSemester;
     const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
     const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+    const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
+    const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
     if (Platform.OS === 'ios') {
       // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
       // 只能在常量中定义这个 identifier
@@ -228,13 +231,15 @@ export class CourseCache {
       ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
     } else if (Platform.OS === 'android') {
-      ExpoWidgetsModule.setWidgetData(
+      setWidgetData(
         JSON.stringify({
           courseData: this.cachedData,
           examData: this.cachedExamData,
           customData: this.cachedCustomData,
           startDate: currentTerm.start_date,
           maxWeek: maxWeek,
+          showNonCurrentWeekCourses: showNonCurrentWeekCourses,
+          hiddenCoursesWithoutAttendances: hiddenCoursesWithoutAttendances,
         }),
         Constants.expoConfig?.android?.package,
       );
@@ -264,7 +269,7 @@ export class CourseCache {
       storage.set(COURSE_CURRENT_CACHE_KEY, '');
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
     } else if (Platform.OS === 'android') {
-      ExpoWidgetsModule.setWidgetData('', Constants.expoConfig?.android?.package);
+      setWidgetData('', Constants.expoConfig?.android?.package);
     }
   }
 
@@ -326,6 +331,7 @@ export class CourseCache {
 
   /**
    * 计算摘要并和当前缓存的摘要进行比较
+   * @param type - 课程类型
    * @param data - 课程数据
    * @returns 是否和当前缓存的数据一致
    */
@@ -344,8 +350,7 @@ export class CourseCache {
 
   /**
    * 手动为某门课程设置优先级（不含考试）
-   * @param courseID - 课程 ID
-   * @param priority - 优先级
+   * @param course - 课程信息
    */
   public static async setPriority(course: CourseInfo): Promise<void> {
     if (!this.cachedData) {
@@ -401,6 +406,8 @@ export class CourseCache {
   /**
    * 导入考场到课表中
    * @param exam - 考场数据
+   * @param semesterStart
+   * @param semesterEnd
    * @returns 导入成功数量
    */
   public static mergeExamCourses(exam: MergedExamData[], semesterStart: string, semesterEnd: string) {
@@ -730,6 +737,7 @@ export const defaultCourseSetting: CourseSetting = {
   showNonCurrentWeekCourses: false,
   exportExamToCourseTable: false,
   hiddenCoursesWithoutAttendances: false,
+  calendarSubscribeUrl: '',
 };
 
 // 将传入的 courseSetting 与 defaultCourseSetting 合并

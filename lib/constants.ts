@@ -7,6 +7,9 @@
  * - 对于单独业务的 key，请以业务名称简写开头，并在同一业务内保持统一。
  */
 
+// 服务端服务器地址
+export const SERVER_ADDRESS = 'https://fzuhelper.west2.online/';
+
 // 服务端Token
 export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
@@ -56,6 +59,8 @@ export const SPLASH_DATE = 'splash_date';
 export const SPLASH_ID = 'splash_id';
 
 // 课程表
+export const CALENDAR_SUBSCRIPTION_PREFIX = 'https://fzuhelper.west2.online/api/v1/course/calendar/subscribe?token=';
+export const CALENDAR_SUBSCRIPTION_TOKEN_KEY = 'calendar_subscription_token';
 export const COURSE_CURRENT_CACHE_KEY = 'course_current_cache';
 export const COURSE_SETTINGS_KEY = 'course_settings';
 export const COURSE_DATA_KEY = 'course_data';
@@ -134,6 +139,13 @@ export const NAV_THEME = {
     text: 'hsl(0 0% 98%)', // foreground
   },
 };
+
+// Stack Navigator Options
+export const StackNavigatorScreenOptions = {
+  animation: 'ios_from_right',
+  headerTitleAlign: 'center',
+  headerTransparent: true,
+} as const;
 
 export const EXPIRE_ONE_DAY = 1000 * 60 * 60 * 24; // 一天的毫秒数
 

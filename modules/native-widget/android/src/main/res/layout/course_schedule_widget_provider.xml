@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/schedule_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:orientation="vertical">
+    <!-- 最左边空白的格子 -->
+    <LinearLayout
+        android:id="@+id/weekday_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/weekday_bg"
+        android:orientation="horizontal"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:layout_marginBottom="5dp">
+        <!-- 星期一的格子 -->
+        <TextView
+            android:layout_width="25dp"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            style="@style/WidgetItem"
+            android:text="一" />
+
+        <TextView
+
+            style="@style/WidgetItem"
+            android:text="二" />
+
+        <TextView
+
+            style="@style/WidgetItem"
+            android:text="三" />
+
+        <TextView
+
+            style="@style/WidgetItem"
+            android:text="四" />
+
+        <TextView
+
+            style="@style/WidgetItem"
+            android:text="五" />
+
+        <TextView
+            style="@style/WidgetItem"
+            android:text="六" />
+
+        <TextView
+            style="@style/WidgetItem"
+            android:text="日" />
+    </LinearLayout>
+    <!-- 课程表body部分 -->
+    <ListView
+        android:id="@+id/list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:divider="@null"
+        android:listSelector="@color/transparent" />
+</LinearLayout>

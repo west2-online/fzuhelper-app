@@ -1,11 +1,9 @@
-name: Build and Publish APK
+name: Build APK
 
 on:
   push:
     branches:
       - master
-    tags:
-      - '*'
   workflow_dispatch:
 
 concurrency:
@@ -15,10 +13,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25  # 设置超时防止卡死
-
-    permissions:
-      contents: write
+    timeout-minutes: 30
 
     steps:
       - name: Checkout source code
@@ -26,7 +21,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 分层缓存策略
       - name: Restore Cache
         uses: actions/cache@v4
         with:
@@ -45,7 +39,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: microsoft
           java-version: 17.0
 
       - name: Setup Gradle
@@ -54,11 +48,8 @@ jobs:
           gradle-version: 8.8
           cache-disabled: false
 
-      # 并行安装依赖
-      - name: Install Dependencies
-        run: |
-          yarn install --frozen-lockfile --prefer-offline &
-          wait
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --prefer-offline
 
       - name: Prebuild
         run: yarn run prebuild:android
@@ -76,125 +67,18 @@ jobs:
           KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
           SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
 
-      - name: Delete alpha release using GitHub CLI
-        run: |
-          if gh release view alpha; then
-            gh release delete alpha --yes
-          else
-            echo "No alpha release exists."
-          fi
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Prepare Release Assets
-        id: prepare-assets
+      - name: Extract Version Info
         shell: bash
         run: |
-          version_code=$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')
-          version_name=$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')
-          changelog=$(git log -3 --pretty=format:"%s%n%b%n")
+          echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
+          echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
+          echo "$(git log -3 --pretty=format:"%s%n%b%n")" > android/app/build/outputs/changelog
 
-          echo "$version_code" > version-code
-          echo "$version_name" > version-name
-          echo "$changelog" > changelog
-
-          apk_filename="FzuHelper_${version_name}(${version_code}).apk"
-          cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk "${apk_filename}"
-          echo "$apk_filename" > apk-filename
-          
-          echo "version_code=$version_code" >> $GITHUB_OUTPUT
-          echo "version_name=$version_name" >> $GITHUB_OUTPUT
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$changelog" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          echo "apk_filename=$apk_filename" >> $GITHUB_OUTPUT
-
-          if git diff --quiet HEAD^ HEAD; then
-            echo "无代码变动，跳过发布"
-            echo "SKIP_RELEASE=true" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Create GitHub PreRelease
-        if: steps.prepare-assets.outputs.SKIP_RELEASE != 'true'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: alpha
-          name: "Alpha"
-          body: |
-            ${{ steps.prepare-assets.outputs.changelog }}
-            
-            此版本为新架构测试版，请提前加入内测群 1020036141 了解详情
-          prerelease: true
-          files: |
-            ${{ steps.prepare-assets.outputs.apk_filename }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-      
-      - name: Validate tag format
-        id: validate-tag
-        run: |
-          if [[ ! ${{ github.ref_name }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "⚠️ 跳过非标准版本tag: ${{ github.ref_name }}"
-            echo "skip_release=true" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Get version info
-        if: steps.validate-tag.outputs.skip_release != 'true'
-        id: version-info
-        run: |
-          CURRENT_VERSION=${GITHUB_REF_NAME}
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-
-          git fetch --tags --force
-          ALL_TAGS=$(git tag -l "*.*.*" --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')
-          
-          PREV_TAG=$(echo "$ALL_TAGS" | grep -B1 "$GITHUB_REF_NAME" | head -n1)
-          
-          [ -z "$PREV_TAG" ] && PREV_TAG=$(git rev-list --max-parents=0 HEAD)
-          
-          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
-
-      - name: Generate changelog
-        if: steps.validate-tag.outputs.skip_release != 'true'
-        id: changelog
-        run: |
-          CHANGELOG=$(git log --pretty=format:"- [%%h] %%s (by %%an)" \
-            --date=short \
-            --no-merges \
-            ${{ steps.version-info.outputs.prev_tag }}..HEAD | sed 's/%/%%/g')
-
-          COMPARE_URL="https://github.com/${{ github.repository }}/compare/${{ steps.version-info.outputs.prev_tag }}...${{ github.ref_name }}"
-          
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "## [${{ steps.version-info.outputs.current_version }}]($COMPARE_URL)" >> $GITHUB_OUTPUT
-          echo "### $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        if: steps.validate-tag.outputs.skip_release != 'true'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ steps.version-info.outputs.current_version }}
-          generate_release_notes: true  # 自动生成发布说明
-          body: ${{ steps.changelog.outputs.changelog }}
-          prerelease: false
-          files: |
-            ${{ steps.prepare-assets.outputs.apk_filename }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-    
-      - name: Upload Artifacts
+      - name: Upload outputs
         uses: actions/upload-artifact@v4
         with:
-          name: release-assets
-          path: |
-            ${{ steps.prepare-assets.outputs.apk_filename }}
-            version-code
-            version-name
-            changelog
-            apk-filename
+          name: outputs
+          path: android/app/build/outputs
           retention-days: 0
 
   publish:
@@ -206,17 +90,20 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: release-assets
-          path: artifacts
+          name: outputs
+          path: ${{ github.workspace }}/outputs/
 
-      - name: Load Metadata
-        id: metadata
+      - name: Extract Version Info
+        id: version-info
         shell: bash
         run: |
-          echo "version_code=$(cat artifacts/version-code)" >> $GITHUB_OUTPUT
-          echo "version_name=$(cat artifacts/version-name)" >> $GITHUB_OUTPUT
-          echo "apk_filename=$(cat artifacts/apk-filename)" >> $GITHUB_OUTPUT
-          echo "changelog=$(cat artifacts/changelog)" >> $GITHUB_OUTPUT
+          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
+          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
+          {
+            echo "CHANGELOG<<BSEOF"
+            cat $GITHUB_WORKSPACE/outputs/changelog
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Get Upload Params
         id: upload-params
@@ -231,7 +118,9 @@ jobs:
       - name: Upload to UPYUN
         id: upload-apk
         run: |
-          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \          
+          cd $GITHUB_WORKSPACE/outputs/apk/release
+          mv app-arm64-v8a-release.apk $APK_FILENAME
+          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \
             -F "file=@$APK_FILENAME" \
             -F "policy=$UPYUN_POLICY" \
             -F "authorization=$UPYUN_AUTH")
@@ -240,7 +129,7 @@ jobs:
 
           echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_OUTPUT"
         env:
-          APK_FILENAME: "artifacts/${{ steps.metadata.outputs.apk_filename }}"
+          APK_FILENAME: FzuHelper_${{ steps.version-info.outputs.APP_VERSION_NAME }}(${{ steps.version-info.outputs.APP_VERSION_CODE }}).apk
           UPYUN_POLICY: ${{ steps.upload-params.outputs.UPYUN_POLICY }}
           UPYUN_AUTH: ${{ steps.upload-params.outputs.UPYUN_AUTH }}
 
@@ -259,7 +148,75 @@ jobs:
           CHANNEL: beta
           FORCE: true
           ANDROID_UPDATE_PWD: ${{ secrets.ANDROID_UPDATE_PWD }}
-          APP_VERSION_NAME: ${{ steps.metadata.outputs.version_name }}
-          APP_VERSION_CODE: ${{ steps.metadata.outputs.version_code }}
-          CHANGELOG: ${{ steps.metadata.outputs.changelog }}
+          APP_VERSION_NAME: ${{ steps.version-info.outputs.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ steps.version-info.outputs.APP_VERSION_CODE }}
+          CHANGELOG: ${{ steps.version-info.outputs.CHANGELOG }}
           DOWNLOAD_URL: ${{ steps.upload-apk.outputs.DOWNLOAD_URL }}
+
+  publish-alpha:
+    runs-on: ubuntu-latest
+    environment: alpha
+    needs:
+      - build
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: outputs
+          path: ${{ github.workspace }}/outputs/
+
+      - name: Extract Version Info
+        id: version-info
+        shell: bash
+        run: |
+          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
+          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
+          {
+            echo "CHANGELOG<<BSEOF"
+            cat $GITHUB_WORKSPACE/outputs/changelog
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Get APK Filename
+        id: get-apk-filename
+        run: |
+          echo "APK_FILENAME=FzuHelper_${APP_VERSION_NAME}(${APP_VERSION_CODE}).apk" >> "$GITHUB_OUTPUT"
+        env:
+          APP_VERSION_NAME: ${{ steps.version-info.outputs.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ steps.version-info.outputs.APP_VERSION_CODE }}
+
+      - name: Delete alpha release using GitHub CLI
+        run: |
+          if gh release view alpha; then
+            gh release delete alpha --yes
+          else
+            echo "No alpha release exists."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Move APK File
+        run: |
+          mv $GITHUB_WORKSPACE/outputs/apk/release/app-arm64-v8a-release.apk $APK_FILENAME
+        env:
+          APK_FILENAME: ${{ steps.get-apk-filename.outputs.apk_filename }}
+
+      - name: Create GitHub Pre-Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: alpha
+          name: 'Alpha'
+          body: |
+            ${{ steps.version-info.outputs.CHANGELOG }}
+
+            此版本为新架构测试版，请提前加入内测群 1020036141 了解详情
+          prerelease: true
+          files: |
+            ${{ steps.get-apk-filename.outputs.apk_filename }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
