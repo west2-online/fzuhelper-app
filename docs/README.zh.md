@@ -1,4 +1,4 @@
-> 警告（仅限中文）：本项目受福州大学统一指导，由福州大学计算机与大数据学院、福州大学网络安全与信息化办公室管理（以上单位合称“官方”）。本源代码使用宽松开源协议，但仅供学习参考，不允许直接或间接性使用/修改后使用在任何非官方和 west2-online 外的应用、网站、App 及任何可以与用户产生交互的互联网信息媒介中。本警告具备行政约束效力。
+> 警告：本项目受福州大学统一指导，由福州大学计算机与大数据学院、福州大学网络安全与信息化办公室管理（以上单位合称“官方”）。本源代码使用宽松开源协议，但仅供学习参考，不允许直接或间接性使用/修改后使用在任何非官方和 west2-online 外的应用、网站、App 及任何可以与用户产生交互的互联网信息媒介中。本警告具备行政约束效力。
 
 <div align="center">
   <h1 style="display: inline-block; vertical-align: middle;">fzuhelper-app</h1>
@@ -13,6 +13,16 @@
 fzuhelper-app 是一个使用 React Native 跨端技术开发的客户端应用，每天为福州大学约 2 万至 3 万名学生提供服务。([fzuhelper 数据来源与介绍](https://west2-online.feishu.cn/wiki/RG3UwWGqPig8lHk0mYsccKWRnrd))。
 
 > fzuhelper 于 2015 年上线，由 west2-online 从零开始开发并持续运营，尽可能为校内学生提供工业级实践，同时为学生就业提供有力支持。
+
+<div style="display: flex; overflow-x: auto;">
+  <img src="./images/preview/calendar.jpeg" alt="课表" style="width: 200px; margin-right: 10px;">
+  <img src="./images/preview/toolbox.jpeg" alt="工具箱" style="width: 200px; margin-right: 10px;">
+  <img src="./images/preview/scores.jpeg" alt="成绩" style="width: 200px; margin-right: 10px;">
+  <img src="./images/preview/learning-center.jpeg" alt="学习中心" style="width: 200px; margin-right: 10px;">
+  <img src="./images/preview/empty-room.jpeg" alt="空教室" style="width: 200px; margin-right: 10px;">
+  <img src="./images/preview/exam-room.jpeg" alt="考场" style="width: 200px; margin-right: 10px;">
+  <img src="./images/preview/qrcode.jpeg" alt="二维码" style="width: 200px; margin-right: 10px;">
+</div>
 
 ## 快速开始
 
