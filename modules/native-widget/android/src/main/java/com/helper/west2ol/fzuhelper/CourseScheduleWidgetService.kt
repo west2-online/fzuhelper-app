@@ -10,6 +10,7 @@ import com.google.gson.Gson
 import com.west2online.nativewidget.R
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.math.abs
 
 class CourseScheduleWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent?): RemoteViewsFactory {
@@ -182,7 +183,7 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                                 name += "..."
                             }
                             val bg = if (preCourseIndex > 0) {
-                                bgCourses[kc.color.hashCode() % bgCourses.size]
+                                bgCourses[abs(kc.color.hashCode()) % bgCourses.size]
                             } else {
                                 R.drawable.bg_course_0
                             }
