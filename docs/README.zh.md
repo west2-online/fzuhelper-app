@@ -14,6 +14,8 @@ fzuhelper-app 是一个使用 React Native 跨端技术开发的客户端应用�
 
 > fzuhelper 于 2015 年上线，由 west2-online 从零开始开发并持续运营，尽可能为校内学生提供工业级实践，同时为学生就业提供有力支持。
 
+<details>
+<summary><b>App 预览图 [click to expand]</b></summary>
 <div style="display: flex; overflow-x: auto;">
   <img src="./images/preview/calendar.jpeg" alt="课表" style="width: 200px; margin-right: 10px;">
   <img src="./images/preview/toolbox.jpeg" alt="工具箱" style="width: 200px; margin-right: 10px;">
@@ -23,6 +25,7 @@ fzuhelper-app 是一个使用 React Native 跨端技术开发的客户端应用�
   <img src="./images/preview/exam-room.jpeg" alt="考场" style="width: 200px; margin-right: 10px;">
   <img src="./images/preview/qrcode.jpeg" alt="二维码" style="width: 200px; margin-right: 10px;">
 </div>
+</details>
 
 ## 快速开始
 

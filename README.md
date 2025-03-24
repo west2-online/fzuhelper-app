@@ -14,6 +14,8 @@ fzuhelper-app is a client app that uses React Native cross-end technology. It su
 
 > fzuhelper was launched in 2015, developed from scratch by west2-online and continuously operated, providing students with industrial-grade practice as much as possible on campus and offering robust support for student employment.
 
+<details>
+<summary><b>App Previews [click to expand]</b></summary>
 <div style="display: flex; overflow-x: auto;">
   <img src="./docs/images/preview/calendar.jpeg" alt="课表" style="width: 200px; margin-right: 10px;">
   <img src="./docs/images/preview/toolbox.jpeg" alt="工具箱" style="width: 200px; margin-right: 10px;">
@@ -23,6 +25,7 @@ fzuhelper-app is a client app that uses React Native cross-end technology. It su
   <img src="./docs/images/preview/exam-room.jpeg" alt="考场" style="width: 200px; margin-right: 10px;">
   <img src="./docs/images/preview/qrcode.jpeg" alt="二维码" style="width: 200px; margin-right: 10px;">
 </div>
+</details>
 
 ## Quick Start
 
