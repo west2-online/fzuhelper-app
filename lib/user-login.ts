@@ -82,13 +82,13 @@ class UserLogin {
     return Buffer.from(response).toString('utf-8').replace(/\s+/g, '');
   }
 
-  #checkErrors(data: string): string | null {
+  #checkErrors(data: string): string {
     for (const [key, message] of Object.entries(ERROR_MESSAGES)) {
       if (data.includes(key)) {
         return message;
       }
     }
-    return null;
+    return '未知错误';
   }
 
   async #get(url: string, headers: Record<string, string>) {
@@ -129,6 +129,12 @@ class UserLogin {
     };
 
     const { data: _data } = await this.#post(JWCH_URLS.LOGIN_CHECK, headers, formData);
+    if (!_data) {
+      return rejectWith({
+        type: RejectEnum.NativeLoginFailed,
+        data: '接收到数据为空',
+      });
+    }
     const data = this.#responseToString(_data);
     const result = this.#checkErrors(data);
     if (result) {
@@ -239,6 +245,14 @@ class UserLogin {
     };
 
     const { data: _data, headers: resHeaders } = await this.#post(YJSY_URLS.LOGIN, headers, formData);
+    // 需要判断_data是否为 null
+    if (!_data) {
+      return rejectWith({
+        type: RejectEnum.NativeLoginFailed,
+        data: '接收到数据为空',
+      });
+    }
+
     const data = this.#responseToString(_data);
     const result = this.#checkErrors(data);
     if (result) {
