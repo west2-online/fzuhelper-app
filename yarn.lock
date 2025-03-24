@@ -2037,6 +2037,11 @@
   resolved "https://registry.yarnpkg.com/@react-native-clipboard/clipboard/-/clipboard-1.16.1.tgz#d92753bf3f850541f8250ad1705c787c6a246f1b"
   integrity sha512-YdSwSS3P4IiJq5nW0iv3qpntDAzBf/xoew2zRPGJ6SJZr/Lhk4aWyR506EWl6BID+iQy7xQmzHXZYR5H4apM6g==
 
+"@react-native-community/geolocation@^3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/geolocation/-/geolocation-3.4.0.tgz#8b6ee024a71cf94526ab796af1e9ae140684802c"
+  integrity sha512-bzZH89/cwmpkPMKKveoC72C4JH0yF4St5Ceg/ZM9pA1SqX9MlRIrIrrOGZ/+yi++xAvFDiYfihtn9TvXWU9/rA==
+
 "@react-native-cookies/cookies@^6.2.1":
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/@react-native-cookies/cookies/-/cookies-6.2.1.tgz#54d50b9496400bbdc19e43c155f70f8f918999e3"
@@ -9223,10 +9228,10 @@ react-native-pager-view@^6.7.0:
   resolved "https://registry.yarnpkg.com/react-native-pager-view/-/react-native-pager-view-6.7.0.tgz#88f2520e85f07ce55f3f56c57d6637249a215160"
   integrity sha512-sutxKiMqBuQrEyt4mLaLNzy8taIC7IuYpxfcwQBXfSYBSSpAa0qE9G1FXlP/iXqTSlFgBXyK7BESsl9umOjECQ==
 
-react-native-permissions@^5.2.5:
-  version "5.2.5"
-  resolved "https://registry.yarnpkg.com/react-native-permissions/-/react-native-permissions-5.2.5.tgz#c431b7dc15213dd87cebad0ba5658eaf7c30efd3"
-  integrity sha512-pECev4EuA+XAq9kduJu9V5OtqKlOokf+5lawPmkTHvr6LoOl6VLZlI2Ue4tnOu1PLc6tQaG19kQ5gbKG4gyNAw==
+react-native-permissions@^5.3.0:
+  version "5.3.0"
+  resolved "https://registry.npmjs.org/react-native-permissions/-/react-native-permissions-5.3.0.tgz#987ec347d312306b4aeca548996a16f6f129992d"
+  integrity sha512-krDaImQ7J8tm7P+GqKmTIkojNqdO0E6v2x7TOlX/7rRc/zlpoqRXsN7210ecChcUmEOJEH6wzPcemYq+7AfZiw==
 
 react-native-qrcode-svg@^6.3.12:
   version "6.3.14"

@@ -1,15 +1,18 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
 import CookieManager from '@react-native-cookies/cookies';
 import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { WebView } from 'react-native-webview';
+import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
 import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
+
 import {
   JWCH_COOKIES_DOMAIN,
   SSO_LOGIN_COOKIE_DOMAIN,
@@ -19,8 +22,7 @@ import {
 } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
 import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
-import { getScriptByURL } from '@/utils/dom-cleaner';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 
 export interface WebParams {
   url: string; // URL 地址
@@ -160,6 +162,8 @@ export default function Web() {
       return () => {
         subscription.remove();
       };
+    } else if (Platform.OS === 'ios') {
+      Geolocation.requestAuthorization();
     }
   }, [canGoBack]);
 
@@ -185,6 +189,11 @@ export default function Web() {
         }
 
         webViewRef.current?.injectJavaScript(getScriptByURL(event.url, colorScheme));
+        if (Platform.OS === 'ios') {
+          webViewRef.current?.injectJavaScript(getGeoLocationJS()); // 注入定位设计
+          // Android 不需要注入这个代码也可以授权，但是即使定位到了，易班也提示定位失败
+          // 基本是易班的问题
+        }
 
         setTimeout(() => {
           setInjectedScript(true);
@@ -193,6 +202,43 @@ export default function Web() {
     },
     [title, colorScheme],
   );
+
+  // 方案参考：https://stackoverflow.com/questions/74347489/how-to-pass-geolocation-permission-to-react-native-webview
+  // 实际上在一些需要定位的站点内，请求没有问题，但是易班的签到仍然提示定位失效。
+  // 考虑到其他站点没有问题，暂时保留这部分代码。
+  const handleOnMessage = (event: WebViewMessageEvent) => {
+    let data: { event?: string; options?: GeolocationOptions; watchID?: number } = {};
+    try {
+      data = JSON.parse(event.nativeEvent.data);
+    } catch (err: any) {
+      console.error('Failed to parse message:', err);
+      return;
+    }
+
+    if (data?.event && data.event === 'getCurrentPosition') {
+      Geolocation.getCurrentPosition(
+        position => {
+          webViewRef.current!.postMessage(JSON.stringify({ event: 'currentPosition', data: position }));
+        },
+        error => {
+          webViewRef.current!.postMessage(JSON.stringify({ event: 'currentPositionError', data: error }));
+        },
+        data.options,
+      );
+    } else if (data?.event && data.event === 'watchPosition') {
+      Geolocation.watchPosition(
+        position => {
+          webViewRef.current!.postMessage(JSON.stringify({ event: 'watchPosition', data: position }));
+        },
+        error => {
+          webViewRef.current!.postMessage(JSON.stringify({ event: 'watchPositionError', data: error }));
+        },
+        data.options,
+      );
+    } else if (data?.event && data.event === 'clearWatch') {
+      Geolocation.clearWatch(data.watchID ?? 0);
+    }
+  };
 
   // 如果传入sso且需要sso登录，则跳转到sso登录页面
   if (needSSOLogin) {
@@ -220,6 +266,7 @@ export default function Web() {
                 cacheEnabled // 启用缓存
                 cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
                 javaScriptEnabled // 确保启用 JavaScript
+                startInLoadingState={true} // 启用加载状态
                 //
                 // Android 平台设置
                 onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回（Android）
@@ -227,6 +274,7 @@ export default function Web() {
                 renderToHardwareTextureAndroid // 启用硬件加速（Android）
                 setDisplayZoomControls={false} // 隐藏缩放控件图标（Android）
                 setBuiltInZoomControls // 启用内置缩放控件（Android）
+                geolocationEnabled={true} // 启用定位（Android）
                 //
                 // iOS 平台设置
                 allowsBackForwardNavigationGestures // 启用手势返回（iOS）
@@ -236,6 +284,7 @@ export default function Web() {
                 // 事件处理
                 onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
                 onNavigationStateChange={handleNavigationStateChange}
+                onMessage={handleOnMessage}
                 // 当脚本未注入完成时隐藏 WebView
                 className={injectedScript ? 'flex-1' : 'hidden bg-background'}
               />

@@ -4,6 +4,7 @@ import { Alert, AppState, Platform } from 'react-native';
 import {
   NotificationSettings,
   PERMISSIONS,
+  Permission,
   RESULTS,
   checkMultiple,
   checkNotifications,
@@ -25,6 +26,7 @@ export default function AcademicPage() {
   const [isAllowNotification, setAllowNotification] = useState(false); // 通知权限
   const [isAllowCalendar, setAllowCalendar] = useState(false); // 日历权限
   const [isAllowCamera, setAllowCamera] = useState(false); // 相机权限
+  const [isAllowLocation, setAllowLocation] = useState(false); // 定位权限
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(); // 目前允许的通知内容
   const appState = useRef(AppState.currentState);
 
@@ -47,17 +49,24 @@ export default function AcademicPage() {
         PERMISSIONS.ANDROID.READ_CALENDAR,
         PERMISSIONS.ANDROID.WRITE_CALENDAR,
         PERMISSIONS.ANDROID.CAMERA,
+        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
       ]).then(statues => {
         setAllowCalendar(
           statues[PERMISSIONS.ANDROID.READ_CALENDAR] === RESULTS.GRANTED &&
             statues[PERMISSIONS.ANDROID.WRITE_CALENDAR] === RESULTS.GRANTED,
         ); // 日历权限
         setAllowCamera(statues[PERMISSIONS.ANDROID.CAMERA] === RESULTS.GRANTED); // 相机权限
+        setAllowLocation(statues[PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION] === RESULTS.GRANTED); // 定位权限
       });
     } else if (Platform.OS === 'ios') {
-      await checkMultiple([PERMISSIONS.IOS.CALENDARS, PERMISSIONS.IOS.CAMERA]).then(statues => {
+      await checkMultiple([
+        PERMISSIONS.IOS.CALENDARS,
+        PERMISSIONS.IOS.CAMERA,
+        PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+      ]).then(statues => {
         setAllowCalendar(statues[PERMISSIONS.IOS.CALENDARS] === RESULTS.GRANTED); // 日历权限
         setAllowCamera(statues[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED); // 相机权限
+        setAllowLocation(statues[PERMISSIONS.IOS.LOCATION_WHEN_IN_USE] === RESULTS.GRANTED); // 定位权限
       });
 
       await checkNotifications().then(({ status, settings }) => {
@@ -83,6 +92,7 @@ export default function AcademicPage() {
     };
   }, []); // 放空使得只加载一次
 
+  // 通知权限比较特殊，需要单独处理
   const handleNotificationPermission = () => {
     if (Platform.OS === 'android') {
       openNotificationSettings();
@@ -126,86 +136,69 @@ export default function AcademicPage() {
     }
   };
 
-  const handleCalendarPermission = () => {
-    if (Platform.OS === 'ios') {
-      if (isAllowCalendar) {
+  // 这个函数可以处理大部分权限
+  // 对于安卓来说，permission 不需要考虑，它只会打开设置页
+  const handleStandardPermission = useCallback(
+    async (
+      permission: Permission,
+      key: string,
+      isAllowed: boolean,
+      setPermissionState: React.Dispatch<React.SetStateAction<boolean>>,
+    ) => {
+      if (Platform.OS === 'android') {
         openApplicationSettings();
         return;
       }
-      request(PERMISSIONS.IOS.CALENDARS).then(result => {
-        switch (result) {
-          case RESULTS.DENIED:
-            toast.error('您已拒绝了日历权限');
-            break;
-          case RESULTS.UNAVAILABLE:
-            toast.error('当前设备不支持日历权限');
-            break;
-          case RESULTS.BLOCKED:
-            Alert.alert(
-              '提示',
-              '日历权限被手动关闭，需要您手动打开。点击确认跳转设置页',
-              [
-                {
-                  text: '取消',
-                  style: 'cancel', // iOS 上会显示为取消按钮样式
-                },
-                {
-                  text: '去设置',
-                  onPress: openApplicationSettings,
-                },
-              ],
-              { cancelable: true },
-            );
-            break;
-          case RESULTS.GRANTED:
-            setAllowCalendar(true);
-            break;
-        }
-      });
-    } else if (Platform.OS === 'android') {
-      openApplicationSettings();
-    }
+
+      if (isAllowed) {
+        openApplicationSettings();
+        return;
+      }
+
+      const result = await request(permission);
+
+      switch (result) {
+        case RESULTS.DENIED:
+          toast.error(`您已拒绝了${key}权限`);
+          break;
+        case RESULTS.UNAVAILABLE:
+          toast.error(`当前设备不支持${key}权限`);
+          break;
+        case RESULTS.BLOCKED:
+          Alert.alert(
+            '提示',
+            `${key}权限被手动关闭，需要您手动打开。点击确认跳转设置页`,
+            [
+              {
+                text: '取消',
+                style: 'cancel',
+              },
+              {
+                text: '去设置',
+                onPress: openApplicationSettings,
+              },
+            ],
+            { cancelable: true },
+          );
+          break;
+        case RESULTS.GRANTED:
+          setPermissionState(true);
+          break;
+      }
+    },
+    [],
+  );
+
+  const handleCalendarPermission = () => {
+    handleStandardPermission(PERMISSIONS.IOS.CALENDARS, '日历', isAllowCalendar, setAllowCalendar);
   };
 
   const handleCameraPermission = () => {
-    if (Platform.OS === 'ios') {
-      if (isAllowCamera) {
-        openApplicationSettings();
-        return;
-      }
-      request(PERMISSIONS.IOS.CAMERA).then(result => {
-        switch (result) {
-          case RESULTS.DENIED:
-            toast.error('您已拒绝了相机权限');
-            break;
-          case RESULTS.UNAVAILABLE:
-            toast.error('当前设备不支持相机权限');
-            break;
-          case RESULTS.BLOCKED:
-            Alert.alert(
-              '提示',
-              '相机权限被手动关闭，需要您手动打开。点击确认跳转设置页',
-              [
-                {
-                  text: '取消',
-                  style: 'cancel', // iOS 上会显示为取消按钮样式
-                },
-                {
-                  text: '去设置',
-                  onPress: openApplicationSettings,
-                },
-              ],
-              { cancelable: true },
-            );
-            break;
-          case RESULTS.GRANTED:
-            setAllowCamera(true);
-            break;
-        }
-      });
-    } else if (Platform.OS === 'android') {
-      openApplicationSettings();
-    }
+    handleStandardPermission(PERMISSIONS.IOS.CAMERA, '相机', isAllowCamera, setAllowCamera);
+  };
+
+  const handleLocationPermission = () => {
+    handleStandardPermission(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE, '定位', isAllowLocation, setAllowLocation);
   };
 
   return (
@@ -221,13 +214,6 @@ export default function AcademicPage() {
             </Text>
 
             <LabelEntry
-              leftText="日历权限"
-              onPress={handleCalendarPermission}
-              description="用于导出课表、考场安排等内容到日历"
-              rightText={isAllowCalendar ? '已开启' : '未开启'}
-            />
-
-            <LabelEntry
               leftText="通知权限"
               onPress={handleNotificationPermission}
               description="用于推送成绩更新、教务处通知等内容"
@@ -235,10 +221,24 @@ export default function AcademicPage() {
             />
 
             <LabelEntry
+              leftText="日历权限"
+              onPress={handleCalendarPermission}
+              description="用于导出课表、考场安排等内容到日历"
+              rightText={isAllowCalendar ? '已开启' : '未开启'}
+            />
+
+            <LabelEntry
               leftText="相机权限"
               onPress={handleCameraPermission}
               description="用于学习中心扫码签到等功能"
               rightText={isAllowCamera ? '已开启' : '未开启'}
+            />
+
+            <LabelEntry
+              leftText="定位权限"
+              onPress={handleLocationPermission}
+              description="用于校本化签到定位等功能"
+              rightText={isAllowLocation ? '已开启' : '未开启'}
             />
           </SafeAreaView>
         </ScrollView>
