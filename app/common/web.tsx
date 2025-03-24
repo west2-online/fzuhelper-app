@@ -162,6 +162,8 @@ export default function Web() {
       return () => {
         subscription.remove();
       };
+    } else if (Platform.OS === 'ios') {
+      Geolocation.requestAuthorization();
     }
   }, [canGoBack]);
 
@@ -187,7 +189,11 @@ export default function Web() {
         }
 
         webViewRef.current?.injectJavaScript(getScriptByURL(event.url, colorScheme));
-        webViewRef.current?.injectJavaScript(getGeoLocationJS()); // 注入定位设计
+        if (Platform.OS === 'ios') {
+          webViewRef.current?.injectJavaScript(getGeoLocationJS()); // 注入定位设计
+          // Android 不需要注入这个代码也可以授权，但是即使定位到了，易班也提示定位失败
+          // 基本是易班的问题
+        }
 
         setTimeout(() => {
           setInjectedScript(true);
