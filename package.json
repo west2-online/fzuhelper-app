@@ -2,7 +2,7 @@
   "name": "fzuhelper-app",
   "main": "expo-router/entry",
   "//": "下面的 version 每一位都只能是【一位】数字！！！",
-  "version": "7.0.1",
+  "version": "7.1.0",
   "private": true,
   "scripts": {
     "start": "expo start",
@@ -68,6 +68,7 @@
     "expo-linking": "~7.0.5",
     "expo-localization": "~16.0.1",
     "expo-navigation-bar": "^4.0.7",
+    "expo-quick-actions": "^4.0.2",
     "expo-router": "~4.0.17",
     "expo-sharing": "~13.0.1",
     "expo-splash-screen": "~0.29.21",

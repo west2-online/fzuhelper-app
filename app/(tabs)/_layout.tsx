@@ -1,4 +1,6 @@
 import { BlurView } from 'expo-blur';
+import * as QuickActions from 'expo-quick-actions';
+import { type RouterAction, useQuickActionRouting } from 'expo-quick-actions/router';
 import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
@@ -13,6 +15,8 @@ const NAVIGATION_TITLE = '首页';
 
 // 进入这个 Layout，我们视为进入 app 主页面，因此会设置一些额外逻辑，比如关于 app 状态的一些信息
 export default function TabLayout() {
+  useQuickActionRouting();
+
   const navigation = useNavigation();
   const appState = useRef(AppState.currentState);
   const { handleError } = useSafeResponseSolve();
@@ -67,6 +71,46 @@ export default function TabLayout() {
       });
     }
   }, [handleError]);
+
+  // 设置快捷操作（Android，iOS 需要同步配置config，详见 @/app.config.ts ）
+  useEffect(() => {
+    QuickActions.setItems<RouterAction>([
+      {
+        id: '1',
+        title: '一码通',
+        params: { href: '/qrcode' },
+        icon: 'qrcode',
+      },
+    ]);
+  }, []);
+
+  // 以下代码用于监听 Universal Link，但是注意到 Expo 已经帮忙处理了，目前暂时不启用
+  // 但是 Expo-Router 的跳转只能处理已有 URL，我们如果需要更丰富的跳转逻辑，仍然需要借助下面的代码，因此暂时保留
+  // useEffect(() => {
+  //   const handleUrl = (event: { url: string }) => {
+  //     const url = event.url;
+  //     console.log('Received URL:', url);
+  //     // 用于处理 Universal Link，目前使用到的场景是一码通的跳转，其他的没有使用
+  //     // 一码通的 URL会包含 west2.online/qrcode，因此我们可以根据这个来判断是否是一码通的跳转
+  //     if (url.includes('west2.online/open-qrcode')) {
+  //       router.push('/qrcode');
+  //     }
+  //   };
+  //   Linking.getInitialURL()
+  //     .then(url => {
+  //       if (url) {
+  //         handleUrl({ url });
+  //       }
+  //     })
+  //     .catch(err => console.error('Error getting initial URL:', err));
+
+  //   const subscription = Linking.addEventListener('url', handleUrl);
+
+  //   // 结束时卸载监听器
+  //   return () => {
+  //     subscription.remove();
+  //   };
+  // });
 
   return (
     <>

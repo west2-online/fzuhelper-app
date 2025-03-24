@@ -20,6 +20,7 @@ const config: ExpoConfig = {
     buildNumber: version,
     bitcode: true,
     supportsTablet: true,
+    associatedDomains: ['applinks:fzuhelperapp.west2.online'], // 支持 Apple Universal Link 功能
     icon: {
       // 此处影响的主要是自动变更的桌面图标，参考：https://support.apple.com/zh-cn/guide/iphone/iph385473442/ios
       dark: './assets/images/icon/dark.png',
@@ -38,6 +39,7 @@ const config: ExpoConfig = {
       NSLocationWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       LSApplicationQueriesSchemes: ['itms-apps'],
       CFBundleAllowMixedLocalizations: true,
+      CFBundleURLName: 'MEWHFZ92DY.FzuHelper.FzuHelper', // URL Scheme，用于跳转到 App，CFBundleURLSchemes Expo 已经帮忙配置好了
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: true, // 允许访问非 HTTPS 的内容
       },
@@ -151,6 +153,26 @@ const config: ExpoConfig = {
           backgroundColor: '#000000',
         },
         imageWidth: 200,
+      },
+    ],
+    [
+      'expo-quick-actions',
+      {
+        iosActions: [
+          {
+            id: '1',
+            title: '一码通',
+            subtitle: '一键跳转一码通',
+            icon: 'symbol:qrcode',
+            params: { href: '/qrcode' },
+          },
+        ],
+        androidIcons: {
+          qrcode: {
+            foregroundImage: './assets/images/qr_action.png',
+            backgroundColor: '#FFFFFF',
+          },
+        },
       },
     ],
     './with-android-theme',

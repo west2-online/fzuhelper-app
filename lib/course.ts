@@ -9,16 +9,16 @@ import {
   COURSE_TERMS_LIST_KEY,
   IOS_APP_GROUP,
 } from '@/lib/constants';
+import { setWidgetData } from '@/modules/native-widget';
 import { MergedExamData } from '@/types/academic';
 import { randomUUID } from '@/utils/crypto';
-import { courseColors, getExamColor } from '@/utils/random-color';
+import { allocateColorForCourse, clearColorMapping, courseColors, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
 import { getWeeksBySemester } from './locate-date';
-import { setWidgetData } from '@/modules/native-widget';
 
 export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
   JwchCourseListResponse_CourseScheduleRule;
@@ -349,6 +349,13 @@ export class CourseCache {
   }
 
   /**
+   * 类型谓词，用于判断是否为 CustomCourse 类型
+   */
+  public static isCustomCourse(course: CourseInfo): course is CustomCourse {
+    return course.type === CUSTOM_TYPE;
+  }
+
+  /**
    * 手动为某门课程设置优先级（不含考试）
    * @param course - 课程信息
    */
@@ -382,7 +389,7 @@ export class CourseCache {
         }
         const updatedCustomData = Object.values(this.cachedCustomData).map(day =>
           day.map(c => {
-            if (c.storageKey === course.storageKey) {
+            if (this.isCustomCourse(course) && c.storageKey === course.storageKey) {
               console.log(`Set priority for custom course ${course.name} to ${this.priorityCounter}`);
               this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
               return {
@@ -457,6 +464,7 @@ export class CourseCache {
           remark: time, // 备注、课程大纲和教学计划设置为空
           syllabus: '',
           lessonplan: '',
+          examType: '',
         };
         // 先将考试数据存储在 extendedCourses 中
         extendedCourses.push(course);
@@ -485,7 +493,7 @@ export class CourseCache {
   /**
    * 解析课程数据
    * @param courses - 原始课程数据
-   * @returns 解析后的课程数据
+   * @returns 解析后的课程数据，事实上是将返回的原始数据进行了按 schedule展开。
    */
   private static parseCourses(courses: JwchCourseListResponse_Course[]): ParsedCourse[] {
     return courses.flatMap(course =>
@@ -505,27 +513,30 @@ export class CourseCache {
    * @returns 按天归类的课程数据
    */
   public static setCourses(tempData: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
-    // 初始化 ID
-    this.startID = DEFAULT_STARTID;
+    /* 缓存校对处理，如果缓存和传入的数据一致，不做任何改动 */
+
     // 更新时间戳
     this.lastCourseUpdateTime = new Date().toLocaleString();
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(tempData);
-
     // 如果当前 digest 和上一次的 digest 一致，则直接返回缓存的 data
     if (currentDigest === this.cachedDigest && this.cachedData) {
       return this.cachedData;
     }
 
-    // 否则，重新处理数据
+    /* 到此处我们认为数据是不一致的，开始重新处理课程 */
+    this.startID = DEFAULT_STARTID; // 初始化 id
+    clearColorMapping(); // 清空颜色映射，重新分配颜色
+
     const schedules = this.parseCourses(tempData); // 解析课程数据
 
     // 为每个课程生成颜色并扩展数据
     const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
       const id = this.allocateID(); // 分配一个新的 ID
+      console.log('为课程' + schedule.name + '分配颜色: ' + courseColors[id % courseColors.length]);
       return {
         ...schedule,
-        color: courseColors[id % courseColors.length],
+        color: allocateColorForCourse(schedule.name), // 分配颜色
         priority: DEFAULT_PRIORITY, // 默认优先级
         id: id,
         type: COURSE_TYPE,
