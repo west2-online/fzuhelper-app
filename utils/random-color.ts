@@ -27,13 +27,57 @@ export const courseColors = [
   '#D4B8CE',
 ];
 
+const defaultColor = '#000000'; // 默认颜色(全黑)
 const examColor = '#FF6347'; // 考试的颜色
+const courseColorMap: Map<string, string> = new Map(); // 存储 courseName 和颜色的对
+// 应关系
+let availableColors = [...courseColors]; // 可用颜色数组
 
 /**
  * 返回考试的颜色
  * @returns 考试的颜色
  */
 export const getExamColor = (): string => examColor;
+
+/**
+ * 依据课程key 获取颜色
+ * @param course 课程信息
+ */
+export const allocateColorForCourse = (courseName: string): string => {
+  // 如果已经为这个 courseName 分配了颜色，直接返回
+  if (courseColorMap.has(courseName)) {
+    return courseColorMap.get(courseName)!;
+  }
+
+  // 如果没有可用颜色，返回默认颜色
+  if (availableColors.length === 0) {
+    console.warn('所有颜色都已选择，无法生成新颜色。');
+    return defaultColor; // 返回默认颜色或处理逻辑
+  }
+
+  // 随机选择一个颜色
+  const randomIndex = Math.floor(Math.random() * availableColors.length);
+  const color = availableColors[randomIndex];
+
+  // 从可用颜色数组中移除已选择的颜色
+  availableColors.splice(randomIndex, 1);
+
+  // 将新颜色与 courseName 的关系存储到映射中
+  courseColorMap.set(courseName, color);
+
+  console.log(`为课程 "${courseName}" 分配颜色:`, color);
+
+  return color;
+};
+
+/**
+ * 清空颜色索引和映射
+ */
+export const clearColorMapping = () => {
+  console.log('Clearing color index and resetting mappings');
+  availableColors = [...courseColors]; // 重置可用颜色数组
+  courseColorMap.clear(); // 清空 courseName 和颜色的映射
+};
 
 /**
  * 根据颜色模式获取课程颜色

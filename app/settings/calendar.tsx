@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Link, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -26,6 +26,7 @@ import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 export default function PersonalInfoListPage() {
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
+  const [switchDisabled, setSwitchDisabled] = useState(false);
 
   // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
@@ -50,6 +51,7 @@ export default function PersonalInfoListPage() {
   }, [settings, saveSettingsToStorage]);
 
   const handleSubscribeChange = async () => {
+    setSwitchDisabled(true);
     try {
       if (!settings.calendarExportEnabled) {
         // 如果用户开启了日历订阅，调用接口获取订阅地址，本地缓存 30 天。
@@ -77,6 +79,8 @@ export default function PersonalInfoListPage() {
       }
     } catch (error) {
       console.error('订阅地址获取失败:', error);
+    } finally {
+      setSwitchDisabled(false);
     }
   };
 
@@ -104,6 +108,7 @@ export default function PersonalInfoListPage() {
               label="启用日历订阅"
               value={settings.calendarExportEnabled}
               onValueChange={handleSubscribeChange}
+              disabled={switchDisabled}
             />
             {settings.calendarExportEnabled && (
               <View>

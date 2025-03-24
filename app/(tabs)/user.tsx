@@ -113,16 +113,17 @@ export default function HomePage() {
     },
   ];
 
+  // 获取用户信息
   const { data: userData } = usePersistedQuery({
     queryKey: [JWCH_USER_INFO_KEY],
     queryFn: () => getApiV1JwchUserInfo(),
-    cacheTime: 7 * EXPIRE_ONE_DAY, // 缓存 7 天
+    cacheTime: 1 * EXPIRE_ONE_DAY, // 缓存 1 天
   });
 
   // 获取当前学期信息
   const { data: termData } = usePersistedQuery({
     queryKey: [JWCH_CURRENT_SEMESTER_KEY],
-    queryFn: fetchJwchLocateDate,
+    queryFn: () => fetchJwchLocateDate(),
     cacheTime: EXPIRE_ONE_DAY, // 缓存 1 天
   });
 
@@ -130,12 +131,16 @@ export default function HomePage() {
   useEffect(() => {
     if (userData) {
       setUserInfo(userData.data.data);
+    } else {
+      setUserInfo(defaultUserInfo); // 清空学期信息
     }
   }, [userData]);
 
   useEffect(() => {
     if (termData) {
       setTermInfo(termData);
+    } else {
+      setTermInfo(defaultTermInfo); // 清空学期信息
     }
   }, [termData]);
 
