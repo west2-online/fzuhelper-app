@@ -82,13 +82,13 @@ class UserLogin {
     return Buffer.from(response).toString('utf-8').replace(/\s+/g, '');
   }
 
-  #checkErrors(data: string): string {
+  #checkErrors(data: string): string | null {
     for (const [key, message] of Object.entries(ERROR_MESSAGES)) {
       if (data.includes(key)) {
         return message;
       }
     }
-    return '未知错误';
+    return null;
   }
 
   async #get(url: string, headers: Record<string, string>) {
