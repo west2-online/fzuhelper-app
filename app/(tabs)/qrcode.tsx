@@ -1,12 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
-import { router, useFocusEffect } from 'expo-router';
+import { Tabs as ExpoTabs, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Platform, View } from 'react-native';
+import { Alert, Platform, Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import QRCode from 'react-native-qrcode-svg';
 import { toast } from 'sonner-native';
 
+import { Icon } from '@/components/Icon';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
@@ -15,13 +16,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 
+import FAQModal from '@/components/FAQModal';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { FAQ_QRCODE } from '@/lib/FAQ';
 import { DATETIME_SECOND_FORMAT, LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import { SSOlogoutAndCleanData as SSOLogout } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
 import YMTLogin, { type IdentifyRespData, type PayCodeRespData } from '@/lib/ymt-login';
-import { isAccountExist } from '@/utils/is-account-exist';
 
 const CurrentTime: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(dayjs().format(DATETIME_SECOND_FORMAT));
@@ -68,7 +70,8 @@ export default function YiMaTongPage() {
   const [identifyCode, setIdentifyCode] = useState<IdentifyRespData>(); // 身份码
   const [libCodeContent, setLibCodeContent] = useState<string>(); // 图书馆码
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
-  const [isRefreshing, setIsRefreshing] = useState(false); //
+  const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
+  const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
   const { handleError } = useSafeResponseSolve();
   const [qrWidth, setQrWidth] = useState(0);
   const redirect = useRedirectWithoutHistory();
@@ -193,99 +196,120 @@ export default function YiMaTongPage() {
     );
   }, [SSOlogoutAndCleanData]);
 
+  // 处理 Modal 显示事件
+  const handleModalVisible = useCallback(() => {
+    setShowFAQ(prev => !prev);
+  }, []);
+
   return (
-    <PageContainer>
-      {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <Loading />
-        </View>
-      ) : accessToken ? (
-        <View className="flex-1">
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="mt-6 flex-1 items-center">
-            <TabsList className="ml-auto w-auto flex-row">
-              <TabsTrigger value="消费码" className="w-auto">
-                <Text className="text-center">消费码</Text>
-              </TabsTrigger>
-              <TabsTrigger value="认证码" className="w-auto">
-                <Text className="text-center">认证码</Text>
-              </TabsTrigger>
-              <TabsTrigger value="入馆码" className="w-auto">
-                <Text className="text-center">入馆码</Text>
-              </TabsTrigger>
-            </TabsList>
+    <>
+      <ExpoTabs.Screen
+        options={{
+          title: '一码通',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: () => (
+            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
+              <Icon name="help-circle-outline" size={26} className="mr-4" />
+            </Pressable>
+          ),
+        }}
+      />
+      <PageContainer>
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <Loading />
+          </View>
+        ) : accessToken ? (
+          <View className="flex-1">
+            <Tabs value={currentTab} onValueChange={setCurrentTab} className="mt-6 flex-1 items-center">
+              <TabsList className="ml-auto w-auto flex-row">
+                <TabsTrigger value="消费码" className="w-auto">
+                  <Text className="text-center">消费码</Text>
+                </TabsTrigger>
+                <TabsTrigger value="认证码" className="w-auto">
+                  <Text className="text-center">认证码</Text>
+                </TabsTrigger>
+                <TabsTrigger value="入馆码" className="w-auto">
+                  <Text className="text-center">入馆码</Text>
+                </TabsTrigger>
+              </TabsList>
 
-            <View className="flex-1">
-              <Card className="flex-1 rounded-tl-4xl px-1">
-                <ScrollView className="pt-3">
-                  <CardHeader>
-                    <TabsContent value="消费码">
-                      <CardTitle>消费码</CardTitle>
-                    </TabsContent>
-                    <TabsContent value="认证码">
-                      <CardTitle>认证码</CardTitle>
-                    </TabsContent>
-                    <TabsContent value="入馆码">
-                      <CardTitle>入馆码</CardTitle>
-                    </TabsContent>
-
-                    <CardDescription className="mt-2">
-                      <CurrentTime />
-                      {name ? ` - ${name}` : ''}
-                    </CardDescription>
-                  </CardHeader>
-
-                  <CardContent
-                    className="flex-col items-center justify-center gap-4"
-                    onLayout={event => setQrWidth(event.nativeEvent.layout.width * 0.75)}
-                  >
-                    <TabsContent value="消费码">
-                      <QRCodeView size={qrWidth} value={payCodes?.[0].prePayId} />
-                    </TabsContent>
-                    <TabsContent value="认证码">
-                      <QRCodeView size={qrWidth} value={identifyCode?.content} color={identifyCode?.color} />
-                    </TabsContent>
-                    <TabsContent value="入馆码">
-                      <QRCodeView size={qrWidth} value={libCodeContent} />
-                    </TabsContent>
-
-                    <View className="flex-row gap-4">
-                      <Button onPress={logout} className="width-full flex-5" variant="outline">
-                        <Text>退出</Text>
-                      </Button>
-                      <Button
-                        onPress={() => refresh(accessToken)}
-                        className="width-full flex-1"
-                        disabled={isRefreshing}
-                      >
-                        <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
-                      </Button>
-                    </View>
-                  </CardContent>
-
-                  <CardFooter className="flex-row gap-4">
-                    <View className="w-full px-1">
-                      <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+              <View className="flex-1">
+                <Card className="flex-1 rounded-tl-4xl px-1">
+                  <ScrollView className="pt-3">
+                    <CardHeader>
                       <TabsContent value="消费码">
-                        <Text className="text-base text-text-secondary">
-                          消费码：适用于福州大学大门、生活区入口及宿舍楼门禁，不可用于桃李园消费。
-                        </Text>
+                        <CardTitle>消费码</CardTitle>
                       </TabsContent>
                       <TabsContent value="认证码">
-                        <Text className="text-base text-text-secondary">认证码：适用于福州大学铜盘校区入口门禁。</Text>
+                        <CardTitle>认证码</CardTitle>
                       </TabsContent>
                       <TabsContent value="入馆码">
-                        <Text className="text-base text-text-secondary">入馆码：适用于福州大学图书馆入口门禁。</Text>
+                        <CardTitle>入馆码</CardTitle>
                       </TabsContent>
-                    </View>
-                  </CardFooter>
-                </ScrollView>
-              </Card>
-            </View>
-          </Tabs>
-        </View>
-      ) : (
-        <LoginPrompt message="登录统一身份认证平台，享受一码通服务" />
-      )}
-    </PageContainer>
+
+                      <CardDescription className="mt-2">
+                        <CurrentTime />
+                        {name ? ` - ${name}` : ''}
+                      </CardDescription>
+                    </CardHeader>
+
+                    <CardContent
+                      className="flex-col items-center justify-center gap-4"
+                      onLayout={event => setQrWidth(event.nativeEvent.layout.width * 0.75)}
+                    >
+                      <TabsContent value="消费码">
+                        <QRCodeView size={qrWidth} value={payCodes?.[0].prePayId} />
+                      </TabsContent>
+                      <TabsContent value="认证码">
+                        <QRCodeView size={qrWidth} value={identifyCode?.content} color={identifyCode?.color} />
+                      </TabsContent>
+                      <TabsContent value="入馆码">
+                        <QRCodeView size={qrWidth} value={libCodeContent} />
+                      </TabsContent>
+
+                      <View className="flex-row gap-4">
+                        <Button onPress={logout} className="width-full flex-5" variant="outline">
+                          <Text>退出</Text>
+                        </Button>
+                        <Button
+                          onPress={() => refresh(accessToken)}
+                          className="width-full flex-1"
+                          disabled={isRefreshing}
+                        >
+                          <Text>{isRefreshing ? '刷新中...' : '刷新'}</Text>
+                        </Button>
+                      </View>
+                    </CardContent>
+
+                    <CardFooter className="flex-row gap-4">
+                      <View className="w-full px-1">
+                        <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+                        <TabsContent value="消费码">
+                          <Text className="text-base text-text-secondary">
+                            消费码：适用于福州大学大门、生活区入口及宿舍楼门禁，不可用于桃李园消费。
+                          </Text>
+                        </TabsContent>
+                        <TabsContent value="认证码">
+                          <Text className="text-base text-text-secondary">
+                            认证码：适用于福州大学铜盘校区入口门禁。
+                          </Text>
+                        </TabsContent>
+                        <TabsContent value="入馆码">
+                          <Text className="text-base text-text-secondary">入馆码：适用于福州大学图书馆入口门禁。</Text>
+                        </TabsContent>
+                      </View>
+                    </CardFooter>
+                  </ScrollView>
+                </Card>
+              </View>
+            </Tabs>
+          </View>
+        ) : (
+          <LoginPrompt message="登录统一身份认证平台，享受一码通服务" />
+        )}
+        <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_QRCODE} />
+      </PageContainer>
+    </>
   );
 }

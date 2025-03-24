@@ -1,7 +1,3 @@
-import { LocalUser, USER_TYPE_UNDERGRADUATE } from './user';
-
-const isUndergraduate = LocalUser.getUser().type === USER_TYPE_UNDERGRADUATE;
-
 // 课表
 export const FAQ_COURSE = [
   {
@@ -104,7 +100,7 @@ export const FAQ_COURSE_GRADE = [
   },
 ];
 
-//更多工具
+// 更多工具
 export const FAQ_MORE = [
   {
     question: '',
@@ -117,5 +113,18 @@ export const FAQ_MORE = [
   {
     question: '',
     answer: '3. App 仅提供跳转便利，不负责维护内容与功能，页面可能出现无法加载的情况',
+  },
+];
+
+// 一码通
+export const FAQ_QRCODE = [
+  {
+    question: '这个一码通和微信小程序的一码通是一样的吗？',
+    answer: '是的。微信小程序中的一码通和 App 中的是同一个，功能相同。',
+  },
+  {
+    question: '我能否有一些快捷操作，直接打开这个一码通？',
+    answer:
+      '有的。Android 和 iOS 都可以直接长按 App 图标，选择 “一码通” 即可一键打开一码通。对于 iOS 用户，您还可以在控制中心添加我们 App 提供的一码通快捷方式，直接从控制中心打开一码通。',
   },
 ];
