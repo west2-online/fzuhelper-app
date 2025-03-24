@@ -182,7 +182,7 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                                 name += "..."
                             }
                             val bg = if (preCourseIndex > 0) {
-                                bgCourses[kc.id % bgCourses.size]
+                                bgCourses[kc.color.hashCode() % bgCourses.size]
                             } else {
                                 R.drawable.bg_course_0
                             }

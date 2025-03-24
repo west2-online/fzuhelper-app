@@ -10,8 +10,8 @@ import android.content.SharedPreferences
  */
 @Keep
 data class ExtendCourse(
-    val id: Int,                 // 课程唯一ID
-//    val color: String,           // 课程颜色
+//    val id: Int,                 // 课程唯一ID
+    val color: String,           // 课程颜色
 //    val priority: Int,           // 优先级
     val type: Int,               // 课程类型（0=普通课程，1=考试）
     val name: String,            // 课程名称
