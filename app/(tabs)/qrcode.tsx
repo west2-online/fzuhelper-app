@@ -19,6 +19,7 @@ import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { DATETIME_SECOND_FORMAT, LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import { SSOlogoutAndCleanData as SSOLogout } from '@/lib/sso';
+import { LocalUser } from '@/lib/user';
 import YMTLogin, { type IdentifyRespData, type PayCodeRespData } from '@/lib/ymt-login';
 import { isAccountExist } from '@/utils/is-account-exist';
 
@@ -88,11 +89,6 @@ export default function YiMaTongPage() {
 
       console.log('刷新中...', currentAccessToken);
 
-      // 在这里检查账号是否存在是为了规避一个情况：当没有账号登录时，直接通过一码通跳到这个页面
-      if (Platform.OS === 'ios' && !(await isAccountExist())) {
-        redirect('/(guest)'); // 直接强制它回开屏页
-      }
-
       try {
         const [newPayCodes, newIdentifyCode] = await Promise.all([
           ymtLoginRef.current!.getPayCode(currentAccessToken),
@@ -128,13 +124,14 @@ export default function YiMaTongPage() {
 
   // 当 accessToken 变更时，自动刷新
   useEffect(() => {
+    // 在这里检查账号是否存在是为了规避一个情况：当没有账号登录时，直接通过一码通跳到这个页面（ControlWidget 直接到达）
+    if (Platform.OS === 'ios' && (!LocalUser.getUser().userid || LocalUser.getUser().userid.length === 0)) {
+      redirect('/(guest)'); // 直接强制它回开屏页
+    }
     if (accessToken) {
       refresh(accessToken);
     }
-  }, [accessToken, refresh]);
-
-  // 这是为了解决一个比较深的 case，当使用 Universal Link 打开 App，Expo-Router 会自动跳到这个页面
-  // 但此时可能你是首次打开 app 或仍然未登录，我们使用
+  }, [accessToken, refresh, redirect]);
 
   const getLocalData = useCallback(async () => {
     try {
