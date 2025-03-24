@@ -1,5 +1,6 @@
 package com.helper.west2ol.fzuhelper
 
+import android.util.Log
 import androidx.annotation.Keep
 import android.content.Context
 import android.content.SharedPreferences
@@ -9,8 +10,8 @@ import android.content.SharedPreferences
  */
 @Keep
 data class ExtendCourse(
-    val id: Int,                 // 课程唯一ID
-//    val color: String,           // 课程颜色
+//    val id: Int,                 // 课程唯一ID
+    val color: String,           // 课程颜色
 //    val priority: Int,           // 优先级
     val type: Int,               // 课程类型（0=普通课程，1=考试）
     val name: String,            // 课程名称
@@ -41,7 +42,7 @@ data class CacheCourseData(
     val startDate: String,                          // 学期开始日期：如2025-02-24
     val maxWeek: Int,                               // 最大周次
     val showNonCurrentWeekCourses: Boolean?,        // 是否显示非当前周的课程
-    val hiddenCoursesWithoutAttendances: Boolean?,            // 是否显示免听课程
+    val hiddenCoursesWithoutAttendances: Boolean?,  // 是否显示免听课程
 )
 
 
@@ -59,7 +60,7 @@ fun getSharedPreference(context: Context): SharedPreferences {
     return context.getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
 }
 
-fun saveWidgetConfig(context: Context, appWidgetId: Int,key: String,value: Boolean) {
+fun saveWidgetConfig(context: Context, appWidgetId: Int, key: String, value: Boolean) {
     getSharedPreference(context).edit().putBoolean("$appWidgetId$key", value).commit()
 }
 
@@ -67,6 +68,20 @@ fun loadWidgetConfig(context: Context, appWidgetId: Int, key: String): Boolean {
     return getSharedPreference(context).getBoolean("$appWidgetId$key", false)
 }
 
-fun deleteWidgetConfig(context: Context, appWidgetId: Int , key: String) {
+fun deleteWidgetConfig(context: Context, appWidgetId: Int, key: String) {
     getSharedPreference(context).edit().remove("$appWidgetId$key").commit()
+}
+
+fun getCourseBeans(cacheCourseData: CacheCourseData): List<ExtendCourse> = try {
+    (cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run {
+        if (cacheCourseData.hiddenCoursesWithoutAttendances == true) {
+            filter { !it.examType.contains("免听") }
+        } else {
+            sortedBy { it.examType.contains("免听") }
+        }
+    } + (cacheCourseData.examData?.values?.flatten() ?: emptyList()) +
+            (cacheCourseData.customData?.values?.flatten() ?: emptyList())
+} catch (e: Exception) {
+    Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
+    emptyList()
 }

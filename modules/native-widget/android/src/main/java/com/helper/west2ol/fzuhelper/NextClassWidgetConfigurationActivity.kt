@@ -1,14 +1,13 @@
 package com.helper.west2ol.fzuhelper
 
 import android.appwidget.AppWidgetManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.TextView
 import android.widget.Toast
-import android.widget.Toolbar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
+import com.west2online.nativewidget.R
 import com.west2online.nativewidget.databinding.NextClassWidgetConfigurationBinding
 
 
@@ -27,6 +26,7 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            setResult(RESULT_CANCELED)
             finish()
             return
         }
@@ -78,6 +78,14 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
-    }
 
+        binding.toolbar.inflateMenu(R.menu.next_class_widget_configuration)
+        binding.toolbar.setOnMenuItemClickListener {
+            val resultValue = Intent()
+            resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            setResult(RESULT_OK, resultValue)
+            finish()
+            true
+        }
+    }
 }

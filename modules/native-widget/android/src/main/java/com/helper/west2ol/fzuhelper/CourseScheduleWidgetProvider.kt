@@ -28,14 +28,17 @@ open class CourseScheduleWidgetProvider : AppWidgetProvider() {
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
             )
-            views.setPendingIntentTemplate(R.id.schedule_root, pendingIntent)
-            views.setOnClickPendingIntent(R.id.schedule_root, pendingIntent)
 
             val intent2 = Intent(context, CourseScheduleWidgetService::class.java).apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, it)
                 data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
             }
-            views.setRemoteAdapter(R.id.list_view, intent2)
+
+            views.apply {
+                setPendingIntentTemplate(R.id.list_view, pendingIntent)
+                setOnClickPendingIntent(R.id.schedule_root, pendingIntent)
+                setRemoteAdapter(R.id.list_view, intent2)
+            }
 
             appWidgetManager.updateAppWidget(it, views)
             appWidgetManager.notifyAppWidgetViewDataChanged(it, R.id.list_view)
