@@ -1,6 +1,7 @@
 > 警告：本项目受福州大学统一指导，由福州大学计算机与大数据学院、福州大学网络安全与信息化办公室管理（以上单位合称“官方”）。本源代码使用宽松开源协议，但仅供学习参考，不允许直接或间接性使用/修改后使用在任何非官方和 west2-online 外的应用、网站、App 及任何可以与用户产生交互的互联网信息媒介中。本警告具备行政约束效力。
 
 <div align="center">
+    <img src="/assets/images/icon.png" alt="FzuHelper" width="128"/>
   <h1 style="display: inline-block; vertical-align: middle;">fzuhelper-app</h1>
 </div>
 
