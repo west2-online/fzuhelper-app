@@ -60,7 +60,7 @@ export default function FilePreviewPage() {
     try {
       switch (Platform.OS) {
         case 'android': {
-          ReactNativeBlobUtil.config({
+          const downloadTask = ReactNativeBlobUtil.config({
             fileCache: true,
             addAndroidDownloads: {
               useDownloadManager: true,
@@ -71,20 +71,19 @@ export default function FilePreviewPage() {
             },
           })
             .fetch('GET', downloadUri)
-            .progress({ count: 10 }, (received, total) => {
-              console.log('progress', received, total);
+            .progress({ count: 10 }, (received_s, total_s) => {
+              // 这两个参数的类型实际上都是 string
+              // https://github.com/RonRadtke/react-native-blob-util/issues/410
+              const received = parseInt(received_s as any as string, 10);
+              const total = parseInt(total_s as any as string, 10);
+              if (received === 0 || total === -1) return;
+              console.log(`download ${filename} progress: ${received}/${total}`);
               setProgress(received / total);
-            })
-            .then(
-              () => {
-                setIsDownloaded(true);
-                toast.success('下载成功');
-                handleOpenFile();
-              },
-              reason => {
-                throw reason;
-              },
-            );
+            });
+          await downloadTask;
+          setIsDownloaded(true);
+          toast.success('下载成功');
+          handleOpenFile();
           break;
         }
         case 'ios': {
