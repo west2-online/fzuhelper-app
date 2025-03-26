@@ -3,7 +3,6 @@ import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import { get, postJSON } from '@/modules/native-request';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';
-import dayjs from 'dayjs';
 import { router } from 'expo-router';
 import { toast } from 'sonner-native';
 import { SeatMappingUtil } from './seat-mapping';
@@ -454,47 +453,3 @@ class ApiService {
   }
 }
 export default ApiService;
-
-const auditStatusPriority: Record<number, number> = {
-  2: 1, // 待签到/已签到
-  4: 2, // 已完成
-  3: 3, // 已取消
-};
-
-/**
- * 比较函数，用于按照指定规则排序数据
- * @param a - 第一个数据项
- * @param b - 第二个数据项
- * @returns - 比较结果（-1, 0, 1）
- */
-export const compareAppointments = (a: fetchAppointmentsData, b: fetchAppointmentsData): number => {
-  // 1. 按 auditStatus 排序
-  const priorityA = auditStatusPriority[a.auditStatus] || 999; // 默认优先级最低
-  const priorityB = auditStatusPriority[b.auditStatus] || 999;
-
-  if (priorityA !== priorityB) {
-    return priorityA - priorityB; // 优先级小的排在前面
-  }
-
-  // 2. 按 beginTime 距离当前时间的接近程度排序
-  const now = dayjs();
-  const beginTimeA = dayjs(a.beginTime);
-  const beginTimeB = dayjs(b.beginTime);
-
-  const diffA = Math.abs(beginTimeA.diff(now));
-  const diffB = Math.abs(beginTimeB.diff(now));
-
-  if (diffA !== diffB) {
-    return diffA - diffB; // 距离当前时间更近的排在前面
-  }
-
-  // 3. 按 seatCode 升序排序
-  if (a.seatCode < b.seatCode) {
-    return -1;
-  }
-  if (a.seatCode > b.seatCode) {
-    return 1;
-  }
-
-  return 0; // 如果完全相等，保持原顺序
-};

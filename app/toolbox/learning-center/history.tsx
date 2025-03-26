@@ -10,7 +10,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { useLearningCenterApi } from '@/context/learning-center';
-import { compareAppointments, fetchAppointmentsData } from '@/utils/learning-center/api-service';
+import { fetchAppointmentsData } from '@/utils/learning-center/api-service';
 
 const PAGE_SIZE = 30; // 每次请求返回的数据量
 
@@ -24,13 +24,8 @@ export default function HistoryPage() {
 
   // 请求数据
   const fetchData = useCallback(
-    async (ignoreBottomCheck = false) => {
+    async (page: number, replace = false) => {
       try {
-        // 如果已经请求了所有的数据，就不再请求
-        if (isBottom && !ignoreBottomCheck) {
-          return;
-        }
-
         // 请求数据
         const appointmentData = await api.fetchAppointments({
           currentPage: page,
@@ -44,15 +39,16 @@ export default function HistoryPage() {
         }
 
         // 更新数据
-        setData(prevData => (page === 1 ? appointmentData : [...prevData, ...appointmentData]));
-        console.log('拉取了第' + page + '页');
+        setPage(page);
+        setData(prevData => (replace ? appointmentData : [...prevData, ...appointmentData]));
+        console.log(`拉取了第 ${page} 页`);
       } catch (error: any) {
         toast.error(`加载数据失败: ${error.message}`);
       } finally {
         setIsRefreshing(false);
       }
     },
-    [page, api, isBottom],
+    [api],
   );
 
   // 刷新数据
@@ -60,13 +56,14 @@ export default function HistoryPage() {
     setPage(1); // 重置页数
     setIsRefreshing(true); // 开启刷新
     setIsBottom(false); // 重置是否到底
-    await fetchData(true); // 重新请求数据
+    setData([]); // 清空数据
+    await fetchData(1, true); // 重新请求数据
   }, [fetchData]);
 
   // 首次加载数据
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(1);
+  }, [fetchData]);
 
   return (
     <>
@@ -76,7 +73,7 @@ export default function HistoryPage() {
           <Loading />
         ) : (
           <FlatList
-            data={[...data].sort(compareAppointments)}
+            data={data}
             renderItem={({ item }) => (
               <HistoryAppointmentCard
                 key={item.id}
@@ -99,7 +96,7 @@ export default function HistoryPage() {
             }
             onEndReachedThreshold={0.1}
             onEndReached={() => {
-              setPage(prevPage => prevPage + 1);
+              if (!isBottom) fetchData(page + 1);
             }}
             ListEmptyComponent={
               <View className="flex-1 items-center justify-center">
