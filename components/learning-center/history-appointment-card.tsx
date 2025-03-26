@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Platform, View } from 'react-native';
 import { PERMISSIONS, RESULTS, check } from 'react-native-permissions';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 
-import ApiService from '@/utils/learning-center/api-service';
+import { useLearningCenterApi } from '@/context/learning-center';
 import { Appointment } from '@/utils/learning-center/history-appointment-status';
 
 export interface AppointmentCardProps {
@@ -38,8 +38,7 @@ export default function HistoryAppointmentCard({
   onRefresh, // 刷新回调函数
 }: AppointmentCardProps) {
   const router = useRouter();
-  const { token } = useLocalSearchParams<{ token: string }>(); // 从路由参数中获取token
-  const api = useMemo(() => new ApiService(token), [token]);
+  const api = useLearningCenterApi();
   const appointment = useMemo(
     () => new Appointment(id.toString(), floor.toString(), spaceName, date, beginTime, endTime, auditStatus, sign),
     [id, floor, spaceName, date, beginTime, endTime, auditStatus, sign],
@@ -122,12 +121,12 @@ export default function HistoryAppointmentCard({
       // 跳转到二维码扫描页面并传递预约ID
       router.push({
         pathname: '/toolbox/learning-center/qr-scanner',
-        params: { appointmentId: id.toString(), token: token },
+        params: { appointmentId: id.toString() },
       });
     } catch (error: any) {
       toast.error(`打开扫码页面失败: ${error.message}`);
     }
-  }, [router, id, token]);
+  }, [router, id]);
 
   // 处理签退
   const handleSignOut = useCallback(async () => {
