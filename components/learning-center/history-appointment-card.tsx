@@ -78,6 +78,8 @@ export default function HistoryAppointmentCard({
           setIsProcessing(true);
           try {
             await api.cancelAppointment(id.toString());
+            // 等待 0.3 秒服务端才能更新状态
+            await new Promise(resolve => setTimeout(resolve, 300));
             toast.success('取消预约成功');
             if (onRefresh) {
               await onRefresh();
