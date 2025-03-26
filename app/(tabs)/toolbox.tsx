@@ -249,6 +249,18 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    // TODO: 图标
+    // TODO：如果没有安装建设银行app，需要进行提示
+    // TODO：iOS 待测试可用性
+    name: '宿舍水电费',
+    icon: ElectroCarIcon,
+    type: ToolType.URL,
+    href:
+      'ccbapp://ccblink?funcid=01909001&' +
+      'link_id=e8211bf013c04e9d83aa95d734f32f32&ccbLCSParam=8DC8F9FB9922B4377D7C0249482800FDA88B56DC2B8072BABC8016DF18AB8C0D81CAD6A6DA2843BB70C766D4B80165D6EF235D4A2C178699DBCD65519B9DAF78874185B566529DAB14BAC790F90D8DCEBDD0F32A20F3B742&THIRD_SYS_ID=999998&CCBget=1&scene=1' +
+      '&openflag=1',
+  },
+  {
     name: '更多',
     icon: MoreIcon,
     type: ToolType.LINK,
