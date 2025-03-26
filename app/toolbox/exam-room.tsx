@@ -65,9 +65,9 @@ const TermContent: React.FC<TermContentProps> = ({ term }) => {
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
       className="grow"
       style={{ width: screenWidth }}
+      contentContainerClassName="flex-grow"
     >
-      {/* 渲染考试数据 */}
-      <SafeAreaView edges={['bottom']}>
+      <SafeAreaView edges={['bottom']} className="flex-1">
         {termData.length > 0 ? (
           termData.map((item, idx) => (
             <View key={idx} className="mx-4">
@@ -77,15 +77,15 @@ const TermContent: React.FC<TermContentProps> = ({ term }) => {
         ) : (
           <Text className="text-center text-text-secondary">{isLoading ? '正在刷新中' : '暂无考试数据'}</Text>
         )}
-      </SafeAreaView>
 
-      {/* 显示刷新时间 */}
-      {lastUpdated && (
-        <View className="my-4 flex flex-row items-center justify-center">
-          <Icon name="time-outline" size={16} className="mr-2" />
-          <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
-        </View>
-      )}
+        {/* 显示刷新时间 */}
+        {lastUpdated && (
+          <View className="my-4 flex flex-row items-center justify-center">
+            <Icon name="time-outline" size={16} className="mr-2" />
+            <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
+          </View>
+        )}
+      </SafeAreaView>
     </ScrollView>
   );
 };
