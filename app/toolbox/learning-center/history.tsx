@@ -10,7 +10,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { useLearningCenterApi } from '@/context/learning-center';
-import { compareAppointments, fetchAppointmentsData } from '@/utils/learning-center/api-service';
+import { fetchAppointmentsData } from '@/utils/learning-center/api-service';
 
 const PAGE_SIZE = 30; // 每次请求返回的数据量
 
@@ -73,7 +73,7 @@ export default function HistoryPage() {
           <Loading />
         ) : (
           <FlatList
-            data={[...data].sort(compareAppointments)}
+            data={data}
             renderItem={({ item }) => (
               <HistoryAppointmentCard
                 key={item.id}
