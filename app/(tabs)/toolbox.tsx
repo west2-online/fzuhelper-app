@@ -251,7 +251,7 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     // TODO: 图标
     // TODO：iOS 待测试可用性
-    name: '宿舍水电费',
+    name: '水电缴费',
     icon: ElectroCarIcon,
     type: ToolType.FUNCTION,
     action: async () => {
