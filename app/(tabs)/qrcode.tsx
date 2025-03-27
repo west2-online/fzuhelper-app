@@ -201,6 +201,16 @@ export default function YiMaTongPage() {
     setShowFAQ(prev => !prev);
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      // TODO: 更新亮度，避免休眠
+
+      return () => {
+        // TODO: 恢复亮度，恢复休眠
+      };
+    }, []),
+  );
+
   return (
     <>
       <ExpoTabs.Screen
