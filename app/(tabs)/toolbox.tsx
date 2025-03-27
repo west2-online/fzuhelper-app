@@ -252,33 +252,8 @@ const DEFAULT_TOOLS: Tool[] = [
     // TODO: 图标
     name: '水电缴费',
     icon: ElectroCarIcon,
-    type: ToolType.FUNCTION,
-    action: async () => {
-      const ccbUrl =
-        'ccbapp://ccblink?funcid=01909001&' +
-        'link_id=e8211bf013c04e9d83aa95d734f32f32&ccbLCSParam=8DC8F9FB9922B4377D7C0249482800FDA88B56DC2B8072BABC8016DF18AB8C0D81CAD6A6DA2843BB70C766D4B80165D6EF235D4A2C178699DBCD65519B9DAF78874185B566529DAB14BAC790F90D8DCEBDD0F32A20F3B742&THIRD_SYS_ID=999998&CCBget=1&scene=1' +
-        '&openflag=1';
-
-      Linking.openURL(ccbUrl).catch(() => {
-        Alert.alert('未安装建设银行应用', '查询宿舍水电费需要使用中国建设银行APP，请先安装该应用。', [
-          {
-            text: '取消',
-            style: 'cancel',
-          },
-          {
-            text: '去下载',
-            onPress: () => {
-              const storeUrl =
-                Platform.OS === 'ios'
-                  ? 'https://apps.apple.com/cn/app/id391965015'
-                  : 'https://m2.ccb.com/cn/mobilev3/home/include/download.html';
-
-              Linking.openURL(storeUrl).catch(() => {});
-            },
-          },
-        ]);
-      });
-    },
+    type: ToolType.LINK,
+    href: '/toolbox/utility-payment',
   },
   {
     name: '更多',
