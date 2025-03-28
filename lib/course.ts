@@ -520,10 +520,11 @@ export class CourseCache {
     this.lastCourseUpdateTime = new Date().toLocaleString();
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(tempData);
-    // 如果当前 digest 和上一次的 digest 一致，则直接返回缓存的 data
-    if (currentDigest === this.cachedDigest && this.cachedData) {
-      return this.cachedData;
-    }
+
+    // // 如果当前 digest 和上一次的 digest 一致，则直接返回缓存的 data
+    // if (currentDigest === this.cachedDigest && this.cachedData) {
+    //   return this.cachedData;
+    // }
 
     /* 到此处我们认为数据是不一致的，开始重新处理课程 */
     this.startID = DEFAULT_STARTID; // 初始化 id
