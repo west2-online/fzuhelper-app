@@ -128,6 +128,31 @@ request.interceptors.response.use(
         }
       }
 
+      // 处理 yjsy cookie异常
+      if (data.code === ResultEnum.BizYjsyCookieExceptionCode) {
+        console.log('触发Yjsy Cookie 过期，执行自动重登');
+        refreshing = true;
+        try {
+          await LocalUser.login();
+          queue.forEach(({ config: queuedConfig, resolve }) => {
+            resolve(request(queuedConfig));
+          });
+          refreshing = false;
+          queue = [];
+          return request(config);
+        } catch (error: unknown) {
+          console.log('relogin error:', error); // 此处可以控制台打印一下问题
+          queue.forEach(({ reject }) => reject());
+          refreshing = false;
+          queue = [];
+          if (isNativeLoginError(error)) {
+            return rejectWith({ type: RejectEnum.ReLoginFailed, data: error.data });
+          } else {
+            return rejectWith({ type: RejectEnum.ReLoginFailed, data: '未知错误' });
+          }
+        }
+      }
+
       // 其他错误
       if (data.code !== ResultEnum.SuccessCode) {
         // 业务错误

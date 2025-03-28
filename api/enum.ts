@@ -27,6 +27,7 @@ export enum ResultEnum {
   BizNotExist = '40005', // 业务不存在错误
   BizFileUploadErrorCode = '40006', // 文件上传错误(service 层)
   BizJwchCookieExceptionCode = '40007', // jwch cookie异常
+  BizYjsyCookieExceptionCode = '40001', // yjsy cookie异常
 
   InternalServiceErrorCode = '50001', // 未知服务错误
   InternalDatabaseErrorCode = '50002', // 数据库错误
