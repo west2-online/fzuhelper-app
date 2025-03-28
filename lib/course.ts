@@ -190,18 +190,6 @@ export class CourseCache {
    * 保存缓存数据
    */
   public static async save(): Promise<void> {
-    // 部分情况下,研究生的课程表会出现 endClass 大于 11 的情况，事实上并不存在第 12 节课
-    // 检查所有的课程的endClass是否大于11，如果大于11，则需要将其endClass设置为11
-    if (this.cachedData) {
-      Object.values(this.cachedData).forEach(day =>
-        day.forEach(course => {
-          if (course.endClass > CLASS_SCHEDULES_MINUTES.length) {
-            course.endClass = CLASS_SCHEDULES_MINUTES.length;
-          }
-        }),
-      );
-    }
-
     await AsyncStorage.setItem(
       COURSE_CURRENT_CACHE_KEY,
       JSON.stringify({
