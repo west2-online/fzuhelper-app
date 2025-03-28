@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/background" />
+    <solid android:color="@color/translucent" />
     <!--  为小米HyperOS2预留的圆角，表现上亦即最小圆角  -->
     <corners android:radius="18dp" />
 </shape>
