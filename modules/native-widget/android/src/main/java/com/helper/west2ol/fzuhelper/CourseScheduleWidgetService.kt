@@ -84,6 +84,18 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                 remoteViews.removeAllViews(it)
             }
 
+            //生成左边的序号
+            for (i in 1..11) {
+                RemoteViews(context.packageName, R.layout.widget_view_0).apply {
+                    setTextViewText(R.id.tv_name, i.toString())
+                    setTextColor(R.id.tv_name, Color.GRAY)
+                    remoteViews.addView(R.id.item_week_day_0, this)
+                }
+            }
+
+            val intent = Intent()
+            remoteViews.setOnClickFillInIntent(R.id.item_widget, intent)
+
             val cacheCourseData: CacheCourseData
             val jsonData = context
                 .getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
@@ -99,15 +111,6 @@ class CourseScheduleWidgetService : RemoteViewsService() {
             val week = getWeeks(startTime, System.currentTimeMillis())
 
             val courseBeans = getCourseBeans(cacheCourseData)
-
-            //生成左边的序号
-            for (i in 1..11) {
-                RemoteViews(context.packageName, R.layout.widget_view_0).apply {
-                    setTextViewText(R.id.tv_name, i.toString())
-                    setTextColor(R.id.tv_name, Color.GRAY)
-                    remoteViews.addView(R.id.item_week_day_0, this)
-                }
-            }
 
             // 添加课程信息
             val mark = Array(8) { IntArray(12) { 0 } }
@@ -209,8 +212,6 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                     }
                 }
             }
-            val intent = Intent()
-            remoteViews.setOnClickFillInIntent(R.id.item_widget, intent)
             return remoteViews
         }
 
