@@ -1,6 +1,6 @@
 import { Link, useRouter, type Href, type Router } from 'expo-router';
 import { forwardRef, useEffect, useState } from 'react';
-import { Alert, FlatList, Linking, Platform, Pressable, useWindowDimensions } from 'react-native';
+import { Alert, FlatList, Pressable, useWindowDimensions } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
@@ -19,6 +19,7 @@ import MoreIcon from '@/assets/images/toolbox/ic_more.svg';
 import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
+import UtilityPaymentIcon from '@/assets/images/toolbox/ic_shuidian.svg';
 import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
 import StudyCenterIcon from '@/assets/images/toolbox/ic_studycenter.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
@@ -249,9 +250,8 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
-    // TODO: 图标
     name: '水电缴费',
-    icon: ElectroCarIcon,
+    icon: UtilityPaymentIcon,
     type: ToolType.LINK,
     href: '/toolbox/utility-payment',
   },
