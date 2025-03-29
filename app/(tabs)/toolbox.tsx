@@ -19,6 +19,7 @@ import MoreIcon from '@/assets/images/toolbox/ic_more.svg';
 import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
+import UtilityPaymentIcon from '@/assets/images/toolbox/ic_shuidian.svg';
 import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
 import StudyCenterIcon from '@/assets/images/toolbox/ic_studycenter.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
@@ -247,6 +248,12 @@ const DEFAULT_TOOLS: Tool[] = [
       title: '失物招领',
       sso: true,
     },
+  },
+  {
+    name: '水电缴费',
+    icon: UtilityPaymentIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/utility-payment',
   },
   {
     name: '更多',

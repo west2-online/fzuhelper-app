@@ -7,7 +7,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 import QRCode from 'react-native-qrcode-svg';
 import { toast } from 'sonner-native';
 
-import { Icon } from '@/components/Icon';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
@@ -16,13 +15,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 
-import FAQModal from '@/components/FAQModal';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { FAQ_QRCODE } from '@/lib/FAQ';
 import { DATETIME_SECOND_FORMAT, LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import { SSOlogoutAndCleanData as SSOLogout } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
+import { pushToWebViewNormal } from '@/lib/webview';
 import YMTLogin, { type IdentifyRespData, type PayCodeRespData } from '@/lib/ymt-login';
 
 const CurrentTime: React.FC = () => {
@@ -71,7 +69,6 @@ export default function YiMaTongPage() {
   const [libCodeContent, setLibCodeContent] = useState<string>(); // 图书馆码
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
-  const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
   const { handleError } = useSafeResponseSolve();
   const [qrWidth, setQrWidth] = useState(0);
   const redirect = useRedirectWithoutHistory();
@@ -196,24 +193,10 @@ export default function YiMaTongPage() {
     );
   }, [SSOlogoutAndCleanData]);
 
-  // 处理 Modal 显示事件
-  const handleModalVisible = useCallback(() => {
-    setShowFAQ(prev => !prev);
-  }, []);
-
   return (
     <>
-      <ExpoTabs.Screen
-        options={{
-          title: '一码通',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-              <Icon name="help-circle-outline" size={26} className="mr-4" />
-            </Pressable>
-          ),
-        }}
-      />
+      <ExpoTabs.Screen options={{ title: '一码通' }} />
+
       <PageContainer>
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
@@ -298,6 +281,16 @@ export default function YiMaTongPage() {
                         <TabsContent value="入馆码">
                           <Text className="text-base text-text-secondary">入馆码：适用于福州大学图书馆入口门禁。</Text>
                         </TabsContent>
+
+                        <Text className="mt-3 text-base text-text-secondary">
+                          <Pressable
+                            onPress={() =>
+                              pushToWebViewNormal('https://west2-online.feishu.cn/wiki/DlL8wR27Ii0OFukllU9cYDlmn9f')
+                            }
+                          >
+                            <Text className="text-primary">查看「一码通」使用技巧 »</Text>
+                          </Pressable>
+                        </Text>
                       </View>
                     </CardFooter>
                   </ScrollView>
@@ -308,7 +301,6 @@ export default function YiMaTongPage() {
         ) : (
           <LoginPrompt message="登录统一身份认证平台，享受一码通服务" />
         )}
-        <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_QRCODE} />
       </PageContainer>
     </>
   );

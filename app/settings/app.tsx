@@ -163,6 +163,9 @@ export default function AcademicPage() {
             <Link href="/settings/appearance" asChild>
               <LabelEntry leftText="主题换肤" />
             </Link>
+            <Link href="/settings/course" asChild>
+              <LabelEntry leftText="课程表设置" />
+            </Link>
             <LabelEntry leftText="清除数据" onPress={handleClearData} />
             <LabelEntry leftText="退出登录(全部)" onPress={handleLogout} />
             <LabelEntry leftText="退出登录(仅统一身份认证)" onPress={handleSSOLogout} />
