@@ -511,9 +511,13 @@ export class CourseCache {
   /**
    * 转换课程数据为扩展课程数据
    * @param tempData - 接口返回的数据
+   * @param skipDigestCheck - 是否跳过摘要检查
    * @returns 按天归类的课程数据
    */
-  public static setCourses(tempData: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
+  public static setCourses(
+    tempData: JwchCourseListResponse_Course[],
+    skipDigestCheck: boolean = false,
+  ): Record<number, ExtendCourse[]> {
     /* 缓存校对处理，如果缓存和传入的数据一致，不做任何改动 */
 
     // 更新时间戳
@@ -521,10 +525,10 @@ export class CourseCache {
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(tempData);
 
-    // // 如果当前 digest 和上一次的 digest 一致，则直接返回缓存的 data
-    // if (currentDigest === this.cachedDigest && this.cachedData) {
-    //   return this.cachedData;
-    // }
+    // 如果当前 digest 和上一次的 digest 一致 且 不跳过检查，则直接返回缓存的 data
+    if (currentDigest === this.cachedDigest && this.cachedData && !skipDigestCheck) {
+      return this.cachedData;
+    }
 
     /* 到此处我们认为数据是不一致的，开始重新处理课程 */
     this.startID = DEFAULT_STARTID; // 初始化 id
