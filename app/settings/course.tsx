@@ -87,8 +87,8 @@ export default function AcademicPage() {
       };
 
       await AsyncStorage.setItem([COURSE_DATA_KEY, queryTerm].join('__'), JSON.stringify(cacheToStore));
-      CourseCache.setCourses(data.data.data);
-      CourseCache.save(); // 强制保存一次，忽略 SetCourses 的判断
+      CourseCache.setCourses(data.data.data, true); // 设置课程数据,跳过digest检查
+      CourseCache.save(); // 强制保存一次
       toast.success('刷新成功');
     } catch (error: any) {
       const data = handleError(error) as { code: string; message: string };

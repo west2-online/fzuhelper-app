@@ -502,6 +502,7 @@ export class CourseCache {
         return {
           ...rest,
           ...rule,
+          endClass: Math.min(rule.endClass, CLASS_SCHEDULES_MINUTES.length), // 限制最大节次为 11
         };
       }),
     );
@@ -510,17 +511,22 @@ export class CourseCache {
   /**
    * 转换课程数据为扩展课程数据
    * @param tempData - 接口返回的数据
+   * @param skipDigestCheck - 是否跳过摘要检查
    * @returns 按天归类的课程数据
    */
-  public static setCourses(tempData: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
+  public static setCourses(
+    tempData: JwchCourseListResponse_Course[],
+    skipDigestCheck: boolean = false,
+  ): Record<number, ExtendCourse[]> {
     /* 缓存校对处理，如果缓存和传入的数据一致，不做任何改动 */
 
     // 更新时间戳
     this.lastCourseUpdateTime = new Date().toLocaleString();
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(tempData);
-    // 如果当前 digest 和上一次的 digest 一致，则直接返回缓存的 data
-    if (currentDigest === this.cachedDigest && this.cachedData) {
+
+    // 如果当前 digest 和上一次的 digest 一致 且 不跳过检查，则直接返回缓存的 data
+    if (currentDigest === this.cachedDigest && this.cachedData && !skipDigestCheck) {
       return this.cachedData;
     }
 
