@@ -17,6 +17,7 @@ import { Text } from '@/components/ui/text';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import NativeBrightnessModule from '@/modules/native-brightness';
 import { DATETIME_SECOND_FORMAT, LOCAL_USER_INFO_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import { SSOlogoutAndCleanData as SSOLogout } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
@@ -192,6 +193,15 @@ export default function YiMaTongPage() {
       { cancelable: false },
     );
   }, [SSOlogoutAndCleanData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      NativeBrightnessModule.enableHighBrightness();
+      return () => {
+        NativeBrightnessModule.disableHighBrightness();
+      };
+    }, []),
+  );
 
   return (
     <>
