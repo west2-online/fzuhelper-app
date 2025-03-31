@@ -1,8 +1,8 @@
 import { NativeModule, requireNativeModule } from 'expo';
 
 declare class NativeBrightnessModule extends NativeModule {
-  enableHighBrightness(): void;
-  disableHighBrightness(): void;
+  enableHighBrightness(): Promise<void>;
+  disableHighBrightness(): Promise<void>;
 }
 
 // This call loads the native module object from the JSI.
