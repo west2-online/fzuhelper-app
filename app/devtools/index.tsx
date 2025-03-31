@@ -183,14 +183,14 @@ export default function HomePage() {
               NativeBrightnessModule.enableHighBrightness();
             }}
           >
-            <Text>enableHighBrightness</Text>
+            <Text>Enable High Brightness</Text>
           </Button>
           <Button
             onPress={() => {
               NativeBrightnessModule.disableHighBrightness();
             }}
           >
-            <Text>disableHighBrightness</Text>
+            <Text>Disable High Brightness</Text>
           </Button>
 
           {/* 缓存清理 */}
