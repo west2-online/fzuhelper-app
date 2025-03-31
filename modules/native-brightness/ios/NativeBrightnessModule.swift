@@ -19,7 +19,6 @@ public class NativeBrightnessModule: Module {
 
       // 禁止设备休眠
       UIApplication.shared.isIdleTimerDisabled = true
-      self.isIdleTimerDisabled = true
     }
     .runOnQueue(.main)
 
