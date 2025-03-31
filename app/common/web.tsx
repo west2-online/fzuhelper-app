@@ -1,4 +1,7 @@
+import { Icon } from '@/components/Icon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Clipboard from '@react-native-clipboard/clipboard';
+
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
 import CookieManager from '@react-native-cookies/cookies';
 import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
@@ -240,6 +243,21 @@ export default function Web() {
     }
   };
 
+  // 复制当前 URL
+  const copyUrlIcon = useCallback(() => {
+    if (currentUrl) {
+      return (
+        <Icon
+          name="link"
+          onPress={() => {
+            Clipboard.setString(currentUrl);
+            toast.success('已复制当前网页链接');
+          }}
+        />
+      );
+    }
+  }, [currentUrl]);
+
   // 如果传入sso且需要sso登录，则跳转到sso登录页面
   if (needSSOLogin) {
     return (
@@ -252,7 +270,12 @@ export default function Web() {
   return (
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
-      <Stack.Screen options={{ title: title || webpageTitle }} />
+      <Stack.Screen
+        options={{
+          title: title || webpageTitle,
+          headerRight: copyUrlIcon,
+        }}
+      />
       <PageContainer>
         {!cookiesSet ? (
           <Loading />
