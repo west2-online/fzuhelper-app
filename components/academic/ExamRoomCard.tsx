@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
@@ -6,13 +7,13 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { MergedExamData } from '@/types/academic';
 
-import { COURSE_SYMBOLS_MAP } from '@/lib/constants';
+import { COURSE_SYMBOLS_MAP, DATETIME_FORMAT } from '@/lib/constants';
 
 const SYMBOLS = Object.keys(COURSE_SYMBOLS_MAP);
 const SYMBOLS_REGEX = new RegExp(`[${SYMBOLS.join('')}]`, 'g');
 
 // 格式化日期
-const formatDate = (date?: Date) => (date ? date.toLocaleDateString() : undefined);
+const formatDate = (date?: Date) => (date ? dayjs(date).format(DATETIME_FORMAT) : undefined);
 
 // 获取课程名称（处理特殊符号映射）
 const getCourseName = (name: string) =>
