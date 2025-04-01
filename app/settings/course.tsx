@@ -41,8 +41,6 @@ export default function AcademicPage() {
   const saveSettingsToStorage = useCallback(async (newSettings: CourseSetting) => {
     console.log('保存课程设置, ', newSettings);
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(newSettings));
-    // 保证设置同步到小部件
-    CourseCache.save();
   }, []);
 
   // 页面加载时读取设置
@@ -53,6 +51,8 @@ export default function AcademicPage() {
   // 设置变化时保存设置
   useUpdateEffect(() => {
     saveSettingsToStorage(settings);
+    // 保证设置同步到小部件
+    CourseCache.save();
   }, [settings, saveSettingsToStorage]);
 
   // 获取用户就读学期数据
