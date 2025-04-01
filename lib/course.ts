@@ -436,7 +436,7 @@ export class CourseCache {
       if (!time) continue; // 如果没有时间，则不安排
       if (date < startDate || date > endDate) continue; // 如果考试日期不在学期范围内，则不安排（这是为了规避补考）
 
-      const weekday = date.getDay(); // 获取日期所在一周的第几天
+      const weekday = date.getDay() || 7; // 获取日期所在一周的第几天 由于js getDay() 返回 0-6 代表周日到周六，所以当为 0 时，设置为 7
 
       // 我们基于学期开始日期和考试日期，计算中间的周数
       const diffDays = Math.floor((new Date(date).getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
