@@ -7,6 +7,7 @@ import locateDate from '@/lib/locate-date';
 import { LocalUser } from '@/lib/user';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewJWCH } from '@/lib/webview';
+import NativeBrightnessModule from '@/modules/native-brightness';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { Link, Stack } from 'expo-router';
@@ -176,6 +177,20 @@ export default function HomePage() {
           </Button>
           <Button onPress={SetDifferentCourseCacheDigest}>
             <Text>Set Different Course Cache Digest</Text>
+          </Button>
+          <Button
+            onPress={() => {
+              NativeBrightnessModule.enableHighBrightness();
+            }}
+          >
+            <Text>Enable High Brightness</Text>
+          </Button>
+          <Button
+            onPress={() => {
+              NativeBrightnessModule.disableHighBrightness();
+            }}
+          >
+            <Text>Disable High Brightness</Text>
           </Button>
 
           {/* 缓存清理 */}
