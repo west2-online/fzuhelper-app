@@ -100,8 +100,8 @@ export const useSafeResponseSolve = () => {
           break;
 
         case RejectEnum.EvaluationNotFound:
-          console.error('未完成评测:', error.data);
-          Alert.alert('未完成评测:', String(error.data) && '请前往教务处完成评测后重试');
+          console.error('未完成评议:', error.data);
+          Alert.alert('未完成评议', '需要先进行评议。请前往教务处完成评议后重试(或在工具箱->一键评议进行评议)');
           break;
         default:
           console.error('未知错误类型:', error);
