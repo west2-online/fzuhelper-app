@@ -468,7 +468,7 @@ export class CourseCache {
         };
         // 先将考试数据存储在 extendedCourses 中
         extendedCourses.push(course);
-        console.log(`Merged exam course: ${course.name}`);
+        console.log(`Merged exam course: ${course.name} ${JSON.stringify(course, null, 2)}`);
       } catch (error) {
         console.error('Failed to parse time range to:', error);
         continue;
@@ -713,7 +713,7 @@ const parseTimeToClass = (timeRange: string): { startClass: number; endClass: nu
       if (startTime <= classStart && diffToStart <= OVERTIME_THRESHOLD) {
         startClass = i + 1; // 提前不超过 30 分钟，允许
       } else if (startTime > classStart && startTime < classEnd) {
-        if (diffToStart <= 15) {
+        if (diffToStart <= OVERTIME_THRESHOLD) {
           startClass = i + 1; // 退位到当前节次
         } else {
           startClass = i + 2; // 进位到下一节课
