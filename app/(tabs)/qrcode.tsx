@@ -196,11 +196,13 @@ export default function YiMaTongPage() {
 
   useFocusEffect(
     useCallback(() => {
-      NativeBrightnessModule.enableHighBrightness();
-      return () => {
-        NativeBrightnessModule.disableHighBrightness();
-      };
-    }, []),
+      if(accessToken) {
+        NativeBrightnessModule.enableHighBrightness();
+        return () => {
+          NativeBrightnessModule.disableHighBrightness();
+        };
+      }
+    }, [accessToken]),
   );
 
   return (

@@ -12,5 +12,6 @@ export const SSOlogoutAndCleanData = async () => {
     YMT_USERNAME_KEY,
     LEARNING_CENTER_TOKEN_KEY,
     SSO_LOGIN_COOKIE_KEY,
+    // SSO_LOGIN_USER_KEY, // 这个 KEY 是用来存上一次使用用户信息的
   ]);
 };

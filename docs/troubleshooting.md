@@ -4,8 +4,9 @@
 
 ### 无法打开 iOS Simulator
 
-关键词: xcrun simctl boot {id} exited with non-zero code:2
-关键词: No such file or directory
+关键词: `xcrun simctl boot {id} exited with non-zero code:2`
+
+关键词: `No such file or directory`
 
 > Opening on iOS...
 > Error: xcrun simctl boot 9CEBE3B2-E677-4C8D-91C1-7463A13C83A1 exited with non-zero code: 2
@@ -16,6 +17,18 @@
 打开一次`Simulator`这个程序，它会做一些初始化工作，打开后再运行就发现正常了
 
 出现这个问题一般是版本更新导致的，而且看起来是 Apple 工程师的问题
+
+### iOS 版本没有对齐
+
+关键词：`error:iOS 18.4 is not installed. To use with Xcode, first download and install the platform`
+
+关键词：`Unable to find a destination matching the provided destination specifier`
+
+通常发生在系统更新后，比如，如果你 macOS 升级到了新版本，那么手机也要升级到新版本
+
+升级后，你需要**重新打开 xcode，然后它会自己下载新版本的 iOS Simulator，或者手动下载**
+
+> 即使是使用真机进行开发，也需要下载模拟环境以供编译。
 
 ### 如果你认为你的代码没有问题，但持续编译报错
 
@@ -52,3 +65,5 @@
 1. 上架AppStore和ADHoc打包，为生产环境，只能发送正式消息，测试消息发送会返回BadDeviveToken。
 
 2. 其他打包方式或Debug模式，为开发环境，只能发送测试消息，必须添加测试设备，如发送正式消息，会返回BadDeviveToken。
+
+
