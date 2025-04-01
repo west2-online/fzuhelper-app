@@ -20,6 +20,13 @@ export default function UtilityPaymentPage() {
     openCCBApp(campusUrl);
   };
 
+  // 晋江校区
+  const handleJinjiangPayment = () => {
+    const campusUrl =
+      'link_id=e8211bf013c04e9d83aa95d734f32f32&ccbLCSParam=986EF0B603589777C58D731429CE81088A1EC3A42C2B04EF61944BDB73C100D0388609C527E6ED147107B294EA011F6FFEFC57A3D0A2052F63D55D68A4F2156F89F1EED336B75FA004791035948054A671B93EA0AE145FFD0DC643F0F1A1340651BE1E8D5D5C18CC81E7EB3CCBBAAA6819E0CCF63856B01E&THIRD_SYS_ID=999998&CCBget=1';
+    openCCBApp(campusUrl);
+  };
+
   // 打开建设银行APP
   const openCCBApp = (campusUrl: string) => {
     const ccbUrl = 'ccbapp://ccblink?funcid=01909001&' + campusUrl + '&openflag=1';
@@ -52,6 +59,7 @@ export default function UtilityPaymentPage() {
         <View className="mx-4 space-y-4">
           <LabelEntry leftText="旗山校区" onPress={handleQishanPayment} />
           <LabelEntry leftText="铜盘校区" onPress={handleTongpanPayment} />
+          <LabelEntry leftText="晋江校区" onPress={handleJinjiangPayment} />
         </View>
         <View className="mx-4 mt-8 space-y-4">
           <Text className="my-2 text-lg font-bold text-text-secondary">操作提示</Text>
