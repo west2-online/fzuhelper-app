@@ -29,6 +29,11 @@ export interface NativeLoginError {
   data: string;
 }
 
+export interface EvaluationNotFoundError {
+  type: RejectEnum.EvaluationNotFound;
+  data: string;
+}
+
 export type RejectError =
   | AuthError
   | ReLoginError
@@ -36,4 +41,5 @@ export type RejectError =
   | AxiosInternalError
   | TimeoutError
   | NetworkError
-  | NativeLoginError;
+  | NativeLoginError
+  | EvaluationNotFoundError;

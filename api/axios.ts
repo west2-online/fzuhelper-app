@@ -127,6 +127,13 @@ request.interceptors.response.use(
           }
         }
       }
+      // 处理 jwch 未进行评测
+      if (data.code === ResultEnum.BizJwchEvaluationNotFoundCode) {
+        return rejectWith({
+          type: RejectEnum.EvaluationNotFound,
+          data: data.message,
+        });
+      }
 
       // 其他错误
       if (data.code !== ResultEnum.SuccessCode) {

@@ -99,6 +99,10 @@ export const useSafeResponseSolve = () => {
           Alert.alert('登录错误', String(error.data));
           break;
 
+        case RejectEnum.EvaluationNotFound:
+          console.error('未完成评测:', error.data);
+          Alert.alert('未完成评测:', String(error.data) && '请前往教务处完成评测后重试');
+          break;
         default:
           console.error('未知错误类型:', error);
           Alert.alert('错误', '发生未知错误，请稍后再试，或反馈至交流群');
