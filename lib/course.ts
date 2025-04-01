@@ -19,6 +19,14 @@ import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
 import { getWeeksBySemester } from './locate-date';
+import dayjs from "dayjs";
+import isBetween from 'dayjs/plugin/isBetween'; // 引入插件以支持日期范围判断
+import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
+
+// 注册 dayjs 插件
+dayjs.extend(isBetween);
+dayjs.extend(isoWeek);
+dayjs.locale('zh-cn');
 
 export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
   JwchCourseListResponse_CourseScheduleRule;
@@ -434,9 +442,15 @@ export class CourseCache {
       const { time, date } = examItem;
       if (!date) continue; // 如果没有日期，则不安排
       if (!time) continue; // 如果没有时间，则不安排
-      if (date < startDate || date > endDate) continue; // 如果考试日期不在学期范围内，则不安排（这是为了规避补考）
 
-      const weekday = date.getDay() || 7; // 获取日期所在一周的第几天 由于js getDay() 返回 0-6 代表周日到周六，所以当为 0 时，设置为 7
+      // 将日期解析为 dayjs 对象，并设置为中国时区
+      const examDate = dayjs(date);
+
+      // 如果考试日期不在学期范围内，则跳过（规避补考）
+      if (!examDate.isBetween(startDate, endDate, 'day', '[]')) continue;
+
+      // 获取考试日期是星期几（ISO 周，星期一为一周的第一天）
+      const weekday = examDate.isoWeekday(); // `isoWeekday()` 返回 1（周一）到 7（周日）
 
       // 我们基于学期开始日期和考试日期，计算中间的周数
       const diffDays = Math.floor((new Date(date).getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
