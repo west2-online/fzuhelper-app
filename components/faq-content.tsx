@@ -41,7 +41,7 @@ const renderAnswer = (answer: FAQItem['answer']) => {
 export default function FAQContent(item: FAQItem) {
   return (
     <>
-      <Text className="mt-1 text-base font-semibold text-text-primary">{item.question}</Text>
+      {item.question && <Text className="mt-1 text-base font-semibold text-text-primary">{item.question}</Text>}
       {renderAnswer(item.answer)}
     </>
   );
