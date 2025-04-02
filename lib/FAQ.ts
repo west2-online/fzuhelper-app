@@ -115,3 +115,26 @@ export const FAQ_MORE = [
     answer: '3. App 仅提供跳转便利，不负责维护内容与功能，页面可能出现无法加载的情况',
   },
 ];
+
+export const FAQ_MAP = [
+  {
+    name: '课程表',
+    data: FAQ_COURSE,
+  },
+  {
+    name: '空教室',
+    data: FAQ_EMPTY_ROOM,
+  },
+  {
+    name: '考场查询',
+    data: FAQ_EXAM_ROOM,
+  },
+  {
+    name: '成绩查询',
+    data: FAQ_COURSE_GRADE,
+  },
+  {
+    name: '更多工具',
+    data: FAQ_MORE,
+  },
+];
