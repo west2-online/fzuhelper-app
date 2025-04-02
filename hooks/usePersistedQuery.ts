@@ -1,10 +1,9 @@
-import { fetchWithCache } from '@/utils/fetch-with-cache';
 import type { DefaultError, QueryClient, QueryKey } from '@tanstack/query-core';
-import { QueryClient as queryclient, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query/src/types';
 
-// 创建一个全局的 QueryClient 实例（如果没有的话）
-const queryClient = new queryclient();
+import { queryClient } from '@/components/query-provider';
+import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 export const clearAllCache = () => {
   queryClient.clear(); // 清空所有的 React Query 缓存
