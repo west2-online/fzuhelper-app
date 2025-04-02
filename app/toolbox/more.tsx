@@ -6,14 +6,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
-import FAQModal from '@/components/FAQModal';
+import FAQModal from '@/components/faq-modal';
 import { Icon } from '@/components/Icon';
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 
 import { FAQ_MORE } from '@/lib/FAQ';
 import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { ToolType, toolOnPress, type Tool } from '@/utils/tools';
+import { type Tool, toolOnPress, ToolType } from '@/utils/tools';
 
 // 更多页面中的工具列表
 const MORE_TOOLS: Tool[] = [
