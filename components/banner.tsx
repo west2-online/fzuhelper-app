@@ -5,6 +5,7 @@ import {
   Image,
   ImageSourcePropType,
   LayoutChangeEvent,
+  Linking,
   NativeScrollEvent,
   NativeSyntheticEvent,
   TouchableOpacity,
@@ -80,7 +81,6 @@ export default function Banner({ contents, ...props }: BannerProps) {
     }, 4000);
     return () => clearInterval(interval);
   }, [contents.length, currentIndex]);
-  
 
   return (
     <View className="overflow-hidden rounded-[16px]">
@@ -100,7 +100,7 @@ export default function Banner({ contents, ...props }: BannerProps) {
                 if (item.type === BannerType.URL) {
                   pushToWebViewNormal(item.href);
                 } else if (item.type === BannerType.Activity) {
-                  // FIXME: TODO
+                  Linking.openURL(item.href);
                 } else if (item.type === BannerType.NULL) {
                   // do nothing
                 }
