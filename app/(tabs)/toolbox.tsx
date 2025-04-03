@@ -1,6 +1,6 @@
 import { Link, useRouter, type Href, type Router } from 'expo-router';
 import { forwardRef, useEffect, useState } from 'react';
-import { Alert, FlatList, Pressable, useWindowDimensions } from 'react-native';
+import { Alert, FlatList, Platform, Pressable, useWindowDimensions } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
@@ -26,7 +26,7 @@ import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
-import Banner, { type BannerContent } from '@/components/banner';
+import Banner, { BannerType, type BannerContent } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -37,13 +37,17 @@ import { cn } from '@/lib/utils';
 import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 
+import { LaunchScreenScreenResponse } from '@/api/backend';
+import { getApiV1LaunchScreenScreen } from '@/api/generate';
+import useApiRequest from '@/hooks/useApiRequest';
+
 // 工具类型的枚举
 
 // 常量：横幅数据
 const DEFAULT_BANNERS: BannerContent[] = [
-  { image: BannerImage1, onPress: () => {} },
-  { image: BannerImage2, onPress: () => {} },
-  { image: BannerImage3, onPress: () => {} },
+  { image: BannerImage1, text: '', type: BannerType.NULL },
+  { image: BannerImage2, text: '', type: BannerType.NULL },
+  { image: BannerImage3, text: '', type: BannerType.NULL },
 ];
 
 const DEFAULT_TOOLS: Tool[] = [
@@ -278,14 +282,58 @@ const processTools = (tools: Tool[], columns: number) => {
   return [...tools, ...placeholders];
 };
 
+function processBannerData(bannerData: LaunchScreenScreenResponse): BannerContent[] {
+  const banners: BannerContent[] = [];
+  for (const banner of bannerData) {
+    if (!banner.url) break;
+    if (banner.type === 2 && banner.href) {
+      // 网页跳转
+      banners.push({
+        image: { uri: banner.url },
+        text: banner.text ?? '',
+        type: BannerType.URL,
+        href: banner.href,
+      });
+    } else if (banner.type === 3 && banner.href) {
+      // 跳转 activity
+      banners.push({
+        image: { uri: banner.url },
+        text: banner.text ?? '',
+        type: BannerType.Activity,
+        href: banner.href,
+      });
+    } else {
+      // 纯图片
+      banners.push({
+        image: { uri: banner.url },
+        text: banner.text ?? '',
+        type: BannerType.NULL,
+      });
+    }
+  }
+  return banners;
+}
+
 // 自定义 Hook：管理横幅和工具数据
 const useToolsPageData = (columns: number) => {
+  const { data: bannerData } = useApiRequest(getApiV1LaunchScreenScreen, {
+    type: 2, // 1为开屏页，2为轮播图，3为生日当天的开屏页
+    student_id: LocalUser.getUser().userid || '',
+    device: Platform.OS,
+  });
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
   const [toolList, setToolList] = useState<Tool[]>([]);
 
   useEffect(() => {
-    // 模拟数据加载
-    setBannerList(DEFAULT_BANNERS);
+    if (bannerData) {
+      const processedBanner = processBannerData(bannerData);
+      if (processedBanner.length > 0) {
+        setBannerList(processedBanner);
+      }
+    } else {
+      setBannerList(DEFAULT_BANNERS);
+    }
+
     setToolList(
       // 此处会进行一层过滤，只显示当前用户类型可用的工具
       processTools(
@@ -293,7 +341,7 @@ const useToolsPageData = (columns: number) => {
         columns,
       ),
     );
-  }, [columns]);
+  }, [bannerData, columns]);
 
   return { bannerList, toolList };
 };
