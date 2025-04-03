@@ -60,12 +60,12 @@ fun getSharedPreference(context: Context): SharedPreferences {
     return context.getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
 }
 
-fun saveWidgetConfig(context: Context, appWidgetId: Int, key: String, value: Boolean) {
-    getSharedPreference(context).edit().putBoolean("$appWidgetId$key", value).commit()
+fun saveWidgetConfig(context: Context, appWidgetId: Int, key: String, value: Int) {
+    getSharedPreference(context).edit().putInt("$appWidgetId$key", value).commit()
 }
 
-fun loadWidgetConfig(context: Context, appWidgetId: Int, key: String): Boolean {
-    return getSharedPreference(context).getBoolean("$appWidgetId$key", false)
+fun loadWidgetConfig(context: Context, appWidgetId: Int, key: String,defaultValue: Int): Int {
+    return getSharedPreference(context).getInt("$appWidgetId$key", defaultValue)
 }
 
 fun deleteWidgetConfig(context: Context, appWidgetId: Int, key: String) {

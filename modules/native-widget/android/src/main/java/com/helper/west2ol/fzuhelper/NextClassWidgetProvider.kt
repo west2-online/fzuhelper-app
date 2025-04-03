@@ -69,7 +69,6 @@ internal fun updateNextClassWidget(
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
     )
-    views.setPendingIntentTemplate(R.id.container, pendingIntent)
     views.setOnClickPendingIntent(R.id.container, pendingIntent)
 
     val cacheCourseData: CacheCourseData
@@ -122,7 +121,7 @@ internal fun updateNextClassWidget(
             setTextViewText(R.id.course_week, null)
         }
 
-        if (loadWidgetConfig(context, appWidgetId, "showLastUpdateTime")) {
+        if (loadWidgetConfig(context, appWidgetId, "showLastUpdateTime",0)==1) {
             val currentDateTime = Calendar.getInstance()
             val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
             val formattedDate = sdf.format(currentDateTime.time)
@@ -135,8 +134,9 @@ internal fun updateNextClassWidget(
             if (loadWidgetConfig(
                     context,
                     appWidgetId,
-                    "showAsSquare"
-                )
+                    "showAsSquare",
+                    0
+                )==1
             ) {
                 val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
                 val minWidth =
