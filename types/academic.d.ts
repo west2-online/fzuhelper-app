@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 // 课程成绩数据
 export type CourseGradesData = {
   name: string; // 课程名
@@ -23,7 +25,7 @@ export type MergedExamData = {
   name: string; // 课程名
   credit: string; // 学分
   teacher: string; // 授课教师
-  date?: Date; // 考试日期
+  date?: dayjs; // 考试日期
   location?: string; // 考场位置
   time?: string; // 考试时间
   isFinished: boolean; // 是否已经结束

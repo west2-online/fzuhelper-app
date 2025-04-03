@@ -104,7 +104,13 @@ export const FAQ_COURSE_GRADE = [
 export const FAQ_MORE = [
   {
     question: '',
-    answer: '1. 部分服务需要校内网络环境（FZU）或科研网络环境',
+    answer: [
+      '1. 部分服务需要校内网络环境（FZU）或登录',
+      {
+        text: '学校VPN',
+        url: 'https://vpn2.fzu.edu.cn/',
+      },
+    ],
   },
   {
     question: '',
@@ -113,5 +119,42 @@ export const FAQ_MORE = [
   {
     question: '',
     answer: '3. App 仅提供跳转便利，不负责维护内容与功能，页面可能出现无法加载的情况',
+  },
+];
+
+export const FAQ_MAP = [
+  {
+    name: '反馈调研问卷',
+    data: [
+      {
+        question: '',
+        answer: [
+          {
+            text: '点击填写',
+            url: 'https://west2-online.feishu.cn/share/base/form/shrcnHquU1QfSP6nOUfG6S0HpYd',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    name: '课程表',
+    data: FAQ_COURSE,
+  },
+  {
+    name: '空教室',
+    data: FAQ_EMPTY_ROOM,
+  },
+  {
+    name: '考场查询',
+    data: FAQ_EXAM_ROOM,
+  },
+  {
+    name: '成绩查询',
+    data: FAQ_COURSE_GRADE,
+  },
+  {
+    name: '更多工具',
+    data: FAQ_MORE,
   },
 ];

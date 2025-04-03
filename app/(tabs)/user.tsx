@@ -1,7 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Href, router, Tabs, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, ImageSourcePropType, Linking, Platform, View } from 'react-native';
+import { Href, router, Tabs } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Image, ImageSourcePropType, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import LabelIconEntry from '@/components/label-icon-entry';
@@ -10,7 +9,7 @@ import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchUserInfo } from '@/api/generate';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { EXPIRE_ONE_DAY, JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY, RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import { EXPIRE_ONE_DAY, JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
 import { fetchJwchLocateDate } from '@/lib/locate-date';
 import { JWCHLocateDateResult } from '@/types/data';
 import { UserInfo } from '@/types/user';
@@ -36,12 +35,9 @@ const defaultTermInfo: JWCHLocateDateResult = {
   term: -1,
 };
 
-type ReleaseChannelType = 'release' | 'beta';
-
 export default function HomePage() {
   const [userInfo, setUserInfo] = useState<UserInfo>(defaultUserInfo);
   const [termInfo, setTermInfo] = useState<JWCHLocateDateResult>(defaultTermInfo);
-  const [releaseChannel, setReleaseChannel] = useState<ReleaseChannelType | null>(null);
 
   interface MenuItem {
     icon: ImageSourcePropType;
@@ -60,51 +56,7 @@ export default function HomePage() {
     {
       icon: HelpIcon,
       name: '帮助与反馈',
-      operation: () => {
-        if (Platform.OS === 'android') {
-          if (releaseChannel === 'release') {
-            Linking.openURL(
-              'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3De7mh6pFzK706glP05IoQ0-WvvK3nlPds',
-            );
-          } else if (releaseChannel === 'beta') {
-            Linking.openURL(
-              'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3DgJSPzSlxdONFl8CMwAMEeYvZLnR4Dfu4',
-            );
-          }
-        } else if (Platform.OS === 'ios') {
-          Alert.alert(
-            '请选择版本', // 标题
-            '请选择要跳转的反馈交流群', // 信息
-            [
-              {
-                text: '正式版(AppStore)', // 按钮文字
-                onPress: () => {
-                  Linking.openURL(
-                    'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=169341623&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
-                  );
-                },
-              },
-              {
-                text: '测试版(TestFlight)', // 按钮文字
-                onPress: () => {
-                  Linking.openURL(
-                    'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1020036141&authSig=Um4FdlK2sQbPbaMkgVDSMd7lF36Rni1pKLZRUEKhZMz7XmRe8sUwEzJzJrakD5Rc&card_type=group&source=external&jump_from=webapi',
-                  );
-                },
-              },
-              {
-                text: '取消', // 取消按钮
-                style: 'cancel', // iOS 专属样式
-              },
-            ],
-            { cancelable: true }, // 是否允许点击对话框外部关闭
-          );
-        } else {
-          Linking.openURL(
-            'https://qm.qq.com/cgi-bin/qm/qr?k=e7mh6pFzK706glP05IoQ0-WvvK3nlPds&jump_from=webapi&authKey=JigcWCU4RK773M3s4XJwMi1wLejFHpN8gHPyhq0i0BFsSaRhqLH9FhgBiPH5qUOO',
-          );
-        }
-      },
+      link: '/common/help' as Href,
     },
     {
       icon: EcardIcon,
@@ -143,20 +95,6 @@ export default function HomePage() {
       setTermInfo(defaultTermInfo); // 清空学期信息
     }
   }, [termData]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const getReleaseChannel = async () => {
-        let storedReleaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
-        if (!storedReleaseChannel) {
-          storedReleaseChannel = 'release';
-          await AsyncStorage.setItem(RELEASE_CHANNEL_KEY, storedReleaseChannel);
-        }
-        setReleaseChannel(storedReleaseChannel);
-      };
-      getReleaseChannel();
-    }, []),
-  );
 
   return (
     <>

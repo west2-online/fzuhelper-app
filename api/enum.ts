@@ -27,6 +27,7 @@ export enum ResultEnum {
   BizNotExist = '40005', // 业务不存在错误
   BizFileUploadErrorCode = '40006', // 文件上传错误(service 层)
   BizJwchCookieExceptionCode = '40007', // jwch cookie异常
+  BizJwchEvaluationNotFoundCode = '40008', // jwch 未进行评测
 
   InternalServiceErrorCode = '50001', // 未知服务错误
   InternalDatabaseErrorCode = '50002', // 数据库错误
@@ -67,4 +68,5 @@ export enum RejectEnum {
   Timeout = '10005', // 请求超时
   NetworkError = '10006', // 网络异常
   NativeLoginFailed = '10007', // 本地登录异常
+  EvaluationNotFound = '10008', // 评测未找到
 }

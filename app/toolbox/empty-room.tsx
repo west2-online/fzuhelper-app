@@ -1,5 +1,5 @@
 import { getApiV1CommonClassroomEmpty } from '@/api/generate';
-import FAQModal from '@/components/FAQModal';
+import FAQModal from '@/components/faq-modal';
 import { Icon } from '@/components/Icon';
 import ClassroomList from '@/components/classroom-list';
 import Loading from '@/components/loading';
@@ -14,7 +14,7 @@ import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { Pressable, TouchableOpacity, useColorScheme, View } from 'react-native';
 import DateTimePicker, { getDefaultClassNames } from 'react-native-ui-datepicker';
 
 type Campus = '旗山校区' | '铜盘校区' | '晋江校区' | '泉港校区' | '怡山校区' | '集美校区' | '鼓浪屿校区';

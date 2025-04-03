@@ -4,7 +4,7 @@ import { Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-n
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import FAQModal from '@/components/FAQModal';
+import FAQModal from '@/components/faq-modal';
 import { Icon } from '@/components/Icon';
 import ExamRoomCard from '@/components/academic/ExamRoomCard';
 import PageContainer from '@/components/page-container';

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, View, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -36,7 +36,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
   const [schedulesByDays, setSchedulesByDays] = useState<Record<number, CourseInfo[]>>([]); // 目前的课程数据，按天归类
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
-  const [neetForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
+  const [needForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
   const [customBackground, setCustomBackground] = useState(false);
 
   useEffect(() => {
@@ -91,7 +91,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
         );
 
         // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
-        if (!hasCache || CourseCache.compareDigest(COURSE_TYPE, fetchedData.data.data) === false) {
+        if (!hasCache || !CourseCache.compareDigest(COURSE_TYPE, fetchedData.data.data)) {
           CourseCache.setCourses(fetchedData.data.data);
           hasChanged = true;
         }
@@ -105,7 +105,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
           );
 
           const mergedExamData = formatExamData(examData.data.data);
-          if (mergedExamData.length > 0 && CourseCache.compareDigest(EXAM_TYPE, mergedExamData) === false) {
+          if (mergedExamData.length > 0 && !CourseCache.compareDigest(EXAM_TYPE, mergedExamData)) {
             CourseCache.mergeExamCourses(mergedExamData, currentSemester.start_date, currentSemester.end_date);
             hasChanged = true;
           }
@@ -165,7 +165,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
     [maxWeek, currentSemester],
   );
 
-  // 通过 viewability 回调获取当前周
+  // 通过 view ability 回调获取当前周
   const handleViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken<(typeof weekArray)[0]>[] }) => {
       if (viewableItems.length > 0) {
@@ -185,7 +185,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
     [maxWeek],
   );
 
-  return !cacheInitialized || neetForceFetch ? (
+  return !cacheInitialized || needForceFetch ? (
     <Loading />
   ) : (
     <>
