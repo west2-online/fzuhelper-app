@@ -16,33 +16,44 @@ open class CourseScheduleWidgetProvider : AppWidgetProvider() {
         appWidgetIds.filter {
             appWidgetManager.getAppWidgetIds(ComponentName(context, this::class.java)).contains(it)
         }.forEach {
-            val views = RemoteViews(context.packageName, R.layout.course_schedule_widget_provider)
-            val intent = Intent()
-            intent.setClassName(
-                "com.helper.west2ol.fzuhelper",
-                "com.helper.west2ol.fzuhelper" + ".MainActivity"
-            )
-            val pendingIntent = PendingIntent.getActivity(
-                context,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
-            )
-
-            val intent2 = Intent(context, CourseScheduleWidgetService::class.java).apply {
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, it)
-                data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
-            }
-
-            views.apply {
-                setPendingIntentTemplate(R.id.list_view, pendingIntent)
-                setOnClickPendingIntent(R.id.schedule_root, pendingIntent)
-                setRemoteAdapter(R.id.list_view, intent2)
-            }
-
-            appWidgetManager.updateAppWidget(it, views)
-            appWidgetManager.notifyAppWidgetViewDataChanged(it, R.id.list_view)
-
+            updateCourseScheduleWidget(context, appWidgetManager, it)
         }
     }
+
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        for (appWidgetId in appWidgetIds) {
+            deleteWidgetConfig(context, appWidgetId, "alpha")
+        }
+    }
+}
+
+internal fun updateCourseScheduleWidget(
+    context: Context,
+    appWidgetManager: AppWidgetManager,
+    appWidgetId: Int
+) {
+    val views = RemoteViews(context.packageName, R.layout.course_schedule_widget_provider)
+    val intent = Intent()
+    intent.setClassName(
+        "com.helper.west2ol.fzuhelper",
+        "com.helper.west2ol.fzuhelper" + ".MainActivity"
+    )
+    val pendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
+    )
+    val intent2 = Intent(context, CourseScheduleWidgetService::class.java).apply {
+        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
+    }
+    views.apply {
+        setPendingIntentTemplate(R.id.list_view, pendingIntent)
+        setRemoteAdapter(R.id.list_view, intent2)
+        setOnClickPendingIntent(R.id.container, pendingIntent)
+        setFloat(R.id.top_shadow, "setAlpha", loadWidgetConfig(context, appWidgetId, "alpha",80)/100.0f)
+    }
+    appWidgetManager.updateAppWidget(appWidgetId, views)
+    appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.list_view)
 }

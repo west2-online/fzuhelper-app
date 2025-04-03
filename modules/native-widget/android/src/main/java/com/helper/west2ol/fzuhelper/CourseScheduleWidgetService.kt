@@ -200,8 +200,8 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                                 setInt(R.id.tv_name, "setBackgroundResource", bg)
                                 setTextColor(R.id.tv_name, color)
                                 setTextViewTextSize(R.id.tv_name, COMPLEX_UNIT_DIP, 10f)
+//                                setFloat(R.id.tv_name, "setAlpha", 1.0f)
                             }
-                            //remoteViews2.setFloat(R.id.tv_name, "setAlpha", 0.78f)
                         }
                         remoteViews.addView(itemWeekdays[i], remoteViews2)
                         count = 0

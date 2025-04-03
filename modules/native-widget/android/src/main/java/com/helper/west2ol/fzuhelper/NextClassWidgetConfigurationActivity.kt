@@ -11,7 +11,7 @@ import com.west2online.nativewidget.R
 import com.west2online.nativewidget.databinding.NextClassWidgetConfigurationBinding
 
 
-class NextClassWidgetConfigureActivity : AppCompatActivity() {
+class NextClassWidgetConfigurationActivity : AppCompatActivity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
     private lateinit var binding: NextClassWidgetConfigurationBinding
 
@@ -36,7 +36,7 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
                 this,
                 appWidgetId,
                 "showLastUpdateTime",
-                binding.showLastUpdateTimeSwitch.isChecked
+                if(binding.showLastUpdateTimeSwitch.isChecked) 1 else 0
             )
 
             val appWidgetManager = AppWidgetManager.getInstance(this)
@@ -58,7 +58,7 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
                 this,
                 appWidgetId,
                 "showAsSquare",
-                binding.showAsSquareSwitch.isChecked
+                if(binding.showAsSquareSwitch.isChecked)1 else 0
             )
 
             val appWidgetManager = AppWidgetManager.getInstance(this)
@@ -66,8 +66,8 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
         }
 
         binding.showLastUpdateTimeSwitch.isChecked =
-            loadWidgetConfig(this, appWidgetId, "showLastUpdateTime")
-        binding.showAsSquareSwitch.isChecked = loadWidgetConfig(this, appWidgetId, "showAsSquare")
+            loadWidgetConfig(this, appWidgetId, "showLastUpdateTime",0) == 1
+        binding.showAsSquareSwitch.isChecked = loadWidgetConfig(this, appWidgetId, "showAsSquare",0) == 1
 
         binding.refreshData.setOnClickListener {
             val appWidgetManager = AppWidgetManager.getInstance(this)
@@ -79,7 +79,7 @@ class NextClassWidgetConfigureActivity : AppCompatActivity() {
             finish()
         }
 
-        binding.toolbar.inflateMenu(R.menu.next_class_widget_configuration)
+        binding.toolbar.inflateMenu(R.menu.widget_configuration)
         binding.toolbar.setOnMenuItemClickListener {
             val resultValue = Intent()
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)

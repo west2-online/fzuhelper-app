@@ -22,6 +22,5 @@
     <color name="course_color15">#7C6d4c41</color>
     <color name="course_color16">#7C311b92</color>
 
-    <color name="translucent">#ccffffff</color>
     <color name="transparent">#00ffffff</color>
 </resources>
