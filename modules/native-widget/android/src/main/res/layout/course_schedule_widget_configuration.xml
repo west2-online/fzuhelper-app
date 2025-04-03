@@ -21,13 +21,12 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:text="背景不透明度"
+            android:text="背景不透明度:"
             android:textColor="?attr/colorOnSurface"
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/alpha_text"
+            android:id="@+id/background_alpha_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
@@ -37,10 +36,60 @@
     </LinearLayout>
 
     <SeekBar
-        android:id="@+id/alpha_seekbar"
+        android:id="@+id/background_alpha_seekbar"
+        android:layout_marginHorizontal="20dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:min="1"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:background="?attr/colorSurface"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="课程不透明度:"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/foreground_alpha_text"
+            android:layout_marginHorizontal="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="80%"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
+
+        <Spinner
+            android:entries="@array/foreground_opacity_options"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/foreground_alpha_spinner"
+            android:minHeight="32dp" />
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/foreground_alpha_seekbar"
+        android:layout_marginHorizontal="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:min="1"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:background="?attr/colorSurface"/>
 
     <TextView
         android:id="@+id/refresh_data"

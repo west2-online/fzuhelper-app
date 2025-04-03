@@ -22,7 +22,9 @@ open class CourseScheduleWidgetProvider : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            deleteWidgetConfig(context, appWidgetId, "alpha")
+            deleteWidgetConfig(context, appWidgetId, "background_alpha")
+            deleteWidgetConfig(context, appWidgetId, "foreground_alpha")
+            deleteWidgetConfig(context, appWidgetId, "foreground_alpha_mode")
         }
     }
 }
@@ -52,7 +54,8 @@ internal fun updateCourseScheduleWidget(
         setPendingIntentTemplate(R.id.list_view, pendingIntent)
         setRemoteAdapter(R.id.list_view, intent2)
         setOnClickPendingIntent(R.id.container, pendingIntent)
-        setFloat(R.id.top_shadow, "setAlpha", loadWidgetConfig(context, appWidgetId, "alpha",80)/100.0f)
+        setFloat(R.id.top_shadow, "setAlpha", loadWidgetConfig(context, appWidgetId, "background_alpha",80)/100.0f)
+        setFloat(R.id.container, "setAlpha", loadWidgetConfig(context, appWidgetId, "foreground_alpha",100)/100.0f)
     }
     appWidgetManager.updateAppWidget(appWidgetId, views)
     appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.list_view)
