@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import dayjs from 'dayjs';
 
 import { getApiV1CourseDate } from '@/api/generate';
 import type { LocateDateResult } from '@/api/interface';
-import { JWCH_LOCATE_DATE_CACHE_KEY } from '@/lib/constants';
+import { DATE_FORMAT_FULL, JWCH_LOCATE_DATE_CACHE_KEY } from '@/lib/constants';
 import { JWCHLocateDateResult } from '@/types/data';
 
 export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
@@ -22,9 +23,9 @@ export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
 // 使用了本地缓存，但是缓存逻辑和 PersistentQuery 不同，我们只在跨周时重新获取数据
 export default async function locateDate(): Promise<LocateDateResult> {
   // 获取当前日期
-  const currentDate = new Date();
-  const currentDay = currentDate.getDay() === 0 ? 7 : currentDate.getDay(); // 1 表示周一，7 表示周日
-  const formattedCurrentDate = currentDate.toISOString().split('T')[0]; // 格式化日期为 YYYY-MM-DD
+  const currentDate = dayjs();
+  const currentDay = currentDate.day() === 0 ? 7 : currentDate.day(); // 1 表示周一，7 表示周日
+  const formattedCurrentDate = currentDate.format(DATE_FORMAT_FULL); // 格式化日期为 YYYY-MM-DD
 
   // 尝试读取缓存
   try {
@@ -33,12 +34,8 @@ export default async function locateDate(): Promise<LocateDateResult> {
     if (cachedData) {
       const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
 
-      // 判断是否跨周
-      const cachedDateObj = new Date(cachedDate);
-      const cachedDay = cachedDateObj.getDay() === 0 ? 7 : cachedDateObj.getDay();
-
       // 如果缓存日期是同一周的，直接返回缓存数据
-      if (currentDay >= cachedDay && currentDate.getTime() - cachedDateObj.getTime() < 7 * 24 * 60 * 60 * 1000) {
+      if (currentDate.isSame(cachedDate, 'week')) {
         const semester = `${year}${term.toString().padStart(2, '0')}`;
         console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
         return { date: formattedCurrentDate, week, day: currentDay, semester };
