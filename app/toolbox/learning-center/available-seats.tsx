@@ -20,14 +20,14 @@ type parmProps = {
   endTime: string;
 };
 
-// 座位列表为空时的组件
+// 无法获取到座位信息的提示
 const ListEmptySeats: React.FC = memo(() => (
   <PageContainer>
     <View className="flex-1 items-center justify-center py-8">
       <Text className="text-center text-text-secondary">
-        暂无座位数据，请稍后重试
+        无法获取到座位信息
         {'\n'}
-        （或当前时间段已存在一个有效预约）
+        学习中心服务器压力有限，请稍后重试
       </Text>
     </View>
   </PageContainer>
@@ -181,6 +181,19 @@ export default function AvailableSeatsPage() {
         // 更新数据
         if (isMountedRef.current) {
           setSeats(processedResults.map(seat => ({ spaceName: seat.spaceName, spaceStatus: seat.spaceStatus })));
+
+          // 统计可用和不可用的座位数量
+          const availableSeats = processedResults.filter(seat => Number(seat.spaceStatus) === 0).length;
+          const totalSeats = processedResults.length;
+
+          console.log(
+            `座位统计: 总共 ${totalSeats} 个座位, 可用 ${availableSeats} 个, 不可用 ${totalSeats - availableSeats} 个`,
+          );
+
+          // 如果所有座位都不可用，显示Toast提示
+          if (totalSeats > 0 && availableSeats === 0) {
+            toast.error('获取失败，当前时段可能已存在有效预约');
+          }
         }
       } catch (error: any) {
         if (error.name !== 'AbortError' && isMountedRef.current) {
