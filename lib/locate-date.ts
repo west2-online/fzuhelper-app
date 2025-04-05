@@ -1,10 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
+import isoWeekPlugin from 'dayjs/plugin/isoWeek';
 
 import { getApiV1CourseDate } from '@/api/generate';
 import type { LocateDateResult } from '@/api/interface';
 import { DATE_FORMAT_FULL, JWCH_LOCATE_DATE_CACHE_KEY } from '@/lib/constants';
 import { JWCHLocateDateResult } from '@/types/data';
+
+dayjs.extend(isoWeekPlugin);
 
 export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
   const response = await getApiV1CourseDate();
@@ -24,8 +27,8 @@ export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
 export default async function locateDate(): Promise<LocateDateResult> {
   // 获取当前日期
   const currentDate = dayjs();
-  const currentDay = currentDate.day() === 0 ? 7 : currentDate.day(); // 1 表示周一，7 表示周日
-  const formattedCurrentDate = currentDate.format(DATE_FORMAT_FULL); // 格式化日期为 YYYY-MM-DD
+  const currentDay = currentDate.isoWeekday(); // 1 表示周一，7 表示周日
+  const formattedCurrentDate = currentDate.format(DATE_FORMAT_FULL); // 格式化日期
 
   // 尝试读取缓存
   try {
