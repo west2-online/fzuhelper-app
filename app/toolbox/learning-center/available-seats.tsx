@@ -35,11 +35,27 @@ const ListEmptySeats: React.FC = memo(() => (
 
 ListEmptySeats.displayName = 'ListEmptySeats';
 
+// 所有座位都不可用的提示
+const AllSeatsUnavailable: React.FC = memo(() => (
+  <PageContainer>
+    <View className="flex-1 items-center justify-center py-8">
+      <Text className="text-center text-text-secondary">
+        当前时段所有座位都不可用
+        {'\n'}
+        可能已存在有效预约，请取消预约或尝试其他时段
+      </Text>
+    </View>
+  </PageContainer>
+));
+
+AllSeatsUnavailable.displayName = 'AllSeatsUnavailable';
+
 export default function AvailableSeatsPage() {
   const { date, beginTime, endTime } = useLocalSearchParams<parmProps>();
   const api = useLearningCenterApi();
   const [seats, setSeats] = useState<SeatData[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [allSeatsUnavailable, setAllSeatsUnavailable] = useState(false);
   const router = useRouter();
   const [, setRetryCount] = useState(0);
   // 添加中止控制器引用，用于退出时取消重复尝试的请求
@@ -190,9 +206,11 @@ export default function AvailableSeatsPage() {
             `座位统计: 总共 ${totalSeats} 个座位, 可用 ${availableSeats} 个, 不可用 ${totalSeats - availableSeats} 个`,
           );
 
-          // 如果所有座位都不可用，显示Toast提示
+          // 如果所有座位都不可用，设置状态变量
           if (totalSeats > 0 && availableSeats === 0) {
-            toast.error('获取失败，当前时段可能已存在有效预约');
+            setAllSeatsUnavailable(true);
+          } else {
+            setAllSeatsUnavailable(false);
           }
         }
       } catch (error: any) {
@@ -292,6 +310,11 @@ export default function AvailableSeatsPage() {
   // 如果没有座位数据，且不是正在刷新状态，则说明没有座位数据
   if (!seats.length && !isRefreshing) {
     return <ListEmptySeats />;
+  }
+
+  // 如果所有座位都不可用，显示提示
+  if (allSeatsUnavailable) {
+    return <AllSeatsUnavailable />;
   }
 
   return (
