@@ -63,8 +63,7 @@ export default function FloatModal({
                 try {
                   onConfirm();
                 } finally {
-                  // setIsProcessing(false);
-                  // 发现不需要再设置为 false，因为 Modal 会被关闭
+                  setIsProcessing(false);
                 }
               }} className="flex-1 items-center p-2" disabled={isProcessing}>
                 <IcConfirm className="h-6 w-6" />
