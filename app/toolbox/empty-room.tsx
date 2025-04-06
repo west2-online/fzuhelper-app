@@ -1,7 +1,7 @@
 import { getApiV1CommonClassroomEmpty } from '@/api/generate';
-import FAQModal from '@/components/faq-modal';
 import { Icon } from '@/components/Icon';
 import ClassroomList from '@/components/classroom-list';
+import FAQModal from '@/components/faq-modal';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
@@ -14,7 +14,7 @@ import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Pressable, TouchableOpacity, View, useColorScheme } from 'react-native';
 import DateTimePicker, { getDefaultClassNames } from 'react-native-ui-datepicker';
 
 type Campus = '旗山校区' | '铜盘校区' | '晋江校区' | '泉港校区' | '怡山校区' | '集美校区' | '鼓浪屿校区';
@@ -151,7 +151,7 @@ export default function EmptyRoomPage() {
             setSelectedDate(pickerSelectedDate);
             setIsDateTimePickerVisible(false);
           }}
-          contentContainerClassName="h-96"
+          contentContainerClassName="h-96 items-center"
         >
           <DateTimePicker
             mode="single"
