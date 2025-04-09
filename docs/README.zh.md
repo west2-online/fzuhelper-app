@@ -69,12 +69,11 @@ yarn ios --device
 
 在开始之前，请确保已安装或创建以下内容：
 
-1. [Android Studio](https://developer.android.com/studio) 和 Android SDK（版本 35 或以上，可以通过 Android Studio 安装）
-2. [NDK（版本 28 或以上）](https://developer.android.com/studio/projects/install-ndk)
-3. [OpenJDK（版本 17 或以上，使用 winget 安装，Microsoft.OpenJDK.17）](https://learn.microsoft.com/en-us/java/openjdk/install)
-4. 一个 Android Studio 模拟器，可以参考 [Expo 文档](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated) 中的说明进行设置。
+1. [Android Studio](https://developer.android.com/studio) 和 Android SDK（版本为 35，可以通过 Android Studio 安装）
+2. [OpenJDK（版本 17，使用 winget 安装，包名 Microsoft.OpenJDK.17）](https://learn.microsoft.com/en-us/java/openjdk/install)
+3. 一个 Android Studio Emulator，可以参考 [Expo 文档](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated) 中的说明进行设置
 
-为了方便，您可以设置环境变量 `APP_VARIANT=development`。
+为了方便，您可以设置环境变量 `APP_VARIANT=development`。这一步是可选的。
 
 这将使用与发布版本不同的应用标识符，从而允许开发版和发布版共存。如果未设置环境变量或设置了其他值，则仅使用应用的发布版本标识符。
 
@@ -91,13 +90,10 @@ yarn install
 启动应用：
 
 ```bash
-yarn start
+yarn android
 ```
 
-在输出中，您可以找到以下选项以打开应用：
-
-- [开发版本](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android 模拟器](https://docs.expo.dev/workflow/android-studio-emulator/)
+这将启动 Android 模拟器并运行应用。
 
 ## 贡献者
 

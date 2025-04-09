@@ -65,16 +65,15 @@ yarn ios --device
 
 ### Android
 
-> You need at least **a computer with Windows10 installed**. Recommended configuration: Windows 11 Pro, Intel 13th generation or later i5 standard voltage or desktop processor. 32G memory
+> You need at least **a computer with Windows 10 installed**. Recommended configuration: Windows 11 Pro, Intel 13th generation or later i5 standard voltage or desktop processor, with at least 32G memory.
 
 Before start, make sure you have installed/created:
 
-1. [Android Studio](https://developer.android.com/studio) and Android SDK (35 or above, you can install it from Android Studio)
-2. [NDK(28 or above)](https://developer.android.com/studio/projects/install-ndk)
-3. [OpenJDK(17 or above，winget, Microsoft.OpenJDK.17)](https://learn.microsoft.com/en-us/java/openjdk/install)
-4. an Android Studio emulator, you can follow the instructions in the [Expo documentation](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated).
+1. [Android Studio](https://developer.android.com/studio) and Android SDK (Version 35, you can install it from Android Studio)
+2. [OpenJDK (17 or above，winget, Microsoft.OpenJDK.17)](https://learn.microsoft.com/en-us/java/openjdk/install)
+3. an Android Studio emulator, you can follow the instructions in the [Expo documentation](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated).
 
-For convenience, you can set environment variable `APP_VARIANT=development`.
+For convenience, you can set environment variable `APP_VARIANT=development`. This is optional.
 
 This will use a different application identifier than the release, which allows for the coexistence of dev and release versions.
 
@@ -93,13 +92,10 @@ yarn install
 Start the app:
 
 ```bash
-yarn start
+yarn android
 ```
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+This will start the Metro bundler and launch the app in the emulator.
 
 ## Contributors
 
