@@ -766,7 +766,7 @@ export const defaultCourseSetting: CourseSetting = {
   selectedSemester: '',
   calendarExportEnabled: false,
   showNonCurrentWeekCourses: false,
-  exportExamToCourseTable: false,
+  exportExamToCourseTable: true,
   hiddenCoursesWithoutAttendances: false,
   calendarSubscribeUrl: '',
 };
