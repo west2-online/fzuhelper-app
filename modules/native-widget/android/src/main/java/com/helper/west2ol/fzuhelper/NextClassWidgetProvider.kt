@@ -93,19 +93,21 @@ internal fun updateNextClassWidget(
         if (nextClass != null) {
             val name = nextClass.courseBean.name
                 .let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
-            val section: String = nextClass.courseBean.remark.ifEmpty {
-                "${nextClass.courseBean.startClass}-${nextClass.courseBean.endClass}节"
-            }
+            val location = nextClass.courseBean.location
+                .let { if (it.length >= 10) it.substring(0, 8) + "..." else it }
+            val section = nextClass.courseBean.remark
+                .ifEmpty { "${nextClass.courseBean.startClass}-${nextClass.courseBean.endClass}节" }
+                .let { if (it.length >= 10) it.substring(0, 8) + "..." else it }
 
-            setTextViewText(R.id.course_name, name)
             setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
-            setTextViewText(R.id.course_room, nextClass.courseBean.location)
+            setTextViewText(R.id.course_name, name)
+            setTextViewText(R.id.course_room, location)
+            setTextViewText(R.id.course_section, section)
+            setTextViewText(R.id.course_week, "第${nextClass.week}周")
             setTextViewText(
                 R.id.course_weekday,
                 "周${getWeekChinese(nextClass.courseBean.weekday)}"
             )
-            setTextViewText(R.id.course_section, section)
-            setTextViewText(R.id.course_week, "第${nextClass.week}周")
         } else {
             if (hasLocalData) {
                 setTextViewText(R.id.course_name, "放假啦")
