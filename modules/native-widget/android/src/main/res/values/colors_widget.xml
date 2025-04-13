@@ -1,6 +1,6 @@
 <resources>
     <color name="weekday_background">#992196F3</color>
-    <color name="unneeded_foreground">#66000000</color>
+    <color name="unnecessary_foreground">#66000000</color>
     <color name="foreground">#000000</color>
     <color name="background">#F5F5F5</color>
 
