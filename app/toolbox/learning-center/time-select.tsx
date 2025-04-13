@@ -1,6 +1,6 @@
 import { Stack, router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { FlatList, ScrollView, View } from 'react-native';
 
 import DateCard from '@/components/learning-center/date-card';
 import TimeCard from '@/components/learning-center/time-card';
@@ -116,7 +116,7 @@ export default function SeatsPage() {
 
   return (
     <PageContainer>
-      <View className="p-2">
+      <ScrollView className="p-2">
         <Stack.Screen options={{ title: '选择时间段' }} />
 
         {/* 日期选择 */}
@@ -168,7 +168,7 @@ export default function SeatsPage() {
             <Text>确定</Text>
           </Button>
         </View>
-      </View>
+      </ScrollView>
     </PageContainer>
   );
 }
