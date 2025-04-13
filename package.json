@@ -2,7 +2,7 @@
   "name": "fzuhelper-app",
   "main": "expo-router/entry",
   "//": "下面的 version 每一位都只能是【一位】数字！！！",
-  "version": "7.1.1",
+  "version": "7.1.2",
   "private": true,
   "scripts": {
     "start": "expo start",
