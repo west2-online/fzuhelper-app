@@ -38,7 +38,7 @@ export default async function locateDate(): Promise<LocateDateResult> {
       const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
 
       // 如果缓存日期是同一周的，直接返回缓存数据
-      if (currentDate.isSame(cachedDate, 'week')) {
+      if (currentDate.isSame(cachedDate, 'isoWeek')) {
         const semester = `${year}${term.toString().padStart(2, '0')}`;
         console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
         return { date: formattedCurrentDate, week, day: currentDay, semester };
