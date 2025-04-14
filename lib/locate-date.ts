@@ -11,7 +11,7 @@ dayjs.extend(isoWeekPlugin);
 
 export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
   const response = await getApiV1CourseDate();
-  console.log('从jwch获取时间:', response.data);
+
   return {
     week: +response.data.data.week,
     year: +response.data.data.year,
@@ -26,9 +26,9 @@ export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
 // 使用了本地缓存，但是缓存逻辑和 PersistentQuery 不同，我们只在跨周时重新获取数据
 export default async function locateDate(): Promise<LocateDateResult> {
   // 获取当前日期
-  const currentDateObj = dayjs();
-  const currentDay = currentDateObj.isoWeekday(); // 1 表示周一，7 表示周日
-  const formattedCurrentDate = currentDateObj.format(DATE_FORMAT_FULL); // 格式化日期
+  const currentDate = dayjs();
+  const currentDay = currentDate.isoWeekday(); // 1 表示周一，7 表示周日
+  const formattedCurrentDate = currentDate.format(DATE_FORMAT_FULL); // 格式化日期
 
   // 尝试读取缓存
   try {
@@ -37,13 +37,8 @@ export default async function locateDate(): Promise<LocateDateResult> {
     if (cachedData) {
       const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
 
-      // 解析缓存的日期，并获取其ISO周数
-      const cachedDateObj = dayjs(cachedDate);
-      const cachedWeek = cachedDateObj.isoWeek();
-      const currentWeek = currentDateObj.isoWeek();
-
-      // 如果缓存日期与当前日期在同一ISO周内，直接返回缓存数据
-      if (cachedDateObj.year() === currentDateObj.year() && cachedWeek === currentWeek) {
+      // 如果缓存日期是同一周的，直接返回缓存数据
+      if (currentDate.isSame(cachedDate, 'week')) {
         const semester = `${year}${term.toString().padStart(2, '0')}`;
         console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
         return { date: formattedCurrentDate, week, day: currentDay, semester };
