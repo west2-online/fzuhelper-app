@@ -19,7 +19,7 @@ import { useUpdateEffect } from '@/hooks/use-update-effect';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY } from '@/lib/constants';
 import { CourseCache, defaultCourseSetting, readCourseSetting } from '@/lib/course';
-import { convertSemester, deConvertSemester } from '@/lib/locate-date';
+import locateDate, { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 
@@ -80,13 +80,18 @@ export default function AcademicPage() {
       if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
         queryTerm = deConvertSemester(queryTerm);
       }
+
+      // 课程信息
       const data = await getApiV1JwchCourseList({ term: queryTerm, is_refresh: true });
       const cacheToStore = {
         data: data,
         timestamp: Date.now(),
       };
-
       await AsyncStorage.setItem([COURSE_DATA_KEY, queryTerm].join('__'), JSON.stringify(cacheToStore));
+
+      // locate-date
+      await locateDate(true); // 强制更新缓存
+
       CourseCache.setCourses(data.data.data, true); // 设置课程数据,跳过digest检查
       CourseCache.save(); // 强制保存一次
       toast.success('刷新成功');

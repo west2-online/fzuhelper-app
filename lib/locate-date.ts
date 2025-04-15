@@ -24,28 +24,30 @@ export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
 // e.g. { date: '2024-06-01', week: 23, day: 3, semester: '202401' }
 // 这个函数应当只会在课表业务中涉及
 // 使用了本地缓存，但是缓存逻辑和 PersistentQuery 不同，我们只在跨周时重新获取数据
-export default async function locateDate(): Promise<LocateDateResult> {
+export default async function locateDate(noCache = false): Promise<LocateDateResult> {
   // 获取当前日期
   const currentDate = dayjs();
   const currentDay = currentDate.isoWeekday(); // 1 表示周一，7 表示周日
   const formattedCurrentDate = currentDate.format(DATE_FORMAT_FULL); // 格式化日期
 
   // 尝试读取缓存
-  try {
-    const cachedData = await AsyncStorage.getItem(JWCH_LOCATE_DATE_CACHE_KEY);
+  if (!noCache) {
+    try {
+      const cachedData = await AsyncStorage.getItem(JWCH_LOCATE_DATE_CACHE_KEY);
 
-    if (cachedData) {
-      const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
+      if (cachedData) {
+        const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
 
-      // 如果缓存日期是同一周的，直接返回缓存数据
-      if (currentDate.isSame(cachedDate, 'week')) {
-        const semester = `${year}${term.toString().padStart(2, '0')}`;
-        console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
-        return { date: formattedCurrentDate, week, day: currentDay, semester };
+        // 如果缓存日期是同一周的，直接返回缓存数据
+        if (currentDate.isSame(cachedDate, 'isoWeek')) {
+          const semester = `${year}${term.toString().padStart(2, '0')}`;
+          console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
+          return { date: formattedCurrentDate, week, day: currentDay, semester };
+        }
       }
+    } catch (error) {
+      console.warn('Failed to read cache:', error);
     }
-  } catch (error) {
-    console.warn('Failed to read cache:', error);
   }
 
   console.log('Fetching locate date...');
