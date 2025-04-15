@@ -1,10 +1,3 @@
-import Constants from 'expo-constants';
-import { Href, Link, Stack, router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Image, Linking, Platform, Pressable, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
-
 import {
   DescriptionList,
   DescriptionListDescription,
@@ -14,6 +7,13 @@ import {
 import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
+import Constants from 'expo-constants';
+import { Href, Link, Stack, router } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { Image, Linking, Platform, Pressable, View } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import IconTransparent from '@/assets/images/ic_launcher_foreground.png';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
@@ -27,6 +27,7 @@ export default function AboutPage() {
   const [clickCount, setClickCount] = useState(0);
   const { handleError } = useSafeResponseSolve();
   const [updateCheckState, setUpdateCheckState] = useState('点击检查更新');
+  const buildNumber = DeviceInfo.getBuildNumber();
 
   const handleCheckUpdate = useCallback(async () => {
     console.log('check update');
@@ -66,7 +67,9 @@ export default function AboutPage() {
         <Pressable className="flex items-center p-12" onPress={() => setClickCount(prev => prev + 1)}>
           <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-card" />
           <View>
-            <Text className="text-xl text-primary">{Constants.expoConfig?.version ?? ''}</Text>
+            <Text className="text-xl text-primary">
+              {Constants.expoConfig?.version ?? ''}+{buildNumber ?? ''}
+            </Text>
           </View>
         </Pressable>
 

@@ -29,7 +29,7 @@ interface CourseCardProps {
 
 // 课程卡片组件
 const ExamRoomCard: React.FC<CourseCardProps> = ({ item }) => (
-  <Card className={cn('m-1 p-3', item.isFinished && 'opacity-50')}>
+  <Card className={cn('m-1 my-2 rounded-md p-3', item.isFinished && 'opacity-50')}>
     {/* 考试课程 */}
     <View className="m-1 flex flex-row items-center justify-start">
       <View className="flex flex-shrink-0 flex-grow flex-row items-center">
