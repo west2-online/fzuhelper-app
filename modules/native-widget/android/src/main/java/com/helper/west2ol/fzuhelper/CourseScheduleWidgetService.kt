@@ -184,7 +184,7 @@ class CourseScheduleWidgetService : RemoteViewsService() {
 
                             val (bg, color) = if (preCourseIndex > 0) {
                                 Pair(
-                                    bgCourses[abs(kc.color.hashCode()) % bgCourses.size],
+                                    bgCourses[abs(kc.color?.hashCode()?: 0) % bgCourses.size],
                                     Color.WHITE,
                                 )} else {
                                 Pair(

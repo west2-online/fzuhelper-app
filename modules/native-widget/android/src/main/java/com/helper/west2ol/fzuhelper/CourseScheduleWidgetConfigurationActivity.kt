@@ -1,5 +1,6 @@
 package com.helper.west2ol.fzuhelper
 
+import kotlin.math.min
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
@@ -80,7 +81,7 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
             }
         })
 
-        binding.foregroundAlphaSpinner.setSelection(loadWidgetConfig(this, appWidgetId, "foreground_alpha_mode", 0))
+        binding.foregroundAlphaSpinner.setSelection(min(loadWidgetConfig(this, appWidgetId, "foreground_alpha_mode", 0),1))
         binding.backgroundAlphaSeekbar.progress = loadWidgetConfig(this, appWidgetId, "background_alpha", 80)
         binding.foregroundAlphaSeekbar.progress = loadWidgetConfig(this, appWidgetId, "foreground_alpha", 100)
         binding.backgroundAlphaText.text = "${binding.backgroundAlphaSeekbar.progress}%"
