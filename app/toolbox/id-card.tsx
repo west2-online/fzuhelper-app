@@ -25,7 +25,6 @@ export default function IDCardPage() {
       <Stack.Screen options={{ title: '学生证与附卡' }} />
       <PageContainer className="px-8 pt-4">
         <ScrollView>
-          {' '}
           {/* 菜单列表 */}
           <View className="space-y-4">
             {menuItems.map(item => (
@@ -42,7 +41,7 @@ export default function IDCardPage() {
             <Text className="my-2 text-base text-text-secondary">
               如果页面显示过小，您可以通过双指聚拢/散开来实现页面放大、缩小
             </Text>
-          </View>{' '}
+          </View>
         </ScrollView>
       </PageContainer>
     </>
