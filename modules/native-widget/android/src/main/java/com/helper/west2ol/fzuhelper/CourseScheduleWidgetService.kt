@@ -178,28 +178,24 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                     if (j == 12 || (j != 1 && mark2[i][j] != preCourseIndex)) {
                         val remoteViews2 = RemoteViews(context.packageName, widgetViews[count])
                         if (preCourseIndex != 0) {
-                            val kc =
-                                courseBeans[if (preCourseIndex > 0) preCourseIndex - 1 else -(preCourseIndex + 1)]
-                            var name = kc.name
-                            if (name.length >= 13) {
-                                name = name.substring(0, 11)
-                                name += "..."
-                            }
-                            val bg = if (preCourseIndex > 0) {
-                                bgCourses[abs(kc.color.hashCode()) % bgCourses.size]
-                            } else {
-                                R.drawable.bg_course_0
-                            }
-                            val color = if (preCourseIndex > 0) {
-                                Color.WHITE
-                            } else {
-                                Color.GRAY
-                            }
+                            val kc = courseBeans[if (preCourseIndex > 0) preCourseIndex - 1 else -(preCourseIndex + 1)]
+                            val name = kc.name.let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
+                            val location = kc.location.let { if (it.length >= 10) it.substring(0, 8) + "..." else it }
+
+                            val (bg, color) = if (preCourseIndex > 0) {
+                                Pair(
+                                    bgCourses[abs(kc.color?.hashCode()?: 0) % bgCourses.size],
+                                    Color.WHITE,
+                                )} else {
+                                Pair(
+                                    R.drawable.bg_course_0,
+                                    Color.GRAY,
+                                )}
                             remoteViews2.apply {
-                                setTextViewText(R.id.tv_name, name + "\n\n" + kc.location)
-                                setInt(R.id.tv_name, "setBackgroundResource", bg)
-                                setTextColor(R.id.tv_name, color)
+                                setTextViewText(R.id.tv_name, name + "\n\n" + location)
                                 setTextViewTextSize(R.id.tv_name, COMPLEX_UNIT_DIP, 10f)
+                                setTextColor(R.id.tv_name, color)
+                                setInt(R.id.tv_name, "setBackgroundResource", bg)
 //                                setFloat(R.id.tv_name, "setAlpha", 1.0f)
                             }
                         }

@@ -36,18 +36,16 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
         binding.foregroundAlphaSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 when (position) {
-                    0 ->{
+                    0 -> {
                         binding.foregroundAlphaSeekbar.isEnabled = false
                         binding.foregroundAlphaSeekbar.progress = 100
-                        binding.foregroundAlphaText.text = "100%"
+                        saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.backgroundAlphaSeekbar.progress)
                     }
-                    1 ->{
-                        binding.foregroundAlphaSeekbar.isEnabled = true
-                    }
+                    1 -> binding.foregroundAlphaSeekbar.isEnabled = true
                     2 ->{
                         binding.foregroundAlphaSeekbar.isEnabled = false
                         binding.foregroundAlphaSeekbar.progress = binding.backgroundAlphaSeekbar.progress
-                        binding.foregroundAlphaText.text = "${binding.backgroundAlphaSeekbar.progress}%"
+                        saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.backgroundAlphaSeekbar.progress)
                     }
                 }
                 saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha_mode", position)
@@ -60,12 +58,13 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
         binding.foregroundAlphaSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 binding.foregroundAlphaText.text = "$progress%"
-                saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", progress)
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", seekBar!!.progress)
                 val appWidgetManager = AppWidgetManager.getInstance(this@CourseScheduleWidgetConfigurationActivity)
                 updateCourseScheduleWidget(this@CourseScheduleWidgetConfigurationActivity, appWidgetManager, appWidgetId)
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
         binding.backgroundAlphaSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -74,19 +73,22 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
                     binding.foregroundAlphaSeekbar.progress = progress
                 }
                 binding.backgroundAlphaText.text = "$progress%"
-                saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "background_alpha", progress)
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                if (binding.foregroundAlphaSpinner.selectedItemPosition == 2) {
+                    saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", seekBar!!.progress)
+                }
+                saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "background_alpha", seekBar!!.progress)
                 val appWidgetManager = AppWidgetManager.getInstance(this@CourseScheduleWidgetConfigurationActivity)
                 updateCourseScheduleWidget(this@CourseScheduleWidgetConfigurationActivity, appWidgetManager, appWidgetId)
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        binding.backgroundAlphaSeekbar.progress = loadWidgetConfig(this, appWidgetId, "background_alpha", 80)
-        binding.backgroundAlphaText.text = "${binding.backgroundAlphaSeekbar.progress}%"
-
         binding.foregroundAlphaSpinner.setSelection(loadWidgetConfig(this, appWidgetId, "foreground_alpha_mode", 0))
+        binding.backgroundAlphaSeekbar.progress = loadWidgetConfig(this, appWidgetId, "background_alpha", 80)
         binding.foregroundAlphaSeekbar.progress = loadWidgetConfig(this, appWidgetId, "foreground_alpha", 100)
+        binding.backgroundAlphaText.text = "${binding.backgroundAlphaSeekbar.progress}%"
         binding.foregroundAlphaText.text = "${binding.foregroundAlphaSeekbar.progress}%"
 
         binding.refreshData.setOnClickListener {
