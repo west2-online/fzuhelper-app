@@ -1,9 +1,7 @@
-import com.android.Version
-
 apply plugin: 'com.android.library'
 
-group = 'com.west2online.umeng'
-version = '0.4.1'
+group = 'com.west2online.bugly'
+version = '0.6.3'
 
 def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
 apply from: expoModulesCorePlugin
@@ -34,32 +32,17 @@ if (useManagedAndroidSdkVersions) {
 }
 
 android {
-    namespace "com.west2online.umeng"
+    namespace "com.west2online.bugly"
     defaultConfig {
         versionCode 1
-        versionName "0.4.1"
+        versionName "0.6.3"
         consumerProguardFiles 'proguard-rules.pro'
     }
     lintOptions {
         abortOnError false
     }
-    buildFeatures {
-        buildConfig = true
-    }
 }
-dependencies {
-//  implementation project(':expo-modules-core')
-//  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getKotlinVersion()}"
 
-    // 友盟统计SDK
-    api 'com.umeng.umsdk:common:9.8.0'
-    api 'com.umeng.umsdk:asms:1.8.6'
-    // 友盟Push相关依赖
-    api 'com.umeng.umsdk:push:6.7.2'
-    // 小米
-    api 'com.umeng.umsdk:xiaomi-umengaccs:2.1.0'
-    api 'com.umeng.umsdk:xiaomi-push:5.9.9'
-    // 华为
-    api 'com.umeng.umsdk:huawei-umengaccs:2.1.0'
-    api 'com.huawei.hms:push:6.13.0.300'
+dependencies {
+    implementation 'com.tencent.bugly:crashreport:4.1.9.3'
 }

@@ -34,6 +34,7 @@ import {
 } from '@/lib/constants';
 import { NotificationManager } from '@/lib/notification';
 import { LocalUser } from '@/lib/user';
+import BuglyModule from '@/modules/bugly';
 import { isAccountExist } from '@/utils/is-account-exist';
 
 ExpoSplashScreen.preventAutoHideAsync();
@@ -56,9 +57,13 @@ export default function SplashScreen() {
 
   // 合规初始化第三方库
   const initThirdParty = useCallback(async () => {
-    console.log('initUMPush and UMAnalysis');
+    console.log('init ThirdParty Libraries');
     await NotificationManager.init();
     initAegis();
+    if (Platform.OS === 'android') {
+      // 崩溃上报
+      BuglyModule.initBugly();
+    }
   }, []);
 
   const navigateToHome = useCallback(() => {
@@ -164,6 +169,9 @@ export default function SplashScreen() {
     setAegisConfig({
       uin: LocalUser.getUser().userid,
     });
+    if (Platform.OS === 'android') {
+      BuglyModule.setUserId(LocalUser.getUser().userid);
+    }
 
     getSplash(); // 获取开屏页
   }, [getSplash, redirect]);
