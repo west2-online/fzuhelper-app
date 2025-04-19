@@ -4,3 +4,4 @@ export interface AcademicCalendar  {
   start_date: string; // 开始日期(e.g. 2015-08-29)
   end_date: string; // 结束日期(e.g. 2015-08-30)
 };
+

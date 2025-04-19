@@ -14,7 +14,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1JwchCourseList, getApiV1JwchTermList } from '@/api/generate';
-import type { CourseSetting } from '@/api/interface';
+import type { CourseSetting } from '@/types/interface';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY } from '@/types/constants';

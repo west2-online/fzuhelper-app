@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import isoWeekPlugin from 'dayjs/plugin/isoWeek';
 
 import { getApiV1CourseDate } from '@/api/generate';
-import type { LocateDateResult } from '@/api/interface';
+import type { LocateDateResult } from '@/types/interface';
 import { DATE_FORMAT_FULL, JWCH_LOCATE_DATE_CACHE_KEY } from '@/types/constants';
 import { JWCHLocateDateResult } from '@/types/data';
 

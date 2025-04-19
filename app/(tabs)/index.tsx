@@ -6,7 +6,7 @@ import CoursePage from '@/components/course/course-page';
 import Loading from '@/components/loading';
 
 import { getApiV1TermsList } from '@/api/generate';
-import type { CourseSetting } from '@/api/interface';
+import type { CourseSetting } from '@/types/interface';
 import PageContainer from '@/components/page-container';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
 import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/types/constants';

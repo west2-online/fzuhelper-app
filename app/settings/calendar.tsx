@@ -12,7 +12,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchCourseCalendarToken } from '@/api/generate';
-import type { CourseSetting } from '@/api/interface';
+import type { CourseSetting } from '@/types/interface';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
 import {
   CALENDAR_SUBSCRIPTION_PREFIX,
