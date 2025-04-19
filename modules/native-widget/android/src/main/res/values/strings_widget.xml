@@ -3,6 +3,7 @@
     <string name="course_schedule_widget_description">课程表</string>
 
     <string-array name="foreground_opacity_options">
+        <item>保持不透明</item>
         <item>自定义不透明度</item>
         <item>跟随背景不透明度</item>
     </string-array>

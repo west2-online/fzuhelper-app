@@ -1,6 +1,5 @@
 package com.helper.west2ol.fzuhelper
 
-import kotlin.math.min
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
@@ -37,8 +36,13 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
         binding.foregroundAlphaSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 when (position) {
-                    0 -> binding.foregroundAlphaSeekbar.isEnabled = true
-                    1 ->{
+                    0 -> {
+                        binding.foregroundAlphaSeekbar.isEnabled = false
+                        binding.foregroundAlphaSeekbar.progress = 100
+                        saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.backgroundAlphaSeekbar.progress)
+                    }
+                    1 -> binding.foregroundAlphaSeekbar.isEnabled = true
+                    2 ->{
                         binding.foregroundAlphaSeekbar.isEnabled = false
                         binding.foregroundAlphaSeekbar.progress = binding.backgroundAlphaSeekbar.progress
                         saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.backgroundAlphaSeekbar.progress)
@@ -65,14 +69,14 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
 
         binding.backgroundAlphaSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (binding.foregroundAlphaSpinner.selectedItemPosition == 1) {
+                if (binding.foregroundAlphaSpinner.selectedItemPosition == 2) {
                     binding.foregroundAlphaSeekbar.progress = progress
                 }
                 binding.backgroundAlphaText.text = "$progress%"
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                if (binding.foregroundAlphaSpinner.selectedItemPosition == 1) {
+                if (binding.foregroundAlphaSpinsner.selectedItemPosition == 1) {
                     saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", seekBar!!.progress)
                 }
                 saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "background_alpha", seekBar!!.progress)
@@ -81,7 +85,7 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
             }
         })
 
-        binding.foregroundAlphaSpinner.setSelection(min(loadWidgetConfig(this, appWidgetId, "foreground_alpha_mode", 0),1))
+        binding.foregroundAlphaSpinner.setSelection(loadWidgetConfig(this, appWidgetId, "foreground_alpha_mode", 0))
         binding.backgroundAlphaSeekbar.progress = loadWidgetConfig(this, appWidgetId, "background_alpha", 80)
         binding.foregroundAlphaSeekbar.progress = loadWidgetConfig(this, appWidgetId, "foreground_alpha", 100)
         binding.backgroundAlphaText.text = "${binding.backgroundAlphaSeekbar.progress}%"
