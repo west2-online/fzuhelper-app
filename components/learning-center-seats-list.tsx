@@ -8,7 +8,7 @@ import SeatCard from '@/components/learning-center/seat-card';
 import SeatOverview from '@/components/learning-center/seat-overview';
 import { cn } from '@/lib/utils';
 import type { SeatData } from '@/types/learning-center';
-import { SEAT_ITEM_HEIGHT, SpaceStatus, convertSpaceName, groupSeatsByArea } from '@/utils/learning-center/seats';
+import { convertSpaceName, groupSeatsByArea, SEAT_ITEM_HEIGHT, SpaceStatus } from '@/utils/learning-center/seats';
 
 interface Section {
   title: string;

@@ -98,7 +98,7 @@ export default function AppearancePage() {
       <Stack.Screen options={{ title: '主题换肤' }} />
 
       <PageContainer>
-        <ScrollView className="flex-1 px-8 pt-6">
+        <ScrollView className="flex-1 px-8" contentContainerClassName="pt-6">
           <SafeAreaView edges={['bottom']}>
             <LabelEntry
               leftText={'主题模式'}

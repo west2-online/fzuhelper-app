@@ -1,4 +1,4 @@
-import { Stack, router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, ScrollView, View } from 'react-native';
 
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
 import { addHours, calculateHoursDifference, formatDate, isTimePast } from '@/utils/learning-center/date';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SeatsPage() {
   // 修改默认日期，如果当前时间晚于或等于22:00则为次日
@@ -163,11 +164,13 @@ export default function SeatsPage() {
               ? `已选择时间段 ${formatDate(selectedDate, 'YYYY年MM月DD日')} ${beginTime} - ${endTime}`
               : ''}
         </Text>
-        <View className="mx-2 justify-between">
-          <Button disabled={!beginTime || !endTime || beginTime > endTime} onPress={handleCommit}>
-            <Text>确定</Text>
-          </Button>
-        </View>
+        <SafeAreaView edges={['bottom']}>
+          <View className="mx-2 justify-between">
+            <Button disabled={!beginTime || !endTime || beginTime > endTime} onPress={handleCommit}>
+              <Text>确定</Text>
+            </Button>
+          </View>
+        </SafeAreaView>
       </ScrollView>
     </PageContainer>
   );

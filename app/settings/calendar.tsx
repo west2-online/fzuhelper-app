@@ -94,7 +94,7 @@ export default function PersonalInfoListPage() {
       <Stack.Screen options={{ title: '日历订阅' }} />
 
       <PageContainer>
-        <ScrollView className="flex-1 px-8 pt-8">
+        <ScrollView className="flex-1 px-8" contentContainerClassName="pt-8">
           <SafeAreaView edges={['bottom']}>
             <Text className="mb-2 text-sm text-text-secondary">我们提供日历订阅功能，以支持系统级的课程日历管理。</Text>
 

@@ -34,7 +34,8 @@ export default function CreditsPage() {
       ) : (
         <PageContainer>
           <ScrollView
-            className="flex-1 p-4"
+            className="flex-1"
+            contentContainerClassName="px-4 pt-4"
             refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
           >
             {creditData && creditData.length > 0 && (
