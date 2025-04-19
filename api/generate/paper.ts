@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-ignore
-import * as API from '../../types/types';
+import * as API from '../types';
 import request from '../axios';
 
 /** 获取下载链接 GET /api/v1/paper/download https://apifox.com/web/project/3275694/apis/api-224249733-run */

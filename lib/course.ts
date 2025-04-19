@@ -1,5 +1,5 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/types/backend';
-import type { CourseSetting } from '@/types/interface';
+import type { CourseSetting } from '@/api/interface';
 import {
   CLASS_BREAK_EVENING,
   CLASS_BREAK_NOON,

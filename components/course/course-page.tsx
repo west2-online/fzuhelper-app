@@ -10,7 +10,7 @@ import { Text } from '@/components/ui/text';
 
 import type { TermsListResponse_Terms } from '@/types/backend';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
-import type { CourseSetting } from '@/types/interface';
+import type { CourseSetting } from '@/api/interface';
 import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/types/constants';
 import { COURSE_TYPE, CourseCache, EXAM_TYPE, type CourseInfo } from '@/lib/course';
 import { formatExamData } from '@/lib/exam-room';

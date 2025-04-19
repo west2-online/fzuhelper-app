@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-ignore
-import * as API from '../../types/types';
+import * as API from '../types';
 import request from '../axios';
 import {LoginCredentials,SSOCredentials} from '@/types/user'
 import { get } from '@/modules/native-request';

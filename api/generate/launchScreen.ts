@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-ignore
-import * as API from '../../types/types';
+import * as API from '../types';
 import request from '../axios';
 
 /** AddImagePointTime add image point time GET /api/v1/launch-screen/image/point-time https://apifox.com/web/project/3275694/apis/api-225730374-run */
