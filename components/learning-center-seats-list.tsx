@@ -120,8 +120,8 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
       />
 
-      <View className="absolute right-0 top-12 w-[70px] pr-2" style={{ bottom: insets.bottom }}>
-        <ScrollView className="flex-1">
+      <View className="absolute bottom-0 right-0 top-12 w-[70px] pr-2">
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: insets.bottom }}>
           {groupedData.map((section, index) => (
             <TouchableOpacity key={section.title} onPress={() => handlePress(index, section.title)} className="mb-4">
               <View

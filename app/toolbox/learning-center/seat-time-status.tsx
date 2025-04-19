@@ -248,7 +248,7 @@ export default function SeatTimeStatusPage() {
                   </View>
 
                   {/* 时间块网格 */}
-                  <View className="flex-row flex-wrap justify-start">
+                  <View className="mb-1 flex-row flex-wrap justify-start">
                     {timeDiamondList.map(item => (
                       <TouchableOpacity
                         key={item.index}
@@ -257,7 +257,7 @@ export default function SeatTimeStatusPage() {
                         onPress={() => handleTimeSelection(item.timeText, item.occupy)}
                       >
                         <Text
-                          className={`mb-1 w-full text-center text-base ${
+                          className={`w-full text-center text-base ${
                             item.occupy === 1
                               ? 'text-text-secondary'
                               : item.timeText === beginTime || item.timeText === endTime
