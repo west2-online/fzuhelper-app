@@ -8,7 +8,7 @@ import Loading from '@/components/loading';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
 
-import type { TermsListResponse_Terms } from '@/api/backend';
+import type { TermsListResponse_Terms } from '@/types/backend';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting } from '@/types/interface';
 import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/types/constants';

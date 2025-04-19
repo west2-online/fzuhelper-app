@@ -1,6 +1,6 @@
 'use dom';
 
-import type { CommonContributorResponse, CommonContributorResponse_Contributor as Contributor } from '@/api/backend';
+import type { CommonContributorResponse, CommonContributorResponse_Contributor as Contributor } from '@/types/backend';
 import Loading from '@/components/dom/loading';
 import { cn } from '@/lib/utils';
 import type { ColorSchemeName } from 'react-native';

@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/text';
 
-import { CommonClassroomEmptyResponse_Classroom as Classroom } from '@/api/backend';
+import { CommonClassroomEmptyResponse_Classroom as Classroom } from '@/types/backend';
 
 interface Section {
   title: string;

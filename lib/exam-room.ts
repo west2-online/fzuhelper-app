@@ -1,4 +1,4 @@
-import type { JwchClassroomExamResponse as ExamData } from '@/api/backend';
+import type { JwchClassroomExamResponse as ExamData } from '@/types/backend';
 import type { MergedExamData } from '@/types/academic';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
 import dayjs from 'dayjs';

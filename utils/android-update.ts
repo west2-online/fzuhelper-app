@@ -1,4 +1,4 @@
-import type { VersionAndroidResponse_Data } from '@/api/backend';
+import type { VersionAndroidResponse_Data } from '@/types/backend';
 import { getApiV2VersionAndroid } from '@/api/generate';
 import { RELEASE_CHANNEL_KEY } from '@/types/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
