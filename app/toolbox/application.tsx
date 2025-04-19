@@ -54,9 +54,7 @@ export default function ApplicationPage() {
               <Text className="my-2 text-base text-text-secondary">
                 我们建议只在 APP 内查看申请进度和结果，申请过程使用电脑端教务系统提交
               </Text>
-              <Text className="my-2 text-base text-text-secondary">
-                如果页面显示过小，您可以通过双指聚拢/散开来实现页面放大、缩小
-              </Text>
+              <Text className="my-2 text-base text-text-secondary">如果页面显示过小，您可以使用双指缩放页面</Text>
             </View>
           </SafeAreaView>
         </ScrollView>

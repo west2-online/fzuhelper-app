@@ -4,7 +4,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
 import CookieManager from '@react-native-cookies/cookies';
-import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
+import { Stack, type UnknownOutputParams, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,7 +24,7 @@ import {
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
-import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
+import { checkCookieSSO, LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 
 export interface WebParams {
@@ -118,7 +118,7 @@ export default function Web() {
           console.error('SSO登录获取cookie失败:', error);
           return null;
         });
-        toast.info('登录已过期,正在尝试重新登录');
+        toast.info('登录过期，正在重新登录');
         if (cookieLogin) {
           cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
           await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookieLogin);
