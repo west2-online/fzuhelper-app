@@ -6,7 +6,7 @@ import {
   GRADE_COLOR_MEDIUM,
   GRADE_COLOR_PASS,
   GRADE_COLOR_UNKNOWN,
-} from './constants';
+} from '../types/constants';
 
 // 这个函数负责将成绩转换为颜色，需要考虑的实现比较多，独立出函数来设计
 export const parseScoreToColor = (score: string) => {

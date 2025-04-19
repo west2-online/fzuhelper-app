@@ -1,7 +1,7 @@
 import { RejectEnum, ResultEnum } from '@/api/enum';
 import { type NativeLoginError } from './reject-error';
 
-export type ApiData =
+export type ApiData = 
   | {
       code: ResultEnum.SuccessCode;
       message: string;

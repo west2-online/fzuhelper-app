@@ -19,7 +19,7 @@ import {
   URL_USER_AGREEMENT,
   YMT_ACCESS_TOKEN_KEY,
   YMT_USERNAME_KEY,
-} from '@/lib/constants';
+} from '@/types/constants';
 import SSOLogin from '@/lib/sso-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 import YMTLogin from '@/lib/ymt-login';

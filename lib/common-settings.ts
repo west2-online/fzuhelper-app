@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert, AlertButton } from 'react-native';
-import { COMMON_SETTINGS_KEY } from './constants';
+import { COMMON_SETTINGS_KEY } from '../types/constants';
 
 // 通用设置类型定义
 export type CommonSettings = {

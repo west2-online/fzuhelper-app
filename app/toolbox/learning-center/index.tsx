@@ -11,7 +11,7 @@ import { Text } from '@/components/ui/text';
 
 import { LearningCenterContext } from '@/context/learning-center';
 import SSOLogin from '@/lib/sso-login';
-import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
+import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from '@/types/constants';
 
 const menuItems: {
   name: string;

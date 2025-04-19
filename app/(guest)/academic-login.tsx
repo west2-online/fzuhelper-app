@@ -15,7 +15,7 @@ import PageContainer from '@/components/page-container';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { setAegisConfig } from '@/lib/aegis';
-import { JWCH_USER_INFO_KEY, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import { JWCH_USER_INFO_KEY, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/types/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewNormal } from '@/lib/webview';

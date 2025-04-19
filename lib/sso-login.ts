@@ -2,7 +2,7 @@ import { Buffer } from 'buffer';
 import CryptoJs from 'crypto-js';
 
 import { RejectEnum } from '@/api/enum';
-import { SSO_LOGIN_URL } from '@/lib/constants';
+import { SSO_LOGIN_URL } from '@/types/constants';
 import { get, post } from '@/modules/native-request';
 
 // 用于提取 Set-Cookie 中的内容

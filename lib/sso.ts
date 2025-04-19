@@ -3,7 +3,7 @@ import {
   SSO_LOGIN_COOKIE_KEY,
   YMT_ACCESS_TOKEN_KEY,
   YMT_USERNAME_KEY,
-} from '@/lib/constants';
+} from '@/types/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const SSOlogoutAndCleanData = async () => {

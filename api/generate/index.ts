@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-ignore
-export * from './types';
+export * from '../../types/types';
 export * from './authorization';
 export * from './user';
 export * from './course';

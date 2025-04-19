@@ -15,7 +15,7 @@ import {
   DescriptionListRow,
   DescriptionListTerm,
 } from '@/components/DescriptionList';
-import { JWCH_USER_INFO_KEY } from '@/lib/constants';
+import { JWCH_USER_INFO_KEY } from '@/types/constants';
 
 export default function PersonalInfoListPage() {
   const [userInfo, setUserInfo] = useState({

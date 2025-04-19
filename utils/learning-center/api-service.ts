@@ -1,5 +1,5 @@
 import { RejectEnum } from '@/api/enum';
-import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
+import { LEARNING_CENTER_TOKEN_KEY } from '@/types/constants';
 import { get, postJSON } from '@/modules/native-request';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';

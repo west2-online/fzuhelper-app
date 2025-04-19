@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
 import { RejectEnum, ResultEnum } from '@/api/enum';
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/types/constants';
 import { LocalUser } from '@/lib/user';
 import { type RejectError } from '@/types/reject-error';
 import { isApiData, isHeaders, isNativeLoginError } from '@/types/type-guards';

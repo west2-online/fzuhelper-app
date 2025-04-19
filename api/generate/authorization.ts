@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-ignore
-import * as API from './types';
+import * as API from '../../types/types';
 import request from '../axios';
 
 /** 连通性测试(含鉴权) 测试/api路由下接口能否被正确拦截一份过期Access-Token 供测试：eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjowLCJleHAiOjE3MDAxMTA5MjksImlhdCI6MTY5OTUwNjEyOSwiaXNzIjoid2VzdDItb25saW5lIn0.wk108E9cho0wb6dOU_jYQQN1_K0Z_XAh4-mrBzJcgn1nCgsSHJHn8D6RW5T6sDhl1jQdSCrkOeXqb7egFHXMCA GET /api/v1/jwch/ping https://apifox.com/web/project/3275694/apis/api-239422879-run */

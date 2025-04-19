@@ -1,7 +1,7 @@
 import PageContainer from '@/components/page-container';
 import { Paper, PaperType } from '@/components/PaperList';
 import { Card } from '@/components/ui/card';
-import { PAPER_SEARCH_HISTORY_KEY } from '@/lib/constants';
+import { PAPER_SEARCH_HISTORY_KEY } from '@/types/constants';
 import { FolderIcon, getFileIcon, guessFileType } from '@/lib/filetype';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, UnknownOutputParams, useLocalSearchParams, useRouter } from 'expo-router';

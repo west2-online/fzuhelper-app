@@ -10,11 +10,11 @@ const YMT_URLS = {
   RENEW: 'https://oss.fzu.edu.cn/api/qr/login/tokenRenew',
 } as const;
 
-interface LoginRespData {
-  name: string;
-  accessToken: string;
+export interface IdentifyRespData {
+  color: string; // 颜色
+  validTime: number; // 有效时间
+  content: string; // 内容
 }
-
 export interface PayCodeRespData {
   devId: string;
   expiredTime: string;
@@ -22,13 +22,10 @@ export interface PayCodeRespData {
   payPrdCode: string;
   prePayId: string;
 }
-
-export interface IdentifyRespData {
-  color: string; // 颜色
-  validTime: number; // 有效时间
-  content: string; // 内容
+interface LoginRespData {
+  name: string;
+  accessToken: string;
 }
-
 class YMTLogin {
   // 公共请求方法，使用 Native Request 模块
   async #request(

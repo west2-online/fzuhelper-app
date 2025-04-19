@@ -1,5 +1,5 @@
 import { RejectEnum } from '@/api/enum';
-import { ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY } from '@/types/constants';
 import { LocalUser } from '@/lib/user';
 import { get, post } from '@/modules/native-request';
 import { type RejectError } from '@/types/reject-error';

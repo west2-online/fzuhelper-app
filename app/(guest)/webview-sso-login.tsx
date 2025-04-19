@@ -1,4 +1,4 @@
-import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
+import { LEARNING_CENTER_TOKEN_KEY } from '@/types/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter } from 'expo-router';
 import { useRef } from 'react';

@@ -1,7 +1,11 @@
 /* eslint-disable */
 // @ts-ignore
-import * as API from './types';
+import * as API from '../../types/types';
 import request from '../axios';
+import {LoginCredentials,SSOCredentials} from '@/types/user'
+import { get } from '@/modules/native-request';
+
+
 
 /** 个人信息 后面如果有别的需求的话在返回字段接着添加，目前这些够了 GET /api/v1/jwch/user/info https://apifox.com/web/project/3275694/apis/api-109631149-run */
 export async function getApiV1JwchUserInfo(options?: {
@@ -101,3 +105,20 @@ export async function postApiV1UserValidateCode(
     }
   );
 }
+// （统一认证登录）检查 SSO 的 Cookie 是否有效，如果无效，重新自动登录
+export async function checkCookieSSO(credentials: SSOCredentials) {
+  const COOKIE_CHECK_URL = 'https://sso.fzu.edu.cn/login'; // 尝试访问学生个人信息页面
+  if (!credentials.cookies) {
+    return false;
+  }
+  const resp = await get(COOKIE_CHECK_URL, {
+    REFERER: 'https://sso.fzu.edu.cn',
+    Cookie: credentials.cookies,
+  });
+  if (resp.status === 200) {
+    return false;
+  }
+
+  return true;
+}
+

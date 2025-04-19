@@ -8,7 +8,7 @@ import {
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
   IOS_APP_GROUP,
-} from '@/lib/constants';
+} from '@/types/constants';
 import { setWidgetData } from '@/modules/native-widget';
 import { MergedExamData } from '@/types/academic';
 import { randomUUID } from '@/utils/crypto';
@@ -22,63 +22,14 @@ import { getWeeksBySemester } from './locate-date';
 import dayjs from "dayjs";
 import isBetween from 'dayjs/plugin/isBetween'; // 引入插件以支持日期范围判断
 import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
+import { ExtendCourse,CustomCourse,DEFAULT_PRIORITY,DEFAULT_STARTID,NO_LOADING_MSG,CourseInfo,CacheCourseData,COURSE_TYPE,EXAM_PRIORITY,EXAM_TYPE,CUSTOM_TYPE,MAX_PRIORITY,ParsedCourse,OVERTIME_THRESHOLD } from '@/types/academic';  
 
 // 注册 dayjs 插件
 dayjs.extend(isBetween);
 dayjs.extend(isoWeek);
 dayjs.locale('zh-cn');
 
-export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
-  JwchCourseListResponse_CourseScheduleRule;
 
-// 对课程类型的拓展，支持颜色等设计，也允许后期进行不断扩充
-interface ExtendCourseBase extends ParsedCourse {
-  id: number; // 我们为每门课程分配一个唯一的 ID，后续可以用于识别
-  color: string; // 课程颜色
-  priority: number; // 优先级
-}
-
-export type ExtendCourse = ExtendCourseBase & {
-  type: 0 | 1 | 2; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
-};
-
-export type CustomCourse = ExtendCourseBase & {
-  type: 2;
-  storageKey: string; // 预留给后端的存储 key
-  lastUpdateTime: string; // 最后更新时间
-};
-
-export type CourseInfo = ExtendCourse | CustomCourse;
-
-interface CacheCourseData {
-  courseData: Record<number, ExtendCourse[]>; // 课程数据
-  courseDigest: string;
-  examData: Record<number, ExtendCourse[]>; // 考试数据
-  examDigest: string;
-  customData: Record<number, CustomCourse[]>; // 自定义数据
-  customDigest: string;
-  lastCourseUpdateTime: string;
-  lastExamUpdateTime: string;
-  priorityCounter: number;
-}
-
-export const SCHEDULE_ITEM_MARGIN = 1;
-export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
-export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
-export const LEFT_TIME_COLUMN_WIDTH = 32;
-export const TOP_CALENDAR_HEIGHT = 72;
-
-export const COURSE_TYPE = 0;
-export const EXAM_TYPE = 1;
-export const CUSTOM_TYPE = 2;
-export const COURSE_WITHOUT_ATTENDANCE = '免听';
-
-const NO_LOADING_MSG = '未加载';
-const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析时间段
-const MAX_PRIORITY = 10000; // 普通课程最大优先级，达到这个优先级后会重新计数
-const EXAM_PRIORITY = 20002; // 考试优先级，我们取巧一下，比最大的优先级还要大
-export const DEFAULT_PRIORITY = 1; // 默认优先级
-const DEFAULT_STARTID = 0; // 默认 ID 起始值
 
 export class CourseCache {
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要

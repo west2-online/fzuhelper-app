@@ -3,7 +3,7 @@ import PageContainer from '@/components/page-container';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { FAQ_MAP } from '@/lib/FAQ';
-import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import { RELEASE_CHANNEL_KEY } from '@/types/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';

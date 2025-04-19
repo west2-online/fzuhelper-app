@@ -1,4 +1,4 @@
-import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
+import { LEARNING_CENTER_TOKEN_KEY } from '@/types/constants';
 import ApiService from '@/utils/learning-center/api-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';

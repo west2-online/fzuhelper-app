@@ -35,5 +35,6 @@
     "editor.tabSize": 2,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "tailwindCSS.rootFontSize": 14
+  "tailwindCSS.rootFontSize": 14,
+  "terminal.integrated.shellArgs.windows": ["-NoExit", "/c", "chcp 65001"]
 }

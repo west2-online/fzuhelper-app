@@ -7,7 +7,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ALLOW_PUSH_EVENT_KEYS } from '@/lib/constants';
+import { ALLOW_PUSH_EVENT_KEYS } from '@/types/constants';
 import { NotificationManager } from '@/lib/notification';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { NotificationsSettings } from '@/types/notifications';

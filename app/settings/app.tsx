@@ -15,7 +15,7 @@ import { Text } from '@/components/ui/text';
 import LabelSwitch from '@/components/label-switch';
 import { clearAllCache } from '@/hooks/usePersistedQuery';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import { RELEASE_CHANNEL_KEY } from '@/types/constants';
 import { CourseCache } from '@/lib/course';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';

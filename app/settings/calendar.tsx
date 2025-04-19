@@ -19,7 +19,7 @@ import {
   CALENDAR_SUBSCRIPTION_TOKEN_KEY,
   COURSE_SETTINGS_KEY,
   EXPIRE_ONE_DAY,
-} from '@/lib/constants';
+} from '@/types/constants';
 import { defaultCourseSetting, readCourseSetting } from '@/lib/course';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { fetchWithCache } from '@/utils/fetch-with-cache';

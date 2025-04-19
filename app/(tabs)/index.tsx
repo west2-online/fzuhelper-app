@@ -9,7 +9,7 @@ import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import PageContainer from '@/components/page-container';
 import usePersistedQuery from '@/hooks/usePersistedQuery';
-import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
+import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/types/constants';
 import { CourseCache, normalizeCourseSetting } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';

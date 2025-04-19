@@ -17,7 +17,7 @@ import { Text } from '@/components/ui/text';
 
 import IconTransparent from '@/assets/images/ic_launcher_foreground.png';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/types/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 

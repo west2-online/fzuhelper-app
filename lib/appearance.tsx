@@ -1,8 +1,8 @@
-import { COLOR_SCHEME_KEY } from '@/lib/constants';
+import { COLOR_SCHEME_KEY } from '@/types/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ImageSourcePropType, Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import { DARKEN_BACKGROUND_KEY } from './constants';
+import { DARKEN_BACKGROUND_KEY } from '../types/constants';
 
 const hasCustomBackground = async () => {
   const path = getBackgroundImagePath();

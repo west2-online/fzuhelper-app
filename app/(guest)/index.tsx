@@ -31,7 +31,7 @@ import {
   SPLASH_ID,
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
-} from '@/lib/constants';
+} from '@/types/constants';
 import { NotificationManager } from '@/lib/notification';
 import { LocalUser } from '@/lib/user';
 import { isAccountExist } from '@/utils/is-account-exist';

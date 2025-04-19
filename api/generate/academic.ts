@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-ignore
-import * as API from './types';
+import * as API from '../../types/types';
 import request from '../axios';
 
 /** 学分统计 注意这里可能涉及到辅修 GET /api/v1/jwch/academic/credit https://apifox.com/web/project/3275694/apis/api-109631159-run */

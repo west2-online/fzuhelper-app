@@ -3,7 +3,7 @@
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { SSO_LOGIN_COOKIE_KEY } from '@/lib/constants';
+import { SSO_LOGIN_COOKIE_KEY } from '@/types/constants';
 import SSOLogin from '@/lib/sso-login';
 import ApiService from '@/utils/domitory-repair-api';
 import AsyncStorage from '@react-native-async-storage/async-storage';

@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { MergedExamData } from '@/types/academic';
 
-import { COURSE_SYMBOLS_MAP, DATE_FORMAT } from '@/lib/constants';
+import { COURSE_SYMBOLS_MAP, DATE_FORMAT } from '@/types/constants';
 
 const SYMBOLS = Object.keys(COURSE_SYMBOLS_MAP);
 const SYMBOLS_REGEX = new RegExp(`[${SYMBOLS.join('')}]`, 'g');

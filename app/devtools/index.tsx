@@ -1,7 +1,7 @@
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { ACCESS_TOKEN_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY, YMT_ACCESS_TOKEN_KEY } from '@/types/constants';
 import { COURSE_TYPE, CourseCache, EXAM_TYPE } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
 import { LocalUser } from '@/lib/user';

@@ -18,7 +18,7 @@ import {
   EXPIRE_ONE_DAY,
   GRADE_LIST_KEY,
   UMENG_JWCH_PUSH_TAG,
-} from './constants';
+} from '../types/constants';
 
 // Notification Manager 负责统筹管理 App 的通知交互，如 tag 上报等内容
 // TODO: 没有做权限检查，需要在调用之前检查权限，这部分待测试后判断是否应当引入检查

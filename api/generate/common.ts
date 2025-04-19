@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-ignore
-import * as API from './types';
+import * as API from '../../types/types';
 import request from '../axios';
 
 /** 获取贡献者列表 GET /api/v1/common/contributor https://apifox.com/web/project/3275694/apis/api-267250927-run */

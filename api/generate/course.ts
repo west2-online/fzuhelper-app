@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-ignore
-import * as API from './types';
+import * as API from '../../types/types';
 import request from '../axios';
 
 /** 订阅日历 由手机端的日历 app 调用 GET /api/v1/course/calendar/subscribe https://apifox.com/web/project/3275694/apis/api-273160714-run */

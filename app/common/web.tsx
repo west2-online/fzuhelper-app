@@ -22,7 +22,7 @@ import {
   SSO_LOGIN_COOKIE_KEY,
   SSO_LOGIN_USER_KEY,
   YJSY_COOKIES_DOMAIN,
-} from '@/lib/constants';
+} from '@/types/constants';
 import SSOLogin from '@/lib/sso-login';
 import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';

@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { CLASS_SCHEDULES } from '@/lib/constants';
+import { CLASS_SCHEDULES } from '@/types/constants';
 import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
 import { cn } from '@/lib/utils';
 

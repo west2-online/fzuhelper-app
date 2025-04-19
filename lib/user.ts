@@ -1,28 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
-import { ACCESS_TOKEN_KEY, JWCH_USER_INFO_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY, JWCH_USER_INFO_KEY, REFRESH_TOKEN_KEY } from '@/types/constants';
 import { get } from '@/modules/native-request';
 import { Buffer } from 'buffer';
-import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
+import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from '../types/constants';
 import UserLogin from './user-login';
-
-// 本地用户信息
-interface LocalUserInfo {
-  type: string;
-  userid: string;
-  password: string;
-}
-
-// 本地登录凭证
-interface LoginCredentials {
-  identifier: string; // 本科生的身份识别用 id，研究生会设置为 5 个 0
-  cookies: string; // 传递给教务系统的 Cookie Raw
-}
-
-interface SSOCredentials {
-  cookies: string; // 传递给统一认证的 Cookie Raw
-}
+import {LoginCredentials,SSOCredentials,LocalUserInfo} from '@/types/user'
 
 export const USER_TYPE_UNDERGRADUATE = 'undergraduate'; // 本科生
 export const USER_TYPE_POSTGRADUATE = 'graduate'; // 研究生
@@ -253,22 +237,6 @@ async function checkCookieYJSY(credentials: LoginCredentials) {
   });
   const decodedText = Buffer.from(resp.data).toString('utf-8');
   if (decodedText.includes('当前登录用户已过期') || decodedText.includes('系统错误')) {
-    return false;
-  }
-
-  return true;
-}
-// （统一认证登录）检查 SSO 的 Cookie 是否有效，如果无效，重新自动登录
-export async function checkCookieSSO(credentials: SSOCredentials) {
-  const COOKIE_CHECK_URL = 'https://sso.fzu.edu.cn/login'; // 尝试访问学生个人信息页面
-  if (!credentials.cookies) {
-    return false;
-  }
-  const resp = await get(COOKIE_CHECK_URL, {
-    REFERER: 'https://sso.fzu.edu.cn',
-    Cookie: credentials.cookies,
-  });
-  if (resp.status === 200) {
     return false;
   }
 
