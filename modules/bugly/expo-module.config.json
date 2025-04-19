@@ -1,0 +1,17 @@
+{
+  "platforms": [
+    "apple",
+    "android",
+    "web"
+  ],
+  "apple": {
+    "modules": [
+      "BuglyModule"
+    ]
+  },
+  "android": {
+    "modules": [
+      "com.west2online.bugly.BuglyModule"
+    ]
+  }
+}
