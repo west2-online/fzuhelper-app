@@ -76,7 +76,7 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                if (binding.foregroundAlphaSpinsner.selectedItemPosition == 1) {
+                if (binding.foregroundAlphaSpinner.selectedItemPosition == 2) {
                     saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", seekBar!!.progress)
                 }
                 saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "background_alpha", seekBar!!.progress)
