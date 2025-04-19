@@ -1,0 +1,3 @@
+[submodule "fzuhelper-app"]
+	path = fzuhelper-app
+	url = https://github.com/xxx/fzuhelper-app.git
