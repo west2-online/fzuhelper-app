@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { SectionList, TouchableOpacity, View, type ViewToken } from 'react-native';
+import { ScrollView, SectionList, TouchableOpacity, View, type ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/text';
@@ -115,18 +115,20 @@ export default function ClassroomList({ data }: { data: Classroom[] }) {
       />
 
       {/* 右侧书签导航 */}
-      <View className="absolute right-4 top-12">
-        {groupedData.map((section, index) => (
-          <TouchableOpacity key={section.title} onPress={() => handlePress(index, section.title)} className="mb-4">
-            <View
-              className={`px-4 py-2 ${
-                section.title === currentBuild ? 'bg-primary' : 'bg-gray-300'
-              } rounded-br-xl rounded-tr-xl`}
-            >
-              <Text className="text-base font-bold text-white">{section.title.substring(0, 2)}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+      <View className="absolute bottom-0 right-4 top-12">
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: insets.bottom }}>
+          {groupedData.map((section, index) => (
+            <TouchableOpacity key={section.title} onPress={() => handlePress(index, section.title)} className="mb-4">
+              <View
+                className={`px-4 py-2 ${
+                  section.title === currentBuild ? 'bg-primary' : 'bg-gray-300'
+                } rounded-br-xl rounded-tr-xl`}
+              >
+                <Text className="text-base font-bold text-white">{section.title.substring(0, 2)}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
     </View>
   );

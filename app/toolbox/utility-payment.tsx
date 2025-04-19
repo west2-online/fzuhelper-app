@@ -4,6 +4,7 @@ import { Alert, Linking, Platform, ScrollView, View } from 'react-native';
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function UtilityPaymentPage() {
   // 旗山校区
@@ -57,17 +58,19 @@ export default function UtilityPaymentPage() {
       <Stack.Screen options={{ title: '水电缴费' }} />
       <PageContainer className="p-4">
         <ScrollView>
-          <View className="mx-4 space-y-4">
-            <LabelEntry leftText="旗山校区" onPress={handleQishanPayment} />
-            <LabelEntry leftText="铜盘校区" onPress={handleTongpanPayment} />
-            <LabelEntry leftText="晋江校区" onPress={handleJinjiangPayment} />
-          </View>
-          <View className="mx-4 mt-8 space-y-4">
-            <Text className="my-2 text-lg font-bold text-text-secondary">操作提示</Text>
-            <Text className="my-2 text-base text-text-secondary">
-              请选择所在的校区进行水电费查询和缴纳。需要安装中国建设银行APP才能使用此功能。
-            </Text>
-          </View>
+          <SafeAreaView edges={['bottom']}>
+            <View className="mx-4 space-y-4">
+              <LabelEntry leftText="旗山校区" onPress={handleQishanPayment} />
+              <LabelEntry leftText="铜盘校区" onPress={handleTongpanPayment} />
+              <LabelEntry leftText="晋江校区" onPress={handleJinjiangPayment} />
+            </View>
+            <View className="mx-4 mt-8 space-y-4">
+              <Text className="my-2 text-lg font-bold text-text-secondary">操作提示</Text>
+              <Text className="my-2 text-base text-text-secondary">
+                请选择所在的校区进行水电费查询和缴纳。需要安装中国建设银行APP才能使用此功能。
+              </Text>
+            </View>
+          </SafeAreaView>
         </ScrollView>
       </PageContainer>
     </>

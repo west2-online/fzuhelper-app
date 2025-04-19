@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/text';
 import { LearningCenterContext } from '@/context/learning-center';
 import SSOLogin from '@/lib/sso-login';
 import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const menuItems: {
   name: string;
@@ -99,58 +100,60 @@ export default function LearningCenterPage() {
 
       <PageContainer>
         {token ? (
-          <ScrollView className="space-y-4 px-8 pt-4">
-            {menuItems.map((item, index) => (
-              <LabelEntry
-                key={index}
-                leftText={item.name}
-                description={item.description}
-                onPress={
-                  item.action ||
-                  (item.route
-                    ? () =>
-                        router.push({
-                          pathname: item.route!,
-                          params: { token },
-                        })
-                    : undefined)
-                }
-              />
-            ))}
+          <ScrollView className="space-y-4 px-8" contentContainerClassName="pt-4">
+            <SafeAreaView edges={['bottom']}>
+              {menuItems.map((item, index) => (
+                <LabelEntry
+                  key={index}
+                  leftText={item.name}
+                  description={item.description}
+                  onPress={
+                    item.action ||
+                    (item.route
+                      ? () =>
+                          router.push({
+                            pathname: item.route!,
+                            params: { token },
+                          })
+                      : undefined)
+                  }
+                />
+              ))}
 
-            {[
-              {
-                title: '预约流程',
-                content: [
-                  '打开"预约座位" -> 选择时间段 -> 查找可用座位 -> 确认预约',
-                  '同时可在"座位状态"页面中点击"已占用"的座位，查看该座位当天的可用时段',
-                ],
-              },
-              {
-                title: '签到流程',
-                content: ['打开"我的预约" -> 扫码签到 -> 签到成功'],
-              },
-              {
-                title: '友情提示',
-                content: [
-                  '1. 学习中心预约服务器硬件条件有限，访问速度可能较慢，甚至无法获取座位信息，请耐心等待。',
-                  '2. 一个人只能最多同时预约 3 个座位，最多只能预约 4 小时。',
-                  '3. 如果某一时间段里存在有效预约，则该时间段查询不到座位。',
-                  '4. 请按时签到、签退，迟到、早退频繁的同学会暂时被禁止预约。',
-                  '5. 如果无法在「我的预约」中扫码签到，请检查是否给予本应用相机权限。',
-                  '6. 学习中心地址：福州大学旗山校区研究生科研楼（晋江楼） 4-5 层。',
-                ],
-              },
-            ].map((section, index) => (
-              <View key={index} className="my-4 space-y-4">
-                <Text className="mb-2 text-lg font-bold text-text-secondary">{section.title}</Text>
-                {section.content.map((item, idx) => (
-                  <Text key={idx} className="text-base text-text-secondary">
-                    {item}
-                  </Text>
-                ))}
-              </View>
-            ))}
+              {[
+                {
+                  title: '预约流程',
+                  content: [
+                    '打开"预约座位" -> 选择时间段 -> 查找可用座位 -> 确认预约',
+                    '同时可在"座位状态"页面中点击"已占用"的座位，查看该座位当天的可用时段',
+                  ],
+                },
+                {
+                  title: '签到流程',
+                  content: ['打开"我的预约" -> 扫码签到 -> 签到成功'],
+                },
+                {
+                  title: '友情提示',
+                  content: [
+                    '1. 学习中心预约服务器硬件条件有限，访问速度可能较慢，甚至无法获取座位信息，请耐心等待。',
+                    '2. 一个人只能最多同时预约 3 个座位，最多只能预约 4 小时。',
+                    '3. 如果某一时间段里存在有效预约，则该时间段查询不到座位。',
+                    '4. 请按时签到、签退，迟到、早退频繁的同学会暂时被禁止预约。',
+                    '5. 如果无法在「我的预约」中扫码签到，请检查是否给予本应用相机权限。',
+                    '6. 学习中心地址：福州大学旗山校区研究生科研楼（晋江楼） 4-5 层。',
+                  ],
+                },
+              ].map((section, index) => (
+                <View key={index} className="my-4 space-y-4">
+                  <Text className="mb-2 text-lg font-bold text-text-secondary">{section.title}</Text>
+                  {section.content.map((item, idx) => (
+                    <Text key={idx} className="text-base text-text-secondary">
+                      {item}
+                    </Text>
+                  ))}
+                </View>
+              ))}
+            </SafeAreaView>
           </ScrollView>
         ) : (
           <LoginPrompt message="登录统一身份认证平台，享受学习中心服务" />

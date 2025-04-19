@@ -71,7 +71,7 @@ const LearningCenterMap = memo(() => {
 
           {/* 缩放提示 */}
           <View className="absolute bottom-6 left-0 right-0 items-center" style={{ bottom: insets.bottom + 16 }}>
-            <Text className="text-xs text-text-secondary">双指缩放或捏合可放大查看详情</Text>
+            <Text className="text-xs text-text-secondary">双指缩放查看详情</Text>
           </View>
         </View>
       </Modal>

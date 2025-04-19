@@ -2,15 +2,15 @@ import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AppState, Platform } from 'react-native';
 import {
-  NotificationSettings,
-  PERMISSIONS,
-  Permission,
-  RESULTS,
   checkMultiple,
   checkNotifications,
+  NotificationSettings,
   openSettings,
+  Permission,
+  PERMISSIONS,
   request,
   requestNotifications,
+  RESULTS,
 } from 'react-native-permissions';
 
 import LabelEntry from '@/components/label-entry';
@@ -206,7 +206,7 @@ export default function AcademicPage() {
       <Stack.Screen options={{ title: '隐私权限设置' }} />
 
       <PageContainer>
-        <ScrollView className="flex-1 px-8 pt-8">
+        <ScrollView className="flex-1 px-8" contentContainerClassName="pt-8">
           <SafeAreaView edges={['bottom']}>
             {/* 菜单列表 */}
             <Text className="mb-2 text-sm text-text-secondary">

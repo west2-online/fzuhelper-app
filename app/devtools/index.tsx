@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { Link, Stack } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 export default function HomePage() {
@@ -103,104 +104,106 @@ export default function HomePage() {
 
       <PageContainer>
         <KeyboardAwareScrollView className="h-full" keyboardShouldPersistTaps="handled">
-          {/* 导航相关功能 */}
-          <Text className="m-3 my-4 text-lg font-bold">Manager</Text>
-          <Link href="/devtools/async-storage-list" asChild>
-            <Button>
-              <Text>AsyncStorage Manager</Text>
-            </Button>
-          </Link>
-          <Link href="/devtools/push-tools" asChild>
-            <Button>
-              <Text>Push Tools</Text>
-            </Button>
-          </Link>
-          <Link href="/devtools/learning-center-api" asChild>
-            <Button>
-              <Text>Learning Center API</Text>
-            </Button>
-          </Link>
-          <Link href="/devtools/domitory-repair-api" asChild>
-            <Button>
-              <Text>Domitory Repair API</Text>
-            </Button>
-          </Link>
+          <SafeAreaView edges={['bottom']}>
+            {/* 导航相关功能 */}
+            <Text className="m-3 my-4 text-lg font-bold">Manager</Text>
+            <Link href="/devtools/async-storage-list" asChild>
+              <Button>
+                <Text>AsyncStorage Manager</Text>
+              </Button>
+            </Link>
+            <Link href="/devtools/push-tools" asChild>
+              <Button>
+                <Text>Push Tools</Text>
+              </Button>
+            </Link>
+            <Link href="/devtools/learning-center-api" asChild>
+              <Button>
+                <Text>Learning Center API</Text>
+              </Button>
+            </Link>
+            <Link href="/devtools/domitory-repair-api" asChild>
+              <Button>
+                <Text>Domitory Repair API</Text>
+              </Button>
+            </Link>
 
-          {/* Toast 示例 */}
-          <Text className="m-3 my-4 text-lg font-bold">Toast</Text>
-          <Button onPress={() => toast('Hello world!')}>
-            <Text>Show Default Toast</Text>
-          </Button>
-          <Button onPress={() => toast.success('success')}>
-            <Text>Show Success Toast</Text>
-          </Button>
-
-          {/* 页面跳转 */}
-          <Text className="m-3 my-4 text-lg font-bold">Quick Links</Text>
-          <Link href="/(guest)/academic-login" asChild>
-            <Button>
-              <Text>Login Page (No way back)</Text>
+            {/* Toast 示例 */}
+            <Text className="m-3 my-4 text-lg font-bold">Toast</Text>
+            <Button onPress={() => toast('Hello world!')}>
+              <Text>Show Default Toast</Text>
             </Button>
-          </Link>
-          <Button
-            onPress={() => {
-              pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '(Web 测试) 选课');
-            }}
-          >
-            <Text>Choose Course (web test)</Text>
-          </Button>
-          <Link href="/+not-found" asChild>
-            <Button>
-              <Text>Not Found Page</Text>
+            <Button onPress={() => toast.success('success')}>
+              <Text>Show Success Toast</Text>
             </Button>
-          </Link>
 
-          {/* 功能测试 */}
-          <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
-          <Button onPress={testLocateDate}>
-            <Text>Test Locate Date</Text>
-          </Button>
-          <Button onPress={testValidateCodeVerify}>
-            <Text>Test Code Verify</Text>
-          </Button>
-          <Button onPress={isCookieValid}>
-            <Text>Check Cookie</Text>
-          </Button>
-          <Button onPress={setExpiredCookie}>
-            <Text>Set Expired Cookie</Text>
-          </Button>
-          <Button onPress={setExpiredAccessToken}>
-            <Text>Set Expired AccessToken (west2-online)</Text>
-          </Button>
-          <Button onPress={setInvalidAccessTokenYmt}>
-            <Text>Set Invalid AccessToken (ymt)</Text>
-          </Button>
-          <Button onPress={SetDifferentCourseCacheDigest}>
-            <Text>Set Different Course Cache Digest</Text>
-          </Button>
-          <Button
-            onPress={() => {
-              NativeBrightnessModule.enableHighBrightness();
-            }}
-          >
-            <Text>Enable High Brightness</Text>
-          </Button>
-          <Button
-            onPress={() => {
-              NativeBrightnessModule.disableHighBrightness();
-            }}
-          >
-            <Text>Disable High Brightness</Text>
-          </Button>
+            {/* 页面跳转 */}
+            <Text className="m-3 my-4 text-lg font-bold">Quick Links</Text>
+            <Link href="/(guest)/academic-login" asChild>
+              <Button>
+                <Text>Login Page (No way back)</Text>
+              </Button>
+            </Link>
+            <Button
+              onPress={() => {
+                pushToWebViewJWCH('https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_cszt.aspx', '(Web 测试) 选课');
+              }}
+            >
+              <Text>Choose Course (web test)</Text>
+            </Button>
+            <Link href="/+not-found" asChild>
+              <Button>
+                <Text>Not Found Page</Text>
+              </Button>
+            </Link>
 
-          {/* 缓存清理 */}
-          <Text className="m-3 my-4 text-lg font-bold">Cache clean</Text>
-          <Button onPress={cleanAllCache}>
-            <Text>Clean All Cache (File System)</Text>
-          </Button>
-          <Button onPress={cleanPaperCache}>
-            <Text>Clean Paper Cache (File System)</Text>
-          </Button>
+            {/* 功能测试 */}
+            <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
+            <Button onPress={testLocateDate}>
+              <Text>Test Locate Date</Text>
+            </Button>
+            <Button onPress={testValidateCodeVerify}>
+              <Text>Test Code Verify</Text>
+            </Button>
+            <Button onPress={isCookieValid}>
+              <Text>Check Cookie</Text>
+            </Button>
+            <Button onPress={setExpiredCookie}>
+              <Text>Set Expired Cookie</Text>
+            </Button>
+            <Button onPress={setExpiredAccessToken}>
+              <Text>Set Expired AccessToken (west2-online)</Text>
+            </Button>
+            <Button onPress={setInvalidAccessTokenYmt}>
+              <Text>Set Invalid AccessToken (ymt)</Text>
+            </Button>
+            <Button onPress={SetDifferentCourseCacheDigest}>
+              <Text>Set Different Course Cache Digest</Text>
+            </Button>
+            <Button
+              onPress={() => {
+                NativeBrightnessModule.enableHighBrightness();
+              }}
+            >
+              <Text>Enable High Brightness</Text>
+            </Button>
+            <Button
+              onPress={() => {
+                NativeBrightnessModule.disableHighBrightness();
+              }}
+            >
+              <Text>Disable High Brightness</Text>
+            </Button>
+
+            {/* 缓存清理 */}
+            <Text className="m-3 my-4 text-lg font-bold">Cache clean</Text>
+            <Button onPress={cleanAllCache}>
+              <Text>Clean All Cache (File System)</Text>
+            </Button>
+            <Button onPress={cleanPaperCache}>
+              <Text>Clean Paper Cache (File System)</Text>
+            </Button>
+          </SafeAreaView>
         </KeyboardAwareScrollView>
       </PageContainer>
     </>

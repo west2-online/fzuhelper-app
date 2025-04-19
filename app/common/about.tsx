@@ -8,7 +8,7 @@ import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 import Constants from 'expo-constants';
-import { Href, Link, Stack, router } from 'expo-router';
+import { Href, Link, router, Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Image, Linking, Platform, Pressable, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
@@ -21,6 +21,7 @@ import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 
+const CLICK_TO_SHOW_CODE = 2;
 const CLICK_TO_SHOW_DEVTOOLS = 7;
 
 export default function AboutPage() {
@@ -66,10 +67,9 @@ export default function AboutPage() {
       <PageContainer>
         <Pressable className="flex items-center p-12" onPress={() => setClickCount(prev => prev + 1)}>
           <Image source={IconTransparent} className="mb-6 h-20 w-20 rounded-full bg-card" />
-          <View>
-            <Text className="text-xl text-primary">
-              {Constants.expoConfig?.version ?? ''}+{buildNumber ?? ''}
-            </Text>
+          <View className="flex-row">
+            <Text className="text-xl text-primary">{Constants.expoConfig?.version ?? ''}</Text>
+            {clickCount >= CLICK_TO_SHOW_CODE && <Text className="text-xl text-primary">.{buildNumber ?? ''}</Text>}
           </View>
         </Pressable>
 
@@ -91,7 +91,7 @@ export default function AboutPage() {
                   <Text className="text-text-secondary">研发团队</Text>
                 </DescriptionListTerm>
                 <DescriptionListDescription className="flex-row items-center">
-                  <Text>西二在线工作室</Text>
+                  <Text>西二在线工作室 </Text>
                   <Icon name="chevron-forward" size={14} />
                 </DescriptionListDescription>
               </DescriptionListRow>
@@ -102,7 +102,7 @@ export default function AboutPage() {
                   <Text className="text-text-secondary">项目源代码</Text>
                 </DescriptionListTerm>
                 <DescriptionListDescription className="flex-row items-center">
-                  <Text>点击查看</Text>
+                  <Text>点击查看 </Text>
                   <Icon name="chevron-forward" size={14} />
                 </DescriptionListDescription>
               </DescriptionListRow>
