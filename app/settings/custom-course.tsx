@@ -12,7 +12,7 @@ import RadioButton from '@/components/radio-button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
-import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, type CustomCourse } from '@/lib/course';
+import { CourseCache, CUSTOM_TYPE, type CustomCourse, DEFAULT_PRIORITY } from '@/lib/course';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 const WEEKDAYS = [
@@ -42,7 +42,7 @@ const COLOR_OPTIONS = [
   { value: '#A4D1A6', color: '#A4D1A6' },
 ];
 
-const DEFAULT_EMPTY_COURSE = {
+const DEFAULT_EMPTY_COURSE: CustomCourse = {
   id: -1,
   name: '',
   teacher: '',
@@ -61,7 +61,10 @@ const DEFAULT_EMPTY_COURSE = {
   adjust: false,
   remark: '',
   type: CUSTOM_TYPE,
-} as CustomCourse;
+  examType: '',
+  lessonplan: '',
+  syllabus: '',
+};
 
 export default function CourseAddPage() {
   const searchParams = useLocalSearchParams();

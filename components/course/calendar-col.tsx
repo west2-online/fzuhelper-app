@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { View, type LayoutRectangle } from 'react-native';
+import { type LayoutRectangle, View } from 'react-native';
 
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
@@ -7,10 +7,10 @@ import ScheduleItem from './schedule-item';
 import {
   COURSE_TYPE,
   COURSE_WITHOUT_ATTENDANCE,
+  type CourseInfo,
   CUSTOM_TYPE,
   EXAM_TYPE,
   SCHEDULE_ITEM_MIN_HEIGHT,
-  type CourseInfo,
 } from '@/lib/course';
 import { nonCurrentWeekCourseColor } from '@/utils/random-color';
 
@@ -61,7 +61,9 @@ const CalendarCol: React.FC<CalendarColProps> = ({
           s.endWeek >= week && // 卡结束时间范围
           ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)) && // 检查单双周
           (s.type === COURSE_TYPE || (showExam && s.type === EXAM_TYPE) || s.type === CUSTOM_TYPE) && // 判断课程类型
-          (!hiddenCoursesWithoutAttendances || !s.examType.includes(COURSE_WITHOUT_ATTENDANCE)), // 是否隐藏免听课程
+          // 这边?是因为custom-course中DEFAULT_EMPTY_COURSE漏加examType字段，又因为as强转导致变为undefined，为向前兼容所加
+          // 后面如果有新加字段，也建议加?处理
+          (!hiddenCoursesWithoutAttendances || !s.examType?.includes(COURSE_WITHOUT_ATTENDANCE)), // 是否隐藏免听课程
       )
       .sort((a, b) => b.priority - a.priority);
 
