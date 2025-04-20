@@ -26,8 +26,8 @@ data class ExtendCourse(
     val double: Boolean,         // 是否双周
 //    val adjust: Boolean,         // 是否为调课
     val remark: String,          // 备注
-//    val syllabus: String,        // 课程大纲
-//    val lessonplan: String       // 教学计划
+//    val syllabus: String?,        // 课程大纲
+//    val lessonplan: String?       // 教学计划
     val examType: String?,        // 考试类型
 )
 
