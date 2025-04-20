@@ -11,6 +11,7 @@ import {
 } from '@/lib/constants';
 import { setWidgetData } from '@/modules/native-widget';
 import { MergedExamData } from '@/types/academic';
+import type { PartiallyOptional } from '@/types/utils';
 import { randomUUID } from '@/utils/crypto';
 import { allocateColorForCourse, clearColorMapping, courseColors, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
@@ -28,7 +29,10 @@ dayjs.extend(isBetween);
 dayjs.extend(isoWeek);
 dayjs.locale('zh-cn');
 
-export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
+export type ParsedCourse = PartiallyOptional<
+  Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'>,
+  'lessonplan' | 'syllabus'
+> &
   JwchCourseListResponse_CourseScheduleRule;
 
 // 对课程类型的拓展，支持颜色等设计，也允许后期进行不断扩充
@@ -475,8 +479,6 @@ export class CourseCache {
           double: true,
           adjust: false,
           remark: time, // 备注、课程大纲和教学计划设置为空
-          syllabus: '',
-          lessonplan: '',
           examType: '',
         };
         // 先将考试数据存储在 extendedCourses 中
