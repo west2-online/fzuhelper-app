@@ -26,9 +26,9 @@ data class ExtendCourse(
     val double: Boolean,         // 是否双周
 //    val adjust: Boolean,         // 是否为调课
     val remark: String,          // 备注
-//    val syllabus: String,        // 课程大纲
-//    val lessonplan: String       // 教学计划
-    val examType: String,        // 考试类型
+//    val syllabus: String?,        // 课程大纲
+//    val lessonplan: String?       // 教学计划
+    val examType: String?,        // 考试类型
 )
 
 /**
@@ -64,7 +64,7 @@ fun saveWidgetConfig(context: Context, appWidgetId: Int, key: String, value: Int
     getSharedPreference(context).edit().putInt("$appWidgetId$key", value).commit()
 }
 
-fun loadWidgetConfig(context: Context, appWidgetId: Int, key: String,defaultValue: Int): Int {
+fun loadWidgetConfig(context: Context, appWidgetId: Int, key: String, defaultValue: Int): Int {
     return getSharedPreference(context).getInt("$appWidgetId$key", defaultValue)
 }
 
@@ -75,9 +75,9 @@ fun deleteWidgetConfig(context: Context, appWidgetId: Int, key: String) {
 fun getCourseBeans(cacheCourseData: CacheCourseData): List<ExtendCourse> = try {
     (cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run {
         if (cacheCourseData.hiddenCoursesWithoutAttendances == true) {
-            filter { !it.examType.contains("免听") }
+            filter { it.examType?.contains("免听") == false }
         } else {
-            sortedBy { it.examType.contains("免听") }
+            sortedBy { it.examType?.contains("免听") == true }
         }
     } + (cacheCourseData.examData?.values?.flatten() ?: emptyList()) +
             (cacheCourseData.customData?.values?.flatten() ?: emptyList())

@@ -42,7 +42,7 @@ const COLOR_OPTIONS = [
   { value: '#A4D1A6', color: '#A4D1A6' },
 ];
 
-const DEFAULT_EMPTY_COURSE = {
+const DEFAULT_EMPTY_COURSE: CustomCourse = {
   id: -1,
   name: '',
   teacher: '',
@@ -61,7 +61,8 @@ const DEFAULT_EMPTY_COURSE = {
   adjust: false,
   remark: '',
   type: CUSTOM_TYPE,
-} as CustomCourse;
+  examType: '',
+};
 
 export default function CourseAddPage() {
   const searchParams = useLocalSearchParams();
