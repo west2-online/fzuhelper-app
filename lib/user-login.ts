@@ -266,8 +266,8 @@ class UserLogin {
     if (!resHeaders.Location) {
       // 登录失败的话会有一个 alert，大致格式如下，可以尝试进行提取
       // <script language='javascript' defer>alert('请输入正确的用户名或密码！');</script></form>
-      // 原因有很多，比如短时间内密码试错太多次等
-      const alertRegex = /<script[^>]*>\s*alert\(['"](.+?)['"]\);\s*<\/script>/;
+      // 原因有很多，比如短时间内密码试错太多次等，除了这个外，还需要判断是否是密码过于简单的
+      const alertRegex = /<script[^>]*>\s*alert\(['"](.+?)['"]\);[^>]*\s*<\/script>/;
       const match = data.match(alertRegex);
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
