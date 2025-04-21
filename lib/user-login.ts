@@ -78,6 +78,10 @@ class UserLogin {
       .join('; ');
   }
 
+  #clearCookies() {
+    this.#cookies = {};
+  }
+
   #responseToString(response: Uint8Array) {
     return Buffer.from(response).toString('utf-8').replace(/\s+/g, '');
   }
@@ -269,6 +273,7 @@ class UserLogin {
       // 原因有很多，比如短时间内密码试错太多次等，除了这个外，还需要判断是否是密码过于简单的
       const alertRegex = /<script[^>]*>\s*alert\(['"](.+?)['"]\);[^>]*\s*<\/script>/;
       const match = data.match(alertRegex);
+      this.#clearCookies() // 清空 cookie
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
         data: match ? match[1] : '研究生教务系统登录失败',
