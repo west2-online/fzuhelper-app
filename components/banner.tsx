@@ -111,13 +111,13 @@ export default function Banner({ contents, ...props }: BannerProps) {
               width: flatListWidth,
               height: flatListWidth / 2.5,
             }}
+            className="flex justify-end overflow-hidden rounded-[16px]"
           >
-            <Image source={item.image} className="h-full w-full" resizeMode="cover" />
-            <LinearGradient
-              colors={['transparent', 'rgba(0, 0, 0, 0.53)']}
-              locations={[0, 1]}
-              className="absolute bottom-0 w-full"
-            >
+            {/* 图片 */}
+            <Image source={item.image} resizeMode="cover" className="absolute h-full w-full" />
+
+            {/* 底部遮罩 + 文本 */}
+            <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.53)']} locations={[0, 1]} className="w-full">
               <Text className="px-[10px] py-[5px] text-white">{item.text}</Text>
             </LinearGradient>
           </TouchableOpacity>
