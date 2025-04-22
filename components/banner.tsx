@@ -117,9 +117,11 @@ export default function Banner({ contents, ...props }: BannerProps) {
             <Image source={item.image} resizeMode="cover" className="absolute h-full w-full" />
 
             {/* 底部遮罩 + 文本 */}
-            <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.53)']} locations={[0, 1]} className="w-full">
-              <Text className="px-[10px] py-[5px] text-white">{item.text}</Text>
-            </LinearGradient>
+            {item.type !== BannerType.NULL && (
+              <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.53)']} locations={[0, 1]} className="w-full">
+                <Text className="px-[10px] py-[5px] text-white">{item.text}</Text>
+              </LinearGradient>
+            )}
           </TouchableOpacity>
         )}
       />

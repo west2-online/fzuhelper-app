@@ -1,4 +1,4 @@
-import { Link, useRouter, type Href, type Router } from 'expo-router';
+import { type Href, Link, type Router, useRouter } from 'expo-router';
 import { forwardRef, useEffect, useState } from 'react';
 import { Alert, FlatList, Platform, Pressable, useWindowDimensions } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
@@ -26,7 +26,7 @@ import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
-import Banner, { BannerType, type BannerContent } from '@/components/banner';
+import Banner, { type BannerContent, BannerType } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -35,7 +35,7 @@ import { showIgnorableAlert } from '@/lib/common-settings';
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { cn } from '@/lib/utils';
 import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
+import { type Tool, toolOnPress, ToolType, UserType } from '@/utils/tools';
 
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen } from '@/api/generate';
@@ -317,7 +317,7 @@ function processBannerData(bannerData: LaunchScreenScreenResponse): BannerConten
 // 自定义 Hook：管理横幅和工具数据
 const useToolsPageData = (columns: number) => {
   const { data: bannerData } = useApiRequest(getApiV1LaunchScreenScreen, {
-    type: 2, // 1为开屏页，2为轮播图，3为生日当天的开屏页
+    type: 2, // 1为开屏页，2为轮播图
     student_id: LocalUser.getUser().userid || '',
     device: Platform.OS,
   });
