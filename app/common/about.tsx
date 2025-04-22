@@ -8,7 +8,7 @@ import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 import Constants from 'expo-constants';
-import { Href, Link, router, Stack } from 'expo-router';
+import { Href, Link, Stack, router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Image, Linking, Platform, Pressable, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';

@@ -4,7 +4,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
 import CookieManager from '@react-native-cookies/cookies';
-import { Stack, type UnknownOutputParams, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,7 +24,7 @@ import {
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
-import { checkCookieSSO, LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 
 export interface WebParams {

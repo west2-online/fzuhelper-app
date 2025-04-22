@@ -2,15 +2,15 @@ import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AppState, Platform } from 'react-native';
 import {
+  NotificationSettings,
+  PERMISSIONS,
+  Permission,
+  RESULTS,
   checkMultiple,
   checkNotifications,
-  NotificationSettings,
   openSettings,
-  Permission,
-  PERMISSIONS,
   request,
   requestNotifications,
-  RESULTS,
 } from 'react-native-permissions';
 
 import LabelEntry from '@/components/label-entry';

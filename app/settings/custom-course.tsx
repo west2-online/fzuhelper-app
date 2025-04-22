@@ -12,7 +12,7 @@ import RadioButton from '@/components/radio-button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
-import { CourseCache, CUSTOM_TYPE, type CustomCourse, DEFAULT_PRIORITY } from '@/lib/course';
+import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, type CustomCourse } from '@/lib/course';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

@@ -13,7 +13,7 @@ import PageContainer from '@/components/page-container';
 
 import { FAQ_MORE } from '@/lib/FAQ';
 import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { type Tool, toolOnPress, ToolType } from '@/utils/tools';
+import { toolOnPress, ToolType, type Tool } from '@/utils/tools';
 
 // 更多页面中的工具列表
 const MORE_TOOLS: Tool[] = [

@@ -1,8 +1,8 @@
+import { Button } from '@/components/ui/button';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 import React from 'react';
 import { View } from 'react-native';
-import { Button } from '@/components/ui/button';
 
 interface ConfirmReservationModalProps {
   visible: boolean; // 是否显示浮层
