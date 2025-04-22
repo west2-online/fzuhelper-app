@@ -1,4 +1,4 @@
-import { type Href, Link, type Router, useRouter } from 'expo-router';
+import { Link, useRouter, type Href, type Router } from 'expo-router';
 import { forwardRef, useEffect, useState } from 'react';
 import { Alert, FlatList, Platform, Pressable, useWindowDimensions } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
@@ -26,7 +26,7 @@ import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
-import Banner, { type BannerContent, BannerType } from '@/components/banner';
+import Banner, { BannerType, type BannerContent } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -35,7 +35,7 @@ import { showIgnorableAlert } from '@/lib/common-settings';
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { cn } from '@/lib/utils';
 import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { type Tool, toolOnPress, ToolType, UserType } from '@/utils/tools';
+import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen } from '@/api/generate';
