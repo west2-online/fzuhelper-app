@@ -1,14 +1,15 @@
 import {
-  getApiV1CommonClassroomEmpty,
-  getApiV1CommonContributor,
-  getApiV1JwchAcademicCredit,
-  getApiV1JwchAcademicGpa,
-  getApiV1JwchAcademicPlan,
-  getApiV1JwchAcademicUnifiedExam,
-  getApiV1JwchClassroomExam,
-  getApiV1JwchCourseList,
-  getApiV1TermsList,
-  getApiV2VersionAndroid,
+  type getApiV1CommonClassroomEmpty,
+  type getApiV1CommonContributor,
+  type getApiV1JwchAcademicCredit,
+  type getApiV1JwchAcademicGpa,
+  type getApiV1JwchAcademicPlan,
+  type getApiV1JwchAcademicUnifiedExam,
+  type getApiV1JwchClassroomExam,
+  type getApiV1JwchCourseList,
+  type getApiV1LaunchScreenScreen,
+  type getApiV1TermsList,
+  type getApiV2VersionAndroid,
 } from '@/api/generate';
 
 import { AsyncReturnType } from '@/types/utils';
@@ -74,3 +75,8 @@ export type CommonClassroomEmptyResponse_Classroom = CommonClassroomEmptyRespons
 // getApiV2VersionAndroid
 export type VersionAndroidResponse = AsyncReturnType<typeof getApiV2VersionAndroid>['data']['data'];
 export type VersionAndroidResponse_Data = VersionAndroidResponse['release'];
+
+// === 开屏页 ===
+// getApiV1LaunchScreenScreen
+export type LaunchScreenScreenResponse = AsyncReturnType<typeof getApiV1LaunchScreenScreen>['data']['data'];
+export type LaunchScreenScreenResponse_Screen = LaunchScreenScreenResponse[0];

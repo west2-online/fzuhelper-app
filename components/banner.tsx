@@ -5,6 +5,7 @@ import {
   Image,
   ImageSourcePropType,
   LayoutChangeEvent,
+  Linking,
   NativeScrollEvent,
   NativeSyntheticEvent,
   TouchableOpacity,
@@ -12,11 +13,30 @@ import {
 } from 'react-native';
 
 import { Text } from '@/components/ui/text';
+import { pushToWebViewNormal } from '@/lib/webview';
 
-export interface BannerContent {
-  image: ImageSourcePropType;
-  onPress: () => void;
+export enum BannerType {
+  URL = 'URL', // 打开网页
+  Activity = 'Activity', // 跳转 activity
+  NULL = 'NULL', // 无操作
 }
+
+export type BannerContent = {
+  image: ImageSourcePropType;
+  text: string;
+} & (
+  | {
+      type: BannerType.URL;
+      href: string;
+    }
+  | {
+      type: BannerType.Activity;
+      href: string;
+    }
+  | {
+      type: BannerType.NULL;
+    }
+);
 
 type BannerProps = React.ComponentPropsWithRef<typeof View> & {
   contents: BannerContent[];
@@ -73,11 +93,17 @@ export default function Banner({ contents, ...props }: BannerProps) {
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleMomentumScrollEnd}
         onLayout={handleLayout}
-        renderItem={({ item }) => (
+        renderItem={({ item }: { item: BannerContent }) => (
           <TouchableOpacity
             onPress={() => {
               if (!isAutoScrolling.current) {
-                item.onPress();
+                if (item.type === BannerType.URL) {
+                  pushToWebViewNormal(item.href);
+                } else if (item.type === BannerType.Activity) {
+                  Linking.openURL(item.href);
+                } else if (item.type === BannerType.NULL) {
+                  // do nothing
+                }
               }
             }}
             activeOpacity={0.8}
@@ -85,15 +111,17 @@ export default function Banner({ contents, ...props }: BannerProps) {
               width: flatListWidth,
               height: flatListWidth / 2.5,
             }}
+            className="flex justify-end overflow-hidden rounded-[16px]"
           >
-            <Image source={item.image} className="h-full w-full" resizeMode="cover" />
-            <LinearGradient
-              colors={['transparent', 'rgba(0, 0, 0, 0.53)']}
-              locations={[0, 1]}
-              className="absolute bottom-0 w-full"
-            >
-              <Text className="px-[10px] py-[5px] text-white">这是一个标题</Text>
-            </LinearGradient>
+            {/* 图片 */}
+            <Image source={item.image} resizeMode="cover" className="absolute h-full w-full" />
+
+            {/* 底部遮罩 + 文本 */}
+            {item.type !== BannerType.NULL && (
+              <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.53)']} locations={[0, 1]} className="w-full">
+                <Text className="px-[10px] py-[5px] text-white">{item.text}</Text>
+              </LinearGradient>
+            )}
           </TouchableOpacity>
         )}
       />

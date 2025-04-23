@@ -125,8 +125,7 @@ export default function SplashScreen() {
         [SPLASH_DISPLAY_COUNT, (displayCount + 1).toString()],
         [SPLASH_DATE, new Date().toDateString()],
       ]);
-    } catch (error: any) {
-      console.error(error);
+    } catch {
       // 不使用 handleError，静默处理
       navigateToHome();
     }
