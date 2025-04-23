@@ -13,7 +13,7 @@ import PageContainer from '@/components/page-container';
 
 import { FAQ_MORE } from '@/lib/FAQ';
 import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { type Tool, toolOnPress, ToolType } from '@/utils/tools';
+import { toolOnPress, ToolType, type Tool } from '@/utils/tools';
 
 // 更多页面中的工具列表
 const MORE_TOOLS: Tool[] = [
@@ -432,20 +432,20 @@ export default function MoreToolsPage() {
   }, []);
   return (
     <PageContainer>
-      <SafeAreaView edges={['bottom']}>
-        <Tabs.Screen
-          options={{
-            title: '更多工具',
-            // eslint-disable-next-line react/no-unstable-nested-components
-            headerRight: () => (
-              <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-                <Icon name="help-circle-outline" size={26} className="mr-4" />
-              </Pressable>
-            ),
-          }}
-        />
-        {/* 工具列表 */}
-        <ScrollView className="mx-4" showsVerticalScrollIndicator={false}>
+      <Tabs.Screen
+        options={{
+          title: '更多工具',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: () => (
+            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
+              <Icon name="help-circle-outline" size={26} className="mr-4" />
+            </Pressable>
+          ),
+        }}
+      />
+      {/* 工具列表 */}
+      <ScrollView className="mx-4" showsVerticalScrollIndicator={false}>
+        <SafeAreaView edges={['bottom']}>
           {MORE_TOOLS.map((item, index) => (
             <LabelEntry
               key={index}
@@ -459,9 +459,9 @@ export default function MoreToolsPage() {
               }}
             />
           ))}
-        </ScrollView>
-        <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_MORE} />
-      </SafeAreaView>
+        </SafeAreaView>
+      </ScrollView>
+      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_MORE} />
     </PageContainer>
   );
 }

@@ -15,7 +15,7 @@ import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, TouchableOpacity, View, useColorScheme } from 'react-native';
-import DateTimePicker, { getDefaultClassNames } from 'react-native-ui-datepicker';
+import DateTimePicker, { useDefaultClassNames } from 'react-native-ui-datepicker';
 
 type Campus = '旗山校区' | '铜盘校区' | '晋江校区' | '泉港校区' | '怡山校区' | '集美校区' | '鼓浪屿校区';
 const CAMPUS_LIST: Campus[] = ['旗山校区', '铜盘校区', '晋江校区', '泉港校区', '怡山校区', '集美校区', '鼓浪屿校区'];
@@ -60,6 +60,7 @@ function generateEndPickerData(start: number): { value: IntRange<1, 12>; label: 
 
 export default function EmptyRoomPage() {
   const today = useMemo(() => dayjs(), []);
+  const defaultClassNames = useDefaultClassNames();
 
   const [selectedRange, setSelectedRange] = useState<LessonRange>({ start: 1, end: 11 });
   const [selectedDate, setSelectedDate] = useState(today);
@@ -159,7 +160,7 @@ export default function EmptyRoomPage() {
             timeZone={TIMEZONE}
             onChange={({ date }) => setPickerSelectedDate(dayjs(date))}
             locale="zh-cn"
-            classNames={getDefaultClassNames()}
+            classNames={defaultClassNames}
             // 选择范围为从今天开始的一周内
             minDate={today.toDate()}
             maxDate={today.add(6, 'day').toDate()}

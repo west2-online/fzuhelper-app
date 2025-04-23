@@ -35,7 +35,7 @@ export default function UnifiedExamScorePage() {
         ) : (
           <SafeAreaView className="flex-1" edges={['bottom']}>
             <ScrollView
-              className="p-4"
+              contentContainerClassName="px-4 pt-4"
               refreshControl={
                 <RefreshControl
                   refreshing={isLoading}

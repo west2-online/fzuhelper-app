@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
 import { useLearningCenterApi } from '@/context/learning-center';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function QrScannerPage() {
   const router = useRouter();
@@ -124,7 +125,7 @@ export default function QrScannerPage() {
             }}
             style={StyleSheet.absoluteFillObject}
           />
-          <View className="absolute bottom-0 left-0 right-0 bg-black/50 p-4">
+          <SafeAreaView className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 pt-4" edges={['bottom']}>
             <Text className="mb-4 text-center text-white">将二维码放入框内以进行扫描</Text>
             {scanned && !scanning && (
               <View className="flex-row justify-center space-x-2">
@@ -136,7 +137,7 @@ export default function QrScannerPage() {
                 </Button>
               </View>
             )}
-          </View>
+          </SafeAreaView>
         </View>
       </PageContainer>
     </>

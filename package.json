@@ -2,7 +2,7 @@
   "name": "fzuhelper-app",
   "main": "expo-router/entry",
   "//": "下面的 version 每一位都只能是【一位】数字！！！",
-  "version": "7.1.2",
+  "version": "7.1.3",
   "private": true,
   "scripts": {
     "start": "expo start",
@@ -100,7 +100,7 @@
     "react-native-safe-area-context": "~5.1.0",
     "react-native-screens": "~4.5.0",
     "react-native-svg": "^15.11.1",
-    "react-native-ui-datepicker": "^3.0.4",
+    "react-native-ui-datepicker": "^3.1.2",
     "react-native-web": "~0.19.10",
     "react-native-webview": "~13.13.1",
     "sonner-native": "^0.16.2",

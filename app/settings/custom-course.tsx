@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/text';
 
 import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, type CustomCourse } from '@/lib/course';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const WEEKDAYS = [
   { value: 1, label: '星期一' },
@@ -129,7 +130,7 @@ export default function CourseAddPage() {
 
       {loaded ? (
         <PageContainer>
-          <KeyboardAwareScrollView className="px-4 pt-4" keyboardShouldPersistTaps="handled">
+          <KeyboardAwareScrollView className="px-4" keyboardShouldPersistTaps="handled">
             <View className="my-2">
               <Text className="text-lg">名称</Text>
               <Input
@@ -302,12 +303,12 @@ export default function CourseAddPage() {
               }}
             />
 
-            <View className="mx-4 space-y-4">
+            <SafeAreaView className="mx-4 space-y-4" edges={['bottom']}>
               <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
               <Text className="my-2 text-base text-text-secondary">
                 自定义课程保存在设备本地，退出登录或卸载应用将导致课程被清除
               </Text>
-            </View>
+            </SafeAreaView>
           </KeyboardAwareScrollView>
         </PageContainer>
       ) : (

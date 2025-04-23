@@ -26,7 +26,8 @@ export default function GPAPage() {
           <Loading />
         ) : (
           <ScrollView
-            className="flex-1 p-4"
+            className="flex-1"
+            contentContainerClassName="px-4 pt-4"
             refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
           >
             {/* 学术成绩数据列表 */}

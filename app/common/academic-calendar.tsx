@@ -29,7 +29,7 @@ interface CourseContentProps {
 }
 
 // 每个学期的内容
-const CourseContent: React.FC<CourseContentProps> = ({ term }) => {
+const AcademicContent: React.FC<CourseContentProps> = ({ term }) => {
   const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
   // 获取学期数据
   const { data, dataUpdatedAt, isLoading, refetch } = useApiRequest(
@@ -64,15 +64,15 @@ const CourseContent: React.FC<CourseContentProps> = ({ term }) => {
         ) : (
           <Text className="text-center text-text-secondary">{isLoading ? '正在刷新中' : '暂无学期数据'}</Text>
         )}
-      </SafeAreaView>
 
-      {/* 显示刷新时间 */}
-      {lastUpdated && (
-        <View className="my-4 flex flex-row items-center justify-center">
-          <Icon name="time-outline" size={16} className="mr-2" />
-          <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
-        </View>
-      )}
+        {/* 显示刷新时间 */}
+        {lastUpdated && (
+          <View className="my-4 flex flex-row items-center justify-center">
+            <Icon name="time-outline" size={16} className="mr-2" />
+            <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
+          </View>
+        )}
+      </SafeAreaView>
     </ScrollView>
   );
 };
@@ -99,7 +99,7 @@ export default function AcademicCalendarPage() {
           data={termList ?? []}
           value={currentTerm}
           onChange={setCurrentTerm}
-          renderContent={term => <CourseContent term={term} />}
+          renderContent={term => <AcademicContent term={term} />}
         />
       </PageContainer>
     </>

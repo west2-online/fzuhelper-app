@@ -118,7 +118,7 @@ export default function Web() {
           console.error('SSO登录获取cookie失败:', error);
           return null;
         });
-        toast.info('登录已过期,正在尝试重新登录');
+        toast.info('登录过期，正在重新登录');
         if (cookieLogin) {
           cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
           await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookieLogin);
