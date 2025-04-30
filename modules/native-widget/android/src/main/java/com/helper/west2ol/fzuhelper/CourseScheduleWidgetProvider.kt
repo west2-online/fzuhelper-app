@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.net.Uri
 import android.widget.RemoteViews
 import com.west2online.nativewidget.BuildConfig
@@ -54,8 +55,10 @@ internal fun updateCourseScheduleWidget(
         setPendingIntentTemplate(R.id.list_view, pendingIntent)
         setRemoteAdapter(R.id.list_view, intent2)
         setOnClickPendingIntent(R.id.container, pendingIntent)
-        setFloat(R.id.top_shadow, "setAlpha", loadWidgetConfig(context, appWidgetId, "background_alpha",80)/100.0f)
-        setFloat(R.id.container, "setAlpha", loadWidgetConfig(context, appWidgetId, "foreground_alpha",100)/100.0f)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setFloat(R.id.top_shadow, "setAlpha", loadWidgetConfig(context, appWidgetId, "background_alpha",80)/100.0f)
+            setFloat(R.id.container, "setAlpha", loadWidgetConfig(context, appWidgetId, "foreground_alpha",100)/100.0f)
+        }
     }
     appWidgetManager.updateAppWidget(appWidgetId, views)
     appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.list_view)
