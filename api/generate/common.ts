@@ -115,3 +115,30 @@ export async function getApiV2VersionAndroid(options?: {
     ...(options || {}),
   });
 }
+
+/** 获取教务处通知列表 GET /api/v1/common/notice */
+export async function fetchNoticeList(
+  params: {
+    pageNum: number;
+  },
+  options?: { [key: string]: unknown }
+) {
+  return request<{
+    code: string;
+    message: string;
+    data: {
+      notices: {
+        title: string;
+        url: string;
+        date: string;
+      }[];
+      total: number;
+    };
+  }>('/api/v1/common/notice', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
