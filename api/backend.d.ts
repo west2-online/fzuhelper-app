@@ -1,18 +1,20 @@
 import {
-  type getApiV1CommonClassroomEmpty,
-  type getApiV1CommonContributor,
-  type getApiV1JwchAcademicCredit,
-  type getApiV1JwchAcademicGpa,
-  type getApiV1JwchAcademicPlan,
-  type getApiV1JwchAcademicUnifiedExam,
-  type getApiV1JwchClassroomExam,
-  type getApiV1JwchCourseList,
-  type getApiV1LaunchScreenScreen,
-  type getApiV1TermsList,
-  type getApiV2VersionAndroid,
+  getApiV1CommonClassroomEmpty,
+  getApiV1CommonContributor,
+  getApiV1JwchAcademicCredit,
+  getApiV1JwchAcademicGpa,
+  getApiV1JwchAcademicPlan,
+  getApiV1JwchAcademicUnifiedExam,
+  getApiV1JwchClassroomExam,
+  getApiV1JwchCourseList,
+  getApiV1TermsList,
+  getApiV2VersionAndroid,
 } from '@/api/generate';
 
-import { AsyncReturnType } from '@/types/utils';
+// 推断异步函数返回值类型的类型体操
+export type AsyncReturnType<
+  T extends (...args: any) => Promise<any>, // 泛型参数 T 为一个返回 Promise 类型的函数
+> = T extends (...args: any) => Promise<infer R> ? R : any; // 利用条件类型和 `infer` 关键字提取出函数返回值所包裹的实际类型 R
 
 /*
 请在下方编写接口返回值类型推导定义，格式参照已有定义
@@ -75,8 +77,3 @@ export type CommonClassroomEmptyResponse_Classroom = CommonClassroomEmptyRespons
 // getApiV2VersionAndroid
 export type VersionAndroidResponse = AsyncReturnType<typeof getApiV2VersionAndroid>['data']['data'];
 export type VersionAndroidResponse_Data = VersionAndroidResponse['release'];
-
-// === 开屏页 ===
-// getApiV1LaunchScreenScreen
-export type LaunchScreenScreenResponse = AsyncReturnType<typeof getApiV1LaunchScreenScreen>['data']['data'];
-export type LaunchScreenScreenResponse_Screen = LaunchScreenScreenResponse[0];

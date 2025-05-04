@@ -1,9 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
 import { ACCESS_TOKEN_KEY, JWCH_USER_INFO_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
-import BuglyModule from '@/modules/bugly';
 import { get } from '@/modules/native-request';
 import { Buffer } from 'buffer';
 import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
@@ -62,7 +60,7 @@ export class LocalUser {
   }
 
   /**
-   * 清空用户信息，这个函数会同时清除 AsyncStorage 中的信息，包含 credentials
+   * 清空用户信息，这个函数会同时清除 AsyncStorage 中的信息，包含 crenditails
    */
   public static async clear(): Promise<void> {
     this.type = '';
@@ -78,14 +76,11 @@ export class LocalUser {
       REFRESH_TOKEN_KEY,
       JWCH_USER_INFO_KEY,
     ]);
-    if(Platform.OS === 'android') {
-      await BuglyModule.setUserId('');
-    }
   }
 
   /**
    * 设置用户，该函数会调用 AsyncStorage 持久化存储
-   * @param type 用户类型，可以使用 USER_TYPE_UNDERGRADUATE 或 USER_TYPE_GRADUATE 两个常量
+   * @param type 用户类型，可以使用 USER_TYPE_UNDERGRADUATE 或 USRE_TYPE_GRADUATE 两个常量
    * @param username 登录的学号
    * @param password 登录的密码
    */
@@ -263,7 +258,6 @@ async function checkCookieYJSY(credentials: LoginCredentials) {
 
   return true;
 }
-
 // （统一认证登录）检查 SSO 的 Cookie 是否有效，如果无效，重新自动登录
 export async function checkCookieSSO(credentials: SSOCredentials) {
   const COOKIE_CHECK_URL = 'https://sso.fzu.edu.cn/login'; // 尝试访问学生个人信息页面

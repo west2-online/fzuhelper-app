@@ -1,35 +1,35 @@
 /* eslint-disable */
 // @ts-ignore
 
-export type getApiV1CommonClassroomEmptyParams = {
+export interface getApiV1CommonClassroomEmptyParams {
   date?: string;
   campus?: string;
   startTime?: string;
   endTime?: string;
 };
 
-export type getApiV1CourseCalendarSubscribeParams = {
+export interface getApiV1CourseCalendarSubscribeParams {
   token?: string;
 };
 
-export type getApiV1JwchClassroomExamParams = {
+export interface getApiV1JwchClassroomExamParams {
   /** 学期 202401(研究生2023-2024-2) */
   term?: string;
 };
 
-export type getApiV1JwchCourseListParams = {
+export interface getApiV1JwchCourseListParams {
   /** 学期 */
   term: string;
   /** 强刷标签 */
   is_refresh: boolean;
 };
 
-export type getApiV1LaunchScreenImagePointTimeParams = {
+export interface getApiV1LaunchScreenImagePointTimeParams {
   /** 图片id */
   picture_id: number;
 };
 
-export type getApiV1LaunchScreenScreenParams = {
+export interface getApiV1LaunchScreenScreenParams {
   /** 类型 */
   type: number;
   /** 学号 */
@@ -38,14 +38,14 @@ export type getApiV1LaunchScreenScreenParams = {
   device: string;
 };
 
-export type getApiV1PaperDownloadParams = {
+export interface getApiV1PaperDownloadParams {
   filepath?: string;
 };
 
-export type getApiV1PaperListParams = {
+export interface getApiV1PaperListParams {
   path?: string;
 };
 
-export type getApiV1TermsInfoParams = {
+export interface getApiV1TermsInfoParams {
   term?: string;
 };

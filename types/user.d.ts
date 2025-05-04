@@ -1,4 +1,4 @@
-export type UserInfo = {
+export interface UserInfo {
   stu_id: string; // 学号
   birthday: string; // 生日
   name: string; // 姓名
@@ -6,4 +6,4 @@ export type UserInfo = {
   college: string; // 所属学院
   grade: string; // 所属年级
   major: string; // 所属专业
-};
+}

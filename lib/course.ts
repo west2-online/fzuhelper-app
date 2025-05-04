@@ -11,7 +11,6 @@ import {
 } from '@/lib/constants';
 import { setWidgetData } from '@/modules/native-widget';
 import { MergedExamData } from '@/types/academic';
-import type { PartiallyOptional } from '@/types/utils';
 import { randomUUID } from '@/utils/crypto';
 import { allocateColorForCourse, clearColorMapping, courseColors, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
@@ -29,10 +28,7 @@ dayjs.extend(isBetween);
 dayjs.extend(isoWeek);
 dayjs.locale('zh-cn');
 
-export type ParsedCourse = PartiallyOptional<
-  Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'>,
-  'lessonplan' | 'syllabus'
-> &
+export type ParsedCourse = Omit<JwchCourseListResponse_Course, 'rawAdjust' | 'rawScheduleRules' | 'scheduleRules'> &
   JwchCourseListResponse_CourseScheduleRule;
 
 // 对课程类型的拓展，支持颜色等设计，也允许后期进行不断扩充
@@ -438,8 +434,8 @@ export class CourseCache {
     if (currentDigest === this.cachedExamDigest && this.cachedExamData) return;
 
     let extendedCourses: ExtendCourse[] = [];
-    const startDate = dayjs(semesterStart); // 使用 dayjs 解析学期开始日期
-    const endDate = dayjs(semesterEnd); // 使用 dayjs 解析学期结束日期
+    const startDate = new Date(semesterStart); // 学期开始日期
+    const endDate = new Date(semesterEnd); // 学期结束日期
 
     // 将 MergedExamData 转化为 ExtendCourse，优先级设置为最高
     for (const examItem of exam) {
@@ -447,7 +443,7 @@ export class CourseCache {
       if (!date) continue; // 如果没有日期，则不安排
       if (!time) continue; // 如果没有时间，则不安排
 
-      // 将日期解析为 dayjs 对象
+      // 将日期解析为 dayjs 对象，并设置为中国时区
       const examDate = dayjs(date);
 
       // 如果考试日期不在学期范围内，则跳过（规避补考）
@@ -456,8 +452,9 @@ export class CourseCache {
       // 获取考试日期是星期几（ISO 周，星期一为一周的第一天）
       const weekday = examDate.isoWeekday(); // `isoWeekday()` 返回 1（周一）到 7（周日）
 
-      // 使用 dayjs 计算周数，基于学期开始日期和考试日期
-      const diffWeeks = examDate.diff(startDate, 'week') + 1; // 计算周数
+      // 我们基于学期开始日期和考试日期，计算中间的周数
+      const diffDays = Math.floor((new Date(date).getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffWeeks = Math.floor(diffDays / 7) + 1; // 计算周数
 
       // 填充课程数据
       try {
@@ -479,6 +476,8 @@ export class CourseCache {
           double: true,
           adjust: false,
           remark: time, // 备注、课程大纲和教学计划设置为空
+          syllabus: '',
+          lessonplan: '',
           examType: '',
         };
         // 先将考试数据存储在 extendedCourses 中
@@ -767,7 +766,7 @@ export const defaultCourseSetting: CourseSetting = {
   selectedSemester: '',
   calendarExportEnabled: false,
   showNonCurrentWeekCourses: false,
-  exportExamToCourseTable: true,
+  exportExamToCourseTable: false,
   hiddenCoursesWithoutAttendances: false,
   calendarSubscribeUrl: '',
 };

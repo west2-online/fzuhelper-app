@@ -18,7 +18,7 @@ export const setAegisConfig = (config: any) => {
 
 export const initAegis = () => {
   aegis = new Aegis({
-    id: '16OgkSlLkaY1p29Qdr', // 上报 id
+    id: 'VD0m3Sd9r0180Pjd2W', // 上报 id
     reportApiSpeed: true, // 开启接口测速
     hostUrl: 'https://rumt-zh.com',
     whiteListUrl: '', // 关闭白名单接口请求，减少金钱花销
