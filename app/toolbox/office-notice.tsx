@@ -1,6 +1,7 @@
 import { fetchNoticeList } from '@/api/generate/common';
 import PageContainer from '@/components/page-container';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import useApiRequest from '@/hooks/useApiRequest';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Linking, RefreshControl, Text, TouchableOpacity } from 'react-native';
@@ -14,59 +15,53 @@ interface NoticeItem {
 export default function OfficeNoticePage() {
   const [pageNum, setPageNum] = useState(1);
   const [noticeList, setNoticeList] = useState<NoticeItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
 
-  const loadNotices = useCallback(
-    async (page: number) => {
-      if (isEnd && page !== 1) return;
-      if (page === 1) setIsLoading(true);
-      else setIsLoadingMore(true);
-      try {
-        const res = await fetchNoticeList({ pageNum: page });
-        const data = res.data.data;
-        const newNotices = data.notices || [];
-        if (page === 1) {
-          setNoticeList(newNotices);
-        } else {
-          setNoticeList(prev => [...prev, ...newNotices]);
-        }
-        if (newNotices.length < 20) {
-          setIsEnd(true);
-        } else {
-          setIsEnd(false);
-        }
-      } catch (e) {
-        console.error('教务处通知加载错误：', e);
-      } finally {
-        setIsLoading(false);
+  const { data, isLoading, refetch, isRefetching } = useApiRequest(
+    fetchNoticeList,
+    { pageNum },
+    {
+      errorHandler: error => {
+        console.error('教务处通知加载错误：', error);
         setIsLoadingMore(false);
-      }
-      return Promise.resolve();
+        return error;
+      },
     },
-    [isEnd],
   );
 
   useEffect(() => {
-    loadNotices(1);
-  }, [loadNotices]);
+    if (data) {
+      const newNotices = data.notices || [];
+      if (pageNum === 1) {
+        setNoticeList(newNotices);
+      } else {
+        setNoticeList(prev => [...prev, ...newNotices]);
+      }
+      if (newNotices.length < 20) {
+        setIsEnd(true);
+      } else {
+        setIsEnd(false);
+      }
+      setIsLoadingMore(false);
+    }
+  }, [data, pageNum]);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     setPageNum(1);
-    loadNotices(1).finally(() => {
+    refetch().finally(() => {
       setRefreshing(false);
     });
-  }, [loadNotices]);
+  }, [refetch]);
 
   const handleLoadMore = useCallback(() => {
-    if (isLoadingMore || isEnd || isLoading) return;
+    if (isLoadingMore || isEnd || isLoading || isRefetching) return;
+    setIsLoadingMore(true);
     const nextPage = pageNum + 1;
     setPageNum(nextPage);
-    loadNotices(nextPage);
-  }, [isLoadingMore, isEnd, isLoading, pageNum, loadNotices]);
+  }, [isLoadingMore, isEnd, isLoading, isRefetching, pageNum]);
 
   const handleNoticePress = useCallback(async (url: string) => {
     // 不使用 webview 是因为教务通知中往往会下载文件，webview 不太好保存什么的
@@ -89,7 +84,7 @@ export default function OfficeNoticePage() {
     [handleNoticePress],
   );
 
-  if (isLoading) {
+  if ((isLoading || isRefetching) && !isLoadingMore && pageNum === 1) {
     return (
       <>
         <Stack.Screen options={{ title: '教务处通知' }} />
