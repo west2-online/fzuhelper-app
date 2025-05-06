@@ -1,10 +1,11 @@
 import { fetchNoticeList } from '@/api/generate/common';
+import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import useApiRequest from '@/hooks/useApiRequest';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Linking, RefreshControl, Text, TouchableOpacity } from 'react-native';
+import { FlatList, Linking, RefreshControl, Text, TouchableOpacity } from 'react-native';
 
 interface NoticeItem {
   title: string;
@@ -89,7 +90,7 @@ export default function OfficeNoticePage() {
       <>
         <Stack.Screen options={{ title: '教务处通知' }} />
         <PageContainer className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" />
+          <Loading />
         </PageContainer>
       </>
     );
@@ -103,16 +104,16 @@ export default function OfficeNoticePage() {
           data={noticeList}
           renderItem={renderNoticeItem}
           keyExtractor={item => `${item.url}`}
-          className="flex-1 px-4 pt-4"
+          className="pb-safe flex-1 px-4 pt-4"
           ListEmptyComponent={<Text>暂无通知</Text>}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.2}
           ListFooterComponent={
             isLoadingMore ? (
-              <ActivityIndicator size="small" className="py-8" />
+              <Loading />
             ) : isEnd && noticeList.length > 0 ? (
-              <Text className="my-2 text-center text-text-secondary">没有更多了</Text>
+              <Text className="my-2 mb-4 text-center text-text-secondary">没有更多了</Text>
             ) : null
           }
         />
