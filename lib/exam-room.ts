@@ -1,7 +1,7 @@
 import type { JwchClassroomExamResponse as ExamData } from '@/api/backend';
 import type { MergedExamData } from '@/types/academic';
-import dayjs from 'dayjs';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
+import dayjs from 'dayjs';
 
 // 将日期字符串(xxxx年xx月xx日)转换为 Date 对象，如转换失败返回 undefined
 const parseDate = (dateStr: string): dayjs.Dayjs | undefined => {
@@ -36,7 +36,7 @@ export const formatExamData = (examData: ExamData): MergedExamData[] => {
         date: examDate,
         location: exam.location || undefined,
         time: exam.time || undefined,
-        isFinished: examDate ? now.isAfter(examDate.endOf('day')) : true, // 没有日期的默认已完成，有日期的需要过了当天23:59才算完成
+        isFinished: examDate ? now.isAfter(examDate) : false, // 使用 dayjs 的 isAfter 方法比较日期
       };
     })
     .sort((a, b) => {
