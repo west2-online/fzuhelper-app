@@ -2,6 +2,7 @@ package com.helper.west2ol.fzuhelper
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -33,13 +34,21 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
             return
         }
 
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            val resultValue = Intent()
+            resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            setResult(RESULT_OK, resultValue)
+            finish()
+            true
+        }
+
         binding.foregroundAlphaSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 when (position) {
                     0 -> {
                         binding.foregroundAlphaSeekbar.isEnabled = false
                         binding.foregroundAlphaSeekbar.progress = 100
-                        saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.backgroundAlphaSeekbar.progress)
+                        saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.foregroundAlphaSeekbar.progress)
                     }
                     1 -> binding.foregroundAlphaSeekbar.isEnabled = true
                     2 ->{
