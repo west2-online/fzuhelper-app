@@ -88,7 +88,7 @@ export default function OfficeNoticePage() {
   if ((isLoading || isRefetching) && !isLoadingMore && pageNum === 1) {
     return (
       <>
-        <Stack.Screen options={{ title: '教务处通知' }} />
+        <Stack.Screen options={{ title: '教务通知' }} />
         <PageContainer className="flex-1 items-center justify-center">
           <Loading />
         </PageContainer>
@@ -98,7 +98,7 @@ export default function OfficeNoticePage() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '教务处通知' }} />
+      <Stack.Screen options={{ title: '教务通知' }} />
       <PageContainer>
         <FlatList
           data={noticeList}
