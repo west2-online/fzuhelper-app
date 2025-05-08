@@ -63,6 +63,7 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: NotificationIcon,
     type: ToolType.LINK,
     href: '/toolbox/office-notice',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '历年卷',
