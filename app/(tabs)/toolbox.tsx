@@ -16,6 +16,7 @@ import GraduationIcon from '@/assets/images/toolbox/ic_graduation.svg';
 import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
 import LostFoundIcon from '@/assets/images/toolbox/ic_lostandfound.svg';
 import MoreIcon from '@/assets/images/toolbox/ic_more.svg';
+import NotificationIcon from '@/assets/images/toolbox/ic_notification.svg';
 import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
@@ -56,6 +57,13 @@ const DEFAULT_TOOLS: Tool[] = [
     icon: GradeIcon,
     type: ToolType.LINK,
     href: '/toolbox/academic',
+  },
+  {
+    name: '教务通知',
+    icon: NotificationIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/office-notice',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     name: '历年卷',
