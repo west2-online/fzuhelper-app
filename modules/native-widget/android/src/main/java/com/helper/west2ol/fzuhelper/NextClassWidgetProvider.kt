@@ -58,6 +58,18 @@ internal fun updateNextClassWidget(
 ) {
     val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
 
+    val refreshIntent = Intent(context, NextClassWidgetProvider::class.java).apply {
+        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
+    }
+    val refreshPendingIntent = PendingIntent.getBroadcast(
+        context,
+        1,
+        refreshIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    views.setOnClickPendingIntent(R.id.last_update_time, refreshPendingIntent)
+
     val intent = Intent()
     intent.setClassName(
         "com.helper.west2ol.fzuhelper",
@@ -127,7 +139,7 @@ internal fun updateNextClassWidget(
             val currentDateTime = Calendar.getInstance()
             val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
             val formattedDate = sdf.format(currentDateTime.time)
-            setTextViewText(R.id.last_update_time, "更新于 $formattedDate")
+            setTextViewText(R.id.last_update_time, "更新于 $formattedDate 点击以刷新")
         } else {
             setTextViewText(R.id.last_update_time, "")
         }
