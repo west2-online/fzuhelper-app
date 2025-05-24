@@ -41,8 +41,12 @@ const AllSeatsUnavailable: React.FC = memo(() => (
     <View className="flex-1 items-center justify-center py-8">
       <Text className="text-center text-text-secondary">
         当前时段所有座位都不可用
-        {'\n'}
-        可能已存在有效预约，请取消预约或尝试其他时段
+        {'\n\n'}
+        可能是如下原因：{'\n'}
+        1. 当前时间段存在有效预约，请尝试其他时间段{'\n'}
+        2. 学习中心服务器压力过大，无法提供座位信息{'\n'}
+        3. 学习中心因竞赛等活动，场地占用暂停开放{'\n'}
+        4. 因违规行为个人账户被封禁，无法预约座位{'\n'}
       </Text>
     </View>
   </PageContainer>
