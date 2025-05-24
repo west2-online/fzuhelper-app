@@ -36,6 +36,7 @@ const TermContent: React.FC<TermContentProps> = ({ term }) => {
   const { data, dataUpdatedAt, isLoading, refetch } = useApiRequest(getApiV1JwchClassroomExam, { term });
   const termData = formatExamData(data || []).sort((a, b) => {
     const now = new Date(); // 当前日期
+    // 排序优先级 最近的考试 > 稍近的考试 > 过期的考试 > 没有日期的考试
 
     // 如果只有一个有 date，优先排序有 date 的
     if (!a.date && b.date) return 1; // a 没有 date，b 有 date，b 优先
@@ -50,6 +51,7 @@ const TermContent: React.FC<TermContentProps> = ({ term }) => {
 
     // 如果一个未完成一个已完成，未完成优先
     if (a.isFinished && !b.isFinished) return 1; // a 已完成，b 未完成，b 优先
+    if (!a.isFinished && b.isFinished) return -1; // a 未完成，b 已完成，a 优先
 
     // 计算与当前日期的时间差
     const diffA = Math.abs(dateA.getTime() - now.getTime());
