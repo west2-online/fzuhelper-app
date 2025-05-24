@@ -1,5 +1,7 @@
-import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
+import PageContainer from '@/components/page-container';
+import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_DOMAIN, SSO_LOGIN_COOKIE_KEY } from '@/lib/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CookieManager from '@react-native-cookies/cookies';
 import { Stack, useRouter } from 'expo-router';
 import { useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,11 +41,16 @@ export default function LearningCenterTokenPage() {
     // 目的url : https://aiot.fzu.edu.cn/ibs/#/?token=104c5be7-6ea2-42f4-8650-6096e8668fe5
     if (navState.url && navState.url.includes('token=')) {
       const extractedToken = extractTokenFromUrl(navState.url);
-
-      // 如果提取到 token 并且 token 格式有效，则保存到本地并跳转到学习中心首页
+      // 如果提取到 token 并且 token 格式有效，则证明登录成功，保存到本地，同时读取ssoCookie并保存
       if (extractedToken) {
         await AsyncStorage.setItem(LEARNING_CENTER_TOKEN_KEY, extractedToken);
-        router.back();
+
+        const cookies = await CookieManager.get(SSO_LOGIN_COOKIE_DOMAIN);
+        const SOURCEID_TGC = cookies.SOURCEID_TGC.value;
+        console.log('获取到的 SSO Cookie:', SOURCEID_TGC);
+        await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, `SOURCEID_TGC=${SOURCEID_TGC}`);
+        toast.success('登录成功');
+        router.replace('/(tabs)'); // 跳转到首页
       }
     }
   };
@@ -55,19 +62,21 @@ export default function LearningCenterTokenPage() {
           title: 'SSO 网页登录',
         }}
       />
-      <SafeAreaView edges={['bottom', 'left', 'right']} className="flex-1">
-        <WebView
-          ref={webViewRef}
-          source={{ uri: GET_TOKEN_URL }}
-          onError={() => {
-            setTimeout(() => toast.error('网页加载失败'), 100);
-          }}
-          onNavigationStateChange={handleNavigationStateChange}
-          cacheEnabled={false}
-          incognito={true}
-          thirdPartyCookiesEnabled={false}
-        />
-      </SafeAreaView>
+      <PageContainer>
+        <SafeAreaView edges={['bottom', 'left', 'right']} className="flex-1">
+          <WebView
+            ref={webViewRef}
+            source={{ uri: GET_TOKEN_URL }}
+            onError={() => {
+              setTimeout(() => toast.error('网页加载失败'), 100);
+            }}
+            onNavigationStateChange={handleNavigationStateChange}
+            cacheEnabled={false}
+            thirdPartyCookiesEnabled
+            sharedCookiesEnabled
+          />
+        </SafeAreaView>
+      </PageContainer>
     </>
   );
 }
