@@ -35,6 +35,7 @@ const UnifiedLoginPage: React.FC = () => {
   const [account, setAccount] = useState('');
   const [accountPassword, setAccountPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isBackUpEnabled, setIsBackUpEnabled] = useState(false); // 是否启用备用登录方式
   const [isAgree, setIsAgree] = useState(false);
   const { handleError } = useSafeResponseSolve();
   const ymtLogin = useRef<YMTLogin | null>(null);
@@ -78,8 +79,8 @@ const UnifiedLoginPage: React.FC = () => {
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.msg);
       }
-      return false;
     }
+    return false;
   }, [account, accountPassword, handleError]);
 
   // 处理一码通登录逻辑
@@ -97,8 +98,8 @@ const UnifiedLoginPage: React.FC = () => {
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.msg);
       }
-      return false;
     }
+    return false;
   }, [account, accountPassword, handleError]);
 
   // 打开服务协议
@@ -114,6 +115,24 @@ const UnifiedLoginPage: React.FC = () => {
   // 忘记密码
   const openForgetPassword = useCallback(() => {
     Linking.openURL(URL_FORGET_PASSWORD).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+  }, []);
+
+  // 打开备用登录方式
+  const openBackUpLogin = useCallback(() => {
+    Alert.alert(
+      '备用登录方式',
+      '备用登录方式仅作为备用方案，请优先使用统一身份认证登录。\n\n如果您在统一身份认证登录时遇到问题，可以尝试备用登录方式。',
+      [
+        {
+          text: '取消',
+          style: 'cancel',
+        },
+        {
+          text: '继续',
+          onPress: () => router.push('/webview-sso-login'),
+        },
+      ],
+    );
   }, []);
 
   // 处理登录逻辑
@@ -133,13 +152,19 @@ const UnifiedLoginPage: React.FC = () => {
 
     setIsLoggingIn(true); // 禁用按钮
     // 由于一码通和SSO使用同一套账号密码 所以这里同时进行一码通和SSO登录
-    // 调用统一身份认证登录逻辑
+    const isSSOLoginSuccess = await handleSSOLogin();
+    const isYMTLoginSuccess = await handleYMTLogin();
 
-    const isSSOLogin = handleSSOLogin();
-    const isYMTLogin = handleYMTLogin();
-    if ((await isSSOLogin) && (await isYMTLogin)) {
+    // 如果一码通登录成功但是SSO登录失败，则证明账号密码正确但是SSO登录有问题，引导前往备用登录方式
+    if (isYMTLoginSuccess && !isSSOLoginSuccess) {
+      setIsBackUpEnabled(true); // 启用备用登录方式
+      toast.warning('一码通登录成功，但统一身份认证登录失败，请尝试使用备用方式以登录统一身份认证');
+    }
+
+    if (isSSOLoginSuccess && isYMTLoginSuccess) {
       router.back();
     }
+
     setIsLoggingIn(false);
   }, [isAgree, account, accountPassword, handleSSOLogin, handleYMTLogin]);
 
@@ -189,11 +214,22 @@ const UnifiedLoginPage: React.FC = () => {
                   <Text className="text-lg font-bold text-white">{isLoggingIn ? '登录中...' : '登 录'}</Text>
                 </TouchableOpacity>
 
-                <View className="w-full flex-row justify-end px-2">
-                  {/* 忘记密码按钮 */}
-                  <Text className="text-primary" onPress={openForgetPassword}>
-                    重置密码
-                  </Text>
+                <View className="w-full flex-row justify-between px-2">
+                  {/* 左侧区域 */}
+                  <View className="flex-1">
+                    {isBackUpEnabled && (
+                      <Text className="text-primary" onPress={openBackUpLogin}>
+                        遇到了问题？备用登录方式
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* 右侧区域 */}
+                  <View className="flex-1 items-end">
+                    <Text className="text-primary" onPress={openForgetPassword}>
+                      重置密码
+                    </Text>
+                  </View>
                 </View>
 
                 {/* 公告栏 */}

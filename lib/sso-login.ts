@@ -12,13 +12,25 @@ function extractKV(raw: string, key: string): string {
    * @param raw 字符串
    * @param name 需要提取的键名
    * @returns 键名对应的值
-   *
    **/
+
+  // 如果传入的 raw 不是字符串，抛出错误
+  if (typeof raw !== 'string') {
+    throw {
+      type: RejectEnum.NativeLoginFailed,
+      data: 'cookie 不是字符串',
+    };
+  }
   const regex = new RegExp(`${key}=([^;]+)`);
   const match = raw.match(regex);
+
   if (!match || !match[1]) {
-    throw new Error(`无法从cookie中提取${key}`);
+    throw {
+      type: RejectEnum.NativeLoginFailed,
+      data: 'cookie 中没有找到: ' + key,
+    };
   }
+
   return match[1];
 }
 
@@ -52,12 +64,16 @@ class SSOLogin {
     headers?: Record<string, string>;
     formData?: Record<string, string>;
   }) {
-    return this.#request('POST', url, headers, formData);
+    const resp = this.#request('POST', url, headers, formData);
+    // console.log(resp);
+    return resp;
   }
 
   // 自定义 GET 方法
   async #get({ url, headers = {} }: { url: string; headers?: Record<string, string> }) {
-    return this.#request('GET', url, headers);
+    const resp = this.#request('GET', url, headers);
+    // console.log(resp);
+    return resp;
   }
 
   // 登录, 返回并保存 cookie
@@ -101,6 +117,7 @@ class SSOLogin {
       captcha_code: '',
       croypto: croypto,
       password: encrypt(password, croypto),
+      captcha_payload: encrypt('{}', croypto),
     };
 
     // 发送登录请求
@@ -256,12 +273,18 @@ function encrypt(raw_password: string, keyBase64: string): string {
    * @param raw_password 待加密的密码
    * @param key 认证页获得的base64编码的加密密钥
    * @returns 加密后的密码（base64格式）
+   *
+   * 密码加密过程（AES-ECB + PKCS#7 + Base64）：
+   * 1. 从认证页面获取 base64 格式的密钥
+   * 2. 将密钥解码成 bytes 格式
+   * 3. 对明文密码进行 AES-ECB 加密（PKCS#7 填充）
+   * 4. 将加密结果 Base64 编码后返回
    **/
   // 解码 base64 格式的密钥
   const key = CryptoJs.enc.Base64.parse(keyBase64);
 
-  // 通过 DES 加密明文密码，使用 ECB 模式和 PKCS7 填充
-  const encrypted = CryptoJs.DES.encrypt(raw_password, key, {
+  // 通过 AES 加密明文密码，使用 ECB 模式和 PKCS7 填充
+  const encrypted = CryptoJs.AES.encrypt(raw_password, key, {
     mode: CryptoJs.mode.ECB,
     padding: CryptoJs.pad.Pkcs7,
   });
