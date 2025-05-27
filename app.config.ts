@@ -118,6 +118,11 @@ const config: ExpoConfig = {
         mipushAppId: '2882303761517633929',
         mipushAppKey: '5111763312929',
         hmspushAppId: '100423559',
+        vivoPushApiKey: 'bfe61ef29b17b1b483e8505f5032a5f9',
+        vivoPushAppId: '105570681',
+        honorPushAppId: '104498819',
+        oppoPushAppKey: '6UNBx7ceC680s48cw4cwocCw8',
+        oppoPushAppSecret: '76fb94e392fc1D2e7798b2C2531216d2',
         // iOS
         iOSAppKey: '679132946d8fdd4ad83ab20e', // 发布（正式包名）时需更换
         bridgingSourcePath: './modules/umeng-bridge/ios/ExpoUmeng-Bridging-Header.h', // (iOS) 源路径（相对于 app.plugin.js 文件）

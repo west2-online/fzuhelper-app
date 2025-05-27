@@ -25,6 +25,11 @@ const withKey = (
     mipushAppId,
     mipushAppKey,
     hmspushAppId,
+    vivoPushApiKey,
+    vivoPushAppId,
+    honorPushAppId,
+    oppoPushAppKey,
+    oppoPushAppSecret,
     iOSAppKey,
     bridgingSourcePath,
     bridgingTargetPath,
@@ -45,6 +50,12 @@ const withKey = (
       'com.huawei.hms.client.appid',
       `appid=${hmspushAppId}`,
     );
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'com.vivo.push.api_key', vivoPushApiKey);
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'com.vivo.push.app_id', vivoPushAppId);
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'com.hihonor.push.app_id', honorPushAppId);
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'OPPOPUSH_APPKEY', oppoPushAppKey);
+    AndroidConfig.Manifest.addMetaDataItemToMainApplication(mainApplication, 'OPPOPUSH_APPSECRET', oppoPushAppSecret);
+
     return manifestConfig;
   });
 

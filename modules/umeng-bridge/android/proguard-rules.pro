@@ -21,3 +21,13 @@
 -keep class com.huawei.hianalytics.**{*;}
 -keep class com.huawei.updatesdk.**{*;}
 -keep class com.huawei.hms.**{*;}
+# OPPO
+-keep public class * extends android.app.Service
+# vivo
+-dontwarn com.vivo.push.**
+-keep class com.vivo.push.** {*;}
+-keep class com.vivo.vms.** {*;}
+# 荣耀
+-keep class com.hihonor.android.push.** {*;}
+-keep class com.hihonor.push.** {*;}
+-keep class org.android.agoo.honor.* {*;}
