@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
         android:height="50dp"
-        android:text="显示上次更新时间"
+        android:text="显示刷新与更新时间"
         android:textSize="16sp" />
 
     <androidx.appcompat.widget.SwitchCompat
