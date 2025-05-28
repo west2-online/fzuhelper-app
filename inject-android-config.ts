@@ -70,6 +70,13 @@ function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
       'versionCode 700001',
       'versionCode ' + extractVersionNumber(contents) + getCommitCountString(),
     );
+    // 保留指定语言，缩减包大小
+    contents = insertAfter(
+      contents,
+      'defaultConfig {',
+      `
+        resourceConfigurations += ['zh-rCN', 'zh-rTW', 'en']`,
+    );
     config.modResults.contents = contents;
     return config;
   });
