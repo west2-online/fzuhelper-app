@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches:
-      - fix/ci
+      - master
   workflow_dispatch:
 
 concurrency:
