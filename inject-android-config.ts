@@ -75,7 +75,7 @@ function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
       contents,
       'defaultConfig {',
       `
-        resourceConfigurations += ['zh-rCN', 'zh-rTW', 'en']`,
+        resourceConfigurations += ['zh', 'zh-rCN', 'zh-rTW', 'en']`,
     );
     config.modResults.contents = contents;
     return config;
