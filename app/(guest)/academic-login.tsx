@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -26,6 +26,7 @@ const URL_RESET_PASSWORD_POSTGRADUATE = 'https://yjsglxt.fzu.edu.cn/ResetPasswor
 
 const LoginPage: React.FC = () => {
   const loginRef = useRef<UserLogin | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const redirect = useRedirectWithoutHistory();
   if (!loginRef.current) {
     loginRef.current = new UserLogin();
@@ -89,6 +90,7 @@ const LoginPage: React.FC = () => {
   const handleLogin = useCallback(async () => {
     if (!isAgree) {
       toast.error('请先阅读并同意服务协议和隐私政策');
+      scrollViewRef.current?.scrollToEnd();
       return;
     }
     // 研究生不需要输入验证码
@@ -158,6 +160,7 @@ const LoginPage: React.FC = () => {
             className="h-full"
             contentContainerStyle={styles.scrollViewContent}
             keyboardShouldPersistTaps="handled"
+            ref={scrollViewRef}
           >
             <View className="flex-1 justify-between px-6 py-3">
               {/* 左上角标题 */}

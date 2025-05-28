@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -41,6 +41,7 @@ const UnifiedLoginPage: React.FC = () => {
   const ymtLogin = useRef<YMTLogin | null>(null);
   const ssoLogin = useRef<SSOLogin | null>(null);
   const isStoredSSOUser = useRef(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   if (!ymtLogin.current) {
     ymtLogin.current = new YMTLogin();
@@ -138,6 +139,7 @@ const UnifiedLoginPage: React.FC = () => {
   const handleLogin = useCallback(async () => {
     if (!isAgree) {
       toast.error('请先阅读并同意服务协议和隐私政策');
+      scrollViewRef.current?.scrollToEnd();
       return;
     }
     if (!account) {
@@ -176,6 +178,7 @@ const UnifiedLoginPage: React.FC = () => {
             className="h-full"
             contentContainerStyle={styles.scrollViewContent}
             keyboardShouldPersistTaps="handled"
+            ref={scrollViewRef}
           >
             <View className="flex-1 justify-between px-6 py-3">
               {/* 左上角标题 */}
