@@ -31,12 +31,14 @@ class NextClassWidgetConfigurationActivity : AppCompatActivity() {
             return
         }
 
+        doConfigMigration(this, appWidgetId)
+
         binding.showLastUpdateTimeSwitch.setOnClickListener {
-            saveWidgetConfig(
+            putBoolean(
                 this,
                 appWidgetId,
                 "showLastUpdateTime",
-                if(binding.showLastUpdateTimeSwitch.isChecked) 1 else 0
+                binding.showLastUpdateTimeSwitch.isChecked
             )
 
             val appWidgetManager = AppWidgetManager.getInstance(this)
@@ -54,11 +56,11 @@ class NextClassWidgetConfigurationActivity : AppCompatActivity() {
                     .show()
                 return@setOnClickListener
             }
-            saveWidgetConfig(
+            putBoolean(
                 this,
                 appWidgetId,
                 "showAsSquare",
-                if(binding.showAsSquareSwitch.isChecked)1 else 0
+                binding.showAsSquareSwitch.isChecked
             )
 
             val appWidgetManager = AppWidgetManager.getInstance(this)
@@ -66,8 +68,8 @@ class NextClassWidgetConfigurationActivity : AppCompatActivity() {
         }
 
         binding.showLastUpdateTimeSwitch.isChecked =
-            loadWidgetConfig(this, appWidgetId, "showLastUpdateTime",0) == 1
-        binding.showAsSquareSwitch.isChecked = loadWidgetConfig(this, appWidgetId, "showAsSquare",0) == 1
+            getBoolean(this, appWidgetId, "showLastUpdateTime", false)
+        binding.showAsSquareSwitch.isChecked = getBoolean(this, appWidgetId, "showAsSquare", false)
 
         binding.refreshData.setOnClickListener {
             val appWidgetManager = AppWidgetManager.getInstance(this)

@@ -60,12 +60,20 @@ fun getSharedPreference(context: Context): SharedPreferences {
     return context.getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
 }
 
-fun saveWidgetConfig(context: Context, appWidgetId: Int, key: String, value: Int) {
-    getSharedPreference(context).edit().putInt("$appWidgetId$key", value).commit()
+fun getBoolean(context: Context, appWidgetId: Int, key: String, defaultValue: Boolean): Boolean {
+    return getSharedPreference(context).getBoolean("$appWidgetId$key", defaultValue)
 }
 
-fun loadWidgetConfig(context: Context, appWidgetId: Int, key: String, defaultValue: Int): Int {
+fun putBoolean(context: Context, appWidgetId: Int, key: String, value: Boolean) {
+    getSharedPreference(context).edit().putBoolean("$appWidgetId$key", value).commit()
+}
+
+fun getInt(context: Context, appWidgetId: Int, key: String, defaultValue: Int): Int {
     return getSharedPreference(context).getInt("$appWidgetId$key", defaultValue)
+}
+
+fun putInt(context: Context, appWidgetId: Int, key: String, value: Int) {
+    getSharedPreference(context).edit().putInt("$appWidgetId$key", value).commit()
 }
 
 fun deleteWidgetConfig(context: Context, appWidgetId: Int, key: String) {
@@ -84,4 +92,21 @@ fun getCourseBeans(cacheCourseData: CacheCourseData): List<ExtendCourse> = try {
 } catch (e: Exception) {
     Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
     emptyList()
+}
+
+/**
+ * 将部分Int值迁移到Boolean，修正由于数据类型变化导致的解析问题
+ */
+fun doConfigMigration(context: Context, widgetId: Int) {
+    arrayOf("showLastUpdateTime", "showAsSquare").forEach { key ->
+        try {
+            getInt(context, widgetId, key, -1).let { value ->
+                // -1 代表未曾写入
+                if (value != -1) {
+                    putBoolean(context, widgetId, key, value == 1)
+                }
+            }
+        } catch (_: Exception) {
+        }
+    }
 }
