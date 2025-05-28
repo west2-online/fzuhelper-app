@@ -28,7 +28,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.android.agoo.honor.HonorRegister
 import org.android.agoo.huawei.HuaWeiRegister
+import org.android.agoo.oppo.OppoRegister
+import org.android.agoo.vivo.VivoRegister
 import org.android.agoo.xiaomi.MiPushRegistar
 
 class ExpoUmengModule : Module() {
@@ -90,7 +93,7 @@ class ExpoUmengModule : Module() {
                 val notificationClickHandler: UmengNotificationClickHandler =
                     object : UmengNotificationClickHandler() {
                         override fun launchApp(context: Context, msg: UMessage) {
-                            val newMsg = msg.extra;
+                            val newMsg = msg.extra
                             Log.i("UMLog", "msg:$newMsg")
                         }
                     }
@@ -103,7 +106,12 @@ class ExpoUmengModule : Module() {
                     false
                 )
                 HuaWeiRegister.register(context)
-
+                OppoRegister.register(
+                    context, metadata.getString("OPPOPUSH_APPKEY"),
+                    metadata.getString("OPPOPUSH_APPSECRET")
+                )
+                VivoRegister.register(context)
+                HonorRegister.register(context)
                 initialized = true
             }
         }
