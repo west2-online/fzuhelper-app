@@ -56,9 +56,8 @@ const UnifiedLoginPage: React.FC = () => {
         if (storedSSOUser) {
           const SSOUser = JSON.parse(storedSSOUser) as SSOUser;
           setAccount(SSOUser.account);
-          setAccountPassword(SSOUser.password);
+          // setAccountPassword(SSOUser.password);
           isStoredSSOUser.current = true;
-          toast.success('检测到上次登录的账号，已自动填充');
         }
       };
       getSSOUser();
