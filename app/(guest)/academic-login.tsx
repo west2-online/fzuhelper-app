@@ -221,14 +221,9 @@ const LoginPage: React.FC = () => {
 
                 {/* 其他操作 */}
                 <View className="w-full flex-row justify-between px-2">
-                  <TouchableOpacity
-                    className="flex-row items-center"
-                    onPress={() => setIsPostGraduate(!isPostGraduate)}
-                    activeOpacity={0.5}
-                  >
-                    <Checkbox checked={isPostGraduate} onCheckedChange={setIsPostGraduate} />
-                    <Text className="text-center text-text-secondary">{'  '}我是研究生</Text>
-                  </TouchableOpacity>
+                  <Text className="text-center text-text-secondary" onPress={() => setIsPostGraduate(!isPostGraduate)}>
+                    {isPostGraduate ? '本科生登录' : '研究生登录'}
+                  </Text>
                   <Text className="text-primary" onPress={openResetPassword}>
                     忘记密码
                   </Text>
