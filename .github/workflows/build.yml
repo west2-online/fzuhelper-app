@@ -13,7 +13,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
 
     steps:
       - name: Checkout source code
@@ -43,10 +43,9 @@ jobs:
           java-version: 17.0
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.8
-          cache-disabled: false
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile --prefer-offline
