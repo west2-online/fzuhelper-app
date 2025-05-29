@@ -78,6 +78,9 @@ export default function AppearancePage() {
       })
       .catch(err => {
         console.log('error', err);
+        if (err.code === 'E_PICKER_CANCELLED') {
+          return;
+        }
         toast.error('设置失败：' + err);
       });
   }, [redirect]);

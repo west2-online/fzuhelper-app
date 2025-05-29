@@ -48,16 +48,16 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
                     0 -> {
                         binding.foregroundAlphaSeekbar.isEnabled = false
                         binding.foregroundAlphaSeekbar.progress = 100
-                        saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.foregroundAlphaSeekbar.progress)
+                        putInt(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.foregroundAlphaSeekbar.progress)
                     }
                     1 -> binding.foregroundAlphaSeekbar.isEnabled = true
                     2 ->{
                         binding.foregroundAlphaSeekbar.isEnabled = false
                         binding.foregroundAlphaSeekbar.progress = binding.backgroundAlphaSeekbar.progress
-                        saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.backgroundAlphaSeekbar.progress)
+                        putInt(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", binding.backgroundAlphaSeekbar.progress)
                     }
                 }
-                saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha_mode", position)
+                putInt(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha_mode", position)
                 val appWidgetManager = AppWidgetManager.getInstance(this@CourseScheduleWidgetConfigurationActivity)
                 updateCourseScheduleWidget(this@CourseScheduleWidgetConfigurationActivity, appWidgetManager, appWidgetId)
             }
@@ -70,7 +70,7 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", seekBar!!.progress)
+                putInt(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", seekBar!!.progress)
                 val appWidgetManager = AppWidgetManager.getInstance(this@CourseScheduleWidgetConfigurationActivity)
                 updateCourseScheduleWidget(this@CourseScheduleWidgetConfigurationActivity, appWidgetManager, appWidgetId)
             }
@@ -86,17 +86,17 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 if (binding.foregroundAlphaSpinner.selectedItemPosition == 2) {
-                    saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", seekBar!!.progress)
+                    putInt(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "foreground_alpha", seekBar!!.progress)
                 }
-                saveWidgetConfig(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "background_alpha", seekBar!!.progress)
+                putInt(this@CourseScheduleWidgetConfigurationActivity, appWidgetId, "background_alpha", seekBar!!.progress)
                 val appWidgetManager = AppWidgetManager.getInstance(this@CourseScheduleWidgetConfigurationActivity)
                 updateCourseScheduleWidget(this@CourseScheduleWidgetConfigurationActivity, appWidgetManager, appWidgetId)
             }
         })
 
-        binding.foregroundAlphaSpinner.setSelection(loadWidgetConfig(this, appWidgetId, "foreground_alpha_mode", 0))
-        binding.backgroundAlphaSeekbar.progress = loadWidgetConfig(this, appWidgetId, "background_alpha", 80)
-        binding.foregroundAlphaSeekbar.progress = loadWidgetConfig(this, appWidgetId, "foreground_alpha", 100)
+        binding.foregroundAlphaSpinner.setSelection(getInt(this, appWidgetId, "foreground_alpha_mode", 0))
+        binding.backgroundAlphaSeekbar.progress = getInt(this, appWidgetId, "background_alpha", 80)
+        binding.foregroundAlphaSeekbar.progress = getInt(this, appWidgetId, "foreground_alpha", 100)
         binding.backgroundAlphaText.text = "${binding.backgroundAlphaSeekbar.progress}%"
         binding.foregroundAlphaText.text = "${binding.foregroundAlphaSeekbar.progress}%"
 

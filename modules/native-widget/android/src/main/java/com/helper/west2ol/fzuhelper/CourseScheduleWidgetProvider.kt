@@ -13,7 +13,11 @@ import com.west2online.nativewidget.BuildConfig
 import com.west2online.nativewidget.R
 
 open class CourseScheduleWidgetProvider : AppWidgetProvider() {
-    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+    override fun onUpdate(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
+    ) {
         appWidgetIds.filter {
             appWidgetManager.getAppWidgetIds(ComponentName(context, this::class.java)).contains(it)
         }.forEach {
@@ -56,8 +60,16 @@ internal fun updateCourseScheduleWidget(
         setRemoteAdapter(R.id.list_view, intent2)
         setOnClickPendingIntent(R.id.container, pendingIntent)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            setFloat(R.id.top_shadow, "setAlpha", loadWidgetConfig(context, appWidgetId, "background_alpha",80)/100.0f)
-            setFloat(R.id.container, "setAlpha", loadWidgetConfig(context, appWidgetId, "foreground_alpha",100)/100.0f)
+            setFloat(
+                R.id.top_shadow,
+                "setAlpha",
+                getInt(context, appWidgetId, "background_alpha", 80) / 100.0f
+            )
+            setFloat(
+                R.id.container,
+                "setAlpha",
+                getInt(context, appWidgetId, "foreground_alpha", 100) / 100.0f
+            )
         }
     }
     appWidgetManager.updateAppWidget(appWidgetId, views)

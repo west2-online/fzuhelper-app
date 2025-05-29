@@ -56,6 +56,8 @@ internal fun updateNextClassWidget(
     appWidgetManager: AppWidgetManager,
     appWidgetId: Int
 ) {
+    doConfigMigration(context, appWidgetId)
+
     val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
 
     val refreshIntent = Intent(context, NextClassWidgetProvider::class.java).apply {
@@ -135,7 +137,7 @@ internal fun updateNextClassWidget(
             setTextViewText(R.id.course_week, null)
         }
 
-        if (loadWidgetConfig(context, appWidgetId, "showLastUpdateTime",0)==1) {
+        if (getBoolean(context, appWidgetId, "showLastUpdateTime", false)) {
             val currentDateTime = Calendar.getInstance()
             val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
             val formattedDate = sdf.format(currentDateTime.time)
@@ -145,12 +147,12 @@ internal fun updateNextClassWidget(
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (loadWidgetConfig(
+            if (getBoolean(
                     context,
                     appWidgetId,
                     "showAsSquare",
-                    0
-                )==1
+                    false
+                )
             ) {
                 val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
                 val minWidth =
