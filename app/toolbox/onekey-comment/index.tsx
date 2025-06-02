@@ -1,10 +1,10 @@
-import PageContainer from '@/components/page-container';
-import { TabFlatList } from '@/components/tab-flatlist';
+import { Link, Tabs } from 'expo-router';
+import { SafeAreaView, View } from 'react-native';
+
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { Link, Tabs } from 'expo-router';
-import { useState } from 'react';
-import { SafeAreaView, View } from 'react-native';
+
+import PageContainer from '@/components/page-container';
 
 interface CommentParam {
   score: number;

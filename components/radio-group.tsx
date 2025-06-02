@@ -1,19 +1,23 @@
-import React from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
-type Option = {
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
+
+import { cn } from '@/lib/utils';
+
+interface Option {
   label: string;
   value: string;
-};
+}
 
-type Props = {
+interface Props {
   options: Option[];
   selected: string;
   onChange: (value: string) => void;
   customText?: string;
   onCustomTextChange?: (text: string) => void;
   customPlaceholder?: string;
-};
+}
 
 export default function RadioGroup({
   options,
@@ -31,7 +35,10 @@ export default function RadioGroup({
           <TouchableOpacity key={option.value} className="flex-row items-start" onPress={() => onChange(option.value)}>
             <View className="mr-3 mt-1">
               <View
-                className={`h-4 w-4 rounded-full border-2 ${isSelected ? 'border-blue-500' : 'border-gray-400'} items-center justify-center`}
+                className={cn(
+                  'h-4 w-4 items-center justify-center rounded-full border-2',
+                  isSelected ? 'border-blue-500' : 'border-gray-400',
+                )}
               >
                 {isSelected && <View className="h-2 w-2 rounded-full bg-blue-500" />}
               </View>
@@ -44,7 +51,7 @@ export default function RadioGroup({
       {selected === 'other' && (
         <View className="flex-row items-center">
           <View className="mr-3 h-4 w-4" />
-          <TextInput
+          <Input
             placeholder={customPlaceholder}
             placeholderTextColor="#999"
             value={customText}
