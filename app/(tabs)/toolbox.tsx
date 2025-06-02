@@ -86,11 +86,8 @@ const DEFAULT_TOOLS: Tool[] = [
   {
     name: '一键评议',
     icon: OneKeyIcon,
-    type: ToolType.FUNCTION,
-    userTypes: [USER_TYPE_UNDERGRADUATE],
-    action: async () => {
-      Alert.alert('暂未开放', '新版一键评议正在设计中，预计学期结束前（即评议开始前）上线，敬请期待');
-    },
+    type: ToolType.LINK,
+    href: '/toolbox/onekey-comment',
   },
   {
     name: '选课',
