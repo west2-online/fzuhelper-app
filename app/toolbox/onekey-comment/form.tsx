@@ -72,7 +72,7 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
   };
 
   return (
-    <View className="m-4 space-y-2 rounded-xl border border-border bg-white p-5">
+    <View className="m-4 space-y-2 rounded-xl border border-border bg-card p-5">
       <View className="flex-row items-center justify-between">
         <View className="">
           <Text className="font-bold text-text-primary">{courseName}</Text>
