@@ -128,6 +128,8 @@ export default class OnekeyComment {
       },
     };
 
-    await this.post(url, {}, { ...fullForm });
+    const resp = await this.post(url, {}, { ...fullForm });
+    const text = Buffer.from(resp.data).toString('utf-8');
+    return !text.includes('验证码校验错误');
   }
 }

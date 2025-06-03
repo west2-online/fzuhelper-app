@@ -154,8 +154,18 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
   const submitAllForm = useCallback(async () => {
     const allForm = getAllFormData();
     for (let i = 0; i < allForm.length; i++) {
-      await onekey.commentTeacher(courses[i].params, allForm[i].score, allForm[i].comment, recaptchaInput);
+      const result = await onekey.commentTeacher(
+        courses[i].params,
+        allForm[i].score,
+        allForm[i].comment,
+        recaptchaInput,
+      );
+      if (!result) {
+        toast.error('验证码错误');
+        return;
+      }
     }
+    toast.success('评议成功!');
     refreshCourses();
   }, [courses, onekey, recaptchaInput, refreshCourses]);
 
