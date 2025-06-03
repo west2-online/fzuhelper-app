@@ -110,14 +110,14 @@ interface TabContentProps {
   tabname: Tab;
   onekey: OnekeyComment;
   recaptcha: string;
-  refreshRecaptcha: () => void;
+  refreshCaptcha: () => void;
 }
 
-function TabContent({ tabname, onekey, recaptcha, refreshRecaptcha }: TabContentProps) {
+function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentProps) {
   const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
   const [courses, setCourses] = useState<CourseInfo[]>([]);
   const [modalVisiable, setModalVisiable] = useState(false);
-  const [recaptchaInput, setRecaptchaInput] = useState('');
+  const [recaptchaInput, setCaptchaInput] = useState('');
   const childRefs = useRef<(CourseCardRef | null)[]>([]);
   const getAllFormData = () => {
     const allData: CourseFormInfo[] = [];
@@ -204,13 +204,13 @@ function TabContent({ tabname, onekey, recaptcha, refreshRecaptcha }: TabContent
             onClose={() => setModalVisiable(false)}
           >
             <Image source={{ uri: recaptcha }} className="h-12" resizeMode="contain" />
-            <TouchableOpacity className="mt-3 flex-row items-center justify-center" onPress={refreshRecaptcha}>
+            <TouchableOpacity className="mt-3 flex-row items-center justify-center" onPress={refreshCaptcha}>
               <RotateCwIcon size={12} color={'blue'} />
               <Text className="ml-2">看不清，换一张</Text>
             </TouchableOpacity>
             <TextInput
               value={recaptchaInput}
-              onChangeText={setRecaptchaInput}
+              onChangeText={setCaptchaInput}
               className="mt-5 rounded-xl bg-text-primary/10 px-4 py-2 text-center text-lg text-text-primary"
             />
           </FloatModal>
@@ -231,22 +231,22 @@ function TabContent({ tabname, onekey, recaptcha, refreshRecaptcha }: TabContent
 
 export default function OnekeyCommentFormPage() {
   const onekey = useRef(new OnekeyComment());
-  const [recaptcha, setRecaptcha] = useState('');
+  const [recaptcha, setCaptcha] = useState('');
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.学期选课);
   const tabs = [Tab.学期选课, Tab.成绩查询];
 
-  const refreshRecaptcha = useCallback(async () => {
+  const refreshCaptcha = useCallback(async () => {
     const { cookies } = LocalUser.getCredentials();
     onekey.current.setCookies(cookies);
     const data = await onekey.current.getCaptcha();
     const base64 = fromByteArray(data);
     const uri = `data:image/gif;base64,${base64}`;
-    setRecaptcha(uri);
+    setCaptcha(uri);
   }, [onekey]);
 
   useEffect(() => {
-    refreshRecaptcha();
-  }, [refreshRecaptcha]);
+    refreshCaptcha();
+  }, [refreshCaptcha]);
 
   return (
     <>
@@ -266,7 +266,7 @@ export default function OnekeyCommentFormPage() {
               tabname={tabname as Tab}
               onekey={onekey.current}
               recaptcha={recaptcha}
-              refreshRecaptcha={refreshRecaptcha}
+              refreshCaptcha={refreshCaptcha}
             />
           )}
         />
