@@ -133,7 +133,7 @@ export default function GradesPage() {
       />
 
       <PageContainer>
-        {isLoadingTermList || isLoadingAcademicData ? (
+        {isLoadingTermList && isLoadingAcademicData ? (
           <Loading />
         ) : (
           <TabFlatList
@@ -148,7 +148,7 @@ export default function GradesPage() {
                   refetchAcademicData();
                 }}
                 dataUpdatedAt={academicDataUpdatedAt}
-                isLoading={isLoadingTermList || isLoadingAcademicData}
+                isLoading={isLoadingTermList && isLoadingAcademicData}
               />
             )}
           />
