@@ -103,7 +103,7 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
 
 enum Tab {
   学期选课 = '学期选课',
-  查成绩 = '查成绩',
+  成绩查询 = '成绩查询',
 }
 
 interface TabContentProps {
@@ -213,10 +213,17 @@ function TabContent({ tabname, onekey, recaptcha, refreshRecaptcha }: TabContent
               onChangeText={setRecaptchaInput}
               className="mt-5 rounded-xl bg-text-primary/10 px-4 py-2 text-center text-lg text-text-primary"
             />
-          </FloatModal>{' '}
+          </FloatModal>
         </>
       ) : (
-        <Text className="text-center align-middle">评议已完成</Text>
+        <View className="flex-1 p-4">
+          <View className="rounded-xl border border-border bg-card p-4">
+            <Text className="mb-3 text-xl font-bold">当前没有待评议的课程</Text>
+            <Text className="mt-2">您已经完成全部课程的评议，或评议尚未开始。</Text>
+            <Text className="mt-2">您可以正常前往「{tabname}」页面进行相关操作。</Text>
+            <Text className="mt-2">如仍提示需要评议，请在页面顶部切换所需评议的功能，并检查是否全部评议完成。</Text>
+          </View>
+        </View>
       )}
     </View>
   );
@@ -226,7 +233,7 @@ export default function OnekeyCommentFormPage() {
   const onekey = useRef(new OnekeyComment());
   const [recaptcha, SetRecaptcha] = useState('');
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.学期选课);
-  const tabs = [Tab.学期选课, Tab.查成绩];
+  const tabs = [Tab.学期选课, Tab.成绩查询];
 
   const refreshRecaptcha = useCallback(async () => {
     const { cookies } = LocalUser.getCredentials();
