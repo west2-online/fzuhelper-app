@@ -174,13 +174,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
   }, [refreshCourses]);
 
   return (
-    <View
-      className="flex-1"
-      style={{ width: screenWidth }}
-      onLayout={e => {
-        console.log('Layout changed, width:', e.nativeEvent.layout);
-      }}
-    >
+    <View className="flex-1" style={{ width: screenWidth }}>
       {courses.length !== 0 ? (
         <>
           <FlatList
