@@ -1,21 +1,22 @@
 import { fromByteArray } from 'base64-js';
 import { Tabs } from 'expo-router';
+import { RotateCwIcon } from 'lucide-react-native';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Dimensions, Image, TouchableOpacity, View } from 'react-native';
 import { FlatList, TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import { Button } from '@/components/ui/button';
+import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 
 import PageContainer from '@/components/page-container';
 import RadioGroup, { Option } from '@/components/radio-group';
 import { TabFlatList } from '@/components/tab-flatlist';
-import FloatModal from '@/components/ui/float-modal';
+
 import OnekeyComment, { CourseInfo } from '@/lib/onekey-comment';
 import { LocalUser } from '@/lib/user';
-import { RotateCwIcon } from 'lucide-react-native';
-import { toast } from 'sonner-native';
 
 interface CourseCardProps {
   courseName: string;
@@ -45,7 +46,7 @@ interface CourseCardRef {
 }
 
 const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCard({ courseName, teacherName }, ref) {
-  const [score, setScore] = useState('');
+  const [score, setScore] = useState('100');
   const [selected, setSelected] = useState<number | 'other'>(0);
   const [customText, setCustomText] = useState('');
 
@@ -116,7 +117,7 @@ interface TabContentProps {
 function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentProps) {
   const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
   const [courses, setCourses] = useState<CourseInfo[]>([]);
-  const [modalVisiable, setModalVisiable] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [recaptchaInput, setCaptchaInput] = useState('');
   const childRefs = useRef<(CourseCardRef | null)[]>([]);
   const getAllFormData = () => {
@@ -191,21 +192,21 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
             <Button
               className="mx-4 mb-6 items-center rounded-lg py-3"
               onPress={() => {
-                if (checkForm()) setModalVisiable(true);
+                if (checkForm()) setModalVisible(true);
               }}
-              disabled={modalVisiable}
+              disabled={modalVisible}
             >
               <Text>提交</Text>
             </Button>
           </SafeAreaView>
           <FloatModal
             title="填写验证码"
-            visible={modalVisiable}
+            visible={modalVisible}
             onConfirm={() => {
               submitAllForm();
-              setModalVisiable(false);
+              setModalVisible(false);
             }}
-            onClose={() => setModalVisiable(false)}
+            onClose={() => setModalVisible(false)}
           >
             <Image source={{ uri: recaptcha }} className="h-12" resizeMode="contain" />
             <TouchableOpacity className="mt-3 flex-row items-center justify-center" onPress={refreshCaptcha}>
