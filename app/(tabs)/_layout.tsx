@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur';
 import * as QuickActions from 'expo-quick-actions';
-import { type RouterAction, useQuickActionRouting } from 'expo-quick-actions/router';
+import { useQuickActionRouting, type RouterAction } from 'expo-quick-actions/router';
 import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
@@ -10,6 +10,9 @@ import { TabBarIcon } from '@/components/TabBarIcon';
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
+// 用于修复 hermes 的 TypedArray 错误
+// eslint-disable-next-line prettier/prettier
+import '@exodus/patch-broken-hermes-typed-arrays'
 
 const NAVIGATION_TITLE = '首页';
 
