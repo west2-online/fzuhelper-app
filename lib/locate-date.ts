@@ -24,30 +24,28 @@ export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
 // e.g. { date: '2024-06-01', week: 23, day: 3, semester: '202401' }
 // 这个函数应当只会在课表业务中涉及
 // 使用了本地缓存，但是缓存逻辑和 PersistentQuery 不同，我们只在跨周时重新获取数据
-export default async function locateDate(noCache = false): Promise<LocateDateResult> {
+export default async function locateDate(): Promise<LocateDateResult> {
   // 获取当前日期
   const currentDate = dayjs();
   const currentDay = currentDate.isoWeekday(); // 1 表示周一，7 表示周日
   const formattedCurrentDate = currentDate.format(DATE_FORMAT_FULL); // 格式化日期
 
   // 尝试读取缓存
-  if (!noCache) {
-    try {
-      const cachedData = await AsyncStorage.getItem(JWCH_LOCATE_DATE_CACHE_KEY);
+  try {
+    const cachedData = await AsyncStorage.getItem(JWCH_LOCATE_DATE_CACHE_KEY);
 
-      if (cachedData) {
-        const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
+    if (cachedData) {
+      const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
 
-        // 如果缓存日期是同一周的，直接返回缓存数据
-        if (currentDate.isSame(cachedDate, 'isoWeek')) {
-          const semester = `${year}${term.toString().padStart(2, '0')}`;
-          console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
-          return { date: formattedCurrentDate, week, day: currentDay, semester };
-        }
+      // 如果缓存日期是同一周的，直接返回缓存数据
+      if (currentDate.isSame(cachedDate, 'week')) {
+        const semester = `${year}${term.toString().padStart(2, '0')}`;
+        console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
+        return { date: formattedCurrentDate, week, day: currentDay, semester };
       }
-    } catch (error) {
-      console.warn('Failed to read cache:', error);
     }
+  } catch (error) {
+    console.warn('Failed to read cache:', error);
   }
 
   console.log('Fetching locate date...');
@@ -71,7 +69,11 @@ export default async function locateDate(noCache = false): Promise<LocateDateRes
 }
 
 // 根据学期开始日期和当前周数获取当前周的第一天日期
-export function getFirstDateByWeek(semesterStart: string, currentWeek: number): string {
+export interface GetByWeekFunc {
+  (semesterStart: string, currentWeek: number): string;
+}
+let getFirstDateByWeek: GetByWeekFunc;
+getFirstDateByWeek = function (semesterStart: string, currentWeek: number) {
   const startDate = new Date(semesterStart);
   const startDayOfWeek = (startDate.getDay() + 6) % 7; // 将星期日（0）转换为 6，其他天数减 1 对应星期一到星期六
   const adjustedStartDate = new Date(startDate);
@@ -83,10 +85,15 @@ export function getFirstDateByWeek(semesterStart: string, currentWeek: number): 
   firstDayOfWeek.setDate(firstDayOfWeek.getDate() + (currentWeek - 1) * 7);
 
   return firstDayOfWeek.toISOString().split('T')[0]; // 返回日期字符串格式 YYYY-MM-DD
-}
+};
+export { getFirstDateByWeek };
 
 // 根据学期开始日期和当前周数获取当前周的日期（会返回一个完整的一周）
-export function getDatesByWeek(semesterStart: string, currentWeek: number): string[] {
+export interface GetArrayByWeekFunc {
+  (semesterStart: string, currentWeek: number): string[];
+}
+let getDatesByWeek: GetArrayByWeekFunc;
+getDatesByWeek = function (semesterStart: string, currentWeek: number) {
   const firstDayOfWeek = new Date(getFirstDateByWeek(semesterStart, currentWeek));
   firstDayOfWeek.setDate(firstDayOfWeek.getDate() + (currentWeek - 1) * 7);
 
@@ -95,21 +102,31 @@ export function getDatesByWeek(semesterStart: string, currentWeek: number): stri
     date.setDate(firstDayOfWeek.getDate() + i);
     return date.toISOString().split('T')[0]; // 返回日期字符串格式 YYYY-MM-DD
   });
-}
+};
+export { getDatesByWeek };
 
 // 根据学期开始日期和结束日期计算一学期一共有多少周
-export function getWeeksBySemester(semesterStart: string, semesterEnd: string): number {
+export interface GetBySemesterFunc {
+  (semesterStart: string, semesterEnd: string): number;
+}
+let getWeeksBySemester: GetBySemesterFunc;
+getWeeksBySemester = function (semesterStart: string, semesterEnd: string) {
   const startDate = new Date(semesterStart);
   const endDate = new Date(semesterEnd);
   const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   return Math.ceil(diffDays / 7);
-}
+};
+export { getWeeksBySemester };
 
 // （研究生）将研究生学期和本科生学期进行转换
 // e.g. 2023-2024-1 => 202301
-export function convertSemester(semester: string): string {
+export interface convert {
+  (semester: string): string;
+}
+let convertSemester: convert;
+convertSemester = function (semester: string) {
   console.log('Converting semester:', semester);
   // 先判断格式是否符合 202401，如果是的话则不做任何转化直接返回
   if (/^\d{6}$/.test(semester)) {
@@ -118,14 +135,17 @@ export function convertSemester(semester: string): string {
   const [startYear, , term] = semester.split('-'); // 只需要起始年份和学期
   const formattedTerm = term.padStart(2, '0'); // 将学期转换为两位数
   return `${startYear}${formattedTerm}`;
-}
+};
+export { convertSemester };
 
 // （研究生）将本科生学期转化为研究生学期
 // e.g. 202401 => 2023-2024-1
-export function deConvertSemester(semester: string): string {
+let deConvertSemester: convert;
+deConvertSemester = function (semester: string) {
   console.log('De-converting semester:', semester);
   const year = semester.slice(0, 4); // 提取前四位作为起始年份
   const term = semester.slice(4); // 提取后两位作为学期编号
   const endYear = (Number(year) + 1).toString(); // 计算结束年份
   return `${year}-${endYear}-${Number(term)}`; // 拼接成 startYear-endYear-term 的格式
-}
+};
+export { deConvertSemester };
