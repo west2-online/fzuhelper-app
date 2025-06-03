@@ -6,12 +6,6 @@ import { Text } from '@/components/ui/text';
 
 import PageContainer from '@/components/page-container';
 
-interface CommentParam {
-  score: number;
-  comment: string;
-  verifycode: string;
-}
-
 export default function OnekeyCommentHintPage() {
   return (
     <>

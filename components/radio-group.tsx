@@ -5,15 +5,21 @@ import { Text } from '@/components/ui/text';
 
 import { cn } from '@/lib/utils';
 
-interface Option {
+export interface Option {
+  /**
+   * 复选框文字
+   */
   label: string;
-  value: string;
+  /**
+   * 选项的 id
+   */
+  id: number | 'other';
 }
 
 interface Props {
   options: Option[];
-  selected: string;
-  onChange: (value: string) => void;
+  selected: number | 'other';
+  onChange: (value: number | 'other') => void;
   customText?: string;
   onCustomTextChange?: (text: string) => void;
   customPlaceholder?: string;
@@ -30,9 +36,9 @@ export default function RadioGroup({
   return (
     <View className="space-y-4">
       {options.map(option => {
-        const isSelected = selected === option.value;
+        const isSelected = selected === option.id;
         return (
-          <TouchableOpacity key={option.value} className="flex-row items-start" onPress={() => onChange(option.value)}>
+          <TouchableOpacity key={option.id} className="flex-row items-start" onPress={() => onChange(option.id)}>
             <View className="mr-3 mt-1">
               <View
                 className={cn(
