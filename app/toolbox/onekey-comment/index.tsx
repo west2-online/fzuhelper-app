@@ -16,7 +16,7 @@ export default function OnekeyCommentHintPage() {
       />
 
       <PageContainer>
-        <SafeAreaView className="w-50 h-full flex-1 bg-white px-10">
+        <SafeAreaView className="w-50 h-full flex-1 bg-card px-10">
           <View className="h-24" />
           <Text className="py-2 text-lg font-black">请先阅读：</Text>
           <Text className="text-base leading-10 tracking-wider text-gray-400">
