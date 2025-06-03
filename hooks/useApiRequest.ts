@@ -10,6 +10,7 @@ type ApiFunction<T, R> = (params: T) => Promise<ApiReturn<R>>;
 interface useApiRequestOption<TData> {
   staleTime?: number;
   enabled?: boolean;
+  retry?: number;
   onSuccess?: (data: TData) => void;
   errorHandler?: (errorData: any) => any;
 }
@@ -21,6 +22,7 @@ interface useApiRequestOption<TData> {
  * @param option useApiRequestOption - 客户端请求选项 （可选）
  *   - staleTime - 缓存过期时间，默认为 5 分钟，设置为 0 表示不缓存
  *   - enabled - 是否自动发起请求，默认为 true
+ *   - retry - 自动重试次数，默认为 3
  *   - onSuccess - 查询成功时的回调函数
  *   - errorHandler - 自定义错误处理，接受 hooks/useSafeResponseSolve 中的错误处理结果后进一步处理，返回结果会覆盖原本返回的 error
  * @example 基础示例
@@ -51,6 +53,7 @@ export default function useApiRequest<TParam, TReturn>(
     },
     staleTime: option.staleTime ?? 5 * 60,
     enabled: option.enabled ?? true,
+    retry: option.retry ?? 3,
     select: data => {
       option.onSuccess?.(data);
       return data;

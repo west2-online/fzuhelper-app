@@ -4,6 +4,7 @@ import {
   type getApiV1JwchAcademicCredit,
   type getApiV1JwchAcademicGpa,
   type getApiV1JwchAcademicPlan,
+  type getApiV1JwchAcademicScores,
   type getApiV1JwchAcademicUnifiedExam,
   type getApiV1JwchClassroomExam,
   type getApiV1JwchCourseList,
@@ -44,6 +45,10 @@ export type JwchCourseListResponse_CourseScheduleRules = JwchCourseListResponse_
 export type JwchCourseListResponse_CourseScheduleRule = JwchCourseListResponse_CourseScheduleRules[0];
 
 // === 学业 ===
+// getApiV1JwchAcademicScores
+export type JwchAcademicScoresResponse = AsyncReturnType<typeof getApiV1JwchAcademicScores>['data'];
+export type JwchAcademicScoresResponse_AcademicScoresData = JwchAcademicScoresResponse['data'];
+export type JwchAcademicScoresResponse_AcademicScoresDataItem = JwchAcademicScoresResponse_AcademicScoresData[0];
 
 // getApiV1JwchAcademicGpa
 export type JwchAcademicGpaResponse = AsyncReturnType<typeof getApiV1JwchAcademicGpa>['data']['data'];
