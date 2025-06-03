@@ -231,7 +231,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshRecaptcha }: TabContent
 
 export default function OnekeyCommentFormPage() {
   const onekey = useRef(new OnekeyComment());
-  const [recaptcha, SetRecaptcha] = useState('');
+  const [recaptcha, setRecaptcha] = useState('');
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.学期选课);
   const tabs = [Tab.学期选课, Tab.成绩查询];
 
@@ -241,7 +241,7 @@ export default function OnekeyCommentFormPage() {
     const data = await onekey.current.getCaptcha();
     const base64 = fromByteArray(data);
     const uri = `data:image/gif;base64,${base64}`;
-    SetRecaptcha(uri);
+    setRecaptcha(uri);
   }, [onekey]);
 
   useEffect(() => {
