@@ -15,6 +15,7 @@ import PageContainer from '@/components/page-container';
 import RadioGroup, { Option } from '@/components/radio-group';
 import { TabFlatList } from '@/components/tab-flatlist';
 
+import Loading from '@/components/loading';
 import OnekeyComment, { CourseInfo } from '@/lib/onekey-comment';
 import { LocalUser } from '@/lib/user';
 
@@ -36,6 +37,7 @@ const options: Option[] = [
   { label: DEFAULT_COMMENTS[2], id: 2 },
   { label: '自己评价', id: 'other' },
 ];
+
 interface CourseFormInfo {
   comment: string;
   score: string;
@@ -47,7 +49,7 @@ interface CourseCardRef {
 
 const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCard({ courseName, teacherName }, ref) {
   const [score, setScore] = useState('100');
-  const [selected, setSelected] = useState<number | 'other'>(0);
+  const [selected, setSelected] = useState<number | 'other'>(Math.floor(Math.random() * (options.length - 1))); // 随机取值，不取自己评价
   const [customText, setCustomText] = useState('');
 
   useImperativeHandle(ref, () => ({
@@ -116,6 +118,7 @@ interface TabContentProps {
 
 function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentProps) {
   const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
+  const [isLoading, setLoading] = useState(true);
   const [courses, setCourses] = useState<CourseInfo[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [recaptchaInput, setCaptchaInput] = useState('');
@@ -146,10 +149,12 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
   };
 
   const refreshCourses = useCallback(async () => {
+    setLoading(true);
     const { identifier, cookies } = LocalUser.getCredentials();
     onekey.setCookies(cookies);
     const data = await onekey.getUncommentTeachers(identifier, tabname === Tab.学期选课 ? 'xqxk' : 'score');
     setCourses(data);
+    setLoading(false);
   }, [onekey, tabname]);
 
   const submitAllForm = useCallback(async () => {
@@ -174,6 +179,13 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
     refreshCourses();
   }, [refreshCourses]);
 
+  if (isLoading) {
+    return (
+      <View className="flex-1" style={{ width: screenWidth }}>
+        <Loading />
+      </View>
+    );
+  }
   return (
     <View className="flex-1" style={{ width: screenWidth }}>
       {courses.length !== 0 ? (
