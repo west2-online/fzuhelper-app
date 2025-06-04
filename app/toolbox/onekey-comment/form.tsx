@@ -50,7 +50,7 @@ interface CourseCardRef {
 
 const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCard({ courseName, teacherName }, ref) {
   const [score, setScore] = useState('100');
-  const [selected, setSelected] = useState<number | 'other'>(Math.floor(Math.random() * (options.length - 1))); // 随机取值，不取自己评价
+  const [selected, setSelected] = useState<number | 'other'>(0);
   const [customText, setCustomText] = useState('');
 
   useImperativeHandle(ref, () => ({
