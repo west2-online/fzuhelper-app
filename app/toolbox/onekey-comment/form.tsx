@@ -222,6 +222,10 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
             title="填写验证码"
             visible={modalVisible}
             onConfirm={async () => {
+              if (!recaptchaInput) {
+                toast.error('验证码不能为空');
+                return;
+              }
               await submitAllForm();
               setModalVisible(false);
             }}
