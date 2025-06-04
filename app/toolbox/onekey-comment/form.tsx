@@ -2,7 +2,7 @@ import { fromByteArray } from 'base64-js';
 import { Tabs } from 'expo-router';
 import { RotateCwIcon } from 'lucide-react-native';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Dimensions, FlatList, Image, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Image, RefreshControl, TouchableOpacity, View } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -205,6 +205,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
                 ref={ref => (childRefs.current[index] = ref)}
               />
             )}
+            refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshCourses} />}
           />
           <SafeAreaView edges={['bottom']}>
             <Button
@@ -228,25 +229,28 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
           >
             <Image source={{ uri: recaptcha }} className="h-12" resizeMode="contain" />
             <TouchableOpacity className="flex-row items-center justify-center py-3" onPress={refreshCaptcha}>
-              <RotateCwIcon size={12} color={'blue'} />
+              <RotateCwIcon size={14} color={'#1089ff'} />
               <Text className="ml-2">看不清，换一张</Text>
             </TouchableOpacity>
             <TextInput
               value={recaptchaInput}
               onChangeText={setCaptchaInput}
-              className="mt-5 rounded-xl bg-text-primary/10 px-4 py-2 text-center text-lg text-text-primary"
+              className="mt-1 rounded-xl bg-text-primary/10 px-4 py-2 text-center text-lg text-text-primary"
             />
           </FloatModal>
         </>
       ) : (
-        <View className="flex-1 p-4">
+        <KeyboardAwareScrollView
+          className="flex-1 p-4"
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshCourses} />}
+        >
           <View className="rounded-xl border border-border bg-card p-4">
             <Text className="mb-3 text-xl font-bold">当前没有待评议的课程</Text>
             <Text className="mt-2">您已经完成全部课程的评议，或评议尚未开始。</Text>
             <Text className="mt-2">您可以正常前往「{tabname}」页面进行相关操作。</Text>
             <Text className="mt-2">如仍提示需要评议，请在页面顶部切换所需评议的功能，并检查是否全部评议完成。</Text>
           </View>
-        </View>
+        </KeyboardAwareScrollView>
       )}
     </View>
   );
