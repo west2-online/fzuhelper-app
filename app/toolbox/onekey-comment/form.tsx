@@ -2,8 +2,8 @@ import { fromByteArray } from 'base64-js';
 import { Tabs } from 'expo-router';
 import { RotateCwIcon } from 'lucide-react-native';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Dimensions, Image, TouchableOpacity, View } from 'react-native';
-import { FlatList, TextInput } from 'react-native-gesture-handler';
+import { Dimensions, FlatList, Image, RefreshControl, TouchableOpacity, View } from 'react-native';
+import { TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -15,8 +15,10 @@ import PageContainer from '@/components/page-container';
 import RadioGroup, { Option } from '@/components/radio-group';
 import { TabFlatList } from '@/components/tab-flatlist';
 
+import Loading from '@/components/loading';
 import OnekeyComment, { CourseInfo } from '@/lib/onekey-comment';
 import { LocalUser } from '@/lib/user';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 interface CourseCardProps {
   courseName: string;
@@ -36,6 +38,7 @@ const options: Option[] = [
   { label: DEFAULT_COMMENTS[2], id: 2 },
   { label: '自己评价', id: 'other' },
 ];
+
 interface CourseFormInfo {
   comment: string;
   score: string;
@@ -72,9 +75,9 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
   };
 
   return (
-    <View className="m-4 space-y-2 rounded-xl border border-border bg-card p-5">
+    <View className="mx-4 mt-4 space-y-2 rounded-xl border border-border bg-card p-5">
       <View className="flex-row items-center justify-between">
-        <View className="">
+        <View className="gap-1">
           <Text className="font-bold text-text-primary">{courseName}</Text>
           <Text className="break-all text-text-secondary">{teacherName}</Text>
         </View>
@@ -85,7 +88,7 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
           placeholder="输入评分"
           placeholderTextColor="#60a5fa"
           maxLength={3}
-          className="rounded-xl bg-text-primary/10 px-4 py-2 text-center text-lg text-text-primary"
+          className="h-14 w-28 rounded-xl bg-text-primary/10 text-center text-lg text-text-primary"
         />
       </View>
       <Divider />
@@ -116,6 +119,7 @@ interface TabContentProps {
 
 function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentProps) {
   const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
+  const [isLoading, setLoading] = useState(true);
   const [courses, setCourses] = useState<CourseInfo[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [recaptchaInput, setCaptchaInput] = useState('');
@@ -146,10 +150,13 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
   };
 
   const refreshCourses = useCallback(async () => {
+    setLoading(true);
+    await LocalUser.checkCredentials();
     const { identifier, cookies } = LocalUser.getCredentials();
     onekey.setCookies(cookies);
     const data = await onekey.getUncommentTeachers(identifier, tabname === Tab.学期选课 ? 'xqxk' : 'score');
     setCourses(data);
+    setLoading(false);
   }, [onekey, tabname]);
 
   const submitAllForm = useCallback(async () => {
@@ -163,22 +170,34 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
       );
       if (!result) {
         toast.error('验证码错误');
+        refreshCaptcha();
+        setCaptchaInput('');
         return;
       }
     }
-    toast.success('评议成功!');
+    toast.success('评议成功！');
+    refreshCaptcha();
+    setCaptchaInput('');
     refreshCourses();
-  }, [courses, onekey, recaptchaInput, refreshCourses]);
+  }, [courses, onekey, recaptchaInput, refreshCaptcha, refreshCourses]);
 
   useEffect(() => {
     refreshCourses();
   }, [refreshCourses]);
 
+  if (isLoading) {
+    return (
+      <View className="flex-1" style={{ width: screenWidth }}>
+        <Loading />
+      </View>
+    );
+  }
   return (
     <View className="flex-1" style={{ width: screenWidth }}>
       {courses.length !== 0 ? (
         <>
           <FlatList
+            renderScrollComponent={props => <KeyboardAwareScrollView keyboardShouldPersistTaps="handled" {...props} />}
             data={courses}
             renderItem={({ index, item }) => (
               <CourseCard
@@ -187,6 +206,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
                 ref={ref => (childRefs.current[index] = ref)}
               />
             )}
+            refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshCourses} />}
           />
           <SafeAreaView edges={['bottom']}>
             <Button
@@ -202,33 +222,40 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
           <FloatModal
             title="填写验证码"
             visible={modalVisible}
-            onConfirm={() => {
-              submitAllForm();
+            onConfirm={async () => {
+              if (!recaptchaInput) {
+                toast.error('验证码不能为空');
+                return;
+              }
+              await submitAllForm();
               setModalVisible(false);
             }}
             onClose={() => setModalVisible(false)}
           >
             <Image source={{ uri: recaptcha }} className="h-12" resizeMode="contain" />
-            <TouchableOpacity className="mt-3 flex-row items-center justify-center" onPress={refreshCaptcha}>
-              <RotateCwIcon size={12} color={'blue'} />
+            <TouchableOpacity className="flex-row items-center justify-center py-3" onPress={refreshCaptcha}>
+              <RotateCwIcon size={14} color={'#1089ff'} />
               <Text className="ml-2">看不清，换一张</Text>
             </TouchableOpacity>
             <TextInput
               value={recaptchaInput}
               onChangeText={setCaptchaInput}
-              className="mt-5 rounded-xl bg-text-primary/10 px-4 py-2 text-center text-lg text-text-primary"
+              className="mt-1 rounded-xl bg-text-primary/10 px-4 py-2 text-center text-lg text-text-primary"
             />
           </FloatModal>
         </>
       ) : (
-        <View className="flex-1 p-4">
+        <KeyboardAwareScrollView
+          className="flex-1 p-4"
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshCourses} />}
+        >
           <View className="rounded-xl border border-border bg-card p-4">
             <Text className="mb-3 text-xl font-bold">当前没有待评议的课程</Text>
             <Text className="mt-2">您已经完成全部课程的评议，或评议尚未开始。</Text>
             <Text className="mt-2">您可以正常前往「{tabname}」页面进行相关操作。</Text>
             <Text className="mt-2">如仍提示需要评议，请在页面顶部切换所需评议的功能，并检查是否全部评议完成。</Text>
           </View>
-        </View>
+        </KeyboardAwareScrollView>
       )}
     </View>
   );
@@ -241,10 +268,16 @@ export default function OnekeyCommentFormPage() {
   const tabs = [Tab.学期选课, Tab.成绩查询];
 
   const refreshCaptcha = useCallback(async () => {
+    await LocalUser.checkCredentials();
     const { cookies } = LocalUser.getCredentials();
     onekey.current.setCookies(cookies);
-    const data = await onekey.current.getCaptcha();
-    const base64 = fromByteArray(data);
+    let data = await onekey.current.getCaptcha();
+    let base64 = fromByteArray(data);
+    if (!base64.startsWith('R0lGODlh')) {
+      // 非GIF89a前缀，请求失败，重试一次
+      data = await onekey.current.getCaptcha();
+      base64 = fromByteArray(data);
+    }
     const uri = `data:image/gif;base64,${base64}`;
     setCaptcha(uri);
   }, [onekey]);
