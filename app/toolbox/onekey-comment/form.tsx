@@ -168,12 +168,16 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
       );
       if (!result) {
         toast.error('验证码错误');
+        refreshCaptcha();
+        setCaptchaInput('');
         return;
       }
     }
-    toast.success('评议成功!');
+    toast.success('评议成功！');
+    refreshCaptcha();
+    setCaptchaInput('');
     refreshCourses();
-  }, [courses, onekey, recaptchaInput, refreshCourses]);
+  }, [courses, onekey, recaptchaInput, refreshCaptcha, refreshCourses]);
 
   useEffect(() => {
     refreshCourses();
@@ -255,8 +259,13 @@ export default function OnekeyCommentFormPage() {
   const refreshCaptcha = useCallback(async () => {
     const { cookies } = LocalUser.getCredentials();
     onekey.current.setCookies(cookies);
-    const data = await onekey.current.getCaptcha();
-    const base64 = fromByteArray(data);
+    let data = await onekey.current.getCaptcha();
+    let base64 = fromByteArray(data);
+    if (!base64.startsWith('R0lGODlh')) {
+      // 非GIF89a前缀，请求失败，重试一次
+      data = await onekey.current.getCaptcha();
+      base64 = fromByteArray(data);
+    }
     const uri = `data:image/gif;base64,${base64}`;
     setCaptcha(uri);
   }, [onekey]);
