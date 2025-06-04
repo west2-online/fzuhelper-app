@@ -4,15 +4,16 @@ import { Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-n
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import FAQModal from '@/components/faq-modal';
 import { Icon } from '@/components/Icon';
 import GradeCard from '@/components/academic/GradeCard';
 import SemesterSummaryCard from '@/components/academic/SemesterSummaryCard';
+import FAQModal from '@/components/faq-modal';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import { TabFlatList } from '@/components/tab-flatlist';
 import { Text } from '@/components/ui/text';
 
+import { JwchAcademicScoresResponse_AcademicScoresDataItem } from '@/api/backend';
 import { getApiV1JwchAcademicScores, getApiV1JwchTermList } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
@@ -25,24 +26,17 @@ const errorHandler = (data: any) => {
 };
 
 interface TermContentProps {
-  term: string;
+  termData: JwchAcademicScoresResponse_AcademicScoresDataItem[];
+  isLoading: boolean;
+  dataUpdatedAt: number;
   onRefresh?: () => void;
 }
 
 // 单个学期的内容
-const TermContent: React.FC<TermContentProps> = ({ term, onRefresh }) => {
+const TermContent: React.FC<TermContentProps> = ({ termData, isLoading, dataUpdatedAt, onRefresh }) => {
   const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
-  // 访问 west2-online 服务器获取成绩数据（由于教务处限制，只能获取全部数据）
-  // 由于教务处限制，成绩数据会直接返回所有课程的成绩，我们需要在本地进行区分，因此引入了下一个获取学期列表的函数
-  const {
-    data: academicData,
-    dataUpdatedAt,
-    isLoading,
-    refetch,
-  } = useApiRequest(getApiV1JwchAcademicScores, {}, { errorHandler });
   const lastUpdated = new Date(dataUpdatedAt);
-  const filteredData = useMemo(() => (academicData ?? []).filter(it => it.term === term), [academicData, term]);
-  const summary = useMemo(() => calSingleTermSummary(filteredData), [filteredData]);
+  const summary = useMemo(() => calSingleTermSummary(termData), [termData]);
 
   return (
     <ScrollView
@@ -54,20 +48,19 @@ const TermContent: React.FC<TermContentProps> = ({ term, onRefresh }) => {
           refreshing={isLoading}
           onRefresh={() => {
             onRefresh?.();
-            refetch();
           }}
         />
       }
     >
-      {academicData && academicData.length > 0 && summary && (
+      {termData.length > 0 && summary && (
         <View className="mx-4">
           <SemesterSummaryCard summary={summary} />
         </View>
       )}
 
       <SafeAreaView edges={['bottom']}>
-        {filteredData.length > 0 ? (
-          filteredData
+        {termData.length > 0 ? (
+          termData
             .sort((a, b) => parseScore(b.score) - parseScore(a.score))
             .map((item, index) => (
               <View key={index} className="mx-4 mt-4">
@@ -77,7 +70,7 @@ const TermContent: React.FC<TermContentProps> = ({ term, onRefresh }) => {
         ) : (
           <Text className="text-center text-gray-500">暂无成绩数据</Text>
         )}
-        {filteredData.length > 0 && (
+        {termData.length > 0 && (
           <View className="my-4 flex flex-row items-center justify-center">
             <Icon name="time-outline" size={16} className="mr-2" />
             <Text className="text-sm leading-5 text-text-primary">
@@ -105,7 +98,19 @@ export default function GradesPage() {
 
   // 获取学期列表（当前用户），此处不使用 usePersistedQuery
   // 这和课表的 getApiV1TermsList 不一致，前者（即 getApiV1JwchTermList）只返回用户就读的学期列表
-  const { data: termList, isLoading, refetch } = useApiRequest(getApiV1JwchTermList, {}, { onSuccess, errorHandler });
+  const {
+    data: termList,
+    isLoading: isLoadingTermList,
+    refetch: refetchTermList,
+  } = useApiRequest(getApiV1JwchTermList, {}, { onSuccess, errorHandler });
+  // 访问 west2-online 服务器获取成绩数据（由于教务处限制，只能获取全部数据）
+  // 由于教务处限制，成绩数据会直接返回所有课程的成绩，我们需要在本地进行区分，因此引入了下一个获取学期列表的函数
+  const {
+    data: academicData,
+    dataUpdatedAt: academicDataUpdatedAt,
+    isLoading: isLoadingAcademicData,
+    refetch: refetchAcademicData,
+  } = useApiRequest(getApiV1JwchAcademicScores, {}, { errorHandler, retry: 0 });
   const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
 
   // 处理 Modal 显示事件
@@ -128,14 +133,24 @@ export default function GradesPage() {
       />
 
       <PageContainer>
-        {isLoading ? (
+        {isLoadingTermList || isLoadingAcademicData ? (
           <Loading />
         ) : (
           <TabFlatList
             data={termList ?? []}
             value={currentTerm}
             onChange={setCurrentTerm}
-            renderContent={term => <TermContent term={term} onRefresh={refetch} />}
+            renderContent={term => (
+              <TermContent
+                termData={(academicData ?? []).filter(it => it.term === term)}
+                onRefresh={() => {
+                  refetchTermList();
+                  refetchAcademicData();
+                }}
+                dataUpdatedAt={academicDataUpdatedAt}
+                isLoading={isLoadingTermList || isLoadingAcademicData}
+              />
+            )}
           />
         )}
 
