@@ -77,7 +77,7 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
   return (
     <View className="m-4 space-y-2 rounded-xl border border-border bg-card p-5">
       <View className="flex-row items-center justify-between">
-        <View className="">
+        <View className="gap-1">
           <Text className="font-bold text-text-primary">{courseName}</Text>
           <Text className="break-all text-text-secondary">{teacherName}</Text>
         </View>
@@ -88,7 +88,7 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
           placeholder="输入评分"
           placeholderTextColor="#60a5fa"
           maxLength={3}
-          className="rounded-xl bg-text-primary/10 px-4 py-2 text-center text-lg text-text-primary"
+          className="h-14 w-28 rounded-xl bg-text-primary/10 text-center text-lg text-text-primary"
         />
       </View>
       <Divider />
