@@ -58,10 +58,10 @@ export default function FloatModal({
               <IcCancel className="h-6 w-6" />
             </Pressable>
             {onConfirm && (
-              <Pressable onPress={()=> {
+              <Pressable onPress={async ()=> {
                 setIsProcessing(true);
                 try {
-                  onConfirm();
+                  await Promise.resolve(onConfirm());
                 } finally {
                   setIsProcessing(false);
                 }

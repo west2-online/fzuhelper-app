@@ -202,8 +202,8 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
           <FloatModal
             title="填写验证码"
             visible={modalVisible}
-            onConfirm={() => {
-              submitAllForm();
+            onConfirm={async () => {
+              await submitAllForm();
               setModalVisible(false);
             }}
             onClose={() => setModalVisible(false)}
