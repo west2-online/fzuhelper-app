@@ -151,6 +151,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
 
   const refreshCourses = useCallback(async () => {
     setLoading(true);
+    await LocalUser.checkCredentials();
     const { identifier, cookies } = LocalUser.getCredentials();
     onekey.setCookies(cookies);
     const data = await onekey.getUncommentTeachers(identifier, tabname === Tab.学期选课 ? 'xqxk' : 'score');
@@ -267,6 +268,7 @@ export default function OnekeyCommentFormPage() {
   const tabs = [Tab.学期选课, Tab.成绩查询];
 
   const refreshCaptcha = useCallback(async () => {
+    await LocalUser.checkCredentials();
     const { cookies } = LocalUser.getCredentials();
     onekey.current.setCookies(cookies);
     let data = await onekey.current.getCaptcha();
