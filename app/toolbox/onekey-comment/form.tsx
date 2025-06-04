@@ -2,8 +2,8 @@ import { fromByteArray } from 'base64-js';
 import { Tabs } from 'expo-router';
 import { RotateCwIcon } from 'lucide-react-native';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Dimensions, Image, TouchableOpacity, View } from 'react-native';
-import { FlatList, TextInput } from 'react-native-gesture-handler';
+import { Dimensions, FlatList, Image, TouchableOpacity, View } from 'react-native';
+import { TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -18,6 +18,7 @@ import { TabFlatList } from '@/components/tab-flatlist';
 import Loading from '@/components/loading';
 import OnekeyComment, { CourseInfo } from '@/lib/onekey-comment';
 import { LocalUser } from '@/lib/user';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 interface CourseCardProps {
   courseName: string;
@@ -195,6 +196,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
       {courses.length !== 0 ? (
         <>
           <FlatList
+            renderScrollComponent={props => <KeyboardAwareScrollView keyboardShouldPersistTaps="handled" {...props} />}
             data={courses}
             renderItem={({ index, item }) => (
               <CourseCard
