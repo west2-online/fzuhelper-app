@@ -151,7 +151,17 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
 
   const refreshCourses = useCallback(async () => {
     setLoading(true);
-    await LocalUser.checkCredentials();
+    const cookieValid = await LocalUser.checkCredentials();
+    if (!cookieValid) {
+      // 如果 Cookie 无效，则重新登录
+      const userInfo = LocalUser.getUser();
+      if (!userInfo.password || !userInfo.userid) {
+        toast.error('登录失效，请重新登录');
+        return;
+      } else {
+        await LocalUser.login();
+      }
+    }
     const { identifier, cookies } = LocalUser.getCredentials();
     onekey.setCookies(cookies);
     const data = await onekey.getUncommentTeachers(identifier, tabname === Tab.学期选课 ? 'xqxk' : 'score');
@@ -268,7 +278,17 @@ export default function OnekeyCommentFormPage() {
   const tabs = [Tab.学期选课, Tab.成绩查询];
 
   const refreshCaptcha = useCallback(async () => {
-    await LocalUser.checkCredentials();
+    const cookieValid = await LocalUser.checkCredentials();
+    if (!cookieValid) {
+      // 如果 Cookie 无效，则重新登录
+      const userInfo = LocalUser.getUser();
+      if (!userInfo.password || !userInfo.userid) {
+        toast.error('登录失效，请重新登录');
+        return;
+      } else {
+        await LocalUser.login();
+      }
+    }
     const { cookies } = LocalUser.getCredentials();
     onekey.current.setCookies(cookies);
     let data = await onekey.current.getCaptcha();
