@@ -5467,10 +5467,10 @@ expo-calendar@~14.0.6:
   resolved "https://registry.yarnpkg.com/expo-calendar/-/expo-calendar-14.0.6.tgz#b72194e231f0ccdd0425f39ee08b93b1efcefbe7"
   integrity sha512-aOby7ueR8lB9sWTHXkECZiPDZNVRsGQYhJTe05puNZicMWCV4c53Z/LRiCTTq3LBXV4zpBOB5rXiCyA1f082yA==
 
-expo-camera@~16.0.17:
-  version "16.0.17"
-  resolved "https://registry.npmmirror.com/expo-camera/-/expo-camera-16.0.17.tgz#c8dc56ff15a31c8faa7957dfffc34645f19867d1"
-  integrity sha512-V7yBcjQSx65ySKEN8NpCPaFQRL6haGW/hNFvlRuD3+e98sxwQQtcni/EkfTUmZDw81OuURO1c6vTr2oI33WM4Q==
+expo-camera@^16.1.8:
+  version "16.1.8"
+  resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-16.1.8.tgz#6c30dfb5c982795351f1053c36f048a11869e21b"
+  integrity sha512-NpBbkUhHG6cs2TNUQBFSEtXb5j1/kTPIhiuqBcHosZG2yb/8MuM/ii4McJaqfe/6pn0YPqkH4k0Uod11DOSLmw==
   dependencies:
     invariant "^2.2.4"
 
