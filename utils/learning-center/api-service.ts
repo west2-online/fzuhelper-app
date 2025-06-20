@@ -173,6 +173,16 @@ class ApiService {
 
     headers = {
       'Content-Type': 'application/json',
+      'User-Agent':
+        'Mozilla/5.0 (iPad; CPU OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 appId/cn.edu.fzu.fdxypa appScheme/kysk-fdxy-app hengfeng/fdxyappzs appType/2 ruijie-facecamera',
+      'Accept-Language': 'zh-CN,zh;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br, zstd',
+      Referer: 'https://aiot.fzu.edu.cn/ibs/',
+      Origin: 'https://aiot.fzu.edu.cn',
+      Connection: 'keep-alive',
+      'Sec-Fetch-Dest': 'empty',
+      'Sec-Fetch-Mode': 'cors',
+      'Sec-Fetch-Site': 'same-origin',
       ...headers,
     };
 

@@ -170,6 +170,8 @@ class SSOLogin {
           url: resp.headers.Location,
           headers: {
             Cookie: cookie,
+            'User-Agent':
+              'Mozilla/5.0 (iPad; CPU OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 appId/cn.edu.fzu.fdxypa appScheme/kysk-fdxy-app hengfeng/fdxyappzs appType/2 ruijie-facecamera',
           },
         });
         console.log(`重定向${i + 2}:`, resp.headers);
