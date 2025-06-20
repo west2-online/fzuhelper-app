@@ -174,8 +174,7 @@ class ApiService {
     headers = {
       'Content-Type': 'application/json',
       'User-Agent':
-        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-      Accept: 'application/json, text/plain, */*',
+        'Mozilla/5.0 (iPad; CPU OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 appToken/8073415adf55e3d4235c05525d9943ddbf5139817c19194335c0c6842b1115f6649dc069e00a52d300e524498421ba19b8e343ec65ebfd7d1dddc7f9b67a7458c14330355c8306791c564fdbf56c4525 appId/cn.edu.fzu.fdxypa appScheme/kysk-fdxy-app hengfeng/fdxyappzs appType/2 ruijie-facecamera',
       'Accept-Language': 'zh-CN,zh;q=0.9',
       'Accept-Encoding': 'gzip, deflate, br, zstd',
       Referer: 'https://aiot.fzu.edu.cn/ibs/',
