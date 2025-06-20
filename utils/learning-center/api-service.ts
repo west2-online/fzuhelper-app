@@ -173,6 +173,17 @@ class ApiService {
 
     headers = {
       'Content-Type': 'application/json',
+      'User-Agent':
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+      Accept: 'application/json, text/plain, */*',
+      'Accept-Language': 'zh-CN,zh;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br, zstd',
+      Referer: 'https://aiot.fzu.edu.cn/ibs/',
+      Origin: 'https://aiot.fzu.edu.cn',
+      Connection: 'keep-alive',
+      'Sec-Fetch-Dest': 'empty',
+      'Sec-Fetch-Mode': 'cors',
+      'Sec-Fetch-Site': 'same-origin',
       ...headers,
     };
 
