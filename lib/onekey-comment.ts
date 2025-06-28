@@ -100,9 +100,7 @@ export default class OnekeyComment {
   async getCommentForm(params: Record<string, string>): Promise<ASPNET_Form> {
     const url = `${ONEKEY_COMMENT_URLS.COMMENT_TEACHER}?${escapeQueryParams(params)}`;
     const resp = await this.get(url, {});
-    console.log(2)
     const text = Buffer.from(resp).toString('utf-8');
-    console.log(3)
     const dom = parseDocument(text);
 
     function getInputValueById(id: string): string {
@@ -118,7 +116,6 @@ export default class OnekeyComment {
   }
 
   async commentTeacher(params: Record<string, string>, score: string, comment: string, recaptcha: string) {
-    console.log('aa')
     const url = `${ONEKEY_COMMENT_URLS.COMMENT_TEACHER}?${escapeQueryParams(params)}`;
     const aspnetForm = await this.getCommentForm(params);
     const fullForm: CommentTeacherForm = {
@@ -133,7 +130,6 @@ export default class OnekeyComment {
 
     const resp = await this.post(url, {}, { ...fullForm });
     const text = Buffer.from(resp.data).toString('utf-8');
-    console.log(text)
     return !text.includes('验证码校验错误');
   }
 }
