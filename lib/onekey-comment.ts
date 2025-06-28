@@ -1,5 +1,5 @@
 import { get, post } from '@/modules/native-request';
-import { Buffer } from 'buffer';
+import { Buffer } from '@craftzdog/react-native-buffer';
 import { selectAll, selectOne } from 'css-select';
 import { getAttributeValue } from 'domutils';
 import { parseDocument } from 'htmlparser2';
