@@ -3,6 +3,7 @@ import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -15,7 +16,6 @@ import { QueryProvider } from '@/components/query-provider';
 import { LearningCenterContextProvider } from '@/context/learning-center';
 import { getColorScheme } from '@/lib/appearance';
 import { StackNavigatorScreenOptions } from '@/lib/constants';
-import { cn } from '@/lib/utils';
 import patchTextComponent from '@/utils/patch-text-component';
 import patchTextRender from '@/utils/patch-text-render';
 
@@ -57,7 +57,7 @@ export default function RootLayout() {
                   <Stack.Screen name="+not-found" />
                 </Stack>
 
-                <Toaster cn={cn} position="top-center" duration={2500} offset={100} />
+                <Toaster position="top-center" duration={2500} offset={100} style={toastStyle} />
                 <PortalHost />
                 <SystemBars style="auto" />
                 <DownloadProgress />
@@ -69,3 +69,9 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+const toastStyle = {
+  // For better toast background on android
+  // Overrides https://github.com/gunnartorfis/sonner-native/blob/9656057710310528e05d98ae22d21520004cf8fa/src/toast.tsx#L504
+  ...(Platform.OS === 'android' && { elevation: 20 }),
+};

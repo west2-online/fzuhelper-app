@@ -10162,10 +10162,10 @@ snake-case@^3.0.4:
     dot-case "^3.0.4"
     tslib "^2.0.3"
 
-sonner-native@^0.16.2:
-  version "0.16.2"
-  resolved "https://registry.yarnpkg.com/sonner-native/-/sonner-native-0.16.2.tgz#046fd9c750c08f51546bb2b9b53fc940f8c7bc7d"
-  integrity sha512-IxiqcwZ2ZqmbtMWWhFq/um31hQndEUOa9ERnhS7+Z7lc0v9b9boa9pjHtNRoDktJ/OzEOMb1ERyr2bCNYNdUog==
+sonner-native@^0.21.0:
+  version "0.21.0"
+  resolved "https://registry.npmmirror.com/sonner-native/-/sonner-native-0.21.0.tgz#b7968f8a7fdcdbc3b13b478455d63b24a45db829"
+  integrity sha512-pIdyMd722xuDukIvCZCmWh9Jy5FV+m9uKYl3oAzonYE+91eX5556vYrIik5MisDlBniSXaWqC9CnPoS6DKo2Lg==
 
 source-map-js@^1.0.1, source-map-js@^1.2.1:
   version "1.2.1"
