@@ -16,7 +16,6 @@ import { QueryProvider } from '@/components/query-provider';
 import { LearningCenterContextProvider } from '@/context/learning-center';
 import { getColorScheme } from '@/lib/appearance';
 import { StackNavigatorScreenOptions } from '@/lib/constants';
-import { cn } from '@/lib/utils';
 import patchTextComponent from '@/utils/patch-text-component';
 import patchTextRender from '@/utils/patch-text-render';
 
