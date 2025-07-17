@@ -108,7 +108,7 @@
     "react-native-ui-datepicker": "^3.1.2",
     "react-native-web": "~0.19.10",
     "react-native-webview": "~13.13.1",
-    "sonner-native": "^0.16.2",
+    "sonner-native": "^0.21.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.14",
     "tailwindcss-animate": "^1.0.7",
