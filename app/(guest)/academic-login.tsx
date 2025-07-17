@@ -76,6 +76,7 @@ const LoginPage: React.FC = () => {
     try {
       const res = await loginRef.current!.getCaptcha();
       setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`);
+      setCaptcha(''); // 清空验证码输入框
     } catch (error) {
       console.error(error);
       toast.error('获取验证码失败');
