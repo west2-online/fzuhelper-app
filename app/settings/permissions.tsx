@@ -90,6 +90,7 @@ export default function AcademicPage() {
     return () => {
       subscription.remove();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 放空使得只加载一次
 
   // 通知权限比较特殊，需要单独处理

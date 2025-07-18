@@ -1,6 +1,6 @@
 import { Link, useRouter, type Href, type Router } from 'expo-router';
 import { forwardRef, useEffect, useState } from 'react';
-import { Alert, FlatList, Platform, Pressable, useWindowDimensions } from 'react-native';
+import { FlatList, Platform, Pressable, useWindowDimensions } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
@@ -357,7 +357,7 @@ type ToolButtonProps = Omit<ButtonProps, 'size'> & {
 };
 
 // eslint-disable-next-line react/display-name
-const ToolButton = forwardRef<React.ElementRef<typeof Pressable>, ToolButtonProps>(
+const ToolButton = forwardRef<React.ComponentRef<typeof Pressable>, ToolButtonProps>(
   ({ className, icon: Icon, name, onPress }, ref) => (
     <Button
       className={cn('mb-3 h-auto w-auto items-center justify-center bg-transparent', className)}

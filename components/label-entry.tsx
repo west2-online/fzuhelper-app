@@ -17,7 +17,7 @@ interface LabelEntryProps {
 }
 
 // eslint-disable-next-line react/display-name
-const LabelEntry: React.FC<LabelEntryProps> = forwardRef<React.ElementRef<typeof TouchableOpacity>, LabelEntryProps>(
+const LabelEntry: React.FC<LabelEntryProps> = forwardRef<React.ComponentRef<typeof TouchableOpacity>, LabelEntryProps>(
   ({ leftText, rightText, description, onPress, disabled = false, noIcon = false, className }, ref) => (
     <TouchableOpacity
       className={cn('flex-row items-center justify-between space-y-4 py-4', className)}
