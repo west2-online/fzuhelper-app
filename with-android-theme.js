@@ -8,18 +8,11 @@ function withCustomAppTheme(config) {
     const styles = androidStylesConfig.modResults;
     styles.resources.style.map(style => {
       if (style.$.name === 'AppTheme') {
-        // 删掉这两个多余属性，影响AlertDialog样式
-        style.item = style.item.filter(
-          item => item.$.name !== 'android:textColor' && item.$.name !== 'android:editTextStyle',
-        );
         // 输入框光标色
         style.item.push({
           $: { name: 'colorAccent' },
           _: '@color/colorAccent',
         });
-      } else if (style.$.name === 'ResetEditText') {
-        // 多余style
-        styles.resources.style.splice(styles.resources.style.indexOf(style), 1);
       }
     });
 
