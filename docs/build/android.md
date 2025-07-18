@@ -12,6 +12,14 @@
 yarn prebuild:android
 ```
 
+如果已经预构建过，执行以下可重新构建：
+
+```bash
+yarn prebuild:android --clean
+```
+
+也可以直接执行下一步，会自动预构建。
+
 ## 构建调试版本
 
 由于引入了本地模块，本项目不能在浏览器中或使用Expo Go运行。
@@ -22,80 +30,43 @@ yarn android # 等价于在Android Studio中执行编译
 
 执行后等待编译完成，会自动安装并启动，且启动调试服务器。
 
+如果不涉及原生代码改动，可直接执行下面指令启动调试服务器：
+
+```bash
+yarn start
+```
+
+App卡在开屏界面不执行构建，多见于设备被重新连接，执行下面指令然后重新冷启动即可：
+
+```bash
+adb reverse tcp:8081 tcp:8081
+```
+
 ## 配置签名文件
 
 **注意一定不要把签名文件上传到 Git 仓库中！**
 
-从学长那里把签名文件及其密码要过来，然后在 `android/gradle.properties` 中添加以下内容：
+从学长那里把签名文件及其密码要过来，然后在环境变量中添加以下内容：
 
 ```env
-FZUHELPER_UPLOAD_STORE_FILE=***
-FZUHELPER_UPLOAD_KEY_ALIAS=***
-FZUHELPER_UPLOAD_STORE_PASSWORD=***
-FZUHELPER_UPLOAD_KEY_PASSWORD=***
+KEYSTORE_PATH=***
+KEYSTORE_PASSWORD=***
+KEY_ALIAS=***
+KEY_PASSWORD=***
 ```
 
-需要注意的是，上面的文件路径是相对于 `android/app` 的。
+## 构建版本
 
-修改 `android\app\build.gradle`，添加以下内容：
+版本名 (`versionName`) 由 `package.json` 中配置的 `version` 字段决定；构建版本号 (`versionCode`) 在每一次 prebuild 后根据版本名、commit 次数信息自动生成，无需也禁止手动修改。
 
-```diff
-android {
-  signingConfigs {
-    // ...
-+   release {
-+     if (project.hasProperty('FZUHELPER_UPLOAD_STORE_FILE')) {
-+       storeFile file(FZUHELPER_UPLOAD_STORE_FILE)
-+       storePassword FZUHELPER_UPLOAD_STORE_PASSWORD
-+       keyAlias FZUHELPER_UPLOAD_KEY_ALIAS
-+       keyPassword FZUHELPER_UPLOAD_KEY_PASSWORD
-+     }
-+   }
-  }
-  buildTypes {
-    // ...
-    release {
-      signingConfig signingConfigs.debug
-+     signingConfig signingConfigs.release
-      minifyEnabled false
-      // ...
-    }
-  }
-}
-```
+相关逻辑见 `inject-android-config.ts`。
 
-## 配置不同架构的分包
-
-修改 `android\app\build.gradle`，添加以下内容：
-
-```diff
-android {
-    // ...
-
-+    splits {
-+        abi {
-+            reset()
-+            enable true
-+            universalApk true
-+            include "armeabi-v7a", "arm64-v8a", "x86_64"
-+        }
-+    }
-}
-```
-
-## 修改构建版本号
-
-修改 `app.json` 中的 `expo.android.versionCode` 字段，每次递增 1 即可。
-
-这个版本号并不是显示的版本号，是用来让系统识别构建版本的。
-
-## 构建
+## 构建发行版本
 
 前往 `app` 目录，执行：
 
 ```bash
-./gradlew app:bundleRelease
 ./gradlew app:packageRelease
 ```
 
-第一个命令会构建出一个 `aab` 文件（`android\app\build\outputs\bundle\release\app-release.aab`），用于一些应用商店的上传；第二个命令会构建出一些 `apk` 文件（`android\app\build\outputs\apk\release\` 目录下），用于另外一些应用商店的上传和官网发布。
+命令会构建出 `apk` 文件（`android\app\build\outputs\apk\release\` 目录下），用于应用商店的上传和官网发布。
