@@ -213,7 +213,9 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
               <CourseCard
                 teacherName={item.teacherName}
                 courseName={item.courseName}
-                ref={ref => (childRefs.current[index] = ref)}
+                ref={ref => {
+                  childRefs.current[index] = ref;
+                }}
               />
             )}
             refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshCourses} />}
