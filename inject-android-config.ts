@@ -1,6 +1,8 @@
+// https://github.com/expo/expo/issues/36591#issuecomment-2849092926
+import configPlugins from '@expo/config-plugins';
 import { execSync } from 'child_process';
 import { type ExpoConfig } from 'expo/config';
-import { withAppBuildGradle, withGradleProperties } from 'expo/config-plugins';
+const { withAppBuildGradle, withGradleProperties } = configPlugins;
 
 function insertAfter(s: string, searchString: string, content: string): string {
   const index = s.indexOf(searchString);
