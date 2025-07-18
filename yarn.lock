@@ -7492,10 +7492,10 @@ lru-queue@^0.1.0:
   dependencies:
     es5-ext "~0.10.2"
 
-lucide-react-native@^0.471.0:
-  version "0.471.0"
-  resolved "https://registry.yarnpkg.com/lucide-react-native/-/lucide-react-native-0.471.0.tgz#dcf30c756977cf3ba18d9f906fe365297cd2becb"
-  integrity sha512-r4ahRctur3BlaqKpc/VPrPRlkXc7/jQRv065LziATqRBJID9wQ4U/cGUvavwic8+rsxbKLe5g7ob7VUdY0y0FQ==
+lucide-react-native@^0.525.0:
+  version "0.525.0"
+  resolved "https://registry.npmmirror.com/lucide-react-native/-/lucide-react-native-0.525.0.tgz#dda1e10a7c2e202088168e9dd36cce46a4244a56"
+  integrity sha512-f9iIdoZJCDIXhzAMQCNgaiWdiq42ls5ieXvVXwlNHN1q7c5zC1n1U0yOVu6J0oNSF8zvYqY3pK3UPOX+T2YpIQ==
 
 make-dir@^4.0.0:
   version "4.0.0"

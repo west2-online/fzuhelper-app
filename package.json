@@ -81,7 +81,7 @@
     "expo-tracking-transparency": "~5.2.4",
     "expo-web-browser": "~14.2.0",
     "htmlparser2": "^10.0.0",
-    "lucide-react-native": "^0.471.0",
+    "lucide-react-native": "^0.525.0",
     "nativewind": "^4.1.23",
     "object-hash": "^3.0.0",
     "react": "19.0.0",
