@@ -130,7 +130,7 @@
     "prettier": "^3.3.3",
     "prettier-plugin-organize-imports": "^4.1.0",
     "prettier-plugin-tailwindcss": "^0.6.8",
-    "react-native-svg-transformer": "^1.5.0",
+    "react-native-svg-transformer": "^1.5.1",
     "react-test-renderer": "18.2.0",
     "typescript": "~5.8.3"
   }

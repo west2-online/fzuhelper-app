@@ -8968,10 +8968,10 @@ react-native-screens@~4.11.1:
     react-native-is-edge-to-edge "^1.1.7"
     warn-once "^0.1.0"
 
-react-native-svg-transformer@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/react-native-svg-transformer/-/react-native-svg-transformer-1.5.0.tgz#75ae4dbdc4b1a1508e75282d54d66900ee5fe3c2"
-  integrity sha512-RG5fSWJT7mjCQYocgYFUo1KYPLOoypPVG5LQab+pZZO7m4ciGaQIe0mhok3W4R5jLQsEXKo0u+aQGkZV/bZG7w==
+react-native-svg-transformer@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.npmmirror.com/react-native-svg-transformer/-/react-native-svg-transformer-1.5.1.tgz#04467563becbea65b8e576df7e33c9a9a86961e8"
+  integrity sha512-dFvBNR8A9VPum9KCfh+LE49YiJEF8zUSnEFciKQroR/bEOhlPoZA0SuQ0qNk7m2iZl2w59FYjdRe0pMHWMDl0Q==
   dependencies:
     "@svgr/core" "^8.1.0"
     "@svgr/plugin-jsx" "^8.1.0"
