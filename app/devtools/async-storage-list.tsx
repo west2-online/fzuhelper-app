@@ -1,9 +1,10 @@
+import ModalFix from '@/components/modal-fix';
 import PageContainer from '@/components/page-container';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Button, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Button, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const MAX_LENGTH = 50; // 设置最大长度
 
@@ -147,7 +148,7 @@ export default function HomePage() {
 
   // Modal 负责新增和编辑操作
   const renderEditModal = () => (
-    <Modal visible={isModalVisible} transparent animationType="fade" onRequestClose={closeModal}>
+    <ModalFix visible={isModalVisible} transparent animationType="fade" onRequestClose={closeModal}>
       <View style={styles.modalContainer} className="bg-background">
         <View style={styles.modalContent} className="bg-card">
           <Text style={styles.modalTitle} className="text-primary">
@@ -182,7 +183,7 @@ export default function HomePage() {
           </View>
         </View>
       </View>
-    </Modal>
+    </ModalFix>
   );
 
   const renderItem = ({

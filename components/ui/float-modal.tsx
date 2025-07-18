@@ -1,8 +1,9 @@
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import { Text } from '@/components/ui/text';
-import { Modal, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useState } from 'react';
+import ModalFix from '../modal-fix';
 
 interface FloatModalProps {
   visible: boolean;
@@ -26,11 +27,11 @@ export default function FloatModal({
                                      onConfirm,
                                      children,
                                      className = '',
-                                     contentContainerClassName = ''
+                                     contentContainerClassName = '',
                                    }: FloatModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   return (
-    <Modal
+    <ModalFix
       visible={visible}
       transparent={transparent}
       navigationBarTranslucent
@@ -72,6 +73,6 @@ export default function FloatModal({
           </View>)}
         </View>
       </View>
-    </Modal>
+    </ModalFix>
   );
 }

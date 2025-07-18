@@ -1,10 +1,11 @@
 import WheelPicker from '@quidone/react-native-wheel-picker';
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, View, useColorScheme } from 'react-native';
+import { Pressable, View, useColorScheme } from 'react-native';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import { Text } from '@/components/ui/text';
+import ModalFix from './modal-fix';
 
 interface PickerModalProps<T> {
   visible: boolean;
@@ -32,7 +33,7 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
   };
 
   return (
-    <Modal
+    <ModalFix
       visible={visible}
       transparent
       navigationBarTranslucent
@@ -62,6 +63,6 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
           </View>
         </View>
       </View>
-    </Modal>
+    </ModalFix>
   );
 }

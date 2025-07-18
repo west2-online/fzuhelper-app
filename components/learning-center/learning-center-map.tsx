@@ -1,9 +1,10 @@
 import { Card } from '@/components/ui/card';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { memo, useState } from 'react';
-import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ImageZoom from 'react-native-image-zoom-viewer';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ModalFix from '../modal-fix';
 // 学习中心地图组件
 const LearningCenterMap = memo(() => {
   const [showFullScreenMap, setShowFullScreenMap] = useState(false); //控制是否展示全屏地图
@@ -27,7 +28,7 @@ const LearningCenterMap = memo(() => {
       </Card>
 
       {/* 大图 */}
-      <Modal
+      <ModalFix
         visible={showFullScreenMap}
         transparent={true}
         animationType="fade" // 添加过渡动画
@@ -74,7 +75,7 @@ const LearningCenterMap = memo(() => {
             <Text className="text-xs text-text-secondary">双指缩放查看详情</Text>
           </View>
         </View>
-      </Modal>
+      </ModalFix>
     </>
   );
 });

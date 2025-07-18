@@ -430,17 +430,20 @@ export default function MoreToolsPage() {
   const handleModalVisible = useCallback(() => {
     setShowFAQ(prev => !prev);
   }, []);
+  const headerRight = useCallback(
+    () => (
+      <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
+        <Icon name="help-circle-outline" size={26} className="mr-4" />
+      </Pressable>
+    ),
+    [handleModalVisible],
+  );
   return (
     <PageContainer>
       <Tabs.Screen
         options={{
           title: '更多工具',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-              <Icon name="help-circle-outline" size={26} className="mr-4" />
-            </Pressable>
-          ),
+          headerRight: headerRight,
         }}
       />
       {/* 工具列表 */}

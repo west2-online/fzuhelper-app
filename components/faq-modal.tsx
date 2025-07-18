@@ -1,6 +1,7 @@
 import FAQContent, { FAQItem } from '@/components/faq-content';
+import ModalFix from '@/components/modal-fix';
 import React from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 interface FAQModalProps {
   visible: boolean; // 控制 Modal 显示与否
@@ -10,7 +11,7 @@ interface FAQModalProps {
 
 const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
   return (
-    <Modal
+    <ModalFix
       animationType="fade"
       transparent={true}
       visible={visible}
@@ -32,7 +33,7 @@ const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
           </View>
         </View>
       </View>
-    </Modal>
+    </ModalFix>
   );
 };
 
