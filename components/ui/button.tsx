@@ -62,7 +62,7 @@ type ButtonProps = React.ComponentPropsWithoutRef<typeof Pressable> &
     margin?: 'none' | 'sm' | 'md' | 'lg';
   };
 
-const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
+const Button = React.forwardRef<React.ComponentRef<typeof Pressable>, ButtonProps>(
   ({ className, variant, size, ...props }, ref) => {
     return (
       <TextClassContext.Provider

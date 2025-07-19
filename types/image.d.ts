@@ -12,6 +12,7 @@ declare module '*.webp' {
 
 // 可以直接作为组件使用
 declare module '*.svg' {
+  import { SvgProps } from 'react-native-svg';
   const value: React.FC<SvgProps>;
   export default value;
 }

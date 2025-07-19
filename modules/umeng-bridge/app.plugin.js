@@ -3,10 +3,11 @@
 // 如果需要参考具体逻辑，可以参考友盟 SDK
 // iOS文档：https://developer.umeng.com/docs/67966/detail/66734
 // 安卓文档：https://developer.umeng.com/docs/67966/detail/206987
+import configPlugins from '@expo/config-plugins';
 import { promises as fs } from 'fs'; // 使用 Node.js 的 fs 模块进行文件操作
 import { join, resolve } from 'path';
 
-import {
+const {
   AndroidConfig,
   createRunOncePlugin,
   withAndroidManifest,
@@ -14,7 +15,7 @@ import {
   withEntitlementsPlist,
   withInfoPlist,
   withXcodeProject,
-} from '@expo/config-plugins';
+} = configPlugins;
 
 const withKey = (
   config,

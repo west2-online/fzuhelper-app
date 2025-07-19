@@ -1,7 +1,6 @@
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 
-import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 import usePersistedQuery from '@/hooks/usePersistedQuery';

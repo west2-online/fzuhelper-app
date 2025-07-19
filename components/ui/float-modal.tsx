@@ -26,7 +26,7 @@ export default function FloatModal({
                                      onConfirm,
                                      children,
                                      className = '',
-                                     contentContainerClassName = ''
+                                     contentContainerClassName = '',
                                    }: FloatModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   return (

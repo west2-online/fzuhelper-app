@@ -59,6 +59,7 @@ const config: ExpoConfig = {
   android: {
     package: IS_DEV ? 'com.helper.west2ol.fzuhelper.dev' : 'com.helper.west2ol.fzuhelper',
     versionCode: 700001, // 此处不需要修改，将在inject-android-config中自增
+    edgeToEdgeEnabled: true,
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
       backgroundColor: '#FFFFFF',
@@ -146,7 +147,7 @@ const config: ExpoConfig = {
       'react-native-edge-to-edge',
       {
         android: {
-          parentTheme: 'Material2',
+          parentTheme: 'Default',
           enforceNavigationBarContrast: false,
         },
       },

@@ -12,7 +12,7 @@ export interface TabFlatListProps {
   renderContent: (item: string) => ReactElement<any, string | JSXElementConstructor<any>> | null; // 渲染内容区域
   tabWidth?: number; // 单个tab的宽度
   screenWidth?: number; // 屏幕宽度
-  tabsScrollViewRef?: React.RefObject<ScrollView>; // 外部传入的ScrollView引用
+  tabsScrollViewRef?: React.RefObject<ScrollView | null>; // 外部传入的ScrollView引用
   flatListOptions?: Partial<Omit<FlatListProps<string>, 'data' | 'renderItem' | 'keyExtractor'>>; // 底部左右滑动的FlatList的配置项
 }
 
