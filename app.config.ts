@@ -106,8 +106,8 @@ const config: ExpoConfig = {
         recordAudioAndroid: true,
       },
     ],
-    './inject-android-config',
-    './inject-ios-prebuild',
+    './plugins/inject-android-config',
+    './plugins/inject-ios-prebuild',
     [
       './modules/umeng-bridge/app.plugin.js',
       {
@@ -183,9 +183,10 @@ const config: ExpoConfig = {
         },
       },
     ],
-    './with-android-theme',
-    './with-android-localization',
+    './plugins/with-android-theme',
+    './plugins/with-android-localization',
     '@bacons/apple-targets', // Apple Targets (e.g. widget)
+    './plugins/disable-bridgeless-mode',
   ],
   experiments: {
     typedRoutes: true,

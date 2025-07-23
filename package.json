@@ -54,7 +54,7 @@
     "aegis-rn-sdk": "^1.39.1",
     "axios": "^1.8.2",
     "babel-plugin-transform-flow-enums": "^0.0.2",
-    "babel-preset-expo": "~13.0.0",
+    "babel-preset-expo": "~13.2.3",
     "base64-js": "^1.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
