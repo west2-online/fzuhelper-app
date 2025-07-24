@@ -48,7 +48,7 @@ const RGB_COLORS = {
 const SwitchNative = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives.RootProps>(
   ({ className, ...props }, ref) => {
     const { colorScheme } = useColorScheme();
-    const translateX = useDerivedValue(() => (props.checked ? 14 : -4));
+    const translateX = useDerivedValue(() => (props.checked ? 16 : -2));
     const animatedRootStyle = useAnimatedStyle(() => {
       return {
         backgroundColor: interpolateColor(
@@ -68,7 +68,7 @@ const SwitchNative = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives
       >
         <SwitchPrimitives.Root
           className={cn(
-            'flex-row h-4 w-[32px] shrink-0 items-center rounded-full border-2 border-transparent',
+            'flex-row h-4 w-[32px] shrink-0 items-center rounded-full',
             props.checked ? 'bg-primary' : 'bg-input',
             className
           )}

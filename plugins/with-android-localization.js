@@ -1,9 +1,10 @@
 // https://github.com/mmomtchev/expo-android-localized-app-name/blob/main/index.js
 
-const fs = require('fs');
-const path = require('path');
-const { withStringsXml, AndroidConfig } = require('@expo/config-plugins');
-const xml2js = require('xml2js');
+import configPlugins from '@expo/config-plugins';
+import fs from 'fs';
+import path from 'path';
+import xml2js from 'xml2js';
+const { withStringsXml, AndroidConfig } = configPlugins;
 const builder = new xml2js.Builder({ headless: true });
 const map = new Map([
   ['en', ''],
@@ -64,4 +65,4 @@ function withAndroidLocalization(config) {
   });
 }
 
-module.exports = withAndroidLocalization;
+export default withAndroidLocalization;

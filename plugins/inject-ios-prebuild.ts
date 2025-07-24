@@ -1,7 +1,9 @@
+import configPlugins from '@expo/config-plugins';
 import { ExpoConfig } from 'expo/config';
-import { withDangerousMod, withXcodeProject, XcodeProject } from 'expo/config-plugins';
 import { promises as fs } from 'fs';
 import { join, resolve } from 'path';
+
+const { withDangerousMod } = configPlugins;
 
 function withIOSInject(config: ExpoConfig): ExpoConfig {
   // 修改 Info.plist 文件可以直接通过 app.config.ts 完成

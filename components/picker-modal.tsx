@@ -1,5 +1,5 @@
 import WheelPicker from '@quidone/react-native-wheel-picker';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, View, useColorScheme } from 'react-native';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
@@ -18,18 +18,21 @@ interface PickerModalProps<T> {
 export default function PickerModal<T>({ visible, title, data, value, onClose, onConfirm }: PickerModalProps<T>) {
   const [tempValue, setTempValue] = useState(value);
   const colorScheme = useColorScheme();
-  const adaptiveColor = colorScheme === 'dark' ? 'white' : 'black';
+  const itemTextStyle = useMemo(() => ({ color: colorScheme === 'dark' ? 'white' : 'black' }), [colorScheme]);
 
   useEffect(() => {
-    setTempValue(value);
-    if (visible) {
-      setTempValue(value);
-    }
+    // newArch下，关闭时重置选中值，打开时重新渲染，否则高度偏移有问题
+    // setTempValue(visible ? value : (undefined as T));
+    visible && setTempValue(value);
   }, [value, visible]);
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     onConfirm(tempValue);
-  };
+  }, [onConfirm, tempValue]);
+
+  const onValueChanged = useCallback(({ item }: { item: { value: T } }) => {
+    setTempValue(item.value);
+  }, []);
 
   return (
     <Modal
@@ -52,13 +55,9 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
               <IcConfirm className="m-1 h-6 w-6" />
             </Pressable>
           </View>
+          {/* 外部区域会无法点击，需要overflow-hidden；newArch下无此问题 */}
           <View className="overflow-hidden">
-            <WheelPicker
-              data={data}
-              value={tempValue}
-              onValueChanged={({ item: { value } }) => setTempValue(value)}
-              itemTextStyle={{ color: adaptiveColor }}
-            />
+            <WheelPicker data={data} value={tempValue} onValueChanged={onValueChanged} itemTextStyle={itemTextStyle} />
           </View>
         </View>
       </View>
