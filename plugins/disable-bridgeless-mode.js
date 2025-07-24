@@ -1,4 +1,5 @@
-// 升级Expo53后，SVG的渲染出现问题，排查发现与BridgelessMode有关，暂时禁用
+// 升级Expo53后，SVG的渲染出现问题，排查发现与BridgelessMode有关
+// 未使用，因为仅关闭BridgelessMode会导致iOS运行失败，现在关闭了newArch
 
 import configPlugins from '@expo/config-plugins';
 const { withAppDelegate, withMainApplication } = configPlugins;
