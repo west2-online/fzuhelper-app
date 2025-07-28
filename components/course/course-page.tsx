@@ -132,10 +132,6 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
         // 此时再进行滚动到指定周数，添加 NeedForceFetch 标记，强制刷新数据
         // 此时会让页面进入 Loading 状态
         setNeedForceFetch(true);
-        flatListRef.current?.scrollToIndex({
-          index: initialWeek - 1,
-          animated: false,
-        });
         setCurrentWeek(initialWeek);
       }
       return true;
