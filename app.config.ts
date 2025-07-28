@@ -13,6 +13,7 @@ const config: ExpoConfig = {
   icon: './assets/images/icon.png',
   scheme: 'fzuhelper',
   userInterfaceStyle: 'automatic',
+  newArchEnabled: false,
   ios: {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
@@ -59,6 +60,7 @@ const config: ExpoConfig = {
   android: {
     package: IS_DEV ? 'com.helper.west2ol.fzuhelper.dev' : 'com.helper.west2ol.fzuhelper',
     versionCode: 700001, // 此处不需要修改，将在inject-android-config中自增
+    edgeToEdgeEnabled: true,
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
       backgroundColor: '#FFFFFF',
@@ -105,8 +107,8 @@ const config: ExpoConfig = {
         recordAudioAndroid: true,
       },
     ],
-    './inject-android-config',
-    './inject-ios-prebuild',
+    './plugins/inject-android-config',
+    './plugins/inject-ios-prebuild',
     [
       './modules/umeng-bridge/app.plugin.js',
       {
@@ -146,7 +148,7 @@ const config: ExpoConfig = {
       'react-native-edge-to-edge',
       {
         android: {
-          parentTheme: 'Material2',
+          parentTheme: 'Default',
           enforceNavigationBarContrast: false,
         },
       },
@@ -182,9 +184,10 @@ const config: ExpoConfig = {
         },
       },
     ],
-    './with-android-theme',
-    './with-android-localization',
+    './plugins/with-android-theme',
+    './plugins/with-android-localization',
     '@bacons/apple-targets', // Apple Targets (e.g. widget)
+    // './plugins/disable-bridgeless-mode',
   ],
   experiments: {
     typedRoutes: true,

@@ -7,6 +7,5 @@ export async function isAccountExist() {
     await LocalUser.load();
   }
   const userInfo = LocalUser.getUser();
-  console.log('userInfo:', userInfo);
   return !!userInfo.userid;
 }
