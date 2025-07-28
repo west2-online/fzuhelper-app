@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useContext, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, type LayoutRectangle } from 'react-native';
 
 import DayItem from '@/components/course/day-item';
@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/text';
 
 import { LEFT_TIME_COLUMN_WIDTH, TOP_CALENDAR_HEIGHT, type CourseInfo } from '@/lib/course';
 
+import { CoursePageContext } from '@/app/(tabs)';
 import CalendarCol from './calendar-col';
 import TimeCol from './time-col';
 
@@ -15,25 +16,16 @@ interface CourseWeekProps {
   week: number;
   startDate: string;
   schedulesByDays: Record<number, CourseInfo[]>;
-  showNonCurrentWeekCourses: boolean;
-  showExam: boolean;
-  hiddenCoursesWithoutAttendances: boolean;
   flatListLayout: LayoutRectangle;
 }
 
 const DAYS = ['一', '二', '三', '四', '五', '六', '日'];
 
-const CourseWeek: React.FC<CourseWeekProps> = ({
-  week,
-  startDate,
-  schedulesByDays,
-  showNonCurrentWeekCourses,
-  hiddenCoursesWithoutAttendances,
-  showExam,
-  flatListLayout,
-}) => {
+const CourseWeek: React.FC<CourseWeekProps> = ({ week, startDate, schedulesByDays, flatListLayout }) => {
   const month = useMemo(() => new Date(startDate).getMonth() + 1, [startDate]);
   const [currentDate, setCurrentDate] = useState(dayjs());
+
+  const { setting } = useContext(CoursePageContext);
 
   useEffect(() => {
     // TODO: 需要做一个优化，由于这个 course-week 组件是嵌套在 FlatList 中的，因此刷新时候会同时刷新多个 course-week 组件
@@ -96,10 +88,10 @@ const CourseWeek: React.FC<CourseWeekProps> = ({
               <CalendarCol
                 key={`${startDate}_${i}`}
                 week={week}
-                showExam={showExam}
+                showExam={setting.exportExamToCourseTable}
                 schedulesOnDay={schedulesByDays[i] || []}
-                isShowNonCurrentWeekCourses={showNonCurrentWeekCourses}
-                hiddenCoursesWithoutAttendances={hiddenCoursesWithoutAttendances}
+                isShowNonCurrentWeekCourses={setting.showNonCurrentWeekCourses}
+                hiddenCoursesWithoutAttendances={setting.hiddenCoursesWithoutAttendances}
                 flatListLayout={{
                   ...flatListLayout,
                   width: flatListLayout.width - LEFT_TIME_COLUMN_WIDTH,
