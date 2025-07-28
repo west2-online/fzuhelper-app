@@ -11,15 +11,7 @@ brew install node yarn cocoapods
 # install node modules
 yarn install
 
-# although it appears this will be fixed in expo, there’s now a new error which causes an XCode build failure.”Command PhaseScriptExecution failed with a nonzero exit code” where React Native bundle script raised this exception
-# 也就是说，下面两行代码修复了`Command PhaseScriptExecution failed with a nonzero exit code` 这个 CI 报错
-yarn add patch-package
-npx patch-package
-
-# xcode cloud sets `CI` env var to 'TRUE':
-# This causes a crash: Error: GetEnv.NoBoolean: TRUE is not a boolean.
-# This is a workaround for that issue.
-CI="true" npx expo prebuild --platform ios
+npx expo prebuild --platform ios
 
 
 # 脚本来源：https://www.richinfante.com/2024/11/18/running-expo-prebuild-in-xcode-cloud
