@@ -182,6 +182,89 @@ const CoursePage: React.FC = () => {
     [maxWeek],
   );
 
+  const headerBackground = useCallback(() => {
+    return !customBackground ? <View className="flex-1 bg-card" /> : undefined;
+  }, [customBackground]);
+
+  const headerLeft = useCallback(
+    () => (
+      <Pressable
+        onPress={() => {
+          if (selectedWeek !== -1) {
+            // 如果是当前学期，点击快捷跳转到当前周
+            safeSetSelectedWeek(currentWeek);
+          }
+        }}
+      >
+        <Text className="ml-4 text-2xl font-medium">课程表</Text>
+      </Pressable>
+    ),
+    [selectedWeek, safeSetSelectedWeek, currentWeek],
+  );
+
+  const headerTitle = useCallback(
+    () => (
+      <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
+        <Text className="mr-1 text-lg">
+          第 {selectedWeek} 周 {selectedWeek === currentWeek ? '(本周)' : ''}
+        </Text>
+        <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+      </Pressable>
+    ),
+    [selectedWeek, currentWeek, showWeekSelector],
+  );
+
+  const headerRight = useCallback(
+    () => (
+      <>
+        <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
+        <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
+      </>
+    ),
+    [],
+  );
+
+  // 提供固定的布局信息，有助于性能优化
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: flatListLayout.width, // 每个项的宽度
+      offset: flatListLayout.width * index, // 每个项的起始位置
+      index, // 当前索引
+    }),
+    [flatListLayout.width],
+  );
+
+  // 渲染列表项（此处一项为一屏的内容）
+  const renderItem = useCallback(
+    ({ item }: { item: { week: number; firstDate: string } }) => (
+      <CourseWeek
+        key={item.week}
+        week={item.week}
+        startDate={item.firstDate}
+        schedulesByDays={schedulesByDays}
+        flatListLayout={flatListLayout}
+      />
+    ),
+    [schedulesByDays, flatListLayout],
+  );
+
+  // 获取 FlatList 的布局信息
+  const onLayout = useCallback(({ nativeEvent }: { nativeEvent: { layout: LayoutRectangle } }) => {
+    setFlatListLayout(nativeEvent.layout);
+  }, []);
+
+  const onClose = useCallback(() => {
+    setShowWeekSelector(false);
+  }, []);
+
+  const onConfirm = useCallback(
+    (selectedValue: string) => {
+      setShowWeekSelector(false);
+      safeSetSelectedWeek(parseInt(selectedValue, 10));
+    },
+    [safeSetSelectedWeek],
+  );
+
   return !cacheInitialized || needForceFetch ? (
     <Loading />
   ) : (
@@ -189,38 +272,10 @@ const CoursePage: React.FC = () => {
       {/* 顶部 Tab 导航栏 */}
       <Tabs.Screen
         options={{
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerBackground: !customBackground ? () => <View className="flex-1 bg-card" /> : undefined,
-          // headerStyle: { backgroundColor: customBackground ? 'transparent' :  },
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerLeft: () => (
-            <Pressable
-              onPress={() => {
-                if (selectedWeek !== -1) {
-                  // 如果是当前学期，点击快捷跳转到当前周
-                  safeSetSelectedWeek(currentWeek);
-                }
-              }}
-            >
-              <Text className="ml-4 text-2xl font-medium">课程表</Text>
-            </Pressable>
-          ),
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerTitle: () => (
-            <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
-              <Text className="mr-1 text-lg">
-                第 {selectedWeek} 周 {selectedWeek === currentWeek ? '(本周)' : ''}
-              </Text>
-              <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
-            </Pressable>
-          ),
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <>
-              <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
-              <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
-            </>
-          ),
+          headerBackground: headerBackground,
+          headerLeft: headerLeft,
+          headerTitle: headerTitle,
+          headerRight: headerRight,
         }}
       />
 
@@ -232,24 +287,10 @@ const CoursePage: React.FC = () => {
         data={weekArray} // 数据源
         initialNumToRender={4} // 初始渲染数量
         windowSize={3} // 窗口大小
-        getItemLayout={(_, index) => ({
-          // 提供固定的布局信息
-          length: flatListLayout.width, // 每个项的宽度
-          offset: flatListLayout.width * index, // 每个项的起始位置
-          index, // 当前索引
-        })}
+        getItemLayout={getItemLayout}
         initialScrollIndex={selectedWeek - 1} // 初始滚动位置
-        // 渲染列表项（此处一项为一屏的内容）
-        renderItem={({ item }) => (
-          <CourseWeek
-            key={item.week}
-            week={item.week}
-            startDate={item.firstDate}
-            schedulesByDays={schedulesByDays}
-            flatListLayout={flatListLayout}
-          />
-        )}
-        onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)} // 获取 FlatList 的布局信息
+        renderItem={renderItem}
+        onLayout={onLayout}
         onViewableItemsChanged={handleViewableItemsChanged}
         viewabilityConfig={{
           itemVisiblePercentThreshold: 50,
@@ -263,11 +304,8 @@ const CoursePage: React.FC = () => {
         title="选择周数"
         data={weekPickerData}
         value={String(selectedWeek)}
-        onClose={() => setShowWeekSelector(false)}
-        onConfirm={selectedValue => {
-          setShowWeekSelector(false);
-          safeSetSelectedWeek(parseInt(selectedValue, 10));
-        }}
+        onClose={onClose}
+        onConfirm={onConfirm}
       />
     </>
   );
