@@ -13,13 +13,13 @@ import { Text } from '@/components/ui/text';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getApiV1JwchCourseList, getApiV1JwchTermList } from '@/api/generate';
+import { getApiV1JwchTermList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_DATA_KEY, COURSE_SETTINGS_KEY } from '@/lib/constants';
-import { CourseCache, defaultCourseSetting, readCourseSetting } from '@/lib/course';
-import locateDate, { convertSemester, deConvertSemester } from '@/lib/locate-date';
+import { COURSE_SETTINGS_KEY } from '@/lib/constants';
+import { CourseCache, defaultCourseSetting, forceRefreshCourseData, readCourseSetting } from '@/lib/course';
+import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 
@@ -72,40 +72,6 @@ export default function AcademicPage() {
     }
   }, [semesters, handleError]);
 
-  // 强制刷新数据（即不使用本地缓存）
-  const forceRefreshCourseData = useCallback(async () => {
-    try {
-      let queryTerm = settings.selectedSemester;
-      // 如果是研究生的话多一层转换
-      if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
-        queryTerm = deConvertSemester(queryTerm);
-      }
-
-      // 课程信息
-      const data = await getApiV1JwchCourseList({ term: queryTerm, is_refresh: true });
-      const cacheToStore = {
-        data: data,
-        timestamp: Date.now(),
-      };
-      await AsyncStorage.setItem([COURSE_DATA_KEY, queryTerm].join('__'), JSON.stringify(cacheToStore));
-
-      // locate-date
-      await locateDate(true); // 强制更新缓存
-
-      CourseCache.setCourses(data.data.data, true); // 设置课程数据,跳过digest检查
-      CourseCache.save(); // 强制保存一次
-      toast.success('刷新成功');
-    } catch (error: any) {
-      const data = handleError(error) as { code: string; message: string };
-      console.log(data);
-      if (data) {
-        toast.error(data.message ? data.message : '未知错误');
-      }
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [settings.selectedSemester, handleError]);
-
   // 选择学期开关
   const handleOpenTermSelectPicker = useCallback(async () => {
     setLoadingSemester(true);
@@ -134,11 +100,23 @@ export default function AcademicPage() {
     }));
   }, []);
 
-  const handleForceRefresh = useCallback(() => {
+  const handleForceRefresh = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
-    forceRefreshCourseData();
-  }, [isRefreshing, forceRefreshCourseData]);
+    try {
+      let queryTerm = settings.selectedSemester;
+      await forceRefreshCourseData(queryTerm);
+      toast.success('刷新成功');
+    } catch (error: any) {
+      const data = handleError(error) as { code: string; message: string };
+      console.log(data);
+      if (data) {
+        toast.error(data.message ? data.message : '未知错误');
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, settings.selectedSemester, handleError]);
 
   // 控制导出到本地日历
   const handleExportToCalendar = useCallback(async () => {

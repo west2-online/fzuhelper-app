@@ -1,10 +1,12 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
+import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import {
   CLASS_BREAK_EVENING,
   CLASS_BREAK_NOON,
   CLASS_SCHEDULES_MINUTES,
   COURSE_CURRENT_CACHE_KEY,
+  COURSE_DATA_KEY,
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
   IOS_APP_GROUP,
@@ -22,7 +24,8 @@ import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
-import { getWeeksBySemester } from './locate-date';
+import locateDate, { deConvertSemester, getWeeksBySemester } from './locate-date';
+import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
 
 // 注册 dayjs 插件
 dayjs.extend(isBetween);
@@ -796,4 +799,26 @@ export const readCourseSetting = async (): Promise<CourseSetting> => {
   await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(config));
 
   return config;
+};
+
+// 强制刷新数据（即不使用本地缓存）
+export const forceRefreshCourseData = async (queryTerm: string) => {
+  // 如果是研究生的话多一层转换
+  if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
+    queryTerm = deConvertSemester(queryTerm);
+  }
+
+  // 课程信息
+  const data = await getApiV1JwchCourseList({ term: queryTerm, is_refresh: true });
+  const cacheToStore = {
+    data: data,
+    timestamp: Date.now(),
+  };
+  await AsyncStorage.setItem([COURSE_DATA_KEY, queryTerm].join('__'), JSON.stringify(cacheToStore));
+
+  // locate-date
+  await locateDate(true); // 强制更新缓存
+
+  CourseCache.setCourses(data.data.data, true); // 设置课程数据,跳过digest检查
+  CourseCache.save(); // 强制保存一次
 };

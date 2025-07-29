@@ -9,11 +9,13 @@ import { TermsListResponse_Term } from '@/api/backend';
 import { getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import PageContainer from '@/components/page-container';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
-import { CourseCache, normalizeCourseSetting } from '@/lib/course';
+import { CourseCache, forceRefreshCourseData, normalizeCourseSetting } from '@/lib/course';
 import locateDate, { getWeeksBySemester } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
+import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
 
 interface CoursePageContextProps {
@@ -30,6 +32,9 @@ export default function HomePage() {
   const [coursePageContextProps, setCoursePageContextProps] = useState<CoursePageContextProps | null>(null);
 
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
+
+  const [isRefreshing, setIsRefreshing] = useState(false); // 是否下拉刷新
+  const { handleError } = useSafeResponseSolve();
 
   // loadData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
   const loadConfigAndDateResult = useCallback(async () => {
@@ -111,13 +116,42 @@ export default function HomePage() {
     }
   }, [cacheInitialized]);
 
+  const onRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      // 能下拉页面一定加载好了，所以不可能为空，直接从这里拿
+      let queryTerm = coursePageContextProps!.setting.selectedSemester;
+      // 清空当前上下文旧数据，显示Loading
+      setCoursePageContextProps(null);
+      // 强制刷新课程数据
+      await forceRefreshCourseData(queryTerm);
+      // 本页面重新初始化配置
+      loadConfigAndDateResult();
+      // toast.success('刷新成功');
+    } catch (error: any) {
+      const data = handleError(error) as { code: string; message: string };
+      console.log(data);
+      if (data) {
+        toast.error(data.message ? data.message : '未知错误');
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, coursePageContextProps, loadConfigAndDateResult, handleError]);
+
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置
   // 具体加载课程的逻辑在 CoursePage 组件中
   return coursePageContextProps ? (
     <PageContainer refreshBackground>
-      <CoursePageContext value={coursePageContextProps}>
-        <CoursePage />
-      </CoursePageContext>
+      <ScrollView
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+        contentContainerClassName="flex-1"
+      >
+        <CoursePageContext value={coursePageContextProps}>
+          <CoursePage />
+        </CoursePageContext>
+      </ScrollView>
     </PageContainer>
   ) : (
     <Loading />
