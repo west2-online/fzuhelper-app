@@ -45,11 +45,14 @@ const CoursePage: React.FC = () => {
 
   // 周数切换，注意改变选中周必须使用该函数，以避免 FlatList 滚动越界导致崩溃
   const safeSetSelectedWeek = useCallback(
-    (week: number) => {
-      if (week < 1) {
-        setSelectedWeek(1);
-      } else {
-        setSelectedWeek(Math.min(week, maxWeek));
+    (week: number, scrollTo: boolean = true) => {
+      const targetWeek = Math.max(1, Math.min(week, maxWeek));
+      setSelectedWeek(targetWeek);
+      if (scrollTo && flatListRef.current) {
+        flatListRef.current.scrollToIndex({
+          index: targetWeek - 1,
+          animated: false,
+        });
       }
     },
     [maxWeek],
@@ -157,20 +160,12 @@ const CoursePage: React.FC = () => {
       if (viewableItems.length > 0) {
         const firstViewableWeek = viewableItems[0].item.week;
         if (firstViewableWeek !== selectedWeek) {
-          safeSetSelectedWeek(firstViewableWeek);
+          safeSetSelectedWeek(firstViewableWeek, false);
         }
       }
     },
     [safeSetSelectedWeek, selectedWeek],
   );
-
-  // selectedWeek 变化时，FlatList 滚动到对应周
-  useEffect(() => {
-    flatListRef?.current?.scrollToIndex({
-      index: selectedWeek - 1,
-      animated: false,
-    });
-  }, [currentWeek, maxWeek, selectedWeek]);
 
   // 生成周数选择器的数据
   const weekPickerData = useMemo(
