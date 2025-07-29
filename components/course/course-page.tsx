@@ -285,7 +285,7 @@ const CoursePage: React.FC = () => {
         horizontal // 水平滚动
         pagingEnabled // 分页滚动
         data={weekArray} // 数据源
-        initialNumToRender={4} // 初始渲染数量
+        initialNumToRender={1} // 初始渲染数量，影响首屏速度
         windowSize={3} // 窗口大小
         getItemLayout={getItemLayout}
         initialScrollIndex={selectedWeek - 1} // 初始滚动位置
