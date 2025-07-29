@@ -43,13 +43,16 @@ export default function HomePage() {
   const loadConfigAndDateResult = useCallback(async () => {
     // const startTime = Date.now(); // 记录开始时间
 
-    const res = await locateDate();
+    const locateDateRes = await locateDate();
 
     // 获取最新的课表设置
     const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
     const tryParsedSettings = setting ? JSON.parse(setting) : {};
-    const selectedSemester = tryParsedSettings.selectedSemester || res.semester;
+    const selectedSemester = tryParsedSettings.selectedSemester || locateDateRes.semester;
     const parsedSettings = normalizeCourseSetting({ ...tryParsedSettings, selectedSemester });
+
+    // 定位当前周，如果是历史学期（即和 locateDate 给出的学期不符），则为-1
+    const currentWeek = locateDateRes.semester === parsedSettings.selectedSemester ? locateDateRes.week : -1;
 
     // 获取当前学期信息
     const currentTerm = termsData?.data.data.terms.find(t => t.term === selectedSemester);
@@ -65,8 +68,7 @@ export default function HomePage() {
 
     setCoursePageContextProps({
       setting: parsedSettings,
-      // 如果是历史学期（即和 locateDate 给出的学期不符），则为-1，反之则是当前周
-      currentWeek: res.semester === parsedSettings.selectedSemester ? res.week : -1,
+      currentWeek,
       currentTerm,
       maxWeek,
     });

@@ -43,9 +43,9 @@ const CoursePage: React.FC = () => {
 
   const flatListRef = useRef<FlatList>(null);
 
+  // 周数切换，注意改变选中周必须使用该函数，以避免 FlatList 滚动越界导致崩溃
   const safeSetSelectedWeek = useCallback(
     (week: number) => {
-      console.log('Setting selected week:', week);
       if (week < 1) {
         setSelectedWeek(1);
       } else {
