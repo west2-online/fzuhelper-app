@@ -25,14 +25,14 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
     <>
       <View style={{ padding: SCHEDULE_ITEM_MARGIN, height: span * itemHeight }}>
         <Pressable
-          className="flex flex-1 flex-col items-center justify-center rounded-lg p-[1px]"
+          className="flex flex-1 flex-col items-center justify-center overflow-hidden rounded-lg p-[1px]"
           style={{
             backgroundColor: getCourseColor(color, colorScheme === 'dark'),
           }}
           onPress={() => setDetailsDialogOpen(true)}
         >
           <Text
-            className="line-clamp-3 truncate text-wrap break-all text-center text-[11px]"
+            className={`${span > 1 ? 'line-clamp-3' : 'line-clamp-2'} truncate text-wrap break-all text-center text-[11px]`}
             style={{ color: getTextColor(color, colorScheme === 'dark') }}
           >
             {schedules[0].name}
