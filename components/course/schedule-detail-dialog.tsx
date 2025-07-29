@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 
-import { CUSTOM_TYPE, CourseCache, type CourseInfo } from '@/lib/course';
+import { CUSTOM_TYPE, CourseCache, CustomCourse, type CourseInfo } from '@/lib/course';
 import { pushToWebViewJWCH } from '@/lib/webview';
 
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
@@ -36,12 +36,12 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
 
   const handleSyllabusPress = useCallback(() => {
     closeDialog();
-    pushToWebViewJWCH(schedule.syllabus, '教学大纲');
+    pushToWebViewJWCH(schedule.syllabus!, '教学大纲');
   }, [schedule.syllabus, closeDialog]);
 
   const handleLessonplanPress = useCallback(() => {
     closeDialog();
-    pushToWebViewJWCH(schedule.lessonplan, '授课计划');
+    pushToWebViewJWCH(schedule.lessonplan!, '授课计划');
   }, [schedule.lessonplan, closeDialog]);
 
   const setPriority = useCallback(
@@ -139,7 +139,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                         href={{
                           pathname: '/settings/custom-course',
                           params: {
-                            key: schedule.storageKey,
+                            key: (schedule as CustomCourse).storageKey,
                           },
                         }}
                         onPress={closeDialog}
@@ -160,7 +160,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                               style: 'destructive',
                               onPress: () => {
                                 closeDialog();
-                                CourseCache.removeCustomCourse(schedule.storageKey);
+                                CourseCache.removeCustomCourse((schedule as CustomCourse).storageKey);
                               },
                             },
                           ]);

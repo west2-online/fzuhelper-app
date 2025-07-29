@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Pressable, useColorScheme, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
@@ -58,4 +58,4 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
   );
 };
 
-export default ScheduleItem;
+export default memo(ScheduleItem);
