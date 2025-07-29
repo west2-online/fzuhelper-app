@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/text';
 
 import { LEFT_TIME_COLUMN_WIDTH, TOP_CALENDAR_HEIGHT, type CourseInfo } from '@/lib/course';
 
+import { DATE_FORMAT_FULL } from '@/lib/constants';
 import CalendarCol from './calendar-col';
 import TimeCol from './time-col';
 
@@ -23,13 +24,13 @@ const DAYS = ['一', '二', '三', '四', '五', '六', '日'];
 // 一周课表
 const CourseWeek: React.FC<CourseWeekProps> = ({ week, startDate, schedulesByDays, flatListLayout }) => {
   const month = useMemo(() => new Date(startDate).getMonth() + 1, [startDate]);
-  const [currentDate, setCurrentDate] = useState(dayjs());
+  const [currentDate, setCurrentDate] = useState(dayjs().format(DATE_FORMAT_FULL)); // 当前日期
 
   useEffect(() => {
     // TODO: 需要做一个优化，由于这个 course-week 组件是嵌套在 FlatList 中的，因此刷新时候会同时刷新多个 course-week 组件
     // 我们期望的应该是只刷新正在呈现的 course-week 组件，但是从性能角度出发，不会有很大影响
     const interval = setInterval(() => {
-      setCurrentDate(dayjs());
+      setCurrentDate(dayjs().format(DATE_FORMAT_FULL));
     }, 1000 * 60); // 每分钟更新一次
 
     return () => clearInterval(interval); // 组件卸载时清除定时器
