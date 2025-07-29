@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { memo, useEffect, useMemo, useState } from 'react';
-import { ScrollView, View, type LayoutRectangle } from 'react-native';
+import { View, type LayoutRectangle } from 'react-native';
 
 import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/text';
 import { LEFT_TIME_COLUMN_WIDTH, TOP_CALENDAR_HEIGHT, type CourseInfo } from '@/lib/course';
 
 import { DATE_FORMAT_FULL } from '@/lib/constants';
+import { ScrollView } from 'react-native-gesture-handler';
 import CalendarCol from './calendar-col';
 import TimeCol from './time-col';
 
