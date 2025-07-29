@@ -102,7 +102,7 @@
     "react-native-mime-types": "^2.5.0",
     "react-native-permissions": "^5.4.1",
     "react-native-qrcode-svg": "^6.3.12",
-    "react-native-reanimated": "~3.17.4",
+    "react-native-reanimated": "^3.19.0",
     "react-native-refresh-control": "^2.1.0",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
