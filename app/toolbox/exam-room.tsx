@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCallback, useMemo, useState } from 'react';
+import { Dimensions, FlatList, Pressable, RefreshControl, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import { Icon } from '@/components/Icon';
@@ -13,9 +13,12 @@ import { Text } from '@/components/ui/text';
 
 import { ResultEnum } from '@/api/enum';
 import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
+import Loading from '@/components/loading';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_EXAM_ROOM } from '@/lib/FAQ';
 import { formatExamData } from '@/lib/exam-room';
+import { MergedExamData } from '@/types/academic';
+import React from 'react';
 
 // 处理API错误
 const errorHandler = (data: any) => {
@@ -31,7 +34,7 @@ interface TermContentProps {
   term: string;
 }
 
-const TermContent: React.FC<TermContentProps> = ({ term }) => {
+const TermContent = React.memo<TermContentProps>(({ term }) => {
   const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
   const { data, dataUpdatedAt, isLoading, refetch } = useApiRequest(getApiV1JwchClassroomExam, { term });
   const termData = formatExamData(data || []).sort((a, b) => {
@@ -60,37 +63,54 @@ const TermContent: React.FC<TermContentProps> = ({ term }) => {
     // 时间差小的优先
     return diffA - diffB;
   });
-  const lastUpdated = new Date(dataUpdatedAt);
+  const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
+  const { bottom } = useSafeAreaInsets();
+  const contentContainerStyle = useMemo(() => ({ paddingBottom: bottom }), [bottom]);
+  const flatListStyle = useMemo(() => ({ width: screenWidth }), [screenWidth]);
+
+  const keyExtractor = useCallback((item: MergedExamData, index: number) => `${item.name}-${index}`, []);
+
+  const renderItem = useCallback(({ item }: { item: MergedExamData }) => {
+    return <ExamRoomCard item={item} />;
+  }, []);
+
+  const renderListEmptyComponent = useMemo(() => {
+    if (isLoading) {
+      return null;
+    }
+    return <Text className="text-center text-text-secondary">暂无考试数据</Text>;
+  }, [isLoading]);
+
+  const renderListFooterComponent = useMemo(() => {
+    if (termData.length > 0) {
+      return (
+        <View className="my-4 flex flex-row items-center justify-center">
+          <Icon name="time-outline" size={16} className="mr-2" />
+          <Text className="text-sm leading-5 text-text-primary">
+            数据同步时间：{(lastUpdated && lastUpdated.toLocaleString()) || '请进行一次同步'}
+          </Text>
+        </View>
+      );
+    }
+    return null;
+  }, [termData.length, lastUpdated]);
 
   return (
-    <ScrollView
+    <FlatList
+      data={termData}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
-      className="grow"
-      style={{ width: screenWidth }}
-      contentContainerClassName="flex-grow"
-    >
-      <SafeAreaView edges={['bottom']} className="flex-1">
-        {termData.length > 0 ? (
-          termData.map((item, idx) => (
-            <View key={idx} className="mx-4">
-              <ExamRoomCard item={item} />
-            </View>
-          ))
-        ) : (
-          <Text className="text-center text-text-secondary">{isLoading ? '正在刷新中' : '暂无考试数据'}</Text>
-        )}
-
-        {/* 显示刷新时间 */}
-        {lastUpdated && (
-          <View className="my-4 flex flex-row items-center justify-center">
-            <Icon name="time-outline" size={16} className="mr-2" />
-            <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
-          </View>
-        )}
-      </SafeAreaView>
-    </ScrollView>
+      contentContainerStyle={contentContainerStyle}
+      contentContainerClassName="mt-3 mx-4 gap-3"
+      style={flatListStyle}
+      ListEmptyComponent={renderListEmptyComponent}
+      ListFooterComponent={renderListFooterComponent}
+    />
   );
-};
+});
+
+TermContent.displayName = 'TermContent';
 
 export default function ExamRoomPage() {
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
@@ -103,7 +123,7 @@ export default function ExamRoomPage() {
     [currentTerm],
   );
   // 获取学期列表（当前用户）
-  const { data: termList } = useApiRequest(
+  const { data: termList, isLoading: isLoadingTermList } = useApiRequest(
     getApiV1JwchTermList,
     {},
     {
@@ -118,27 +138,39 @@ export default function ExamRoomPage() {
     setShowFAQ(prev => !prev);
   }, []);
 
+  const headerRight = useCallback(
+    () => (
+      <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
+        <Icon name="help-circle-outline" size={26} className="mr-4" />
+      </Pressable>
+    ),
+    [handleModalVisible],
+  );
+
+  const renderContent = useCallback((term: string) => {
+    return <TermContent term={term} />;
+  }, []);
+
   return (
     <>
       <Stack.Screen
         options={{
           title: '考场查询',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-              <Icon name="help-circle-outline" size={26} className="mr-4" />
-            </Pressable>
-          ),
+          headerRight: headerRight,
         }}
       />
 
       <PageContainer>
-        <TabFlatList
-          data={termList ?? []}
-          value={currentTerm}
-          onChange={setCurrentTerm}
-          renderContent={term => <TermContent term={term} />}
-        />
+        {isLoadingTermList ? (
+          <Loading />
+        ) : (
+          <TabFlatList
+            data={termList ?? []}
+            value={currentTerm}
+            onChange={setCurrentTerm}
+            renderContent={renderContent}
+          />
+        )}
       </PageContainer>
 
       {/* FAQ Modal */}
