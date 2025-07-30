@@ -1,6 +1,6 @@
 import { Link, useRouter, type Href } from 'expo-router';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Platform, Pressable, useWindowDimensions } from 'react-native';
+import { FlatList, Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
@@ -36,7 +36,7 @@ import { showIgnorableAlert } from '@/lib/common-settings';
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { cn } from '@/lib/utils';
 import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
+import { toolOnPress, ToolType, UserType, type Tool } from '@/utils/tools';
 
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen } from '@/api/generate';
@@ -478,7 +478,10 @@ export default function ToolsPage() {
       <FlatList
         ListHeaderComponent={
           /* 滚动横幅 */
-          <Banner contents={bannerList} />
+          // 42对应上面的padding值，限制最大值避免横屏时过宽
+          <View className="flex items-center">
+            <Banner contents={bannerList} width={Math.min(screenWidth - 42, 550)} />
+          </View>
         }
         ListHeaderComponentClassName="mb-4"
         data={toolList}
