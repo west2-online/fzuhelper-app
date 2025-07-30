@@ -60,7 +60,7 @@ const TermContent = React.memo<TermContentProps>(({ termData, isLoading, dataUpd
   }, [termData.length, summary]);
 
   const renderListEmptyComponent = useMemo(() => {
-    return <Text className="text-center text-gray-500">暂无成绩数据</Text>;
+    return <Text className="text-center text-text-secondary">暂无成绩数据</Text>;
   }, []);
 
   const renderListFooterComponent = useMemo(() => {
@@ -85,7 +85,7 @@ const TermContent = React.memo<TermContentProps>(({ termData, isLoading, dataUpd
           data={sortedTermData}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          contentContainerClassName="mx-4 gap-3"
+          contentContainerClassName="mt-3 mx-4 gap-3"
           contentContainerStyle={contentContainerStyle}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}
           ListHeaderComponent={renderListHeaderComponent}
@@ -132,6 +132,11 @@ export default function GradesPage() {
   } = useApiRequest(getApiV1JwchAcademicScores, {}, { errorHandler, retry: 0 });
   const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
 
+  const isLoading = useMemo(
+    () => isLoadingTermList || isLoadingAcademicData,
+    [isLoadingTermList, isLoadingAcademicData],
+  );
+
   // 处理 Modal 显示事件
   const handleModalVisible = useCallback(() => {
     setShowFAQ(prev => !prev);
@@ -177,7 +182,7 @@ export default function GradesPage() {
       />
 
       <PageContainer>
-        {isLoadingTermList && isLoadingAcademicData ? (
+        {isLoading ? (
           <Loading />
         ) : (
           <TabFlatList

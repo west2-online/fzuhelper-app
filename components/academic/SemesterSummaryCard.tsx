@@ -11,7 +11,7 @@ interface SemesterSummaryCardProps {
 
 function SemesterSummaryCard({ summary }: SemesterSummaryCardProps) {
   return (
-    <Card className="mt-3 p-3">
+    <Card className="p-3">
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-col items-start">
           <Text className="text-sm text-text-primary">总课程数</Text>
