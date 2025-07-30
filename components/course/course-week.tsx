@@ -17,7 +17,7 @@ interface CourseWeekProps {
   week: number; // 当前周数
   startDate: string; // 当前周的开始日期
   schedulesByDays: Record<number, CourseInfo[]>; // 当天课程数据
-  flatListLayout: LayoutRectangle;
+  flatListLayout: LayoutRectangle | null;
 }
 
 const DAYS = ['一', '二', '三', '四', '五', '六', '日'];
@@ -54,6 +54,12 @@ const CourseWeek: React.FC<CourseWeekProps> = ({ week, startDate, schedulesByDay
     });
   }, [startDate, currentDate]);
 
+  if (!flatListLayout) {
+    // FlatList 布局还未确定，此时渲染会导致高度的跳变
+    // 触发次数 = initialNumToRender
+    return null;
+  }
+
   return (
     <View className="flex flex-col" style={{ width: flatListLayout.width }}>
       <HeaderContainer style={{ width: flatListLayout.width, height: TOP_CALENDAR_HEIGHT }}>
@@ -77,26 +83,29 @@ const CourseWeek: React.FC<CourseWeekProps> = ({ week, startDate, schedulesByDay
           ))}
         </View>
       </HeaderContainer>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} overScrollMode="never">
-        <View className="flex flex-row">
-          {/* （左侧）时间列 */}
-          <TimeCol height={flatListLayout.height - TOP_CALENDAR_HEIGHT} />
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="flex flex-row"
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
+      >
+        {/* （左侧）时间列 */}
+        <TimeCol height={flatListLayout.height - TOP_CALENDAR_HEIGHT} />
 
-          {/* 课程内容 */}
-          <View className="flex flex-1 flex-row">
-            {Array.from({ length: 7 }, (_, i) => (
-              <CalendarCol
-                key={`${startDate}_${i}`}
-                week={week}
-                schedulesOnDay={schedulesByDays[i] || []}
-                flatListLayout={{
-                  ...flatListLayout,
-                  width: flatListLayout.width - LEFT_TIME_COLUMN_WIDTH,
-                  height: flatListLayout.height - TOP_CALENDAR_HEIGHT,
-                }}
-              />
-            ))}
-          </View>
+        {/* 课程内容 */}
+        <View className="flex flex-1 flex-row">
+          {Array.from({ length: 7 }, (_, i) => (
+            <CalendarCol
+              key={`${startDate}_${i}`}
+              week={week}
+              schedulesOnDay={schedulesByDays[i] || []}
+              flatListLayout={{
+                ...flatListLayout,
+                width: flatListLayout.width - LEFT_TIME_COLUMN_WIDTH,
+                height: flatListLayout.height - TOP_CALENDAR_HEIGHT,
+              }}
+            />
+          ))}
         </View>
       </ScrollView>
     </View>
