@@ -13,7 +13,6 @@ const config: ExpoConfig = {
   icon: './assets/images/icon.png',
   scheme: 'fzuhelper',
   userInterfaceStyle: 'automatic',
-  newArchEnabled: false,
   ios: {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
