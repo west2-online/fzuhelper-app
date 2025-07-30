@@ -1,8 +1,7 @@
 import { AxiosResponse } from 'axios';
 
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { useQuery } from '@tanstack/react-query';
-import { type UseQueryResult } from '@tanstack/react-query/src/types';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
 
 type ApiReturn<T> = AxiosResponse<{ code: string; message: string; data: T }>;
 type ApiFunction<T, R> = (params: T) => Promise<ApiReturn<R>>;

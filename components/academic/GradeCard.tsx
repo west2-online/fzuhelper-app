@@ -3,7 +3,7 @@ import { Text } from '@/components/ui/text';
 import { parseScoreToColor } from '@/lib/grades';
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { CourseGradesData } from '@/types/academic';
-import React from 'react';
+import React, { memo } from 'react';
 import { View } from 'react-native';
 
 interface GradeCardProps {
@@ -63,4 +63,4 @@ const GradeCard: React.FC<GradeCardProps> = ({ item }) => {
   );
 };
 
-export default GradeCard;
+export default memo(GradeCard);
