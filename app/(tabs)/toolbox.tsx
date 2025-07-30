@@ -1,5 +1,5 @@
-import { Link, useRouter, type Href, type Router } from 'expo-router';
-import { forwardRef, useEffect, useState } from 'react';
+import { Link, useRouter, type Href } from 'expo-router';
+import { forwardRef, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Platform, Pressable, useWindowDimensions } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 
@@ -273,7 +273,7 @@ const DEFAULT_TOOLS: Tool[] = [
 ];
 
 // 工具函数：处理工具数据，按列数填充占位符
-const processTools = (tools: Tool[], columns: number) => {
+const processTools = (tools: Tool[], columns: number): Tool[] => {
   const remainder = tools.length % columns;
   if (remainder === 0) return tools; // 不需要填充
 
@@ -329,24 +329,31 @@ const useToolsPageData = (columns: number) => {
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
   const [toolList, setToolList] = useState<Tool[]>([]);
 
-  useEffect(() => {
-    if (bannerData) {
-      const processedBanner = processBannerData(bannerData);
-      if (processedBanner.length > 0) {
-        setBannerList(processedBanner);
-      }
-    } else {
-      setBannerList(DEFAULT_BANNERS);
-    }
+  const userType = useMemo(() => LocalUser.getUser().type as UserType, []);
 
-    setToolList(
-      // 此处会进行一层过滤，只显示当前用户类型可用的工具
-      processTools(
-        DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType)),
-        columns,
-      ),
-    );
-  }, [bannerData, columns]);
+  const filteredTools = useMemo(() => {
+    return DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(userType));
+  }, [userType]);
+
+  const processedTools = useMemo(() => {
+    return processTools(filteredTools, columns);
+  }, [filteredTools, columns]);
+
+  const processedBanners = useMemo(() => {
+    if (bannerData) {
+      const processed = processBannerData(bannerData);
+      return processed.length > 0 ? processed : DEFAULT_BANNERS;
+    }
+    return DEFAULT_BANNERS;
+  }, [bannerData]);
+
+  useEffect(() => {
+    setBannerList(processedBanners);
+  }, [processedBanners]);
+
+  useEffect(() => {
+    setToolList(processedTools);
+  }, [processedTools]);
 
   return { bannerList, toolList };
 };
@@ -354,84 +361,133 @@ const useToolsPageData = (columns: number) => {
 type ToolButtonProps = Omit<ButtonProps, 'size'> & {
   name: string;
   icon?: React.FC<SvgProps>;
+  textWidth: number;
+  fontSize: number;
 };
 
-// eslint-disable-next-line react/display-name
-const ToolButton = forwardRef<React.ComponentRef<typeof Pressable>, ToolButtonProps>(
-  ({ className, icon: Icon, name, onPress }, ref) => (
-    <Button
-      className={cn('mb-3 h-auto w-auto items-center justify-center bg-transparent', className)}
-      size="icon"
-      onPress={onPress}
-      ref={ref}
-    >
-      {Icon ? <Icon width="42px" height="42px" /> : null}
-      <Text
-        className="w-[60px] text-center align-middle text-text-secondary"
-        // eslint-disable-next-line react-native/no-inline-styles
-        style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
-        {name}
-      </Text>
-    </Button>
+const ToolButton = memo(
+  forwardRef<React.ComponentRef<typeof Pressable>, ToolButtonProps>(
+    ({ className, icon: Icon, name, onPress, textWidth, fontSize }, ref) => {
+      return (
+        <Button
+          className={cn('mx-0 mb-3 h-auto w-auto items-center justify-start bg-transparent', className)}
+          size="icon"
+          onPress={onPress}
+          ref={ref}
+        >
+          {Icon ? <Icon width="42px" height="42px" /> : null}
+          <Text
+            className="mt-0.5 text-center align-middle text-text-secondary"
+            style={{
+              width: textWidth,
+              fontSize: fontSize,
+            }}
+            numberOfLines={2} // 最大行数
+            ellipsizeMode="tail"
+          >
+            {name}
+          </Text>
+        </Button>
+      );
+    },
   ),
 );
+
+ToolButton.displayName = 'ToolButton';
 
 type ToolButtonLinkProps = Omit<ToolButtonProps, 'onPress'> & {
   href: Href;
 };
 
-const ToolButtonLink: React.FC<ToolButtonLinkProps> = ({ href, ...props }) => (
+const ToolButtonLink = memo<ToolButtonLinkProps>(({ href, ...props }) => (
   <Link href={href} asChild>
     <ToolButton {...props} />
   </Link>
-);
+));
 
-// 工具按钮的渲染函数
-const renderToolButton = (item: Tool, router: Router) => {
-  if (item.type === ToolType.LINK) {
-    return <ToolButtonLink name={item.name} href={item.href} icon={item.icon} />;
-  }
-
-  if (item.type === ToolType.WEBVIEW) {
-    return <ToolButtonLink name={item.name} href={getWebViewHref(item.params)} icon={item.icon} />;
-  }
-
-  return <ToolButton name={item.name} icon={item.icon} onPress={() => toolOnPress(item, router)} />;
-};
+ToolButtonLink.displayName = 'ToolButtonLink';
 
 export default function ToolsPage() {
   const { width: screenWidth } = useWindowDimensions();
 
-  const TOOL_BUTTON_WIDTH = 70; // 每个按钮的宽度（包括间距）
-  const PADDING = 16; // 页面左右边距
-  const MAX_COLUMNS = 5; // 最大列数
-  const MIN_COLUMNS = 1; // 最小列数
+  const columns = 5;
 
-  // 计算可用列数
-  const columns = Math.max(
-    MIN_COLUMNS,
-    Math.min(MAX_COLUMNS, Math.floor((screenWidth - PADDING * 2) / TOOL_BUTTON_WIDTH)),
-  );
+  // 计算缩放值
+  const { scaledTextWidth, scaledFontSize } = useMemo(() => {
+    const baseWidth = 392; // 基准屏幕宽度
+    const baseTextWidth = 60; // 基准文字宽度
+    const baseFontSize = 12; // 基准字体大小
+
+    return {
+      scaledTextWidth: Math.min((baseTextWidth * screenWidth) / baseWidth, 72),
+      scaledFontSize: Math.min((baseFontSize * screenWidth) / baseWidth, 14), // 限制最大字体大小为14，避免横屏字体过大
+    };
+  }, [screenWidth]);
 
   const { bannerList, toolList } = useToolsPageData(columns);
   const router = useRouter();
 
+  // 工具按钮的渲染函数
+  const renderToolButton = useCallback(
+    ({ item }: { item: Tool }) => {
+      switch (item.type) {
+        case ToolType.LINK:
+          return (
+            <ToolButtonLink
+              name={item.name}
+              href={item.href}
+              icon={item.icon}
+              textWidth={scaledTextWidth}
+              fontSize={scaledFontSize}
+            />
+          );
+
+        case ToolType.WEBVIEW:
+          return (
+            <ToolButtonLink
+              name={item.name}
+              href={getWebViewHref(item.params)}
+              icon={item.icon}
+              textWidth={scaledTextWidth}
+              fontSize={scaledFontSize}
+            />
+          );
+
+        default:
+          return (
+            <ToolButton
+              name={item.name}
+              icon={item.icon}
+              onPress={() => toolOnPress(item, router)}
+              textWidth={scaledTextWidth}
+              fontSize={scaledFontSize}
+            />
+          );
+      }
+    },
+    [router, scaledTextWidth, scaledFontSize],
+  );
+
+  // FlatList 的 keyExtractor
+  const keyExtractor = useCallback((item: Tool, index: number) => {
+    return item.name ? `${item.name}-${index}` : `placeholder-${index}`;
+  }, []);
+
   return (
     <PageContainer className="p-6">
-      {/* 滚动横幅 */}
-      <Banner contents={bannerList} />
-
-      {/* 工具区域 */}
       <FlatList
+        ListHeaderComponent={
+          /* 滚动横幅 */
+          <Banner contents={bannerList} />
+        }
+        ListHeaderComponentClassName="mb-4"
         data={toolList}
-        keyExtractor={(_, index) => index.toString()}
-        numColumns={columns} // 使用动态计算的列数
-        className="mt-4"
+        keyExtractor={keyExtractor}
+        numColumns={columns}
         columnWrapperClassName="justify-between"
-        renderItem={({ item }) => renderToolButton(item, router)}
+        renderItem={renderToolButton}
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
       />
     </PageContainer>
   );
