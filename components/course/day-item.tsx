@@ -46,7 +46,7 @@ type DayItemProps = {
 
 // 这个组件用于渲染一个日期的单元格，比如星期一到星期日
 const DayItem: React.FC<DayItemProps> = ({ day, date, variant }) => (
-  <View className="flex flex-grow flex-col items-center pt-2">
+  <View className="flex flex-grow flex-col items-center">
     <Text className={cn(dayItemTextVariants({ variant }))}>{day}</Text>
     <Text className={cn('mt-1', dayItemText2Variants({ variant }))}>{date}</Text>
 

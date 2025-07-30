@@ -73,7 +73,7 @@ export const SCHEDULE_ITEM_MARGIN = 1;
 export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
 export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
 export const LEFT_TIME_COLUMN_WIDTH = 32;
-export const TOP_CALENDAR_HEIGHT = 72;
+export const TOP_CALENDAR_HEIGHT = 68;
 
 export const COURSE_TYPE = 0;
 export const EXAM_TYPE = 1;
