@@ -1,6 +1,6 @@
 import { router, Stack } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, ScrollView, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 
 import DateCard from '@/components/learning-center/date-card';
 import TimeCard from '@/components/learning-center/time-card';
@@ -73,30 +73,33 @@ export default function SeatsPage() {
   );
 
   // 处理时间点击事件
-  const handleTimeSelection = (time: string) => {
-    // 1. 开始：无 结束：无 点击-> 设置开始时间
-    // 2. 开始：有 结束：无 点击-> 判断
-    //   2.1 点击的时间比开始时间早，清除开始时间，设置新的开始时间
-    //   2.2 点击的时间比开始时间晚，设置结束时间
-    //   2.3 点击的时间和开始时间相同，清除开始时间
-    // 3. 开始：有 结束：有 点击-> 清除开始和结束时间
-    // 时间先后问题在push的时候进行判断
+  const handleTimeSelection = useCallback(
+    (time: string) => {
+      // 1. 开始：无 结束：无 点击-> 设置开始时间
+      // 2. 开始：有 结束：无 点击-> 判断
+      //   2.1 点击的时间比开始时间早，清除开始时间，设置新的开始时间
+      //   2.2 点击的时间比开始时间晚，设置结束时间
+      //   2.3 点击的时间和开始时间相同，清除开始时间
+      // 3. 开始：有 结束：有 点击-> 清除开始和结束时间
+      // 时间先后问题在push的时候进行判断
 
-    if (!beginTime && !endTime) {
-      setBeginTime(time);
-    } else if (beginTime && !endTime) {
-      if (time < beginTime) {
+      if (!beginTime && !endTime) {
         setBeginTime(time);
-      } else if (time > beginTime) {
-        setEndTime(time);
+      } else if (beginTime && !endTime) {
+        if (time < beginTime) {
+          setBeginTime(time);
+        } else if (time > beginTime) {
+          setEndTime(time);
+        } else {
+          setBeginTime(null);
+        }
       } else {
         setBeginTime(null);
+        setEndTime(null);
       }
-    } else {
-      setBeginTime(null);
-      setEndTime(null);
-    }
-  };
+    },
+    [beginTime, endTime],
+  );
 
   // 处理确认按钮点击事件
   const handleCommit = useCallback(() => {
@@ -115,63 +118,72 @@ export default function SeatsPage() {
     });
   }, [selectedDate, beginTime, endTime]);
 
+  // 渲染头部组件（日期选择和提示文字）
+  const renderHeader = () => (
+    <View className="px-2 pt-2">
+      {/* 日期选择 */}
+      <FlatList
+        data={dates}
+        keyExtractor={item => formatDate(item, 'YYYY-MM-DD')}
+        showsHorizontalScrollIndicator={false}
+        numColumns={10}
+        scrollEnabled={false}
+        renderItem={({ item }) => (
+          <DateCard
+            date={item.getDate().toString()}
+            day={formatDate(item, 'EEE')}
+            onPress={() => {
+              setSelectedDate(item);
+              setBeginTime(null);
+              setEndTime(null);
+            }}
+            state={formatDate(selectedDate, 'YYYY-MM-DD') === formatDate(item, 'YYYY-MM-DD') ? 'selected' : 'default'}
+          />
+        )}
+      />
+      <Text className="my-4 text-center">请选择时间段</Text>
+    </View>
+  );
+
+  // 渲染底部组件（提示文字和确认按钮）
+  const renderFooter = () => (
+    <View className="px-2 pb-2">
+      {/* 底部提示 */}
+      <Text className="my-4 flex text-center">
+        {beginTime && !endTime
+          ? ``
+          : beginTime && endTime
+            ? `已选择时间段 ${formatDate(selectedDate, 'YYYY年MM月DD日')} ${beginTime} - ${endTime}`
+            : ''}
+      </Text>
+      <SafeAreaView edges={['bottom']}>
+        <View className="justify-between">
+          <Button disabled={!beginTime || !endTime || beginTime > endTime} onPress={handleCommit}>
+            <Text>确定</Text>
+          </Button>
+        </View>
+      </SafeAreaView>
+    </View>
+  );
+
   return (
     <PageContainer>
-      <ScrollView className="p-2">
-        <Stack.Screen options={{ title: '选择时间段' }} />
-
-        {/* 日期选择 */}
-        <FlatList
-          data={dates}
-          keyExtractor={item => formatDate(item, 'YYYY-MM-DD')}
-          showsHorizontalScrollIndicator={false}
-          numColumns={10}
-          scrollEnabled={false}
-          renderItem={({ item }) => (
-            <DateCard
-              date={item.getDate().toString()}
-              day={formatDate(item, 'EEE')}
-              onPress={() => {
-                setSelectedDate(item);
-                setBeginTime(null);
-                setEndTime(null);
-              }}
-              state={formatDate(selectedDate, 'YYYY-MM-DD') === formatDate(item, 'YYYY-MM-DD') ? 'selected' : 'default'}
-            />
-          )}
-        />
-        <Text className="my-4 text-center">请选择时间段</Text>
-
-        {/* 时间段选择 */}
-        <FlatList
-          data={timeSlots}
-          keyExtractor={item => item}
-          showsHorizontalScrollIndicator={false}
-          numColumns={4}
-          columnWrapperClassName="flex flex-wrap justify-start w-full"
-          renderItem={({ item, index }) => (
-            <View className="w-1/4">
-              <TimeCard time={item} state={getTimeCardState(item)} onPress={() => handleTimeSelection(item)} />
-            </View>
-          )}
-        />
-
-        {/* 底部提示 */}
-        <Text className="my-4 flex text-center">
-          {beginTime && !endTime
-            ? ``
-            : beginTime && endTime
-              ? `已选择时间段 ${formatDate(selectedDate, 'YYYY年MM月DD日')} ${beginTime} - ${endTime}`
-              : ''}
-        </Text>
-        <SafeAreaView edges={['bottom']}>
-          <View className="mx-2 justify-between">
-            <Button disabled={!beginTime || !endTime || beginTime > endTime} onPress={handleCommit}>
-              <Text>确定</Text>
-            </Button>
+      <Stack.Screen options={{ title: '选择时间段' }} />
+      {/* 时间段选择 */}
+      <FlatList
+        data={timeSlots}
+        keyExtractor={item => item}
+        showsHorizontalScrollIndicator={false}
+        numColumns={4}
+        columnWrapperClassName="flex flex-wrap justify-start w-full px-2"
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
+        renderItem={({ item }) => (
+          <View className="w-1/4">
+            <TimeCard time={item} state={getTimeCardState(item)} onPress={() => handleTimeSelection(item)} />
           </View>
-        </SafeAreaView>
-      </ScrollView>
+        )}
+      />
     </PageContainer>
   );
 }
