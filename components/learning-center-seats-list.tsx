@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { ScrollView, SectionList, TouchableOpacity, View, type ViewToken } from 'react-native';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { ScrollView, SectionList, TouchableOpacity, useWindowDimensions, View, type ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/text';
@@ -21,12 +21,15 @@ interface LearningCenterSeatsListProps {
 }
 
 const NUM_COLUMNS = 4;
+const RIGHT_SIDEBAR_WIDTH = 70; // 右侧边栏宽度
 
 const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data, onSeatPress }) => {
   const sectionListRef = useRef<SectionList<SeatData[], Section>>(null);
   const [currentArea, setCurrentArea] = useState('');
   const isAutoScrolling = useRef(false);
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  const itemWidth = useMemo(() => (screenWidth - RIGHT_SIDEBAR_WIDTH) / NUM_COLUMNS, [screenWidth]);
 
   const groupedData = useMemo(
     () =>
@@ -88,19 +91,16 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
             {item.map(seat => (
               <SeatCard
                 key={seat.spaceName}
+                width={itemWidth}
                 spaceName={convertSpaceName(seat.spaceName)}
                 onPress={() => onSeatPress(seat.spaceName, seat.spaceStatus === SpaceStatus.Available)}
                 isAvailable={seat.spaceStatus === SpaceStatus.Available}
               />
             ))}
-            {item.length < NUM_COLUMNS &&
-              Array.from({ length: NUM_COLUMNS - item.length }).map((_, index) => (
-                <View key={index} className="flex flex-1 p-1" style={{ height: SEAT_ITEM_HEIGHT }} />
-              ))}
           </View>
         )}
         renderSectionHeader={({ section }) => <SeatOverview area={section.title} areaSeats={section.data.flat()} />}
-        className="mr-[70px] rounded-tr-4xl bg-card"
+        className={`mr-[${RIGHT_SIDEBAR_WIDTH}px] rounded-tr-4xl bg-card`}
         stickySectionHeadersEnabled
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom }}
@@ -118,10 +118,16 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
           offset: SEAT_ITEM_HEIGHT * index,
         })}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
+        overScrollMode="never"
       />
 
-      <View className="absolute bottom-0 right-0 top-12 w-[70px] pr-2">
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: insets.bottom }}>
+      <View className={`absolute bottom-0 right-0 top-12 w-[${RIGHT_SIDEBAR_WIDTH}px] pr-2`}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: insets.bottom }}
+          showsVerticalScrollIndicator={false}
+          overScrollMode="never"
+        >
           {groupedData.map((section, index) => (
             <TouchableOpacity
               key={section.title}
@@ -145,4 +151,4 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
   );
 };
 
-export default LearningCenterSeatsList;
+export default memo(LearningCenterSeatsList);
