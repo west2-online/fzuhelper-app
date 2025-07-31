@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Dimensions, RefreshControl, ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCallback, useMemo, useState } from 'react';
+import { FlatList, RefreshControl, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import { Icon } from '@/components/Icon';
@@ -10,9 +10,12 @@ import PageContainer from '@/components/page-container';
 import { TabFlatList } from '@/components/tab-flatlist';
 import { Text } from '@/components/ui/text';
 
+import { TermsInfoResponse_Event } from '@/api/backend';
 import { ResultEnum } from '@/api/enum';
 import { getApiV1JwchTermList, getApiV1TermsInfo } from '@/api/generate';
+import Loading from '@/components/loading';
 import useApiRequest from '@/hooks/useApiRequest';
+import React from 'react';
 
 // 处理API错误
 const handleApiError = (errorData: any) => {
@@ -29,8 +32,8 @@ interface CourseContentProps {
 }
 
 // 每个学期的内容
-const AcademicContent: React.FC<CourseContentProps> = ({ term }) => {
-  const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
+const AcademicContent = React.memo<CourseContentProps>(({ term }) => {
+  const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
   // 获取学期数据
   const { data, dataUpdatedAt, isLoading, refetch } = useApiRequest(
     getApiV1TermsInfo,
@@ -38,44 +41,54 @@ const AcademicContent: React.FC<CourseContentProps> = ({ term }) => {
     { errorHandler: handleApiError },
   );
 
-  const termData = data?.events || [];
-  const lastUpdated = new Date(dataUpdatedAt);
+  const termData = useMemo(() => data?.events || [], [data]);
+  const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
+  const { bottom } = useSafeAreaInsets();
+
+  const keyExtractor = useCallback((item: any, index: number) => `${item.name}-${index}`, []);
+
+  const renderItem = useCallback(({ item }: { item: TermsInfoResponse_Event }) => {
+    return <LabelEntry leftText={item.name} description={`${item.start_date} - ${item.end_date}`} disabled noIcon />;
+  }, []);
+
+  const contentContainerStyle = useMemo(() => ({ paddingBottom: bottom }), [bottom]);
+
+  const renderListEmptyComponent = useMemo(() => {
+    if (isLoading) {
+      return null;
+    }
+    return <Text className="text-center text-text-secondary">暂无学期数据</Text>;
+  }, [isLoading]);
+
+  const renderListFooterComponent = useMemo(() => {
+    return (
+      lastUpdated && (
+        <View className="my-4 flex flex-row items-center justify-center">
+          <Icon name="time-outline" size={16} className="mr-2" />
+          <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
+        </View>
+      )
+    );
+  }, [lastUpdated]);
+
+  const flatListStyle = useMemo(() => ({ width: screenWidth }), [screenWidth]);
 
   return (
-    <ScrollView
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading}
-          // 处理下拉刷新逻辑
-          onRefresh={refetch}
-        />
-      }
-      className="grow"
-      style={{ width: screenWidth }}
-    >
-      {/* 渲染考试数据 */}
-      <SafeAreaView edges={['bottom']}>
-        {termData.length > 0 ? (
-          termData.map((item, idx) => (
-            <View key={idx} className="mx-4">
-              <LabelEntry leftText={item.name} description={item.start_date + ' - ' + item.end_date} disabled noIcon />
-            </View>
-          ))
-        ) : (
-          <Text className="text-center text-text-secondary">{isLoading ? '正在刷新中' : '暂无学期数据'}</Text>
-        )}
-
-        {/* 显示刷新时间 */}
-        {lastUpdated && (
-          <View className="my-4 flex flex-row items-center justify-center">
-            <Icon name="time-outline" size={16} className="mr-2" />
-            <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
-          </View>
-        )}
-      </SafeAreaView>
-    </ScrollView>
+    <FlatList
+      data={termData}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
+      refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+      contentContainerStyle={contentContainerStyle}
+      ListEmptyComponent={renderListEmptyComponent}
+      ListFooterComponent={renderListFooterComponent}
+      style={flatListStyle}
+      contentContainerClassName="mt-3 mx-8"
+    />
   );
-};
+});
+
+AcademicContent.displayName = 'AcademicContent';
 
 export default function AcademicCalendarPage() {
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
@@ -88,19 +101,27 @@ export default function AcademicCalendarPage() {
     },
     [currentTerm],
   );
-  const { data: termList } = useApiRequest(getApiV1JwchTermList, {}, { onSuccess, errorHandler: handleApiError });
+  const { data: termList, isLoading: isLoadingTermList } = useApiRequest(
+    getApiV1JwchTermList,
+    {},
+    { onSuccess, errorHandler: handleApiError },
+  );
 
   return (
     <>
       <Stack.Screen options={{ title: '校历' }} />
 
       <PageContainer>
-        <TabFlatList
-          data={termList ?? []}
-          value={currentTerm}
-          onChange={setCurrentTerm}
-          renderContent={term => <AcademicContent term={term} />}
-        />
+        {isLoadingTermList ? (
+          <Loading />
+        ) : (
+          <TabFlatList
+            data={termList ?? []}
+            value={currentTerm}
+            onChange={setCurrentTerm}
+            renderContent={term => <AcademicContent term={term} />}
+          />
+        )}
       </PageContainer>
     </>
   );
