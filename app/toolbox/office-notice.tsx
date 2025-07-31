@@ -1,7 +1,7 @@
 import { fetchNoticeList } from '@/api/generate/common';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import useApiRequest from '@/hooks/useApiRequest';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -71,14 +71,10 @@ export default function OfficeNoticePage() {
 
   const renderNoticeItem = useCallback(
     ({ item }: { item: NoticeItem }) => (
-      <TouchableOpacity onPress={() => handleNoticePress(item.url)} className="mb-4">
-        <Card>
-          <CardHeader>
-            <Text className="text-lg font-medium text-card-foreground">{item.title}</Text>
-          </CardHeader>
-          <CardContent>
-            <Text className="text-sm text-text-secondary">{item.date}</Text>
-          </CardContent>
+      <TouchableOpacity activeOpacity={0.7} onPress={() => handleNoticePress(item.url)} className="mb-4">
+        <Card className="gap-2 p-4">
+          <Text className="text-lg font-medium text-card-foreground">{item.title}</Text>
+          <Text className="text-sm text-text-secondary">{item.date}</Text>
         </Card>
       </TouchableOpacity>
     ),
@@ -104,7 +100,7 @@ export default function OfficeNoticePage() {
           data={noticeList}
           renderItem={renderNoticeItem}
           keyExtractor={item => `${item.url}`}
-          className="pb-safe flex-1 px-4 pt-4"
+          className="flex-1 px-4 pt-4"
           ListEmptyComponent={<Text>暂无通知</Text>}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           onEndReached={handleLoadMore}
