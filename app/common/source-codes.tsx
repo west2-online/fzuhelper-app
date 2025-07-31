@@ -12,7 +12,7 @@ export default function SourceCodePage() {
       <Stack.Screen options={{ title: '项目源代码' }} />
 
       <PageContainer>
-        <ScrollView className="flex-1 rounded-tr-4xl bg-card px-4" contentContainerClassName="pt-8">
+        <ScrollView className="flex-1 rounded-tr-4xl bg-card px-8" contentContainerClassName="pt-8">
           <SafeAreaView edges={['bottom']}>
             <LabelEntry
               leftText="客户端"
@@ -37,7 +37,7 @@ export default function SourceCodePage() {
             <View className="space-y-4">
               <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
               <Text className="my-2 text-base text-text-secondary">
-                本项目为开源项目，欢迎各位同学参与贡献，项目全部位于 Github，可能需要较好的网络环境
+                本项目为开源项目，欢迎各位同学参与贡献，项目全部位于 GitHub，可能需要较好的网络环境
               </Text>
               <Text className="my-2 text-base text-text-secondary">
                 所列项目受福州大学统一指导，由福州大学计算机与大数据学院、福州大学网络安全与信息化办公室管理（以上单位合称"官方"）。即使源代码使用了宽松开源协议，但仅供学习参考，不允许源代码直接或间接性使用/修改后使用在任何非官方和
