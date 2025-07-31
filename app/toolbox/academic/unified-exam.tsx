@@ -1,15 +1,14 @@
-import { Icon } from '@/components/Icon';
 import { Stack } from 'expo-router';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import { UnifiedExamCard } from '@/components/academic/UnifiedExamCard';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
-import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchAcademicUnifiedExam } from '@/api/generate';
+import LastUpdateTime from '@/components/last-update-time';
 import useApiRequest from '@/hooks/useApiRequest';
 
 const errorHandler = (data: any) => {
@@ -51,14 +50,7 @@ export default function UnifiedExamScorePage() {
                       <UnifiedExamCard key={index} item={item} />
                     ))}
                     {/* 显示最后更新时间 */}
-                    {lastUpdated && (
-                      <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
-                        <Icon name="time-outline" size={16} className="mr-2" />
-                        <Text className="text-l leading-5 text-text-primary">
-                          数据同步时间：{lastUpdated.toLocaleString()}
-                        </Text>
-                      </View>
-                    )}
+                    <LastUpdateTime lastUpdated={lastUpdated} />
                   </SafeAreaView>
                 </>
               )}

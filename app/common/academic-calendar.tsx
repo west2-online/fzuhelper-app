@@ -1,10 +1,9 @@
 import { Stack } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, RefreshControl, useWindowDimensions, View } from 'react-native';
+import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Icon } from '@/components/Icon';
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { TabFlatList } from '@/components/tab-flatlist';
@@ -13,6 +12,7 @@ import { Text } from '@/components/ui/text';
 import { TermsInfoResponse_Event } from '@/api/backend';
 import { ResultEnum } from '@/api/enum';
 import { getApiV1JwchTermList, getApiV1TermsInfo } from '@/api/generate';
+import LastUpdateTime from '@/components/last-update-time';
 import Loading from '@/components/loading';
 import useApiRequest from '@/hooks/useApiRequest';
 import React from 'react';
@@ -61,14 +61,7 @@ const AcademicContent = React.memo<CourseContentProps>(({ term }) => {
   }, [isLoading]);
 
   const renderListFooterComponent = useMemo(() => {
-    return (
-      lastUpdated && (
-        <View className="my-4 flex flex-row items-center justify-center">
-          <Icon name="time-outline" size={16} className="mr-2" />
-          <Text className="text-sm leading-5 text-text-primary">数据同步时间：{lastUpdated.toLocaleString()}</Text>
-        </View>
-      )
-    );
+    return <LastUpdateTime lastUpdated={lastUpdated} />;
   }, [lastUpdated]);
 
   const flatListStyle = useMemo(() => ({ width: screenWidth }), [screenWidth]);

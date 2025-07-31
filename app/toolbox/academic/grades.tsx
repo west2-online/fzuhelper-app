@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, useWindowDimensions, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -15,6 +15,7 @@ import { Text } from '@/components/ui/text';
 
 import { JwchAcademicScoresResponse_AcademicScoresDataItem } from '@/api/backend';
 import { getApiV1JwchAcademicScores, getApiV1JwchTermList } from '@/api/generate';
+import LastUpdateTime from '@/components/last-update-time';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
@@ -64,14 +65,7 @@ const TermContent = React.memo<TermContentProps>(({ termData, isLoading, dataUpd
   }, []);
 
   const renderListFooterComponent = useMemo(() => {
-    return termData.length > 0 ? (
-      <View className="my-4 flex flex-row items-center justify-center">
-        <Icon name="time-outline" size={16} className="mr-2" />
-        <Text className="text-sm leading-5 text-text-primary">
-          数据同步时间：{(lastUpdated && lastUpdated.toLocaleString()) || '请进行一次同步'}
-        </Text>
-      </View>
-    ) : null;
+    return termData.length > 0 ? <LastUpdateTime lastUpdated={lastUpdated} /> : null;
   }, [termData.length, lastUpdated]);
 
   const flatListStyle = useMemo(() => ({ width: screenWidth }), [screenWidth]);

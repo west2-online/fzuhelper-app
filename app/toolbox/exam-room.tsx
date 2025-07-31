@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Dimensions, FlatList, Pressable, RefreshControl, View } from 'react-native';
+import { Dimensions, FlatList, Pressable, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/text';
 
 import { ResultEnum } from '@/api/enum';
 import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
+import LastUpdateTime from '@/components/last-update-time';
 import Loading from '@/components/loading';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_EXAM_ROOM } from '@/lib/FAQ';
@@ -83,14 +84,7 @@ const TermContent = React.memo<TermContentProps>(({ term }) => {
 
   const renderListFooterComponent = useMemo(() => {
     if (termData.length > 0) {
-      return (
-        <View className="my-4 flex flex-row items-center justify-center">
-          <Icon name="time-outline" size={16} className="mr-2" />
-          <Text className="text-sm leading-5 text-text-primary">
-            数据同步时间：{(lastUpdated && lastUpdated.toLocaleString()) || '请进行一次同步'}
-          </Text>
-        </View>
-      );
+      return <LastUpdateTime lastUpdated={lastUpdated} />;
     }
     return null;
   }, [termData.length, lastUpdated]);

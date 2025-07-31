@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { Icon } from '@/components/Icon';
 import LabelEntry from '@/components/label-entry';
 import LabelSwitch from '@/components/label-switch';
 import PageContainer from '@/components/page-container';
@@ -15,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1JwchTermList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
+import LastUpdateTime from '@/components/last-update-time';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_SETTINGS_KEY } from '@/lib/constants';
@@ -214,20 +214,14 @@ export default function AcademicPage() {
               </Text>
             </View>
 
-            <View className="mt-4 flex flex-row items-center justify-center">
-              <Icon name="time-outline" size={16} className="mr-2" />
-              <Text className="text-sm leading-5 text-text-primary">
-                课表同步时间：{CourseCache.getLastCourseUpdateTime()}
-              </Text>
-            </View>
+            <LastUpdateTime
+              text="课表同步时间："
+              className="mb-0"
+              lastUpdatedText={CourseCache.getLastCourseUpdateTime()}
+            />
 
             {settings.exportExamToCourseTable && (
-              <View className="my-4 flex flex-row items-center justify-center">
-                <Icon name="time-outline" size={16} className="mr-2" />
-                <Text className="text-sm leading-5 text-text-primary">
-                  考场同步时间：{CourseCache.getLastExamUpdateTime()}
-                </Text>
-              </View>
+              <LastUpdateTime text="考场同步时间：" lastUpdatedText={CourseCache.getLastExamUpdateTime()} />
             )}
 
             <PickerModal
