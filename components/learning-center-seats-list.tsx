@@ -123,7 +123,12 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
       <View className="absolute bottom-0 right-0 top-12 w-[70px] pr-2">
         <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: insets.bottom }}>
           {groupedData.map((section, index) => (
-            <TouchableOpacity key={section.title} onPress={() => handlePress(index, section.title)} className="mb-4">
+            <TouchableOpacity
+              key={section.title}
+              onPress={() => handlePress(index, section.title)}
+              className="mb-4"
+              activeOpacity={0.7}
+            >
               <View
                 className={cn(
                   'rounded-br-xl rounded-tr-xl px-4 py-2',

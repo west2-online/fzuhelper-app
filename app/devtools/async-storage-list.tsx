@@ -199,7 +199,7 @@ export default function HomePage() {
 
     return (
       <View style={styles.itemContainer} className="bg-card">
-        <TouchableOpacity onPress={() => toggleExpand(index)} style={styles.itemTouchable}>
+        <TouchableOpacity onPress={() => toggleExpand(index)} style={styles.itemTouchable} activeOpacity={0.7}>
           <Text style={styles.keyText} className="text-primary">
             {item.key}
           </Text>

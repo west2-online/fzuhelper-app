@@ -37,7 +37,7 @@ function DateNavigator({ date, onPress }: DateNavigatorProps) {
   const iconColor = useMemo(() => (currentColorScheme === 'dark' ? 'white' : 'black'), [currentColorScheme]);
 
   return (
-    <TouchableOpacity className="flex-row items-center" onPressIn={onPress}>
+    <TouchableOpacity className="flex-row items-center" onPressIn={onPress} activeOpacity={0.7}>
       <Text className="pr-2 text-lg">{date}</Text>
       <CalendarDaysIcon size={20} color={iconColor} />
     </TouchableOpacity>
@@ -104,6 +104,7 @@ export default function EmptyRoomPage() {
           {/* 左侧按钮 */}
           <TouchableOpacity
             className="flex-1 flex-row items-center justify-center px-2 py-2"
+            activeOpacity={0.7}
             onPressIn={() => setIsRangeStartPickerVisible(true)}
           >
             <Text className="pr-1">第 {selectedRange.start} 节</Text>
@@ -114,6 +115,7 @@ export default function EmptyRoomPage() {
           {/* 右侧按钮 */}
           <TouchableOpacity
             className="flex-1 flex-row items-center justify-center px-2 py-2"
+            activeOpacity={0.7}
             onPressIn={() => setIsRangeEndPickerVisible(true)}
           >
             <Text className="pr-1">第 {selectedRange.end} 节</Text>
@@ -122,6 +124,7 @@ export default function EmptyRoomPage() {
           {/* 校区按钮 */}
           <TouchableOpacity
             className="ml-3 flex-1 flex-row items-center justify-center px-2 py-2"
+            activeOpacity={0.7}
             onPressIn={() => setCampusPickerVisible(true)}
           >
             <Text className="pr-1">{selectedCampus}</Text>

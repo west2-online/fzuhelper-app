@@ -89,7 +89,7 @@ export default function Banner({ contents, width, ...props }: BannerProps) {
             }
           }
         }}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
         style={{ width, height: width / 2.5 }}
         className="flex justify-end overflow-hidden"
       >

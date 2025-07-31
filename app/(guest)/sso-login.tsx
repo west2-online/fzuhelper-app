@@ -208,6 +208,7 @@ const UnifiedLoginPage: React.FC = () => {
                 {/* 登录按钮 */}
                 <TouchableOpacity
                   onPress={isLoggingIn ? undefined : handleLogin}
+                  activeOpacity={0.7}
                   disabled={isLoggingIn}
                   className={`mb-6 w-full items-center justify-center rounded-4xl py-3 ${
                     isLoggingIn ? 'bg-gray-400' : 'bg-primary'
@@ -249,7 +250,7 @@ const UnifiedLoginPage: React.FC = () => {
 
               {/* 底部协议 */}
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.7}
                 className="mb-4 mt-12 w-full flex-row justify-center py-2"
                 onPress={() => setIsAgree(!isAgree)}
               >

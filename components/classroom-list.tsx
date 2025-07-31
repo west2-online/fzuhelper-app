@@ -118,7 +118,12 @@ export default function ClassroomList({ data }: { data: Classroom[] }) {
       <View className="absolute bottom-0 right-4 top-12">
         <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: insets.bottom }}>
           {groupedData.map((section, index) => (
-            <TouchableOpacity key={section.title} onPress={() => handlePress(index, section.title)} className="mb-4">
+            <TouchableOpacity
+              key={section.title}
+              onPress={() => handlePress(index, section.title)}
+              className="mb-4"
+              activeOpacity={0.7}
+            >
               <View
                 className={`px-4 py-2 ${
                   section.title === currentBuild ? 'bg-primary' : 'bg-gray-300'

@@ -245,7 +245,11 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
             onClose={() => setModalVisible(false)}
           >
             <Image source={{ uri: recaptcha }} className="h-12" resizeMode="contain" />
-            <TouchableOpacity className="flex-row items-center justify-center py-3" onPress={refreshCaptcha}>
+            <TouchableOpacity
+              className="flex-row items-center justify-center py-3"
+              onPress={refreshCaptcha}
+              activeOpacity={0.7}
+            >
               <RotateCwIcon size={14} color={'#1089ff'} />
               <Text className="ml-2">看不清，换一张</Text>
             </TouchableOpacity>

@@ -254,6 +254,7 @@ export default function SeatTimeStatusPage() {
                         key={item.index}
                         className={getTimeBlockStyle(item)}
                         disabled={item.occupy === 1}
+                        activeOpacity={0.7}
                         onPress={() => handleTimeSelection(item.timeText, item.occupy)}
                       >
                         <Text

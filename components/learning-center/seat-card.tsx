@@ -21,6 +21,7 @@ const SeatCard: React.FC<SeatCardProps> = ({ spaceName, onPress, isAvailable = t
           'flex flex-1 items-center justify-center rounded-lg py-2',
           isAvailable ? 'bg-green-200' : 'bg-red-200',
         )}
+        activeOpacity={0.7}
       >
         <Text className={cn('text-center', isAvailable ? 'text-green-800' : 'text-red-800')}>{line1}</Text>
         {line2 && (
