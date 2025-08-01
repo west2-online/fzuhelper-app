@@ -27,7 +27,7 @@ import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 
-export default function AcademicPage() {
+export default function CourseSettingPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
@@ -40,11 +40,6 @@ export default function AcademicPage() {
     setSettings(await getCourseSetting());
   }, []);
 
-  const saveSettingsToStorage = useCallback(async (newSettings: CourseSetting) => {
-    console.log('保存课程设置, ', newSettings);
-    await updateCourseSetting(newSettings);
-  }, []);
-
   // 页面加载时读取设置
   useEffect(() => {
     readSettingsFromStorage();
@@ -52,10 +47,9 @@ export default function AcademicPage() {
 
   // 设置变化时保存设置
   useUpdateEffect(() => {
-    saveSettingsToStorage(settings);
     // 保证设置同步到小部件
     CourseCache.save();
-  }, [settings, saveSettingsToStorage]);
+  }, [settings]);
 
   // 获取用户就读学期数据
   const getTermsData = useCallback(async () => {
@@ -96,11 +90,13 @@ export default function AcademicPage() {
 
   // 设置是否显示非本周课程
   const handleShowNonCurrentWeekCourses = useCallback(() => {
+    const newValue = !settings.showNonCurrentWeekCourses;
     setSettings(prevSettings => ({
       ...prevSettings,
-      showNonCurrentWeekCourses: !prevSettings.showNonCurrentWeekCourses,
+      showNonCurrentWeekCourses: newValue,
     }));
-  }, []);
+    updateCourseSetting({ showNonCurrentWeekCourses: newValue });
+  }, [settings.showNonCurrentWeekCourses]);
 
   const handleForceRefresh = useCallback(async () => {
     if (isRefreshing) return;
@@ -127,25 +123,27 @@ export default function AcademicPage() {
 
   // 控制导入考场到课表
   const handleExportExamToCourseTable = useCallback(() => {
-    setSettings(prevSettings => {
-      if (prevSettings.exportExamToCourseTable) {
-        CourseCache.clearExamData();
-      }
-      return {
-        ...prevSettings,
-        exportExamToCourseTable: !prevSettings.exportExamToCourseTable,
-      };
-    });
-  }, []);
+    const newValue = !settings.exportExamToCourseTable;
+    if (!newValue) {
+      CourseCache.clearExamData();
+    }
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      exportExamToCourseTable: newValue,
+    }));
+    updateCourseSetting({ exportExamToCourseTable: newValue });
+  }, [settings.exportExamToCourseTable]);
 
   const handleHiddenCoursesWithoutAttendances = useCallback(() => {
+    const newValue = !settings.hiddenCoursesWithoutAttendances;
     setSettings(prevSettings => {
       return {
         ...prevSettings,
-        hiddenCoursesWithoutAttendances: !prevSettings.hiddenCoursesWithoutAttendances,
+        hiddenCoursesWithoutAttendances: newValue,
       };
     });
-  }, []);
+    updateCourseSetting({ hiddenCoursesWithoutAttendances: newValue });
+  }, [settings.hiddenCoursesWithoutAttendances]);
 
   return (
     <>

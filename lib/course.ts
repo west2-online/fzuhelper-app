@@ -775,22 +775,30 @@ export const defaultCourseSetting: CourseSetting = {
   calendarSubscribeUrl: '',
 };
 
-// 读取课程设置，如果没有则返回默认值
+/**
+ * 读取课程设置，如果用户没有修改过则返回默认值
+ */
 export const getCourseSetting = async (): Promise<CourseSetting> => {
-  const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
+  const settingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
 
-  if (!setting) {
+  if (!settingJson) {
     return defaultCourseSetting;
   }
 
-  // 始终做合并操作，避免后期有新配置加入而JSON中尚不存在导致没有默认值
-  const config = { ...defaultCourseSetting, ...JSON.parse(setting) } as CourseSetting;
+  // 始终做合并操作，避免因用户未调整设置/后期有新设置加入而JSON中尚不存在，导致没有默认值
+  const config = { ...defaultCourseSetting, ...JSON.parse(settingJson) } as CourseSetting;
 
   return config;
 };
 
+/**
+ * 更新课程设置
+ * 只存储用户主动修改的配置，不存储默认值，目的是让后续改动默认值自动生效
+ * @param newSetting - 改动部分的设置，不要传入getCourseSetting返回的完整设置
+ */
 export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): Promise<void> => {
-  const currentSetting = await getCourseSetting();
+  const settingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
+  const currentSetting = settingJson ? JSON.parse(settingJson) : {};
   const updatedSetting = { ...currentSetting, ...newSetting };
   // 有实际变更才写入
   if (JSON.stringify(currentSetting) !== JSON.stringify(updatedSetting)) {
