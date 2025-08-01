@@ -159,7 +159,7 @@ export default function SeatsPage() {
       <SafeAreaView edges={['bottom']}>
         <View className="justify-between">
           <Button disabled={!beginTime || !endTime || beginTime > endTime} onPress={handleCommit}>
-            <Text>确定</Text>
+            <Text>下一步</Text>
           </Button>
         </View>
       </SafeAreaView>

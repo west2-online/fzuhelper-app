@@ -113,8 +113,6 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data:
     return rnSectionListGetItemLayout({
       getItemHeight: () => SEAT_ITEM_HEIGHT,
       getSectionHeaderHeight: () => SECTION_HEADER_HEIGHT,
-      getSeparatorHeight: () => 0,
-      listHeaderHeight: 0,
     });
   }, []);
 

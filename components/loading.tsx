@@ -5,6 +5,7 @@ import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog';
 import { Text } from '@/components/ui/text';
 
 import { cn } from '@/lib/utils';
+import { memo } from 'react';
 
 interface LoadingProps {
   className?: string;
@@ -31,5 +32,5 @@ const LoadingDialog: React.FC<LoadingDialogProps> = ({ open, message }) => (
   </AlertDialog>
 );
 
-export default Loading;
+export default memo(Loading);
 export { LoadingDialog };
