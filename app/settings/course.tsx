@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -17,8 +16,13 @@ import type { CourseSetting } from '@/api/interface';
 import LastUpdateTime from '@/components/last-update-time';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_SETTINGS_KEY } from '@/lib/constants';
-import { CourseCache, defaultCourseSetting, forceRefreshCourseData, readCourseSetting } from '@/lib/course';
+import {
+  CourseCache,
+  defaultCourseSetting,
+  forceRefreshCourseData,
+  getCourseSetting,
+  updateCourseSetting,
+} from '@/lib/course';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
@@ -31,16 +35,14 @@ export default function AcademicPage() {
   const { handleError } = useSafeResponseSolve();
   const [isLoadingSemester, setLoadingSemester] = useState(false);
 
-  // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
     console.log('读取课程设置');
-    setSettings(await readCourseSetting());
+    setSettings(await getCourseSetting());
   }, []);
 
-  // 将当前设置保存至 AsyncStorage，采用 json 形式保存
   const saveSettingsToStorage = useCallback(async (newSettings: CourseSetting) => {
     console.log('保存课程设置, ', newSettings);
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(newSettings));
+    await updateCourseSetting(newSettings);
   }, []);
 
   // 页面加载时读取设置

@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -14,13 +13,8 @@ import { Text } from '@/components/ui/text';
 import { getApiV1JwchCourseCalendarToken } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
-import {
-  CALENDAR_SUBSCRIPTION_PREFIX,
-  CALENDAR_SUBSCRIPTION_TOKEN_KEY,
-  COURSE_SETTINGS_KEY,
-  EXPIRE_ONE_DAY,
-} from '@/lib/constants';
-import { defaultCourseSetting, readCourseSetting } from '@/lib/course';
+import { CALENDAR_SUBSCRIPTION_PREFIX, CALENDAR_SUBSCRIPTION_TOKEN_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
+import { defaultCourseSetting, getCourseSetting, updateCourseSetting } from '@/lib/course';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 
@@ -28,16 +22,14 @@ export default function PersonalInfoListPage() {
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
   const [switchDisabled, setSwitchDisabled] = useState(false);
 
-  // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
     console.log('读取课程设置');
-    setSettings(await readCourseSetting());
+    setSettings(await getCourseSetting());
   }, []);
 
-  // 将当前设置保存至 AsyncStorage，采用 json 形式保存
   const saveSettingsToStorage = useCallback(async (newSettings: CourseSetting) => {
     console.log('保存课程设置, ', newSettings);
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(newSettings));
+    await updateCourseSetting(newSettings);
   }, []);
 
   // 页面加载时读取设置

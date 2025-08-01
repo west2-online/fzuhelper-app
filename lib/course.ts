@@ -222,7 +222,7 @@ export class CourseCache {
 
     // 将数据保存到原生共享存储中，以便在小组件中调用
     const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
-    const courseSettings = await readCourseSetting();
+    const courseSettings = await getCourseSetting();
     const term = courseSettings.selectedSemester;
     const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
     const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
@@ -775,30 +775,27 @@ export const defaultCourseSetting: CourseSetting = {
   calendarSubscribeUrl: '',
 };
 
-// 将传入的 courseSetting 与 defaultCourseSetting 合并
-export const normalizeCourseSetting = (courseSetting: Partial<CourseSetting> = {}): CourseSetting => {
-  // 如果传入的 courseSetting 为空，则返回默认设置
-  if (!courseSetting) {
-    return defaultCourseSetting;
-  }
-
-  // 合并默认设置和传入的设置
-  return { ...defaultCourseSetting, ...courseSetting } as CourseSetting;
-};
-
-// 读取课程设置
-export const readCourseSetting = async (): Promise<CourseSetting> => {
+// 读取课程设置，如果没有则返回默认值
+export const getCourseSetting = async (): Promise<CourseSetting> => {
   const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
 
   if (!setting) {
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(defaultCourseSetting));
     return defaultCourseSetting;
   }
 
-  const config = normalizeCourseSetting(JSON.parse(setting));
-  await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(config));
+  // 始终做合并操作，避免后期有新配置加入而JSON中尚不存在导致没有默认值
+  const config = { ...defaultCourseSetting, ...JSON.parse(setting) } as CourseSetting;
 
   return config;
+};
+
+export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): Promise<void> => {
+  const currentSetting = await getCourseSetting();
+  const updatedSetting = { ...currentSetting, ...newSetting };
+  // 有实际变更才写入
+  if (JSON.stringify(currentSetting) !== JSON.stringify(updatedSetting)) {
+    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(updatedSetting));
+  }
 };
 
 // 强制刷新数据（即不使用本地缓存）
