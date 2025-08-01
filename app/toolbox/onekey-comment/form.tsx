@@ -2,7 +2,7 @@ import { fromByteArray } from 'base64-js';
 import { Tabs } from 'expo-router';
 import { RotateCwIcon } from 'lucide-react-native';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Dimensions, FlatList, Image, RefreshControl, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, RefreshControl, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -118,7 +118,7 @@ interface TabContentProps {
 }
 
 function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentProps) {
-  const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
+  const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
   const [isLoading, setLoading] = useState(true);
   const [courses, setCourses] = useState<CourseInfo[]>([]);
   const [modalVisible, setModalVisible] = useState(false);

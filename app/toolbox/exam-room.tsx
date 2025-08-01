@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Dimensions, FlatList, Pressable, RefreshControl } from 'react-native';
+import { FlatList, Pressable, RefreshControl, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -36,7 +36,7 @@ interface TermContentProps {
 }
 
 const TermContent = React.memo<TermContentProps>(({ term }) => {
-  const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
+  const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
   const { data, dataUpdatedAt, isLoading, refetch } = useApiRequest(getApiV1JwchClassroomExam, { term });
   const termData = formatExamData(data || []).sort((a, b) => {
     const now = new Date(); // 当前日期
