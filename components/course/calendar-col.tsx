@@ -1,9 +1,10 @@
-import { memo, useMemo } from 'react';
+import { memo, useContext, useMemo } from 'react';
 import { type LayoutRectangle, View } from 'react-native';
 
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
 
+import { CoursePageContext } from '@/app/(tabs)';
 import {
   COURSE_TYPE,
   COURSE_WITHOUT_ATTENDANCE,
@@ -27,25 +28,16 @@ type ScheduleItemData = CourseScheduleItemData | EmptyScheduleItemData;
 interface CalendarColProps {
   week: number;
   schedulesOnDay: CourseInfo[];
-  isShowNonCurrentWeekCourses: boolean; // 是否显示非本周课程
-  showExam: boolean; // 是否显示考试
-  hiddenCoursesWithoutAttendances: boolean; // 是否隐藏免听的课程
   flatListLayout: LayoutRectangle;
 }
 
 // 课程表的一列，即一天的课程
-const CalendarCol: React.FC<CalendarColProps> = ({
-  week,
-  schedulesOnDay,
-  isShowNonCurrentWeekCourses,
-  hiddenCoursesWithoutAttendances,
-  showExam,
-  flatListLayout,
-}) => {
+const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatListLayout }) => {
   const itemHeight = useMemo(
     () => Math.max(SCHEDULE_ITEM_MIN_HEIGHT, Math.floor(flatListLayout.height / 11)),
     [flatListLayout.height],
   );
+  const { setting } = useContext(CoursePageContext);
 
   // 根据当前周数和星期几，筛选出当天的课程
   // 并进行整合，生成一个用于渲染的数据结构
@@ -60,10 +52,12 @@ const CalendarCol: React.FC<CalendarColProps> = ({
           s.startWeek <= week && // 卡起始时间范围
           s.endWeek >= week && // 卡结束时间范围
           ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)) && // 检查单双周
-          (s.type === COURSE_TYPE || (showExam && s.type === EXAM_TYPE) || s.type === CUSTOM_TYPE) && // 判断课程类型
+          (s.type === COURSE_TYPE ||
+            (setting.exportExamToCourseTable && s.type === EXAM_TYPE) ||
+            s.type === CUSTOM_TYPE) && // 判断课程类型
           // 这边?是因为custom-course中DEFAULT_EMPTY_COURSE漏加examType字段，又因为as强转导致变为undefined，为向前兼容所加
           // 后面如果有新加字段，也建议加?处理
-          (!hiddenCoursesWithoutAttendances || !s.examType?.includes(COURSE_WITHOUT_ATTENDANCE)), // 是否隐藏免听课程
+          (!setting.hiddenCoursesWithoutAttendances || !s.examType?.includes(COURSE_WITHOUT_ATTENDANCE)), // 是否隐藏免听课程
       )
       .sort((a, b) => b.priority - a.priority);
 
@@ -110,7 +104,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     }
 
     // 再按优先级去排非本周课（不含考试等），重叠的也不管
-    if (isShowNonCurrentWeekCourses) {
+    if (setting.showNonCurrentWeekCourses) {
       const nonCurrentWeek = schedulesOnDay
         .filter(
           s =>
@@ -170,7 +164,13 @@ const CalendarCol: React.FC<CalendarColProps> = ({
     }
 
     return res;
-  }, [schedulesOnDay, isShowNonCurrentWeekCourses, week, showExam, hiddenCoursesWithoutAttendances]);
+  }, [
+    schedulesOnDay,
+    setting.showNonCurrentWeekCourses,
+    setting.exportExamToCourseTable,
+    setting.hiddenCoursesWithoutAttendances,
+    week,
+  ]);
 
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, View, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -8,32 +8,26 @@ import Loading from '@/components/loading';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
 
-import type { TermsListResponse_Terms } from '@/api/backend';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
-import type { CourseSetting } from '@/api/interface';
 import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, EXAM_TYPE, type CourseInfo } from '@/lib/course';
 import { formatExamData } from '@/lib/exam-room';
-import { deConvertSemester, getFirstDateByWeek, getWeeksBySemester } from '@/lib/locate-date';
+import { deConvertSemester, getFirstDateByWeek } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 
+import { CoursePageContext } from '@/app/(tabs)';
 import { hasCustomBackground } from '@/lib/appearance';
 import CourseWeek from './course-week';
 
-interface CoursePageProps {
-  config: CourseSetting;
-  initialWeek: number;
-  semesterList: TermsListResponse_Terms;
-  currentTerm: string;
-}
-
 // 课程表页面
-const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterList, currentTerm }) => {
-  const [currentWeek, setCurrentWeek] = useState(initialWeek); // 当前周数
+const CoursePage: React.FC = () => {
+  const { setting, currentWeek, currentTerm, maxWeek } = useContext(CoursePageContext);
+
+  const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek)); // 选中周数，非当前学期则定位到第一周
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
-  const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
+  const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle | null>(null); // FlatList 的布局信息
   const [schedulesByDays, setSchedulesByDays] = useState<Record<number, CourseInfo[]>>([]); // 目前的课程数据，按天归类
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
   const [needForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
@@ -49,26 +43,20 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
 
   const flatListRef = useRef<FlatList>(null);
 
-  // 从设置中读取相关信息（比如当前选择的学期，是否显示非本周课程），设置项由上级组件传入
-  const {
-    selectedSemester: term,
-    showNonCurrentWeekCourses,
-    exportExamToCourseTable,
-    hiddenCoursesWithoutAttendances,
-  } = config;
-
-  // 以下是处理学期的数据
-  // 将学期数据转换为 Map，方便后续使用
-  const semesterListMap = useMemo(
-    () => Object.fromEntries(semesterList.map(semester => [semester.term, semester])),
-    [semesterList],
+  // 周数切换，注意改变选中周必须使用该函数，以避免 FlatList 滚动越界导致崩溃
+  const safeSetSelectedWeek = useCallback(
+    (week: number, scrollTo: boolean = true) => {
+      const targetWeek = Math.max(1, Math.min(week, maxWeek));
+      setSelectedWeek(targetWeek);
+      if (scrollTo && flatListRef.current) {
+        flatListRef.current.scrollToIndex({
+          index: targetWeek - 1,
+          animated: false,
+        });
+      }
+    },
+    [maxWeek],
   );
-
-  // 获取当前学期的开始结束时间（即从 semesterList 中取出当前学期的信息，term 表示当前选择的学期）
-  // 需要注意的是，不论本科生还是研究生，term 的格式均遵循本科生数据格式，即 202401 这样的
-  // 对于研究生，locate-date 需要依赖本科教务系统（即使研究生院教务系统也是这样的），所以我们只选择在查询研究生课表的时候进行一个转化即可，不在这里做转化
-  // 相关转化逻辑请参考 @/lib/locate-date.ts 中相关函数
-  const currentSemester = useMemo(() => semesterListMap[term], [semesterListMap, term]);
 
   // 【查询课程数据】
   // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
@@ -80,9 +68,9 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
         // 异步获取联网课程数据
         let hasChanged = false; // 是否有数据变更
         const hasCache = CourseCache.hasCachedData(); // 先判断是否有缓存
-        let queryTerm = term;
+        let queryTerm = currentTerm.term;
         if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
-          queryTerm = deConvertSemester(term);
+          queryTerm = deConvertSemester(currentTerm.term);
         }
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, queryTerm],
@@ -97,7 +85,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
         }
 
         // 若开启导入考场，则再拉取考场数据
-        if (exportExamToCourseTable) {
+        if (setting.exportExamToCourseTable) {
           const examData = await fetchWithCache(
             [EXAM_ROOM_KEY, queryTerm],
             () => getApiV1JwchClassroomExam({ term: queryTerm }),
@@ -106,7 +94,7 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
 
           const mergedExamData = formatExamData(examData.data.data);
           if (mergedExamData.length > 0 && !CourseCache.compareDigest(EXAM_TYPE, mergedExamData)) {
-            CourseCache.mergeExamCourses(mergedExamData, currentSemester.start_date, currentSemester.end_date);
+            CourseCache.mergeExamCourses(mergedExamData, currentTerm.start_date, currentTerm.end_date);
             hasChanged = true;
           } else if (mergedExamData.length === 0) {
             // 如果没有考试数据，但之前有缓存，则清除考试数据缓存
@@ -132,15 +120,18 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
         // 此时再进行滚动到指定周数，添加 NeedForceFetch 标记，强制刷新数据
         // 此时会让页面进入 Loading 状态
         setNeedForceFetch(true);
-        flatListRef.current?.scrollToIndex({
-          index: initialWeek - 1,
-          animated: false,
-        });
-        setCurrentWeek(initialWeek);
+        safeSetSelectedWeek(currentWeek);
       }
       return true;
     });
-  }, [term, exportExamToCourseTable, currentSemester, initialWeek]);
+  }, [
+    currentWeek,
+    safeSetSelectedWeek,
+    setting.exportExamToCourseTable,
+    currentTerm.term,
+    currentTerm.start_date,
+    currentTerm.end_date,
+  ]);
 
   // 订阅刷新事件，触发时更新课程数据状态
   useEffect(() => {
@@ -153,30 +144,27 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
     };
   }, []);
 
-  // 获取当前学期的最大周数
-  const maxWeek = useMemo(
-    () => getWeeksBySemester(currentSemester.start_date, currentSemester.end_date),
-    [currentSemester],
-  );
-
   // 生成一周的日期数据
   const weekArray = useMemo(
     () =>
       Array.from({ length: maxWeek }, (_, i) => ({
         week: i + 1,
-        firstDate: getFirstDateByWeek(currentSemester.start_date, i + 1),
+        firstDate: getFirstDateByWeek(currentTerm.start_date, i + 1),
       })),
-    [maxWeek, currentSemester],
+    [maxWeek, currentTerm],
   );
 
-  // 通过 view ability 回调获取当前周
+  // 通过 viewability 回调获取当前周
   const handleViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken<(typeof weekArray)[0]>[] }) => {
       if (viewableItems.length > 0) {
-        setCurrentWeek(viewableItems[0].item.week);
+        const firstViewableWeek = viewableItems[0].item.week;
+        if (firstViewableWeek !== selectedWeek) {
+          safeSetSelectedWeek(firstViewableWeek, false);
+        }
       }
     },
-    [],
+    [safeSetSelectedWeek, selectedWeek],
   );
 
   // 生成周数选择器的数据
@@ -189,6 +177,89 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
     [maxWeek],
   );
 
+  const headerBackground = useCallback(() => {
+    return !customBackground ? <View className="flex-1 bg-card" /> : undefined;
+  }, [customBackground]);
+
+  const headerLeft = useCallback(
+    () => (
+      <Pressable
+        onPress={() => {
+          if (selectedWeek !== -1) {
+            // 如果是当前学期，点击快捷跳转到当前周
+            safeSetSelectedWeek(currentWeek);
+          }
+        }}
+      >
+        <Text className="ml-4 text-2xl font-medium">课程表</Text>
+      </Pressable>
+    ),
+    [selectedWeek, safeSetSelectedWeek, currentWeek],
+  );
+
+  const headerTitle = useCallback(
+    () => (
+      <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
+        <Text className="mr-1 text-lg">
+          第 {selectedWeek} 周 {selectedWeek === currentWeek ? '(本周)' : ''}
+        </Text>
+        <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+      </Pressable>
+    ),
+    [selectedWeek, currentWeek, showWeekSelector],
+  );
+
+  const headerRight = useCallback(
+    () => (
+      <>
+        <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
+        <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
+      </>
+    ),
+    [],
+  );
+
+  // 提供固定的布局信息，有助于性能优化
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: width, // 每个项的宽度
+      offset: width * index, // 每个项的起始位置
+      index, // 当前索引
+    }),
+    [width],
+  );
+
+  // 渲染列表项（此处一项为一屏的内容）
+  const renderItem = useCallback(
+    ({ item }: { item: { week: number; firstDate: string } }) => (
+      <CourseWeek
+        key={item.week}
+        week={item.week}
+        startDate={item.firstDate}
+        schedulesByDays={schedulesByDays}
+        flatListLayout={flatListLayout}
+      />
+    ),
+    [schedulesByDays, flatListLayout],
+  );
+
+  // 获取 FlatList 的布局信息
+  const onLayout = useCallback(({ nativeEvent }: { nativeEvent: { layout: LayoutRectangle } }) => {
+    setFlatListLayout(nativeEvent.layout);
+  }, []);
+
+  const onClose = useCallback(() => {
+    setShowWeekSelector(false);
+  }, []);
+
+  const onConfirm = useCallback(
+    (selectedValue: string) => {
+      setShowWeekSelector(false);
+      safeSetSelectedWeek(parseInt(selectedValue, 10));
+    },
+    [safeSetSelectedWeek],
+  );
+
   return !cacheInitialized || needForceFetch ? (
     <Loading />
   ) : (
@@ -196,68 +267,26 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
       {/* 顶部 Tab 导航栏 */}
       <Tabs.Screen
         options={{
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerBackground: !customBackground ? () => <View className="flex-1 bg-card" /> : undefined,
-          // headerStyle: { backgroundColor: customBackground ? 'transparent' :  },
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerLeft: () => (
-            <Pressable
-              onPress={() => {
-                setCurrentWeek(initialWeek);
-                flatListRef.current?.scrollToIndex({ index: initialWeek - 1, animated: false });
-              }}
-            >
-              <Text className="ml-4 text-2xl font-medium">课程表</Text>
-            </Pressable>
-          ),
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerTitle: () => (
-            <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
-              <Text className="mr-1 text-lg">
-                第 {currentWeek} 周 {currentWeek === initialWeek && currentTerm === term ? '(本周)' : ''}
-              </Text>
-              <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
-            </Pressable>
-          ),
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <>
-              <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
-              <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
-            </>
-          ),
+          headerBackground: headerBackground,
+          headerLeft: headerLeft,
+          headerTitle: headerTitle,
+          headerRight: headerRight,
         }}
       />
 
       {/* 课程表详情 */}
       <FlatList
+        className="flex-1"
         ref={flatListRef} // 绑定 ref
         horizontal // 水平滚动
         pagingEnabled // 分页滚动
         data={weekArray} // 数据源
-        initialNumToRender={4} // 初始渲染数量
+        initialNumToRender={1} // 初始渲染数量，影响首屏速度
         windowSize={3} // 窗口大小
-        getItemLayout={(_, index) => ({
-          // 提供固定的布局信息
-          length: flatListLayout.width, // 每个项的宽度
-          offset: flatListLayout.width * index, // 每个项的起始位置
-          index, // 当前索引
-        })}
-        initialScrollIndex={currentWeek - 1} // 初始滚动位置
-        // 渲染列表项（此处一项为一屏的内容）
-        renderItem={({ item }) => (
-          <CourseWeek
-            key={item.week}
-            week={item.week}
-            startDate={item.firstDate}
-            schedulesByDays={schedulesByDays}
-            showNonCurrentWeekCourses={showNonCurrentWeekCourses}
-            hiddenCoursesWithoutAttendances={hiddenCoursesWithoutAttendances}
-            showExam={exportExamToCourseTable}
-            flatListLayout={flatListLayout}
-          />
-        )}
-        onLayout={({ nativeEvent }) => setFlatListLayout(nativeEvent.layout)} // 获取 FlatList 的布局信息
+        getItemLayout={getItemLayout}
+        initialScrollIndex={selectedWeek - 1} // 初始滚动位置
+        renderItem={renderItem}
+        onLayout={onLayout}
         onViewableItemsChanged={handleViewableItemsChanged}
         viewabilityConfig={{
           itemVisiblePercentThreshold: 50,
@@ -270,20 +299,12 @@ const CoursePage: React.FC<CoursePageProps> = ({ config, initialWeek, semesterLi
         visible={showWeekSelector}
         title="选择周数"
         data={weekPickerData}
-        value={String(currentWeek)}
-        onClose={() => setShowWeekSelector(false)}
-        onConfirm={selectedValue => {
-          setShowWeekSelector(false);
-          const selectedWeek = parseInt(selectedValue, 10);
-          setCurrentWeek(selectedWeek);
-          flatListRef.current?.scrollToIndex({
-            index: selectedWeek - 1,
-            animated: false,
-          });
-        }}
+        value={String(selectedWeek)}
+        onClose={onClose}
+        onConfirm={onConfirm}
       />
     </>
   );
 };
 
-export default CoursePage;
+export default memo(CoursePage);

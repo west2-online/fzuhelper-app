@@ -1,6 +1,5 @@
 import type { DefaultError, QueryClient, QueryKey } from '@tanstack/query-core';
-import { useQuery } from '@tanstack/react-query';
-import type { UseQueryOptions } from '@tanstack/react-query/src/types';
+import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 
 import { queryClient } from '@/components/query-provider';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
