@@ -87,15 +87,17 @@ export default function EmptyRoomPage() {
     setShowFAQ(prev => !prev);
   }, []);
 
+  const headerRight = useCallback(
+    () => <DateNavigator date={selectedDate.format(DATE_FMT)} onPress={() => setIsDateTimePickerVisible(true)} />,
+    [selectedDate],
+  );
+
   return (
     <>
       <Stack.Screen
         options={{
           title: '空教室',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <DateNavigator date={selectedDate.format(DATE_FMT)} onPress={() => setIsDateTimePickerVisible(true)} />
-          ),
+          headerRight: headerRight,
         }}
       />
       <PageContainer>

@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { ScrollView, SectionList, TouchableOpacity, View, type ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/text';
 
 import { CommonClassroomEmptyResponse_Classroom as Classroom } from '@/api/backend';
+import rnSectionListGetItemLayout from '@/utils/rn-section-list-get-item-layout';
+import React from 'react';
 
 interface Section {
   title: string;
@@ -15,19 +17,33 @@ interface ListItemProps {
   item: Classroom;
 }
 
-const ListItem: React.FC<ListItemProps> = ({ item }) => (
-  <View className="h-16 justify-center border-b border-border px-4">
+const SECTION_HEADER_HEIGHT = 40; // 段落标题高度
+const LIST_ITEM_HEIGHT = 56; // 列表项高度
+
+const SectionHeader = React.memo(({ title }: { title: string }) => (
+  <View className="flex-row items-center bg-card" style={{ height: SECTION_HEADER_HEIGHT }}>
+    <View className="mr-2 h-5 w-2 bg-primary" />
+    <Text className="font-bold text-primary">{title}</Text>
+  </View>
+));
+
+SectionHeader.displayName = 'SectionHeader';
+
+const ListItem = React.memo<ListItemProps>(({ item }) => (
+  <View className="justify-center border-b border-border px-4" style={{ height: LIST_ITEM_HEIGHT }}>
     <View className="flex-row justify-between">
       <Text className="text-base font-medium">{item.location}</Text>
       <Text className="text-text-secondary">{item.capacity}人</Text>
     </View>
     <Text className="text-text-secondary">{item.type}</Text>
   </View>
-);
+));
+
+ListItem.displayName = 'ListItem';
 
 const buildOrder = ['西3', '西2', '西1', '中楼', '东1', '东2', '东3', '文1', '文2', '文3', '文4'];
 
-export default function ClassroomList({ data }: { data: Classroom[] }) {
+function ClassroomList({ data }: { data: Classroom[] }) {
   const sectionListRef = useRef<SectionList<Classroom, Section>>(null);
   const [currentBuild, setCurrentBuild] = useState('');
   const isAutoScrolling = useRef(false);
@@ -71,11 +87,28 @@ export default function ClassroomList({ data }: { data: Classroom[] }) {
       // itemIndex 设置为 0 不行，只会滚动到最顶部
       // https://stackoverflow.com/questions/76311750/scrolltolocation-always-scrolling-to-top-in-sectionlist-in-react-native
       itemIndex: 1, // 滚动到段落的第一个项目
-      animated: true,
+      animated: false,
       viewPosition: 0, // 对齐到视口顶部
       viewOffset: 0,
     });
   };
+
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: Section }) => <SectionHeader title={section.title} />,
+    [],
+  );
+
+  const renderListItem = useCallback(({ item }: { item: Classroom }) => <ListItem item={item} />, []);
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => {
+      return rnSectionListGetItemLayout({
+        getItemHeight: () => LIST_ITEM_HEIGHT,
+        getSectionHeaderHeight: () => SECTION_HEADER_HEIGHT,
+      })(groupedData, index);
+    },
+    [groupedData],
+  );
 
   return (
     <View className="flex-1">
@@ -84,13 +117,8 @@ export default function ClassroomList({ data }: { data: Classroom[] }) {
         ref={sectionListRef}
         sections={groupedData}
         keyExtractor={item => item.location}
-        renderItem={({ item }) => <ListItem item={item} />}
-        renderSectionHeader={({ section }) => (
-          <View className="flex-row items-center bg-card py-2">
-            <View className="mr-2 h-5 w-2 bg-primary" />
-            <Text className="font-bold text-primary">{section.title}</Text>
-          </View>
-        )}
+        renderItem={renderListItem}
+        renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -103,15 +131,10 @@ export default function ClassroomList({ data }: { data: Classroom[] }) {
         onScrollAnimationEnd={() => {
           isAutoScrolling.current = false;
         }}
-        getItemLayout={(_, index) => {
-          if (index === -1) return { index, length: 0, offset: 0 };
-          return {
-            index: index,
-            length: 56, // h-16
-            offset: 56 * index,
-          };
-        }}
+        getItemLayout={getItemLayout}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
+        initialNumToRender={16}
+        overScrollMode="never"
       />
 
       {/* 右侧书签导航 */}
@@ -138,3 +161,5 @@ export default function ClassroomList({ data }: { data: Classroom[] }) {
     </View>
   );
 }
+
+export default memo(ClassroomList);
