@@ -54,7 +54,7 @@ export default function HomePage() {
     const selectedSemester = setting.selectedSemester || locateDateRes.semester;
 
     // 定位当前周，如果是历史学期（即和 locateDate 给出的学期不符），则为-1
-    const currentWeek = locateDateRes.semester === setting.selectedSemester ? locateDateRes.week : -1;
+    const currentWeek = locateDateRes.semester === selectedSemester ? locateDateRes.week : -1;
 
     // 获取当前学期信息
     const currentTerm = termsData?.data.data.terms.find(t => t.term === selectedSemester);
