@@ -8,7 +8,14 @@ import SeatCard from '@/components/learning-center/seat-card';
 import SeatOverview from '@/components/learning-center/seat-overview';
 import { cn } from '@/lib/utils';
 import type { SeatData } from '@/types/learning-center';
-import { convertSpaceName, groupSeatsByArea, SEAT_ITEM_HEIGHT, SpaceStatus } from '@/utils/learning-center/seats';
+import {
+  convertSpaceName,
+  groupSeatsByArea,
+  SEAT_ITEM_HEIGHT,
+  SECTION_HEADER_HEIGHT,
+  SpaceStatus,
+} from '@/utils/learning-center/seats';
+import rnSectionListGetItemLayout from '@/utils/rn-section-list-get-item-layout';
 
 interface Section {
   title: string;
@@ -23,7 +30,7 @@ interface LearningCenterSeatsListProps {
 const NUM_COLUMNS = 4;
 const RIGHT_SIDEBAR_WIDTH = 70; // 右侧边栏宽度
 
-const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data, onSeatPress }) => {
+const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data: fullData, onSeatPress }) => {
   const sectionListRef = useRef<SectionList<SeatData[], Section>>(null);
   const [currentArea, setCurrentArea] = useState('');
   const isAutoScrolling = useRef(false);
@@ -33,11 +40,11 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
 
   const groupedData = useMemo(
     () =>
-      Object.entries(groupSeatsByArea(data))
+      Object.entries(groupSeatsByArea(fullData))
         .filter(([_, seats]) => seats.length > 0)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([title, data]) => ({ title, data })),
-    [data],
+    [fullData],
   );
 
   const sortedKeys = useMemo(() => groupedData.map(item => item.title), [groupedData]);
@@ -74,9 +81,40 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
       // itemIndex 设置为 0 不行，只会滚动到最顶部
       // https://stackoverflow.com/questions/76311750/scrolltolocation-always-scrolling-to-top-in-sectionlist-in-react-native
       itemIndex: 1, // 滚动到段落的第一个项目
-      animated: true,
+      animated: false,
       viewPosition: 0, // 对齐到视口顶部
       viewOffset: 0,
+    });
+  }, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: SeatData[] }) => (
+      <View className="flex-row">
+        {item.map(seat => (
+          <SeatCard
+            key={seat.spaceName}
+            width={itemWidth}
+            spaceName={convertSpaceName(seat.spaceName)}
+            onPress={() => onSeatPress(seat.spaceName, seat.spaceStatus === SpaceStatus.Available)}
+            isAvailable={seat.spaceStatus === SpaceStatus.Available}
+          />
+        ))}
+      </View>
+    ),
+    [itemWidth, onSeatPress],
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: Section }) => <SeatOverview area={section.title} areaSeats={section.data.flat()} />,
+    [],
+  );
+
+  const getItemLayout = useMemo(() => {
+    return rnSectionListGetItemLayout({
+      getItemHeight: () => SEAT_ITEM_HEIGHT,
+      getSectionHeaderHeight: () => SECTION_HEADER_HEIGHT,
+      getSeparatorHeight: () => 0,
+      listHeaderHeight: 0,
     });
   }, []);
 
@@ -86,21 +124,10 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
         ref={sectionListRef}
         sections={chunkedGroupedData}
         keyExtractor={(item, index) => item[0]?.spaceName || `index_${index}`}
-        renderItem={({ item }) => (
-          <View className="flex-row">
-            {item.map(seat => (
-              <SeatCard
-                key={seat.spaceName}
-                width={itemWidth}
-                spaceName={convertSpaceName(seat.spaceName)}
-                onPress={() => onSeatPress(seat.spaceName, seat.spaceStatus === SpaceStatus.Available)}
-                isAvailable={seat.spaceStatus === SpaceStatus.Available}
-              />
-            ))}
-          </View>
-        )}
-        renderSectionHeader={({ section }) => <SeatOverview area={section.title} areaSeats={section.data.flat()} />}
-        className={`mr-[${RIGHT_SIDEBAR_WIDTH}px] rounded-tr-4xl bg-card`}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        className="rounded-tr-4xl bg-card"
+        style={{ marginRight: RIGHT_SIDEBAR_WIDTH }}
         stickySectionHeadersEnabled
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom }}
@@ -111,17 +138,16 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data,
         onScrollAnimationEnd={() => {
           isAutoScrolling.current = false;
         }}
-        initialNumToRender={20}
-        getItemLayout={(_, index) => ({
-          index,
-          length: SEAT_ITEM_HEIGHT,
-          offset: SEAT_ITEM_HEIGHT * index,
-        })}
+        initialNumToRender={10} // 首屏渲染行数
+        // maxToRenderPerBatch={10} // 每批渲染的最大行数
+        // windowSize={11}
+        // updateCellsBatchingPeriod={30}
+        getItemLayout={getItemLayout}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
         overScrollMode="never"
       />
 
-      <View className={`absolute bottom-0 right-0 top-12 w-[${RIGHT_SIDEBAR_WIDTH}px] pr-2`}>
+      <View className="absolute bottom-0 right-0 top-12 pr-2" style={{ width: RIGHT_SIDEBAR_WIDTH }}>
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ paddingBottom: insets.bottom }}

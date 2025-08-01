@@ -6,6 +6,7 @@ export enum SpaceStatus {
 }
 
 export const SEAT_ITEM_HEIGHT = 64;
+export const SECTION_HEADER_HEIGHT = 46;
 
 // 座位分区表
 export const SeatAreaCharts: [number, number, string, string][] = [
