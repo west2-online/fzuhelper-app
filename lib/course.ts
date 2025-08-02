@@ -797,12 +797,13 @@ export const getCourseSetting = async (): Promise<CourseSetting> => {
  * @param newSetting - 改动部分的设置，不要传入getCourseSetting返回的完整设置
  */
 export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): Promise<void> => {
-  const settingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-  const currentSetting = settingJson ? JSON.parse(settingJson) : {};
+  const currentSettingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
+  const currentSetting = currentSettingJson ? JSON.parse(currentSettingJson) : {};
   const updatedSetting = { ...currentSetting, ...newSetting };
+  const updatedSettingJson = JSON.stringify(updatedSetting);
   // 有实际变更才写入
-  if (JSON.stringify(currentSetting) !== JSON.stringify(updatedSetting)) {
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(updatedSetting));
+  if (currentSettingJson !== updatedSettingJson) {
+    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, updatedSettingJson);
   }
 };
 
