@@ -27,7 +27,7 @@ const CoursePage: React.FC = () => {
   const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek)); // 选中周数，非当前学期则定位到第一周
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
-  const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle | null>(null); // FlatList 的布局信息
+  const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
   const [schedulesByDays, setSchedulesByDays] = useState<Record<number, CourseInfo[]>>([]); // 目前的课程数据，按天归类
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
   const [needForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新

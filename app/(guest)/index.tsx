@@ -2,9 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, AppState, BackHandler, Image, Linking, Platform, View } from 'react-native';
+import { Alert, AppState, BackHandler, Image, Linking, Platform, TouchableOpacity, View } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 import {
   AlertDialog,
@@ -250,7 +249,7 @@ export default function SplashScreen() {
               <Image className="h-full w-full" src={splashImage} resizeMode="cover" />
               {/* TouchableOpacity 放置在 Image 的下方 */}
               {splashType !== 1 && (
-                <TouchableOpacity onPress={handleSplashClick}>
+                <TouchableOpacity onPress={handleSplashClick} activeOpacity={0.7}>
                   <View className="mx-auto -mt-28 mb-10 h-auto w-1/2 flex-1 items-center justify-center rounded-full bg-black/60">
                     <Text className="text-white">{splashText}</Text>
                   </View>
@@ -267,7 +266,7 @@ export default function SplashScreen() {
 
               {/* 跳过按钮靠右 */}
               <View className="absolute bottom-11 right-8 w-20 rounded-full border-gray-400 bg-card py-2">
-                <TouchableOpacity onPress={navigateToHome}>
+                <TouchableOpacity onPress={navigateToHome} activeOpacity={0.7}>
                   <Text className="mx-auto">跳过 {countdown}</Text>
                 </TouchableOpacity>
               </View>

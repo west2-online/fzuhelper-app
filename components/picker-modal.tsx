@@ -22,8 +22,8 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
 
   useEffect(() => {
     // newArch下，关闭时重置选中值，打开时重新渲染，否则高度偏移有问题
-    // setTempValue(visible ? value : (undefined as T));
-    visible && setTempValue(value);
+    setTempValue(visible ? value : (undefined as T));
+    // visible && setTempValue(value);
   }, [value, visible]);
 
   const handleConfirm = useCallback(() => {
@@ -55,10 +55,7 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
               <IcConfirm className="m-1 h-6 w-6" />
             </Pressable>
           </View>
-          {/* 外部区域会无法点击，需要overflow-hidden；newArch下无此问题 */}
-          <View className="overflow-hidden">
-            <WheelPicker data={data} value={tempValue} onValueChanged={onValueChanged} itemTextStyle={itemTextStyle} />
-          </View>
+          <WheelPicker data={data} value={tempValue} onValueChanged={onValueChanged} itemTextStyle={itemTextStyle} />
         </View>
       </View>
     </Modal>

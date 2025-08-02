@@ -53,6 +53,7 @@ const PaperItem = memo(function PaperItem({ paper, currentPath, setCurrentPath }
         }
       }}
       className="h-16 w-full flex-row items-center px-6 py-2"
+      activeOpacity={0.7}
     >
       <FileIcon width={18} height={18} />
       <Text numberOfLines={2} ellipsizeMode="tail" className="ml-6 flex-1 text-base">

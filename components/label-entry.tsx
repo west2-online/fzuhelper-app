@@ -21,6 +21,7 @@ const LabelEntry: React.FC<LabelEntryProps> = forwardRef<React.ComponentRef<type
   ({ leftText, rightText, description, onPress, disabled = false, noIcon = false, className }, ref) => (
     <TouchableOpacity
       className={cn('flex-row items-center justify-between space-y-4 py-4', className)}
+      activeOpacity={0.7}
       onPress={onPress}
       disabled={disabled}
       ref={ref}

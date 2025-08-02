@@ -16,6 +16,7 @@ const LearningCenterMap = memo(() => {
         <TouchableOpacity
           onPress={() => setShowFullScreenMap(true)}
           className="w-full flex-row overflow-hidden rounded-xl"
+          activeOpacity={0.7}
         >
           <Image
             source={require('@/assets/images/toolbox/learning-center/map.webp')}
@@ -40,6 +41,7 @@ const LearningCenterMap = memo(() => {
           <TouchableOpacity
             onPress={() => setShowFullScreenMap(false)}
             className={`absolute right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20`}
+            activeOpacity={0.7}
             style={{ top: insets.top + 14 }}
           >
             <Ionicons name="close" size={24} color="white" />

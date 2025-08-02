@@ -172,6 +172,7 @@ export default function FilePreviewPage() {
           {isDownloaded && Platform.OS === 'android' && (
             <TouchableOpacity
               onPress={handleOpenFile}
+              activeOpacity={0.7}
               className="mb-3 w-full items-center rounded-lg bg-primary py-3 shadow-md"
             >
               <Text className="text-base font-medium text-white">打开文件</Text>
@@ -182,6 +183,7 @@ export default function FilePreviewPage() {
           {isDownloaded && (
             <TouchableOpacity
               onPress={handleShareFile}
+              activeOpacity={0.7}
               className="w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
             >
               <Text className="text-base font-medium text-white">分享文件</Text>
@@ -201,12 +203,14 @@ export default function FilePreviewPage() {
             <>
               <TouchableOpacity
                 onPress={handleDownload}
+                activeOpacity={0.7}
                 className="mb-3 h-12 w-full items-center rounded-lg bg-primary py-3 shadow-md"
               >
                 <Text className="text-base font-medium text-white">下载到本地</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleCopyLink}
+                activeOpacity={0.7}
                 className="h-12 w-full items-center rounded-lg bg-green-500 py-3 shadow-md"
               >
                 <Text className="text-base font-medium text-white">复制链接</Text>

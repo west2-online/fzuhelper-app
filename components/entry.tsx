@@ -19,6 +19,7 @@ const Entry: React.FC<EntryProps> = ({ text, placeholder, onPress, disabled = fa
   <TouchableOpacity
     className={cn('flex-row items-center justify-between py-2', className)}
     onPress={onPress}
+    activeOpacity={0.7}
     disabled={disabled}
   >
     <View className="flex-row items-center">

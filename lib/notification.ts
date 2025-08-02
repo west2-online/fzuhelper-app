@@ -11,14 +11,8 @@ import {
   requestTrackingPermissionsAsync,
 } from 'expo-tracking-transparency';
 import { Platform } from 'react-native';
-import {
-  ALLOW_PUSH_EVENT_KEYS,
-  COURSE_SETTINGS_KEY,
-  EXAM_ROOM_KEY,
-  EXPIRE_ONE_DAY,
-  GRADE_LIST_KEY,
-  UMENG_JWCH_PUSH_TAG,
-} from './constants';
+import { ALLOW_PUSH_EVENT_KEYS, EXAM_ROOM_KEY, EXPIRE_ONE_DAY, GRADE_LIST_KEY, UMENG_JWCH_PUSH_TAG } from './constants';
+import { getCourseSetting } from './course';
 
 // Notification Manager 负责统筹管理 App 的通知交互，如 tag 上报等内容
 // TODO: 没有做权限检查，需要在调用之前检查权限，这部分待测试后判断是否应当引入检查
@@ -68,23 +62,15 @@ export class NotificationManager {
     }
 
     // 从 AsyncStorage 中获取当前学期信息
-    const data = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-    let settings = null;
-    if (data) {
-      settings = JSON.parse(data);
-    }
+    const settings = await getCourseSetting();
 
     // 成绩更新通知，直接从 CourseCache 中获取
     // 这个设置被打开，用户至少已经登录过一次，这个函数被调用前已经加载过 CourseCache
     if (this.allowGradeUpdateNotice) {
-      if (settings) {
-        const result = await this.calMarkDigest(settings.selectedSemester);
-        if (result.length > 0) {
-          tags = tags.concat(result); // 合并 tags
-          console.log('注册成绩更新通知，共计', result.length, '门课程');
-        }
-      } else {
-        console.log('本地没有课程设置信息，无法注册成绩更新通知');
+      const result = await this.calMarkDigest(settings.selectedSemester);
+      if (result.length > 0) {
+        tags = tags.concat(result); // 合并 tags
+        console.log('注册成绩更新通知，共计', result.length, '门课程');
       }
     }
 

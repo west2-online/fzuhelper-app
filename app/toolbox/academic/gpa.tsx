@@ -6,7 +6,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchAcademicGpa } from '@/api/generate';
-import { Icon } from '@/components/Icon';
+import LastUpdateTime from '@/components/last-update-time';
 import Loading from '@/components/loading';
 import useApiRequest from '@/hooks/useApiRequest';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,11 +41,8 @@ export default function GPAPage() {
                       <Text className="font-bold">{item.value}</Text>
                     </View>
                   ))}
-                  {/* 显示最后更新时间 */}
-                  <View className="my-3 flex flex-row items-center justify-center rounded-lg p-2">
-                    <Icon name="time-outline" size={16} className="mr-2" />
-                    <Text className="text-l leading-5 text-text-primary">{academicData.time}</Text>
-                  </View>
+                  {/* 显示最后更新时间，与其他不同，这个是教务处网页上有的，因此非本地网络请求的时间 */}
+                  <LastUpdateTime text="" lastUpdatedText={academicData.time} />
                   <Text className="p-2 text-red-500">
                     注：绩点排名中的总学分只计算参与绩点计算的学分总和，并不代表所修学分总和。
                   </Text>

@@ -38,7 +38,12 @@ export default function RadioGroup({
       {options.map(option => {
         const isSelected = selected === option.id;
         return (
-          <TouchableOpacity key={option.id} className="flex-row items-start" onPress={() => onChange(option.id)}>
+          <TouchableOpacity
+            key={option.id}
+            className="flex-row items-start"
+            onPress={() => onChange(option.id)}
+            activeOpacity={0.7}
+          >
             <View className="mr-3 mt-1">
               <View
                 className={cn(

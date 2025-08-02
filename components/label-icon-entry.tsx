@@ -10,7 +10,7 @@ interface LabelIconEntryProps {
 
 const LabelIconEntry: React.FC<LabelIconEntryProps> = ({ icon, label, onPress }) => {
   return (
-    <TouchableOpacity className={'flex-row items-center justify-between py-4'} onPress={onPress}>
+    <TouchableOpacity className={'flex-row items-center justify-between py-4'} activeOpacity={0.7} onPress={onPress}>
       <View className="flex-row items-center space-x-4">
         <Image source={icon} className="h-7 w-7" />
         <Text className="ml-5 text-lg text-text-primary">{label}</Text>

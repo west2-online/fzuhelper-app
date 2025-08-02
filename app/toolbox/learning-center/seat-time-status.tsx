@@ -83,73 +83,79 @@ export default function SeatTimeStatusPage() {
     fetchSeatTimeStatus();
   }, [api, spaceId, date, isOccupied]);
 
-  const getTimeBlockStyle = (item: TimeDiamond) => {
-    // 基础样式
-    let baseStyle = 'w-[23%] p-3 rounded-lg mb-2.5 mr-[2%] items-center justify-center ';
+  const getTimeBlockStyle = useCallback(
+    (item: TimeDiamond) => {
+      // 基础样式
+      let baseStyle = 'w-full py-3 rounded-lg items-center justify-center';
 
-    // 已占用
-    if (item.occupy === 1) {
-      return baseStyle + 'bg-[#fee2e2]/80 dark:bg-[#fee2e2]/30 border border-[#f87171]/80';
-    }
+      // 已占用
+      if (item.occupy === 1) {
+        return baseStyle + 'bg-[#fee2e2]/80 dark:bg-[#fee2e2]/30 border border-[#f87171]/80';
+      }
 
-    // 被选为开始或结束时间
-    if (item.timeText === beginTime || item.timeText === endTime) {
-      return baseStyle + 'bg-[#dbeafe]/80 dark:bg-[#dbeafe]/80 border border-[#3b82f6]/80';
-    }
+      // 被选为开始或结束时间
+      if (item.timeText === beginTime || item.timeText === endTime) {
+        return baseStyle + 'bg-[#dbeafe]/80 dark:bg-[#dbeafe]/80 border border-[#3b82f6]/80';
+      }
 
-    // 在开始和结束时间之间
-    if (beginTime && endTime && item.timeText > beginTime && item.timeText < endTime) {
-      return baseStyle + 'bg-[#eff6ff]/80 dark:bg-[#eff6ff]/60 border border-[#93c5fd]/80';
-    }
+      // 在开始和结束时间之间
+      if (beginTime && endTime && item.timeText > beginTime && item.timeText < endTime) {
+        return baseStyle + 'bg-[#eff6ff]/80 dark:bg-[#eff6ff]/60 border border-[#93c5fd]/80';
+      }
 
-    // 默认可用
-    return baseStyle + 'bg-[#e6f7e9]/80 dark:bg-[#e6f7e9]/40 border border-[#4ade80]/80';
-  };
+      // 默认可用
+      return baseStyle + 'bg-[#e6f7e9]/80 dark:bg-[#e6f7e9]/40 border border-[#4ade80]/80';
+    },
+    [beginTime, endTime],
+  );
 
   // 处理时间点击事件
-  const handleTimeSelection = (time: string, occupy: number) => {
-    // 如果座位已占用，不允许选择
-    if (occupy === 1) return;
+  const handleTimeSelection = useCallback(
+    (time: string, occupy: number) => {
+      // 如果座位已占用，不允许选择
+      if (occupy === 1) return;
 
-    if (!beginTime && !endTime) {
-      setBeginTime(time);
-    } else if (beginTime && !endTime) {
-      if (time < beginTime) {
+      if (!beginTime && !endTime) {
         setBeginTime(time);
-      } else if (time > beginTime) {
-        // 计算时间差（小时）
-        const calculateHoursDifference = (start: string, end: string) => {
-          const [startHour, startMinute] = start.split(':').map(Number);
-          const [endHour, endMinute] = end.split(':').map(Number);
-          return endHour - startHour + (endMinute - startMinute) / 60;
-        };
+      } else if (beginTime && !endTime) {
+        if (time < beginTime) {
+          setBeginTime(time);
+        } else if (time > beginTime) {
+          // 计算时间差（小时）
+          const calculateHoursDifference = (start: string, end: string) => {
+            const [startHour, startMinute] = start.split(':').map(Number);
+            const [endHour, endMinute] = end.split(':').map(Number);
+            return endHour - startHour + (endMinute - startMinute) / 60;
+          };
 
-        const hoursDifference = calculateHoursDifference(beginTime, time);
+          const hoursDifference = calculateHoursDifference(beginTime, time);
 
-        // 检查是否超过4小时
-        if (hoursDifference > 4) {
-          toast.error('预约时间不能超过4小时，请重新选择');
-          return;
-        }
+          // 检查是否超过4小时
+          if (hoursDifference > 4) {
+            toast.error('预约时间不能超过4小时，请重新选择');
+            return;
+          }
 
-        // 检查从开始到结束的所有时间段是否都可用
-        const isAllAvailable = timeDiamondList
-          .filter(item => item.timeText > beginTime && item.timeText <= time)
-          .every(item => item.occupy === 0);
+          // 检查从开始到结束的所有时间段是否都可用
+          const isAllAvailable = timeDiamondList
+            .filter(item => item.timeText > beginTime && item.timeText <= time)
+            .every(item => item.occupy === 0);
 
-        if (isAllAvailable) {
-          setEndTime(time);
+          if (isAllAvailable) {
+            setEndTime(time);
+          } else {
+            toast.error('选择的时间段内有已被占用的时间点，请重新选择');
+          }
         } else {
-          toast.error('选择的时间段内有已被占用的时间点，请重新选择');
+          setBeginTime(null);
         }
       } else {
         setBeginTime(null);
+        setEndTime(null);
       }
-    } else {
-      setBeginTime(null);
-      setEndTime(null);
-    }
-  };
+    },
+    [beginTime, endTime, timeDiamondList],
+  );
 
   // 检查是否可以预约
   const canMakeAppointment = useMemo(() => {
@@ -248,37 +254,36 @@ export default function SeatTimeStatusPage() {
                   </View>
 
                   {/* 时间块网格 */}
-                  <View className="mb-1 flex-row flex-wrap justify-start">
+                  <View className="mb-1 w-full flex-row flex-wrap justify-start">
                     {timeDiamondList.map(item => (
-                      <TouchableOpacity
-                        key={item.index}
-                        className={getTimeBlockStyle(item)}
-                        disabled={item.occupy === 1}
-                        onPress={() => handleTimeSelection(item.timeText, item.occupy)}
-                      >
-                        <Text
-                          className={`w-full text-center text-base ${
-                            item.occupy === 1
-                              ? 'text-text-secondary'
-                              : item.timeText === beginTime || item.timeText === endTime
-                                ? 'font-medium text-primary'
-                                : 'text-text-primary'
-                          }`}
+                      <View className="box-border w-1/4 p-1">
+                        <TouchableOpacity
+                          key={item.index}
+                          className={getTimeBlockStyle(item)}
+                          disabled={item.occupy === 1}
+                          activeOpacity={0.7}
+                          onPress={() => handleTimeSelection(item.timeText, item.occupy)}
                         >
-                          {item.timeText}
-                        </Text>
-                      </TouchableOpacity>
+                          <Text
+                            className={`w-full text-center text-base ${
+                              item.occupy === 1
+                                ? 'text-text-secondary'
+                                : item.timeText === beginTime || item.timeText === endTime
+                                  ? 'font-medium text-primary'
+                                  : 'text-text-primary'
+                            }`}
+                          >
+                            {item.timeText}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                     ))}
                   </View>
 
                   {/* 预约按钮 */}
-                  {canMakeAppointment && (
-                    <View className="mt-8 px-4">
-                      <Button onPress={handleAppointment}>
-                        <Text className="font-medium text-white">立即预约</Text>
-                      </Button>
-                    </View>
-                  )}
+                  <Button className="mt-8" disabled={!canMakeAppointment} onPress={handleAppointment}>
+                    <Text>立即预约</Text>
+                  </Button>
                 </>
               )}
             </SafeAreaView>

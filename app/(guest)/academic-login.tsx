@@ -198,7 +198,7 @@ const LoginPage: React.FC = () => {
                       placeholder="请输入验证码"
                       className="mr-4 flex-1 px-1 py-3"
                     />
-                    <TouchableOpacity onPress={refreshCaptcha}>
+                    <TouchableOpacity onPress={refreshCaptcha} activeOpacity={0.7}>
                       {captchaImage ? (
                         // 显示验证码图片
                         <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
@@ -215,6 +215,7 @@ const LoginPage: React.FC = () => {
                 {/* 登录按钮 */}
                 <TouchableOpacity
                   onPress={isLoggingIn ? undefined : handleLogin}
+                  activeOpacity={0.7}
                   disabled={isLoggingIn}
                   className={`mb-6 w-full items-center justify-center rounded-4xl py-3 ${
                     isLoggingIn ? 'bg-gray-400' : 'bg-primary'
@@ -257,7 +258,7 @@ const LoginPage: React.FC = () => {
 
               {/* 底部协议 */}
               <TouchableOpacity
-                activeOpacity={0.5}
+                activeOpacity={0.7}
                 className="mb-4 mt-12 w-full flex-row justify-center py-2"
                 onPress={() => setIsAgree(!isAgree)}
               >

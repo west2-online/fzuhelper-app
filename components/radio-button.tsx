@@ -21,6 +21,7 @@ const RadioButton: React.FC<RadioButtonProps> = ({ options, selectedValue, onCha
             'mx-4 flex-row items-center rounded-lg px-4 py-2',
             selectedValue === option.value ? 'bg-primary' : 'bg-secondary',
           )}
+          activeOpacity={0.7}
           onPress={() => onChange(option.value)}
         >
           <Text className={cn('text-lg', selectedValue === option.value ? 'text-white' : 'text-text-primary')}>

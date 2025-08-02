@@ -21,6 +21,7 @@ const ColorRadioButton: React.FC<ColorRadioButtonProps> = ({ options, selectedVa
             selectedValue === option.value ? 'border-2 border-primary' : 'border border-gray-300',
           )}
           style={{ backgroundColor: option.color }}
+          activeOpacity={0.7}
           onPress={() => onChange(option.value)}
         />
       ))}

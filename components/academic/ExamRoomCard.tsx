@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { MergedExamData } from '@/types/academic';
 
 import { COURSE_SYMBOLS_MAP, DATE_FORMAT } from '@/lib/constants';
+import { memo } from 'react';
 
 const SYMBOLS = Object.keys(COURSE_SYMBOLS_MAP);
 const SYMBOLS_REGEX = new RegExp(`[${SYMBOLS.join('')}]`, 'g');
@@ -27,22 +28,22 @@ interface CourseCardProps {
   item: MergedExamData;
 }
 
-// 课程卡片组件
+// 考场卡片组件
 const ExamRoomCard: React.FC<CourseCardProps> = ({ item }) => (
-  <Card className={cn('m-1 my-2 rounded-md p-3', item.isFinished && 'opacity-50')}>
+  <Card className={cn('p-3', item.isFinished && 'opacity-50')}>
     {/* 考试课程 */}
     <View className="m-1 flex flex-row items-center justify-start">
-      <View className="flex flex-shrink-0 flex-grow flex-row items-center">
+      <View className="flex flex-shrink flex-grow flex-row items-center">
         <Icon name={item.isFinished ? 'checkmark-circle' : 'alert-circle'} size={16} className="mr-2" />
-        <Text className="mr-1 font-bold" numberOfLines={1}>
+        <Text className="mr-1 flex-shrink font-bold" numberOfLines={1}>
           {getCourseName(item.name)}
         </Text>
         {item.credit !== undefined && item.credit !== '0' && (
-          <Text className="mr-2 text-sm text-muted-foreground"> ({item.credit} 学分)</Text>
+          <Text className="mr-2 flex-shrink-0 text-sm text-text-secondary"> ({item.credit} 学分)</Text>
         )}
       </View>
 
-      <Text className="flex-shrink flex-grow-0 justify-self-end text-ellipsis" numberOfLines={1}>
+      <Text className="flex-shrink-0 justify-self-end text-ellipsis" numberOfLines={1}>
         {item.teacher}
       </Text>
     </View>
@@ -69,4 +70,4 @@ const ExamRoomCard: React.FC<CourseCardProps> = ({ item }) => (
   </Card>
 );
 
-export default ExamRoomCard;
+export default memo(ExamRoomCard);
