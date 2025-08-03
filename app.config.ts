@@ -62,6 +62,7 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
+      monochromeImage: './assets/images/ic_launcher_foreground.png',
       backgroundColor: '#FFFFFF',
     },
     permissions: [
