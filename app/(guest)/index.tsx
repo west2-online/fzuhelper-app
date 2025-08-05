@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, BackHandler, Image, Linking, Platform, TouchableOpacity, View } from 'react-native';
@@ -33,6 +33,7 @@ import {
 } from '@/lib/constants';
 import { NotificationManager } from '@/lib/notification';
 import { LocalUser } from '@/lib/user';
+import { pushToWebViewNormal } from '@/lib/webview';
 import BuglyModule from '@/modules/bugly';
 import { isAccountExist } from '@/utils/is-account-exist';
 
@@ -43,6 +44,7 @@ export default function SplashScreen() {
 
   const [shouldShowPrivacyAgree, setShouldShowPrivacyAgree] = useState(true);
   const [privacyDialogVisible, setPrivacyDialogVisible] = useState(false);
+  const [isFocus, setIsFocus] = useState(true);
 
   const [showSplashImage, setShowSplashImage] = useState(false);
   const [splashId, setSplashId] = useState(-1);
@@ -233,6 +235,15 @@ export default function SplashScreen() {
     }
   }, [showSplashImage, navigateToHome]);
 
+  useFocusEffect(
+    useCallback(() => {
+      setIsFocus(true);
+      return () => {
+        setIsFocus(false);
+      };
+    }, []),
+  );
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -276,7 +287,7 @@ export default function SplashScreen() {
           </View>
         )}
       </View>
-      <AlertDialog open={privacyDialogVisible}>
+      <AlertDialog open={privacyDialogVisible && isFocus}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>欢迎</AlertDialogTitle>
@@ -288,7 +299,7 @@ export default function SplashScreen() {
               <Text
                 className="text-primary"
                 onPress={() => {
-                  Linking.openURL(URL_USER_AGREEMENT).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+                  pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
                 }}
               >
                 《福uu用户服务协议》
@@ -297,7 +308,7 @@ export default function SplashScreen() {
               <Text
                 className="text-primary"
                 onPress={() => {
-                  Linking.openURL(URL_PRIVACY_POLICY).catch(err => Alert.alert('错误', '无法打开链接(' + err + ')'));
+                  pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
                 }}
               >
                 《福uu隐私政策》
