@@ -1,8 +1,11 @@
 import { fetchNoticeList } from '@/api/generate/common';
+import FAQModal from '@/components/faq-modal';
+import { Icon } from '@/components/Icon';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import { Card } from '@/components/ui/card';
 import useApiRequest from '@/hooks/useApiRequest';
+import { FAQ_NOTICE } from '@/lib/FAQ';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Linking, RefreshControl, Text, TouchableOpacity } from 'react-native';
@@ -81,10 +84,22 @@ export default function OfficeNoticePage() {
     [handleNoticePress],
   );
 
+  const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ
+
+  // 处理 Modal 显示事件
+  const handleModalVisible = useCallback(() => {
+    setShowFAQ(prev => !prev);
+  }, []);
+
+  const headerRight = useCallback(
+    () => <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />,
+    [handleModalVisible],
+  );
+
   if ((isLoading || isRefetching) && !isLoadingMore && pageNum === 1) {
     return (
       <>
-        <Stack.Screen options={{ title: '教务通知' }} />
+        <Stack.Screen options={{ title: '教务通知', headerRight: headerRight }} />
         <PageContainer className="flex-1 items-center justify-center">
           <Loading />
         </PageContainer>
@@ -114,6 +129,7 @@ export default function OfficeNoticePage() {
           }
         />
       </PageContainer>
+      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_NOTICE} />
     </>
   );
 }

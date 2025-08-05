@@ -1,25 +1,28 @@
+import { FAQItem } from '@/components/faq-content';
+
 // 课表
-export const FAQ_COURSE = [
+export const FAQ_COURSE: FAQItem[] = [
   {
     question: '课表数据的准确性如何？',
     answer: '在线刷新获取到的成绩数据和教务处一致，您可以在设置页面查看上次刷新时间。',
   },
   {
-    question: '为什么有的课程没有显示？',
-    answer: '可能您的课程发生了重叠。我们在重叠课程的右上方显示一个角标。您可以点击后进行切换。',
+    question: '为什么一些课程没有显示？',
+    answer:
+      '您的课程可能发生了重叠。重叠课程的右上方会显示一个角标，点击重叠课程后，可通过左右按钮进行切换，点击“优先显示”控制优先显示的课程。',
   },
   {
     question: '为什么有些考场漏了？',
-    answer: '课表中只显示拥有考试日期，以及具体考试时间，且考试日期在学期范围内的考场。',
+    answer: '课表中只显示拥有考试日期和时间，且考试日期在学期范围内的考场。',
   },
   {
     question: '我的课表已经很久没有刷新了',
-    answer: '您可以在设置页面强制刷新',
+    answer: '您可以在设置页面点击“刷新数据”，或在课程表页面下拉执行刷新。',
   },
 ];
 
 // 空教室
-export const FAQ_EMPTY_ROOM = [
+export const FAQ_EMPTY_ROOM: FAQItem[] = [
   {
     question: '列表里的教室都是空教室吗？',
     answer:
@@ -35,12 +38,12 @@ export const FAQ_EMPTY_ROOM = [
   },
   {
     question: '为什么有时候没有部分教学楼的信息？',
-    answer: '教务系统没有提供这个教学楼的数据，或单日该教学楼没有空教室',
+    answer: '教务系统没有提供这个教学楼的数据，或单日该教学楼没有空教室。',
   },
 ];
 
 // 考表
-export const FAQ_EXAM_ROOM = [
+export const FAQ_EXAM_ROOM: FAQItem[] = [
   {
     question: '考场查询的准确性如何？',
     answer: '在线刷新获取到的成绩数据和教务处一致，但具体考场位置可能会由授课教师另行通知。',
@@ -61,10 +64,18 @@ export const FAQ_EXAM_ROOM = [
     question: '校选课在哪里考试？',
     answer: '线下通常是最后一节课随堂考，线上请注意授课 APP 的通知，具体以授课教师通知为准。',
   },
+  {
+    question: '如何在课程表中显示或隐藏考试？',
+    answer: ['请前往', { text: '课程表设置', href: '/settings/course' }, '，打开或关闭“显示本学期考场”开关。'],
+  },
+  {
+    question: '有新的考场安排时，如何及时收到通知？',
+    answer: ['请前往', { text: '设置-通知推送', href: '/settings/notifications' }, '开启“考试通知”推送开关。'],
+  },
 ];
 
 // 课程成绩
-export const FAQ_COURSE_GRADE = [
+export const FAQ_COURSE_GRADE: FAQItem[] = [
   {
     question: '单学期绩点的准确性如何？',
     answer: ['单学期绩点通过学期成绩应用一定的规则计算得到。由于计算规则复杂，我们不保证其准确性，数据仅供参考。'],
@@ -96,29 +107,39 @@ export const FAQ_COURSE_GRADE = [
   {
     question: 'APP 提供的内容作为成绩单，会被认可吗？',
     answer:
-      '不会。加盖教务处公章的成绩单方为有效，可在教务处成绩自助打印终端打印纸质成绩单，或在“校务行”微信小程序获取电子成绩单。',
+      '不会。加盖教务处公章的成绩单方为有效，可在教务处成绩自助打印终端打印纸质成绩单，或在“校务行”微信小程序、更多工具中的“可信电子文档系统”获取电子成绩单。',
+  },
+  {
+    question: '如何收到成绩更新通知？',
+    answer: ['请前往', { text: '设置-通知推送', href: '/settings/notifications' }, '开启“考试成绩通知”推送开关。'],
   },
 ];
 
 // 更多工具
-export const FAQ_MORE = [
+export const FAQ_MORE: FAQItem[] = [
   {
-    question: '',
     answer: [
       '1. 部分服务需要校内网络环境（FZU）或登录',
       {
         text: '学校VPN',
         url: 'https://vpn2.fzu.edu.cn/',
       },
+      '。',
     ],
   },
   {
-    question: '',
-    answer: '2. 更多功能均需要登录统一身份认证平台，如果提示登录异常，可以在我的-右上角设置中退出登录后重新尝试',
+    answer: '2. 更多功能均需要登录统一身份认证平台，如果提示登录异常，可以在我的-右上角设置中退出登录后重新尝试。',
   },
   {
-    question: '',
-    answer: '3. App 仅提供跳转便利，不负责维护内容与功能，页面可能出现无法加载的情况',
+    answer: '3. App 仅提供跳转便利，不负责维护内容与功能，由于服务提供方的不稳定性，页面可能出现无法加载的情况。',
+  },
+];
+
+// 教务通知
+export const FAQ_NOTICE: FAQItem[] = [
+  {
+    question: '如何收到最新教务通知推送？',
+    answer: ['请前往', { text: '设置-通知推送', href: '/settings/notifications' }, '开启“教务通知”推送开关。'],
   },
 ];
 
@@ -152,6 +173,10 @@ export const FAQ_MAP = [
   {
     name: '成绩查询',
     data: FAQ_COURSE_GRADE,
+  },
+  {
+    name: '教务通知',
+    data: FAQ_NOTICE,
   },
   {
     name: '更多工具',

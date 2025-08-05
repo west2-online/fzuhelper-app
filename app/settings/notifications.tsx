@@ -81,7 +81,7 @@ export default function PushSettingsPage() {
             <Text className="mb-2 text-sm text-text-secondary">通用</Text>
 
             <LabelSwitch
-              label="教学通知"
+              label="教务通知"
               value={settings.allowJWCHTeachingNotice}
               onValueChange={handleTeachingNotice}
               description="由教务处发布，含调停课、教学安排、竞赛通知等"
