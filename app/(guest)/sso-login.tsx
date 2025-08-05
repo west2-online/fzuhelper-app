@@ -153,8 +153,15 @@ const UnifiedLoginPage: React.FC = () => {
 
     setIsLoggingIn(true); // 禁用按钮
     // 由于一码通和SSO使用同一套账号密码 所以这里同时进行一码通和SSO登录
-    const isSSOLoginSuccess = await handleSSOLogin();
+    // 以下两个登录函数中调用了handleError执行错误处理（弹窗），不需要再作弹窗
     const isYMTLoginSuccess = await handleYMTLogin();
+    if (!isYMTLoginSuccess) {
+      // 一码通登录失败，大概率账号密码错误，结束登录流程
+      setIsLoggingIn(false);
+      return;
+    }
+
+    const isSSOLoginSuccess = await handleSSOLogin();
 
     // 如果一码通登录成功但是SSO登录失败，则证明账号密码正确但是SSO登录有问题，引导前往备用登录方式
     if (isYMTLoginSuccess && !isSSOLoginSuccess) {
@@ -219,20 +226,18 @@ const UnifiedLoginPage: React.FC = () => {
 
                 <View className="w-full flex-row justify-between px-2">
                   {/* 左侧区域 */}
-                  <View className="flex-1">
+                  <View>
                     {isBackUpEnabled && (
                       <Text className="text-primary" onPress={openBackUpLogin}>
-                        遇到了问题？备用登录方式
+                        遇到问题？备用登录方式
                       </Text>
                     )}
                   </View>
 
                   {/* 右侧区域 */}
-                  <View className="flex-1 items-end">
-                    <Text className="text-primary" onPress={openForgetPassword}>
-                      重置密码
-                    </Text>
-                  </View>
+                  <Text className="items-end text-primary" onPress={openForgetPassword}>
+                    重置密码
+                  </Text>
                 </View>
 
                 {/* 公告栏 */}
