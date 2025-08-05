@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, useWindowDimensions } from 'react-native';
+import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -137,11 +137,7 @@ export default function GradesPage() {
   }, []);
 
   const headerRight = useCallback(
-    () => (
-      <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-        <Icon name="help-circle-outline" size={26} className="mr-4" />
-      </Pressable>
-    ),
+    () => <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />,
     [handleModalVisible],
   );
 

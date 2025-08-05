@@ -14,7 +14,8 @@ import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { TouchableOpacity, View, useColorScheme } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import DateTimePicker, { useDefaultClassNames } from 'react-native-ui-datepicker';
 
 type Campus = '旗山校区' | '铜盘校区' | '晋江校区' | '泉港校区' | '怡山校区' | '集美校区' | '鼓浪屿校区';
@@ -37,10 +38,12 @@ function DateNavigator({ date, onPress }: DateNavigatorProps) {
   const iconColor = useMemo(() => (currentColorScheme === 'dark' ? 'white' : 'black'), [currentColorScheme]);
 
   return (
-    <TouchableOpacity className="flex-row items-center" onPress={onPress} activeOpacity={0.7}>
-      <Text className="pr-2 text-lg">{date}</Text>
-      <CalendarDaysIcon size={20} color={iconColor} />
-    </TouchableOpacity>
+    <Pressable onPress={onPress}>
+      <View className="flex-row items-center">
+        <Text className="pr-2 text-lg">{date}</Text>
+        <CalendarDaysIcon size={20} color={iconColor} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -132,9 +135,7 @@ export default function EmptyRoomPage() {
             <Text className="pr-1">{selectedCampus}</Text>
             <Icon name={isCampusPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
           </TouchableOpacity>
-          <Pressable onPress={handleModalVisible} className="flex-right flex-row items-center">
-            <Icon name="help-circle-outline" size={26} className="mr-4" />
-          </Pressable>
+          <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />
         </View>
         {loadingState === 'success' ? (
           <ClassroomList data={roomData} />
