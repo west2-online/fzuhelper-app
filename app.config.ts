@@ -187,7 +187,6 @@ const config: ExpoConfig = {
     './plugins/with-android-theme',
     './plugins/with-android-localization',
     '@bacons/apple-targets', // Apple Targets (e.g. widget)
-    // './plugins/disable-bridgeless-mode',
   ],
   experiments: {
     typedRoutes: true,
