@@ -29,6 +29,7 @@ import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script'
 export interface WebParams {
   url: string; // URL 地址
   jwch?: boolean; // （可选）是否为本科教务系统地址
+  sso?: boolean; // （可选）是否为统一身份认证地址
   title?: string; // （可选）固定标题
   [key: string]: any; // 添加字符串索引签名
 }
@@ -246,6 +247,9 @@ export default function Web() {
   );
 
   const headerRight = useCallback(() => {
+    if (jwch || sso) {
+      return null; // 权限页面不允许分享
+    }
     if (currentUrl) {
       return (
         <Icon
@@ -258,7 +262,7 @@ export default function Web() {
         />
       );
     }
-  }, [currentUrl, title, webpageTitle]);
+  }, [currentUrl, jwch, sso, title, webpageTitle]);
 
   const renderLoading = useCallback(() => {
     return (
