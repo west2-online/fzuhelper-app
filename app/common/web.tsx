@@ -1,12 +1,11 @@
 import { Icon } from '@/components/Icon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Clipboard from '@react-native-clipboard/clipboard';
 
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
 import CookieManager from '@react-native-cookies/cookies';
 import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform, useColorScheme } from 'react-native';
+import { BackHandler, Platform, Share, useColorScheme, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
@@ -24,7 +23,7 @@ import {
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
-import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
+import { checkCookieSSO, LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 
 export interface WebParams {
@@ -118,7 +117,7 @@ export default function Web() {
           console.error('SSO登录获取cookie失败:', error);
           return null;
         });
-        toast.info('登录过期，正在重新登录');
+        // toast.info('登录过期，正在重新登录');
         if (cookieLogin) {
           cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
           await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookieLogin);
@@ -209,62 +208,69 @@ export default function Web() {
   // 方案参考：https://stackoverflow.com/questions/74347489/how-to-pass-geolocation-permission-to-react-native-webview
   // 实际上在一些需要定位的站点内，请求没有问题，但是易班的签到仍然提示定位失效。
   // 考虑到其他站点没有问题，暂时保留这部分代码。
-  const handleOnMessage = (event: WebViewMessageEvent) => {
-    let data: { event?: string; options?: GeolocationOptions; watchID?: number } = {};
-    try {
-      data = JSON.parse(event.nativeEvent.data);
-    } catch (err: any) {
-      console.error('Failed to parse message:', err);
-      return;
-    }
+  const handleOnMessage = useCallback(
+    (event: WebViewMessageEvent) => {
+      let data: { event?: string; options?: GeolocationOptions; watchID?: number } = {};
+      try {
+        data = JSON.parse(event.nativeEvent.data);
+      } catch (err: any) {
+        console.error('Failed to parse message:', err);
+        return;
+      }
 
-    if (data?.event && data.event === 'getCurrentPosition') {
-      Geolocation.getCurrentPosition(
-        position => {
-          webViewRef.current!.postMessage(JSON.stringify({ event: 'currentPosition', data: position }));
-        },
-        error => {
-          webViewRef.current!.postMessage(JSON.stringify({ event: 'currentPositionError', data: error }));
-        },
-        data.options,
-      );
-    } else if (data?.event && data.event === 'watchPosition') {
-      Geolocation.watchPosition(
-        position => {
-          webViewRef.current!.postMessage(JSON.stringify({ event: 'watchPosition', data: position }));
-        },
-        error => {
-          webViewRef.current!.postMessage(JSON.stringify({ event: 'watchPositionError', data: error }));
-        },
-        data.options,
-      );
-    } else if (data?.event && data.event === 'clearWatch') {
-      Geolocation.clearWatch(data.watchID ?? 0);
-    }
-  };
+      if (data?.event && data.event === 'getCurrentPosition') {
+        Geolocation.getCurrentPosition(
+          position => {
+            webViewRef.current!.postMessage(JSON.stringify({ event: 'currentPosition', data: position }));
+          },
+          error => {
+            webViewRef.current!.postMessage(JSON.stringify({ event: 'currentPositionError', data: error }));
+          },
+          data.options,
+        );
+      } else if (data?.event && data.event === 'watchPosition') {
+        Geolocation.watchPosition(
+          position => {
+            webViewRef.current!.postMessage(JSON.stringify({ event: 'watchPosition', data: position }));
+          },
+          error => {
+            webViewRef.current!.postMessage(JSON.stringify({ event: 'watchPositionError', data: error }));
+          },
+          data.options,
+        );
+      } else if (data?.event && data.event === 'clearWatch') {
+        Geolocation.clearWatch(data.watchID ?? 0);
+      }
+    },
+    [webViewRef],
+  );
 
-  // 复制当前 URL
-  const copyUrlIcon = useCallback(() => {
+  const headerRight = useCallback(() => {
     if (currentUrl) {
       return (
         <Icon
-          name="link"
+          name="share-outline"
           onPress={() => {
-            Clipboard.setString(currentUrl);
-            toast.success('已复制当前网页链接');
+            Share.share({
+              message: (title || webpageTitle || '来自福uu的分享') + '\n' + currentUrl,
+            });
           }}
         />
       );
     }
-  }, [currentUrl]);
+  }, [currentUrl, title, webpageTitle]);
+
+  const renderLoading = useCallback(() => {
+    return (
+      <View className="absolute h-full w-full flex-1 items-center justify-center bg-background">
+        <Loading />
+      </View>
+    );
+  }, []);
 
   // 如果传入sso且需要sso登录，则跳转到sso登录页面
   if (needSSOLogin) {
-    return (
-      <>
-        <LoginPrompt message={`登录统一身份认证平台，访问${title ?? '当前'}服务`} />
-      </>
-    );
+    return <LoginPrompt message={`登录统一身份认证平台，访问${title ?? '当前'}服务`} />;
   }
 
   return (
@@ -273,7 +279,7 @@ export default function Web() {
       <Stack.Screen
         options={{
           title: title || webpageTitle,
-          headerRight: copyUrlIcon,
+          headerRight: headerRight,
         }}
       />
       <PageContainer>
@@ -290,19 +296,21 @@ export default function Web() {
                 cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
                 javaScriptEnabled // 确保启用 JavaScript
                 startInLoadingState={true} // 启用加载状态
+                renderLoading={renderLoading} // 加载组件
                 //
                 // Android 平台设置
-                onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回（Android）
-                scalesPageToFit // 启用页面缩放（Android）
-                renderToHardwareTextureAndroid // 启用硬件加速（Android）
-                setDisplayZoomControls={false} // 隐藏缩放控件图标（Android）
-                setBuiltInZoomControls // 启用内置缩放控件（Android）
-                geolocationEnabled={true} // 启用定位（Android）
+                onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回
+                scalesPageToFit // 启用页面缩放
+                renderToHardwareTextureAndroid // 启用硬件加速
+                setDisplayZoomControls={false} // 隐藏缩放控件图标
+                setBuiltInZoomControls // 启用内置缩放控件
+                geolocationEnabled={true} // 启用定位
+                overScrollMode="never" // 禁止过度滚动
                 //
                 // iOS 平台设置
-                allowsBackForwardNavigationGestures // 启用手势返回（iOS）
-                contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小（iOS）
-                allowsInlineMediaPlayback // 允许内联播放媒体（iOS）
+                allowsBackForwardNavigationGestures // 启用手势返回
+                contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小
+                allowsInlineMediaPlayback // 允许内联播放媒体
                 //
                 // 事件处理
                 onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
