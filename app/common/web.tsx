@@ -139,16 +139,14 @@ export default function Web() {
   // 在页面获得焦点时执行
   useFocusEffect(
     useCallback(() => {
-      if (sso) {
-        // 重置状态，准备重新加载
-        setInjectedScript(false);
-        setCookiesSet(false);
-        setNeedSSOLogin(false);
+      // 重置状态，准备重新加载
+      setInjectedScript(false);
+      setCookiesSet(false);
+      setNeedSSOLogin(false);
 
-        // 执行设置Cookie的逻辑
-        setCookies();
-      }
-    }, [setCookies, sso]),
+      // 执行设置Cookie的逻辑
+      setCookies();
+    }, [setCookies]),
   );
 
   // 处理 Android 返回键
