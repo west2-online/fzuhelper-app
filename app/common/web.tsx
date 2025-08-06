@@ -150,25 +150,32 @@ export default function Web() {
   );
 
   // 处理 Android 返回键
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS === 'android') {
+        const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+          if (canGoBack) {
+            webViewRef.current?.goBack();
+
+            return true; // 阻止默认行为（退出页面）
+          }
+
+          return false;
+        });
+
+        return () => {
+          subscription.remove();
+        };
+      }
+    }, [canGoBack]),
+  );
+
+  // iOS 定位权限申请
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-        if (canGoBack) {
-          webViewRef.current?.goBack();
-
-          return true; // 阻止默认行为（退出页面）
-        }
-
-        return false;
-      });
-
-      return () => {
-        subscription.remove();
-      };
-    } else if (Platform.OS === 'ios') {
+    if (Platform.OS === 'ios') {
       Geolocation.requestAuthorization();
     }
-  }, [canGoBack]);
+  }, []);
 
   const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
     const targetUrl = event.nativeEvent.targetUrl; // 获取目标 URL
@@ -272,11 +279,6 @@ export default function Web() {
     );
   }, []);
 
-  // 如果传入sso且需要sso登录，则跳转到sso登录页面
-  if (needSSOLogin) {
-    return <LoginPrompt message={`登录统一身份认证平台，访问${title ?? '当前'}服务`} />;
-  }
-
   return (
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
@@ -287,7 +289,9 @@ export default function Web() {
         }}
       />
       <PageContainer>
-        {!cookiesSet ? (
+        {needSSOLogin ? (
+          <LoginPrompt message={`登录统一身份认证平台，访问${title ?? '当前'}服务`} />
+        ) : !cookiesSet ? (
           <Loading />
         ) : (
           <SafeAreaView className="h-full w-full bg-background" edges={['bottom']}>
