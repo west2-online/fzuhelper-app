@@ -24,9 +24,9 @@ export const initAegis = () => {
     whiteListUrl: '', // 关闭白名单接口请求，减少金钱花销
     env: __DEV__ ? Aegis.environment.development : Aegis.environment.production,
     beforeRequest(data: any) {
-      if (__DEV__) {
-        console.log('aegis', data);
-      }
+      // if (__DEV__) {
+      //   console.log('aegis', data);
+      // }
 
       return data;
     },
@@ -36,9 +36,9 @@ export const initAegis = () => {
           const data = JSON.parse(_data);
           const isErr = !SuccessCodeList.includes(data.code);
 
-          if (__DEV__ && isErr) {
-            console.log('aegis api ret code error', data);
-          }
+          // if (__DEV__ && isErr) {
+          //   console.log('aegis api ret code error', data);
+          // }
 
           return {
             // isErr 如果是 true 的话，会上报一条 retcode 异常的日志。
