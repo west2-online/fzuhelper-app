@@ -1,9 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
 import { ACCESS_TOKEN_KEY, JWCH_USER_INFO_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
-import BuglyModule from '@/modules/bugly';
 import { get } from '@/modules/native-request';
 import { Buffer } from 'buffer';
 import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
@@ -78,9 +76,6 @@ export class LocalUser {
       REFRESH_TOKEN_KEY,
       JWCH_USER_INFO_KEY,
     ]);
-    if(Platform.OS === 'android') {
-      await BuglyModule.setUserId('');
-    }
   }
 
   /**

@@ -135,6 +135,12 @@ const LoginPage: React.FC = () => {
         Alert.alert('请求失败', data.code + ': ' + data.message);
       }
       await refreshCaptcha();
+      // 访问令牌获取失败，清除账户信息
+      await LocalUser.clear();
+      setAegisConfig({});
+      if (Platform.OS === 'android') {
+        await BuglyModule.setUserId('');
+      }
     } finally {
       // 恢复按钮状态
       setIsLoggingIn(false);
