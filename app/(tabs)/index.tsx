@@ -1,13 +1,12 @@
 import { useFocusEffect } from 'expo-router';
-import { createContext, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import CoursePage from '@/components/course/course-page';
 import Loading from '@/components/loading';
 
-import { TermsListResponse_Term } from '@/api/backend';
 import { getApiV1TermsList } from '@/api/generate';
-import type { CourseSetting } from '@/api/interface';
 import PageContainer from '@/components/page-container';
+import { CoursePageContext, CoursePageContextProps } from '@/context/course-page';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting, updateCourseSetting } from '@/lib/course';
@@ -16,16 +15,6 @@ import { NotificationManager } from '@/lib/notification';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
-
-interface CoursePageContextProps {
-  setting: CourseSetting; // 课程表设置
-  currentWeek: number; // 今天在选中学期的周数，如果今天不在选中学期内则为-1
-  currentTerm: TermsListResponse_Term; // 当前选中学期基本信息
-  maxWeek: number; // 当前选中学期的最大周数
-}
-
-// 此处这样写仅为了通过类型检查，实际使用时不可能为空
-export const CoursePageContext = createContext<CoursePageContextProps>({} as CoursePageContextProps);
 
 export default function HomePage() {
   const [coursePageContextProps, setCoursePageContextProps] = useState<CoursePageContextProps | null>(null);

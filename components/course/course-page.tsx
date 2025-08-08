@@ -16,7 +16,7 @@ import { deConvertSemester, getFirstDateByWeek } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 
-import { CoursePageContext } from '@/app/(tabs)';
+import { CoursePageContext } from '@/context/course-page';
 import { hasCustomBackground } from '@/lib/appearance';
 import CourseWeek from './course-week';
 
