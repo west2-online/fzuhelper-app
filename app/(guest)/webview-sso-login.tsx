@@ -3,9 +3,11 @@ import PageContainer from '@/components/page-container';
 import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_DOMAIN, SSO_LOGIN_COOKIE_KEY } from '@/lib/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CookieManager from '@react-native-cookies/cookies';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { toast } from 'sonner-native';
@@ -35,6 +37,7 @@ const extractTokenFromUrl = (url: string): string | null => {
 export default function LearningCenterTokenPage() {
   const router = useRouter();
   const webViewRef = useRef<WebView>(null);
+  const headerHeight = useHeaderHeight();
 
   // 处理 WebView 的导航状态变化
   const handleNavigationStateChange = useCallback(
@@ -77,20 +80,22 @@ export default function LearningCenterTokenPage() {
       />
       <PageContainer>
         <SafeAreaView edges={['bottom']} className="flex-1">
-          <WebView
-            ref={webViewRef}
-            source={{ uri: GET_TOKEN_URL }}
-            onError={() => {
-              setTimeout(() => toast.error('网页加载失败'), 100);
-            }}
-            onNavigationStateChange={handleNavigationStateChange}
-            cacheEnabled={false}
-            thirdPartyCookiesEnabled
-            sharedCookiesEnabled
-            overScrollMode="never"
-            startInLoadingState={true}
-            renderLoading={renderLoading}
-          />
+          <KeyboardAvoidingView behavior="padding" className="flex-1" keyboardVerticalOffset={headerHeight}>
+            <WebView
+              ref={webViewRef}
+              source={{ uri: GET_TOKEN_URL }}
+              onError={() => {
+                setTimeout(() => toast.error('网页加载失败'), 100);
+              }}
+              onNavigationStateChange={handleNavigationStateChange}
+              cacheEnabled={false}
+              thirdPartyCookiesEnabled
+              sharedCookiesEnabled
+              overScrollMode="never"
+              startInLoadingState={true}
+              renderLoading={renderLoading}
+            />
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </PageContainer>
     </>

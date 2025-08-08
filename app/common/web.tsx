@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
 import CookieManager from '@react-native-cookies/cookies';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, Share, useColorScheme, View } from 'react-native';
@@ -25,6 +26,7 @@ import {
 import SSOLogin from '@/lib/sso-login';
 import { checkCookieSSO, LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
 export interface WebParams {
   url: string; // URL 地址
@@ -46,6 +48,7 @@ export default function Web() {
   const webViewRef = useRef<WebView>(null);
   const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const colorScheme = useColorScheme();
+  const headerHeight = useHeaderHeight();
 
   const setCookies = useCallback(async () => {
     // 教务系统 Cookie
@@ -296,37 +299,39 @@ export default function Web() {
         ) : (
           <SafeAreaView className="h-full w-full bg-background" edges={['bottom']}>
             {cookiesSet && (
-              <WebView
-                source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
-                ref={webViewRef}
-                sharedCookiesEnabled
-                cacheEnabled // 启用缓存
-                cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
-                javaScriptEnabled // 确保启用 JavaScript
-                startInLoadingState={true} // 启用加载状态
-                renderLoading={renderLoading} // 加载组件
-                //
-                // Android 平台设置
-                onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回
-                scalesPageToFit // 启用页面缩放
-                renderToHardwareTextureAndroid // 启用硬件加速
-                setDisplayZoomControls={false} // 隐藏缩放控件图标
-                setBuiltInZoomControls // 启用内置缩放控件
-                geolocationEnabled={true} // 启用定位
-                overScrollMode="never" // 禁止过度滚动
-                //
-                // iOS 平台设置
-                allowsBackForwardNavigationGestures // 启用手势返回
-                contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小
-                allowsInlineMediaPlayback // 允许内联播放媒体
-                //
-                // 事件处理
-                onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
-                onNavigationStateChange={handleNavigationStateChange}
-                onMessage={handleOnMessage}
-                // 当脚本未注入完成时隐藏 WebView
-                className={injectedScript ? 'flex-1' : 'hidden bg-background'}
-              />
+              <KeyboardAvoidingView behavior="padding" className="flex-1" keyboardVerticalOffset={headerHeight}>
+                <WebView
+                  source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
+                  ref={webViewRef}
+                  sharedCookiesEnabled
+                  cacheEnabled // 启用缓存
+                  cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
+                  javaScriptEnabled // 确保启用 JavaScript
+                  startInLoadingState={true} // 启用加载状态
+                  renderLoading={renderLoading} // 加载组件
+                  //
+                  // Android 平台设置
+                  onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回
+                  scalesPageToFit // 启用页面缩放
+                  renderToHardwareTextureAndroid // 启用硬件加速
+                  setDisplayZoomControls={false} // 隐藏缩放控件图标
+                  setBuiltInZoomControls // 启用内置缩放控件
+                  geolocationEnabled={true} // 启用定位
+                  overScrollMode="never" // 禁止过度滚动
+                  //
+                  // iOS 平台设置
+                  allowsBackForwardNavigationGestures // 启用手势返回
+                  contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小
+                  allowsInlineMediaPlayback // 允许内联播放媒体
+                  //
+                  // 事件处理
+                  onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
+                  onNavigationStateChange={handleNavigationStateChange}
+                  onMessage={handleOnMessage}
+                  // 当脚本未注入完成时隐藏 WebView
+                  className={injectedScript ? 'flex-1' : 'hidden bg-background'}
+                />
+              </KeyboardAvoidingView>
             )}
           </SafeAreaView>
         )}
