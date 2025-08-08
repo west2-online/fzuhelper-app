@@ -1,8 +1,11 @@
 import { fetchNoticeList } from '@/api/generate/common';
+import FAQModal from '@/components/faq-modal';
+import { Icon } from '@/components/Icon';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import useApiRequest from '@/hooks/useApiRequest';
+import { FAQ_NOTICE } from '@/lib/FAQ';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Linking, RefreshControl, Text, TouchableOpacity } from 'react-native';
@@ -71,24 +74,32 @@ export default function OfficeNoticePage() {
 
   const renderNoticeItem = useCallback(
     ({ item }: { item: NoticeItem }) => (
-      <TouchableOpacity onPress={() => handleNoticePress(item.url)} className="mb-4">
-        <Card>
-          <CardHeader>
-            <Text className="text-lg font-medium text-card-foreground">{item.title}</Text>
-          </CardHeader>
-          <CardContent>
-            <Text className="text-sm text-text-secondary">{item.date}</Text>
-          </CardContent>
+      <TouchableOpacity activeOpacity={0.7} onPress={() => handleNoticePress(item.url)} className="mb-4">
+        <Card className="gap-2 p-4">
+          <Text className="text-lg font-medium text-card-foreground">{item.title}</Text>
+          <Text className="text-sm text-text-secondary">{item.date}</Text>
         </Card>
       </TouchableOpacity>
     ),
     [handleNoticePress],
   );
 
+  const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ
+
+  // 处理 Modal 显示事件
+  const handleModalVisible = useCallback(() => {
+    setShowFAQ(prev => !prev);
+  }, []);
+
+  const headerRight = useCallback(
+    () => <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />,
+    [handleModalVisible],
+  );
+
   if ((isLoading || isRefetching) && !isLoadingMore && pageNum === 1) {
     return (
       <>
-        <Stack.Screen options={{ title: '教务通知' }} />
+        <Stack.Screen options={{ title: '教务通知', headerRight: headerRight }} />
         <PageContainer className="flex-1 items-center justify-center">
           <Loading />
         </PageContainer>
@@ -104,7 +115,7 @@ export default function OfficeNoticePage() {
           data={noticeList}
           renderItem={renderNoticeItem}
           keyExtractor={item => `${item.url}`}
-          className="pb-safe flex-1 px-4 pt-4"
+          className="flex-1 px-4 pt-4"
           ListEmptyComponent={<Text>暂无通知</Text>}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           onEndReached={handleLoadMore}
@@ -118,6 +129,7 @@ export default function OfficeNoticePage() {
           }
         />
       </PageContainer>
+      <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_NOTICE} />
     </>
   );
 }

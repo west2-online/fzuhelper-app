@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
 interface LoginPromptProps {
@@ -22,17 +22,17 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
 }) => {
   const router = useRouter();
 
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     if (onButtonPress) {
       onButtonPress();
     } else {
       router.push('/(guest)/sso-login');
     }
-  };
+  }, [onButtonPress, router]);
 
   return (
     <View className={cn('flex-1 items-center justify-center gap-10', className)}>
-      <Text className="text-lg">{message}</Text>
+      <Text className="mx-6 text-center text-lg">{message}</Text>
       <Button
         onPress={handlePress}
         className="w-1/2"

@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -59,14 +59,15 @@ const LoginPage: React.FC = () => {
         ? '点击「重置密码」，可前往教务处网站进行密码重置。'
         : '本科生登录账号为学号，密码为教务处密码。\n\n点击「重置密码」，可前往教务处网站进行密码重置。',
       [
+        { text: '取消', style: 'cancel' },
         {
           text: '重置密码',
           onPress: () =>
-            Linking.openURL(isPostGraduate ? URL_RESET_PASSWORD_POSTGRADUATE : URL_RESET_PASSWORD_UNDERGRADUATE).catch(
-              err => Alert.alert('错误', '无法打开链接(' + err + ')'),
+            pushToWebViewNormal(
+              isPostGraduate ? URL_RESET_PASSWORD_POSTGRADUATE : URL_RESET_PASSWORD_UNDERGRADUATE,
+              '重置密码',
             ),
         },
-        { text: '关闭', style: 'cancel' },
       ],
     );
   }, [isPostGraduate]);
@@ -134,6 +135,12 @@ const LoginPage: React.FC = () => {
         Alert.alert('请求失败', data.code + ': ' + data.message);
       }
       await refreshCaptcha();
+      // 访问令牌获取失败，清除账户信息
+      await LocalUser.clear();
+      setAegisConfig({});
+      if (Platform.OS === 'android') {
+        await BuglyModule.setUserId('');
+      }
     } finally {
       // 恢复按钮状态
       setIsLoggingIn(false);
@@ -198,7 +205,7 @@ const LoginPage: React.FC = () => {
                       placeholder="请输入验证码"
                       className="mr-4 flex-1 px-1 py-3"
                     />
-                    <TouchableOpacity onPress={refreshCaptcha}>
+                    <TouchableOpacity onPress={refreshCaptcha} activeOpacity={0.7}>
                       {captchaImage ? (
                         // 显示验证码图片
                         <Image source={{ uri: captchaImage }} className="h-8 w-40" resizeMode="stretch" />
@@ -215,6 +222,7 @@ const LoginPage: React.FC = () => {
                 {/* 登录按钮 */}
                 <TouchableOpacity
                   onPress={isLoggingIn ? undefined : handleLogin}
+                  activeOpacity={0.7}
                   disabled={isLoggingIn}
                   className={`mb-6 w-full items-center justify-center rounded-4xl py-3 ${
                     isLoggingIn ? 'bg-gray-400' : 'bg-primary'
@@ -236,28 +244,28 @@ const LoginPage: React.FC = () => {
                 {/* 公告栏 */}
                 <View className="mt-10 w-full px-1">
                   <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
-                  <Text className="text-base text-text-secondary">
-                    1. 教务处在夜间(23:00-06:00)例行维护，可能暂时无法登录
-                  </Text>
-                  <Text className="text-base text-text-secondary">
-                    2. 非校园网访问可能受阻。如果无法登录请尝试连接校园网
-                  </Text>
-                  {Platform.OS === 'ios' && (
+                  {Platform.OS === 'android' && (
                     <Text className="text-base text-text-secondary">
-                      3. (仅iOS) 首次使用可能无法显示验证码，可以手动点击刷新
+                      如登录异常，可能是教务系统正在维护，可稍后再试或连接校园网后尝试登录。
                     </Text>
                   )}
                   {Platform.OS === 'ios' && (
-                    <Text className="text-base text-text-secondary">
-                      4. (仅iOS) 如果您意外拒绝了网络访问权限，您需要手动在设置中打开，APP 无法二次请求网络权限
-                    </Text>
+                    <>
+                      <Text className="text-base text-text-secondary">
+                        1. 如登录异常，可能是教务系统正在维护，可稍后再试或连接校园网后尝试登录。
+                      </Text>
+                      <Text className="text-base text-text-secondary">
+                        2. 受 iOS
+                        网络策略影响，首次启动可能无法获取验证码，可点击重新获取。如您意外拒绝了网络访问权限，需要手动前往设置打开。
+                      </Text>
+                    </>
                   )}
                 </View>
               </View>
 
               {/* 底部协议 */}
               <TouchableOpacity
-                activeOpacity={0.5}
+                activeOpacity={0.7}
                 className="mb-4 mt-12 w-full flex-row justify-center py-2"
                 onPress={() => setIsAgree(!isAgree)}
               >

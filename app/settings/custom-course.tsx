@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import ColorRadioButton from '@/components/color-radio-button';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
 import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, type CustomCourse } from '@/lib/course';
+import { BorderlessButton } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -114,17 +115,20 @@ export default function CourseAddPage() {
     router.back();
   }, []);
 
+  const headerRight = useCallback(() => {
+    return (
+      <BorderlessButton onPress={() => handleSave(course)} enabled={!disabled}>
+        <Text>保存</Text>
+      </BorderlessButton>
+    );
+  }, [course, disabled, handleSave]);
+
   return (
     <>
       <Stack.Screen
         options={{
           title: '自定义课程',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <Pressable onPress={() => handleSave(course)} disabled={disabled}>
-              <Text>保存</Text>
-            </Pressable>
-          ),
+          headerRight: headerRight,
         }}
       />
 

@@ -1,8 +1,8 @@
 // 目前仍有缺漏
 import { Tabs, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Pressable, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCallback, useMemo, useState } from 'react';
+import { FlatList } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
@@ -430,37 +430,58 @@ export default function MoreToolsPage() {
   const handleModalVisible = useCallback(() => {
     setShowFAQ(prev => !prev);
   }, []);
+
+  const { bottom } = useSafeAreaInsets();
+  const contentContainerStyle = useMemo(
+    () => ({
+      paddingBottom: bottom,
+    }),
+    [bottom],
+  );
+
+  const headerRight = useCallback(() => {
+    return <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />;
+  }, [handleModalVisible]);
+
+  const keyExtractor = useCallback((item: Tool, index: number) => {
+    return `${item.name}-${index}`;
+  }, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Tool }) => {
+      return (
+        <LabelEntry
+          key={item.name}
+          leftText={item.name}
+          onPress={() => {
+            if (item.type === ToolType.WEBVIEW && item.params) {
+              router.push(getWebViewHref(item.params));
+            } else {
+              toolOnPress(item, router);
+            }
+          }}
+        />
+      );
+    },
+    [router],
+  );
   return (
     <PageContainer>
       <Tabs.Screen
         options={{
           title: '更多工具',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-              <Icon name="help-circle-outline" size={26} className="mr-4" />
-            </Pressable>
-          ),
+          headerRight: headerRight,
         }}
       />
       {/* 工具列表 */}
-      <ScrollView className="mx-4" showsVerticalScrollIndicator={false}>
-        <SafeAreaView edges={['bottom']}>
-          {MORE_TOOLS.map((item, index) => (
-            <LabelEntry
-              key={index}
-              leftText={item.name}
-              onPress={() => {
-                if (item.type === ToolType.WEBVIEW && item.params) {
-                  router.push(getWebViewHref(item.params));
-                } else {
-                  toolOnPress(item, router);
-                }
-              }}
-            />
-          ))}
-        </SafeAreaView>
-      </ScrollView>
+      <FlatList
+        data={MORE_TOOLS}
+        initialNumToRender={16}
+        contentContainerClassName="px-8"
+        contentContainerStyle={contentContainerStyle}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+      />
       <FAQModal visible={showFAQ} onClose={() => setShowFAQ(false)} data={FAQ_MORE} />
     </PageContainer>
   );

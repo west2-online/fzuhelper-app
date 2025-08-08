@@ -1,6 +1,5 @@
 import { RejectEnum } from '@/api/enum';
 import { ACCESS_TOKEN_KEY } from '@/lib/constants';
-import { LocalUser } from '@/lib/user';
 import { get, post } from '@/modules/native-request';
 import { type RejectError } from '@/types/reject-error';
 import { base64, md5 } from '@/utils/crypto';
@@ -209,15 +208,12 @@ class UserLogin {
   // (本科生教务系统) 自动验证码识别
   async autoVerifyCaptcha(data: Uint8Array) {
     const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
-    const credentials = LocalUser.getCredentials();
     const response = await axios.request({
       url: URL_AUTO_VALIDATE,
       method: 'POST',
       headers: {
         'Access-Token': accessToken,
         Authorization: accessToken,
-        Id: credentials.identifier,
-        Cookies: credentials.cookies,
       },
       data: {
         image: `data:image/png;base64,${btoa(String.fromCharCode(...data))}`,
@@ -273,7 +269,7 @@ class UserLogin {
       // 原因有很多，比如短时间内密码试错太多次等，除了这个外，还需要判断是否是密码过于简单的
       const alertRegex = /<script[^>]*>\s*alert\(['"](.+?)['"]\);[^>]*\s*<\/script>/;
       const match = data.match(alertRegex);
-      this.#clearCookies() // 清空 cookie
+      this.#clearCookies(); // 清空 cookie
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
         data: match ? match[1] : '研究生教务系统登录失败',

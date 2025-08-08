@@ -1,32 +1,20 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
-import { createContext, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import CoursePage from '@/components/course/course-page';
 import Loading from '@/components/loading';
 
-import { TermsListResponse_Term } from '@/api/backend';
 import { getApiV1TermsList } from '@/api/generate';
-import type { CourseSetting } from '@/api/interface';
 import PageContainer from '@/components/page-container';
+import { CoursePageContext, CoursePageContextProps } from '@/context/course-page';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_SETTINGS_KEY, COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
-import { CourseCache, forceRefreshCourseData, normalizeCourseSetting } from '@/lib/course';
+import { COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
+import { CourseCache, forceRefreshCourseData, getCourseSetting, updateCourseSetting } from '@/lib/course';
 import locateDate, { getWeeksBySemester } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
-
-interface CoursePageContextProps {
-  setting: CourseSetting; // 课程表设置
-  currentWeek: number; // 今天在选中学期的周数，如果今天不在选中学期内则为-1
-  currentTerm: TermsListResponse_Term; // 当前选中学期基本信息
-  maxWeek: number; // 当前选中学期的最大周数
-}
-
-// 此处这样写仅为了通过类型检查，实际使用时不可能为空
-export const CoursePageContext = createContext<CoursePageContextProps>({} as CoursePageContextProps);
 
 export default function HomePage() {
   const [coursePageContextProps, setCoursePageContextProps] = useState<CoursePageContextProps | null>(null);
@@ -51,13 +39,11 @@ export default function HomePage() {
     const locateDateRes = await locateDate();
 
     // 获取最新的课表设置
-    const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-    const tryParsedSettings = setting ? JSON.parse(setting) : {};
-    const selectedSemester = tryParsedSettings.selectedSemester || locateDateRes.semester;
-    const parsedSettings = normalizeCourseSetting({ ...tryParsedSettings, selectedSemester });
+    const setting = await getCourseSetting();
+    const selectedSemester = setting.selectedSemester || locateDateRes.semester;
 
     // 定位当前周，如果是历史学期（即和 locateDate 给出的学期不符），则为-1
-    const currentWeek = locateDateRes.semester === parsedSettings.selectedSemester ? locateDateRes.week : -1;
+    const currentWeek = locateDateRes.semester === selectedSemester ? locateDateRes.week : -1;
 
     // 获取当前学期信息
     const currentTerm = termsData?.data.data.terms.find(t => t.term === selectedSemester);
@@ -72,16 +58,14 @@ export default function HomePage() {
     const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
 
     setCoursePageContextProps({
-      setting: parsedSettings,
+      setting,
       currentWeek,
       currentTerm,
       maxWeek,
     });
 
-    // 更新 AsyncStorage，仅在数据变化时写入
-    if (JSON.stringify(tryParsedSettings) !== JSON.stringify(parsedSettings)) {
-      await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(parsedSettings));
-    }
+    // 更新选中学期，替换掉默认空值
+    updateCourseSetting({ selectedSemester });
     // const endTime = Date.now(); // 记录结束时间
     // const elapsedTime = endTime - startTime; // 计算耗时
     // console.log(`loadData function took ${elapsedTime}ms to complete.`);

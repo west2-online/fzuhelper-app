@@ -13,7 +13,6 @@ const config: ExpoConfig = {
   icon: './assets/images/icon.png',
   scheme: 'fzuhelper',
   userInterfaceStyle: 'automatic',
-  newArchEnabled: false,
   ios: {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
@@ -63,6 +62,7 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
+      monochromeImage: './assets/images/ic_launcher_foreground.png',
       backgroundColor: '#FFFFFF',
     },
     permissions: [
@@ -187,7 +187,6 @@ const config: ExpoConfig = {
     './plugins/with-android-theme',
     './plugins/with-android-localization',
     '@bacons/apple-targets', // Apple Targets (e.g. widget)
-    // './plugins/disable-bridgeless-mode',
   ],
   experiments: {
     typedRoutes: true,

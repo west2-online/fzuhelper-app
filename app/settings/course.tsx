@@ -1,10 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { Icon } from '@/components/Icon';
 import LabelEntry from '@/components/label-entry';
 import LabelSwitch from '@/components/label-switch';
 import PageContainer from '@/components/page-container';
@@ -15,15 +13,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1JwchTermList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
+import LastUpdateTime from '@/components/last-update-time';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_SETTINGS_KEY } from '@/lib/constants';
-import { CourseCache, defaultCourseSetting, forceRefreshCourseData, readCourseSetting } from '@/lib/course';
+import {
+  CourseCache,
+  defaultCourseSetting,
+  forceRefreshCourseData,
+  getCourseSetting,
+  updateCourseSetting,
+} from '@/lib/course';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 
-export default function AcademicPage() {
+export default function CourseSettingPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
@@ -31,16 +35,9 @@ export default function AcademicPage() {
   const { handleError } = useSafeResponseSolve();
   const [isLoadingSemester, setLoadingSemester] = useState(false);
 
-  // 从 AsyncStorage 的 COURSE_SETTINGS_KEY 中读取，是一个 json 数据
   const readSettingsFromStorage = useCallback(async () => {
     console.log('读取课程设置');
-    setSettings(await readCourseSetting());
-  }, []);
-
-  // 将当前设置保存至 AsyncStorage，采用 json 形式保存
-  const saveSettingsToStorage = useCallback(async (newSettings: CourseSetting) => {
-    console.log('保存课程设置, ', newSettings);
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(newSettings));
+    setSettings(await getCourseSetting());
   }, []);
 
   // 页面加载时读取设置
@@ -50,10 +47,9 @@ export default function AcademicPage() {
 
   // 设置变化时保存设置
   useUpdateEffect(() => {
-    saveSettingsToStorage(settings);
     // 保证设置同步到小部件
     CourseCache.save();
-  }, [settings, saveSettingsToStorage]);
+  }, [settings]);
 
   // 获取用户就读学期数据
   const getTermsData = useCallback(async () => {
@@ -94,11 +90,13 @@ export default function AcademicPage() {
 
   // 设置是否显示非本周课程
   const handleShowNonCurrentWeekCourses = useCallback(() => {
+    const newValue = !settings.showNonCurrentWeekCourses;
     setSettings(prevSettings => ({
       ...prevSettings,
-      showNonCurrentWeekCourses: !prevSettings.showNonCurrentWeekCourses,
+      showNonCurrentWeekCourses: newValue,
     }));
-  }, []);
+    updateCourseSetting({ showNonCurrentWeekCourses: newValue });
+  }, [settings.showNonCurrentWeekCourses]);
 
   const handleForceRefresh = useCallback(async () => {
     if (isRefreshing) return;
@@ -125,25 +123,27 @@ export default function AcademicPage() {
 
   // 控制导入考场到课表
   const handleExportExamToCourseTable = useCallback(() => {
-    setSettings(prevSettings => {
-      if (prevSettings.exportExamToCourseTable) {
-        CourseCache.clearExamData();
-      }
-      return {
-        ...prevSettings,
-        exportExamToCourseTable: !prevSettings.exportExamToCourseTable,
-      };
-    });
-  }, []);
+    const newValue = !settings.exportExamToCourseTable;
+    if (!newValue) {
+      CourseCache.clearExamData();
+    }
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      exportExamToCourseTable: newValue,
+    }));
+    updateCourseSetting({ exportExamToCourseTable: newValue });
+  }, [settings.exportExamToCourseTable]);
 
   const handleHiddenCoursesWithoutAttendances = useCallback(() => {
+    const newValue = !settings.hiddenCoursesWithoutAttendances;
     setSettings(prevSettings => {
       return {
         ...prevSettings,
-        hiddenCoursesWithoutAttendances: !prevSettings.hiddenCoursesWithoutAttendances,
+        hiddenCoursesWithoutAttendances: newValue,
       };
     });
-  }, []);
+    updateCourseSetting({ hiddenCoursesWithoutAttendances: newValue });
+  }, [settings.hiddenCoursesWithoutAttendances]);
 
   return (
     <>
@@ -214,20 +214,14 @@ export default function AcademicPage() {
               </Text>
             </View>
 
-            <View className="mt-4 flex flex-row items-center justify-center">
-              <Icon name="time-outline" size={16} className="mr-2" />
-              <Text className="text-sm leading-5 text-text-primary">
-                课表同步时间：{CourseCache.getLastCourseUpdateTime()}
-              </Text>
-            </View>
+            <LastUpdateTime
+              text="课表同步时间："
+              className="mb-0"
+              lastUpdatedText={CourseCache.getLastCourseUpdateTime()}
+            />
 
             {settings.exportExamToCourseTable && (
-              <View className="my-4 flex flex-row items-center justify-center">
-                <Icon name="time-outline" size={16} className="mr-2" />
-                <Text className="text-sm leading-5 text-text-primary">
-                  考场同步时间：{CourseCache.getLastExamUpdateTime()}
-                </Text>
-              </View>
+              <LastUpdateTime text="考场同步时间：" lastUpdatedText={CourseCache.getLastExamUpdateTime()} />
             )}
 
             <PickerModal

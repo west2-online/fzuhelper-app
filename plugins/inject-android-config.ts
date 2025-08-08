@@ -79,6 +79,24 @@ function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
       `
         resourceConfigurations += ['zh', 'zh-rCN', 'zh-rTW', 'en']`,
     );
+    // https://kirillzyusko.github.io/react-native-keyboard-controller/docs/troubleshooting#filename-longer-than-260-characters
+    if (process.platform === 'win32') {
+      contents = insertAfter(
+        contents,
+        'defaultConfig {',
+        `
+        externalNativeBuild {
+            cmake {
+                arguments "-DCMAKE_MAKE_PROGRAM=\${projectDir}/../../ninja-v1.13.1.exe",
+                    "-DCMAKE_OBJECT_PATH_MAX=1024"
+            }
+        }`,
+      );
+      console.warn(
+        'Run the following PowerShell command once to enable long path support in Windows:\n',
+        'New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force',
+      );
+    }
     config.modResults.contents = contents;
     return config;
   });

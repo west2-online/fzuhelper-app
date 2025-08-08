@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { TextInput, type TextInputProps } from 'react-native';
 import { cn } from '@/lib/utils';
+import { TextInput } from 'react-native-gesture-handler';
+import { TextInputProps } from 'react-native';
 
 const Input = React.forwardRef<React.ComponentRef<typeof TextInput>, TextInputProps>(
   ({ className, placeholderClassName, ...props }, ref) => {

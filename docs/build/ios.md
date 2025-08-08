@@ -29,7 +29,7 @@ yarn prebuild:ios
 
 ### Bundle identifier
 
-iOS bundle identifier 必须是 `FzuHelper.FzuHelper`，套装 id（即 bundle identifier）是在程序第一次上架时就锁死的，要继续发布必须使用相同的 id，目前已经在 `app.json` 中配置好了。
+iOS bundle identifier 必须是 `FzuHelper.FzuHelper`，套装 id（即 bundle identifier）是在程序第一次上架时就锁死的，要继续发布必须使用相同的 id，目前已经在 `app.config.ts` 中配置好了。
 
 会提示 `The app 福uu by Fuzhou West2Online Internet Inc. is already using FzuHelper.FzuHelper`，这是正常的，不用管。
 
@@ -89,7 +89,7 @@ pod 安装是并发的，网络流量走的很快，不必在意
 
 #### This bundle is invalid
 
-检查你的`app.json`文件，里面的`version`应该要更高，我这里出现问题是因为我的`app.json`内的版本设置为`1.0.0`，需要设置为标准的版本号
+检查你的`package.json`文件，里面的`version`应该要更高，我这里出现问题是因为我的`package.json`内的版本设置为`1.0.0`，需要设置为标准的版本号
 
 #### Upload Symbols Failed
 
@@ -103,7 +103,7 @@ pod 安装是并发的，网络流量走的很快，不必在意
 
 #### 需要在 Xcode 中修改应用版本号吗？
 
-不用，在`app.json`中修改即可
+不用，在`package.json`中修改即可
 
 #### 我可以在Xcode 中调试/修改代码吗？
 
@@ -117,7 +117,7 @@ pod 安装是并发的，网络流量走的很快，不必在意
 
 ## 修改构建版本号
 
-修改 `app.json` 中的 `expo.ios.buildNumber` 字段，每次将 patch 递增 1 即可。
+修改 `package.json` 中的 `version` 字段（对应 `app.config.ts` 中的 `expo.ios.buildNumber` 字段），每次将 patch 递增 1 即可。
 
 这个版本号并不是显示的版本号，是用来让系统识别构建版本的。
 

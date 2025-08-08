@@ -9,6 +9,7 @@ import {
   type getApiV1JwchClassroomExam,
   type getApiV1JwchCourseList,
   type getApiV1LaunchScreenScreen,
+  type getApiV1TermsInfo,
   type getApiV1TermsList,
   type getApiV2VersionAndroid,
 } from '@/api/generate';
@@ -35,6 +36,11 @@ export type TermsListResponse_Term = TermsListResponse_Terms[0]; // 列表中的
 export type CommonContributorResponse = AsyncReturnType<typeof getApiV1CommonContributor>['data']['data'];
 export type CommonContributorResponse_Contributors = CommonContributorResponse['fzuhelper_app'];
 export type CommonContributorResponse_Contributor = CommonContributorResponse_Contributors[0];
+
+// getApiV1TermsInfo
+export type TermsInfoResponse = AsyncReturnType<typeof getApiV1TermsInfo>['data']['data'];
+export type TermsInfoResponse_Events = TermsInfoResponse['events'];
+export type TermsInfoResponse_Event = TermsInfoResponse_Events[0];
 
 // === 课表 ===
 

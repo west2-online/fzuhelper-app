@@ -1,10 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Image,
   ImageSourcePropType,
-  LayoutChangeEvent,
   Linking,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -40,23 +39,17 @@ export type BannerContent = {
 
 type BannerProps = React.ComponentPropsWithRef<typeof View> & {
   contents: BannerContent[];
+  width: number;
 };
 
-export default function Banner({ contents, ...props }: BannerProps) {
+export default function Banner({ contents, width, ...props }: BannerProps) {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [flatListWidth, setFlatListWidth] = useState<number>(0); // 存储 FlatList 的宽度
   const flatListRef = useRef<FlatList>(null);
   const isAutoScrolling = useRef(false);
 
-  // 获取 FlatList 的宽度
-  const handleLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
-    setFlatListWidth(width);
-  };
-
   const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(contentOffsetX / flatListWidth);
+    const index = Math.round(contentOffsetX / width);
     if (index !== currentIndex) {
       setCurrentIndex(index);
     }
@@ -82,8 +75,40 @@ export default function Banner({ contents, ...props }: BannerProps) {
     return () => clearInterval(interval);
   }, [contents.length, currentIndex]);
 
+  const renderItem = useCallback(
+    ({ item }: { item: BannerContent }) => (
+      <TouchableOpacity
+        onPress={() => {
+          if (!isAutoScrolling.current) {
+            if (item.type === BannerType.URL) {
+              pushToWebViewNormal(item.href);
+            } else if (item.type === BannerType.Activity) {
+              Linking.openURL(item.href);
+            } else if (item.type === BannerType.NULL) {
+              // do nothing
+            }
+          }
+        }}
+        activeOpacity={0.7}
+        style={{ width, height: width / 2.5 }}
+        className="flex justify-end overflow-hidden"
+      >
+        {/* 图片 */}
+        <Image source={item.image} resizeMode="cover" className="absolute h-full w-full" />
+
+        {/* 底部遮罩 + 文本 */}
+        {item.type !== BannerType.NULL && (
+          <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.53)']} locations={[0, 1]} className="w-full">
+            <Text className="px-[10px] py-[5px] text-white">{item.text}</Text>
+          </LinearGradient>
+        )}
+      </TouchableOpacity>
+    ),
+    [width],
+  );
+
   return (
-    <View className="overflow-hidden rounded-[16px]">
+    <View className="overflow-hidden rounded-[16px]" style={{ width }}>
       <FlatList
         ref={flatListRef}
         data={contents}
@@ -92,38 +117,8 @@ export default function Banner({ contents, ...props }: BannerProps) {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleMomentumScrollEnd}
-        onLayout={handleLayout}
-        renderItem={({ item }: { item: BannerContent }) => (
-          <TouchableOpacity
-            onPress={() => {
-              if (!isAutoScrolling.current) {
-                if (item.type === BannerType.URL) {
-                  pushToWebViewNormal(item.href);
-                } else if (item.type === BannerType.Activity) {
-                  Linking.openURL(item.href);
-                } else if (item.type === BannerType.NULL) {
-                  // do nothing
-                }
-              }
-            }}
-            activeOpacity={0.8}
-            style={{
-              width: flatListWidth,
-              height: flatListWidth / 2.5,
-            }}
-            className="flex justify-end overflow-hidden rounded-[16px]"
-          >
-            {/* 图片 */}
-            <Image source={item.image} resizeMode="cover" className="absolute h-full w-full" />
-
-            {/* 底部遮罩 + 文本 */}
-            {item.type !== BannerType.NULL && (
-              <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.53)']} locations={[0, 1]} className="w-full">
-                <Text className="px-[10px] py-[5px] text-white">{item.text}</Text>
-              </LinearGradient>
-            )}
-          </TouchableOpacity>
-        )}
+        overScrollMode="never"
+        renderItem={renderItem}
       />
 
       {/* 蠕虫指示器 */}

@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import { Icon } from '@/components/Icon';
@@ -15,6 +15,7 @@ import { Text } from '@/components/ui/text';
 
 import { JwchAcademicScoresResponse_AcademicScoresDataItem } from '@/api/backend';
 import { getApiV1JwchAcademicScores, getApiV1JwchTermList } from '@/api/generate';
+import LastUpdateTime from '@/components/last-update-time';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
@@ -33,55 +34,67 @@ interface TermContentProps {
 }
 
 // 单个学期的内容
-const TermContent: React.FC<TermContentProps> = ({ termData, isLoading, dataUpdatedAt, onRefresh }) => {
-  const screenWidth = Dimensions.get('window').width; // 获取屏幕宽度
-  const lastUpdated = new Date(dataUpdatedAt);
+const TermContent = React.memo<TermContentProps>(({ termData, isLoading, dataUpdatedAt, onRefresh }) => {
+  const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
+  const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
   const summary = useMemo(() => calSingleTermSummary(termData), [termData]);
+  const sortedTermData = useMemo(() => {
+    return termData.sort((a, b) => parseScore(b.score) - parseScore(a.score));
+  }, [termData]);
+  const { bottom } = useSafeAreaInsets();
+  const contentContainerStyle = useMemo(() => ({ paddingBottom: bottom }), [bottom]);
+  const keyExtractor = useCallback(
+    (item: JwchAcademicScoresResponse_AcademicScoresDataItem, index: number) => `${item.name}-${index}`,
+    [],
+  );
+
+  const renderItem = useCallback(({ item }: { item: JwchAcademicScoresResponse_AcademicScoresDataItem }) => {
+    return <GradeCard item={item} />;
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    onRefresh?.();
+  }, [onRefresh]);
+
+  const renderListHeaderComponent = useMemo(() => {
+    return termData.length > 0 ? <SemesterSummaryCard summary={summary} /> : null;
+  }, [termData.length, summary]);
+
+  const renderListEmptyComponent = useMemo(() => {
+    return <Text className="text-center text-text-secondary">暂无成绩数据</Text>;
+  }, []);
+
+  const renderListFooterComponent = useMemo(() => {
+    return termData.length > 0 ? <LastUpdateTime lastUpdated={lastUpdated} /> : null;
+  }, [termData.length, lastUpdated]);
+
+  const flatListStyle = useMemo(() => ({ width: screenWidth }), [screenWidth]);
 
   return (
-    <ScrollView
-      style={{ width: screenWidth }}
-      // eslint-disable-next-line react-native/no-inline-styles
-      contentContainerStyle={{ flexGrow: 1 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading}
-          onRefresh={() => {
-            onRefresh?.();
-          }}
+    <>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <FlatList
+          data={sortedTermData}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          contentContainerClassName="mt-3 mx-4 gap-3"
+          contentContainerStyle={contentContainerStyle}
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}
+          ListHeaderComponent={renderListHeaderComponent}
+          ListEmptyComponent={renderListEmptyComponent}
+          ListFooterComponent={renderListFooterComponent}
+          style={flatListStyle}
+          windowSize={3}
+          initialNumToRender={6}
         />
-      }
-    >
-      {termData.length > 0 && summary && (
-        <View className="mx-4">
-          <SemesterSummaryCard summary={summary} />
-        </View>
       )}
-
-      <SafeAreaView edges={['bottom']}>
-        {termData.length > 0 ? (
-          termData
-            .sort((a, b) => parseScore(b.score) - parseScore(a.score))
-            .map((item, index) => (
-              <View key={index} className="mx-4 mt-4">
-                <GradeCard item={item} />
-              </View>
-            ))
-        ) : (
-          <Text className="text-center text-gray-500">暂无成绩数据</Text>
-        )}
-        {termData.length > 0 && (
-          <View className="my-4 flex flex-row items-center justify-center">
-            <Icon name="time-outline" size={16} className="mr-2" />
-            <Text className="text-sm leading-5 text-text-primary">
-              数据同步时间：{(lastUpdated && lastUpdated.toLocaleString()) || '请进行一次同步'}
-            </Text>
-          </View>
-        )}
-      </SafeAreaView>
-    </ScrollView>
+    </>
   );
-};
+});
+
+TermContent.displayName = 'TermContent';
 
 export default function GradesPage() {
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
@@ -113,44 +126,60 @@ export default function GradesPage() {
   } = useApiRequest(getApiV1JwchAcademicScores, {}, { errorHandler, retry: 0 });
   const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
 
+  const isLoading = useMemo(
+    () => isLoadingTermList || isLoadingAcademicData,
+    [isLoadingTermList, isLoadingAcademicData],
+  );
+
   // 处理 Modal 显示事件
   const handleModalVisible = useCallback(() => {
     setShowFAQ(prev => !prev);
   }, []);
+
+  const headerRight = useCallback(
+    () => <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />,
+    [handleModalVisible],
+  );
+
+  const onRefresh = useCallback(() => {
+    refetchTermList();
+    refetchAcademicData();
+  }, [refetchTermList, refetchAcademicData]);
+
+  const renderContent = useCallback(
+    (term: string) => {
+      return (
+        <TermContent
+          termData={(academicData ?? []).filter(
+            (it: JwchAcademicScoresResponse_AcademicScoresDataItem) => it.term === term,
+          )}
+          onRefresh={onRefresh}
+          dataUpdatedAt={academicDataUpdatedAt}
+          isLoading={isLoadingTermList && isLoadingAcademicData}
+        />
+      );
+    },
+    [academicData, academicDataUpdatedAt, isLoadingAcademicData, isLoadingTermList, onRefresh],
+  );
 
   return (
     <>
       <Tabs.Screen
         options={{
           title: '成绩查询',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <Pressable onPress={handleModalVisible} className="flex flex-row items-center">
-              <Icon name="help-circle-outline" size={26} className="mr-4" />
-            </Pressable>
-          ),
+          headerRight: headerRight,
         }}
       />
 
       <PageContainer>
-        {isLoadingTermList && isLoadingAcademicData ? (
+        {isLoading ? (
           <Loading />
         ) : (
           <TabFlatList
             data={termList ?? []}
             value={currentTerm}
             onChange={setCurrentTerm}
-            renderContent={term => (
-              <TermContent
-                termData={(academicData ?? []).filter(it => it.term === term)}
-                onRefresh={() => {
-                  refetchTermList();
-                  refetchAcademicData();
-                }}
-                dataUpdatedAt={academicDataUpdatedAt}
-                isLoading={isLoadingTermList && isLoadingAcademicData}
-              />
-            )}
+            renderContent={renderContent}
           />
         )}
 

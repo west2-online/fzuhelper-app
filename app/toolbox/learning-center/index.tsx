@@ -89,7 +89,9 @@ export default function LearningCenterPage() {
     return (
       <>
         <Stack.Screen options={{ title: '学习中心' }} />
-        <Loading />
+        <PageContainer>
+          <Loading />
+        </PageContainer>
       </>
     );
   }

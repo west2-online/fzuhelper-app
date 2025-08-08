@@ -2,8 +2,15 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import { convertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
-import { JSXElementConstructor, ReactElement, useCallback, useEffect, useRef } from 'react';
-import { Dimensions, FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent, ScrollView } from 'react-native';
+import { JSXElementConstructor, ReactElement, useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  FlatList,
+  FlatListProps,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
 
 export interface TabFlatListProps {
   data: string[]; // tab列表数据
@@ -21,11 +28,16 @@ export function TabFlatList({
   value,
   onChange,
   renderContent,
-  tabWidth = 96,
-  screenWidth = Dimensions.get('window').width,
+  tabWidth = 100,
+  screenWidth,
   tabsScrollViewRef: externalTabsScrollViewRef,
   flatListOptions,
 }: TabFlatListProps) {
+  const windowDimensions = useWindowDimensions();
+  const internalScreenWidth = useMemo(
+    () => screenWidth ?? windowDimensions.width,
+    [screenWidth, windowDimensions.width],
+  );
   const internalTabsScrollViewRef = useRef<ScrollView>(null);
   const tabsScrollViewRef = externalTabsScrollViewRef || internalTabsScrollViewRef;
   const flatListRef = useRef<FlatList<any>>(null);
@@ -44,10 +56,10 @@ export function TabFlatList({
   useEffect(() => {
     const index = data.findIndex(item => item === value);
     if (tabsScrollViewRef.current && index > -1) {
-      const scrollTo = index * tabWidth - (screenWidth / 2 - tabWidth / 2);
+      const scrollTo = index * tabWidth - (internalScreenWidth / 2 - tabWidth / 2);
       tabsScrollViewRef.current.scrollTo({ x: scrollTo, animated: true });
     }
-  }, [value, screenWidth, data, tabWidth, tabsScrollViewRef]);
+  }, [value, screenWidth, data, tabWidth, tabsScrollViewRef, internalScreenWidth]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
@@ -55,12 +67,21 @@ export function TabFlatList({
   };
 
   const handleScrollEnd = useCallback(() => {
-    const index = Math.round(scrollX.current / screenWidth);
+    const index = Math.round(scrollX.current / internalScreenWidth);
     const newValue = data[Math.min(Math.max(index, 0), data.length - 1)];
     if (newValue && newValue !== value) {
       onChange?.(newValue);
     }
-  }, [value, data, onChange, screenWidth]);
+  }, [value, data, onChange, internalScreenWidth]);
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: internalScreenWidth,
+      offset: internalScreenWidth * index,
+      index,
+    }),
+    [internalScreenWidth],
+  );
 
   return (
     <>
@@ -88,6 +109,8 @@ export function TabFlatList({
         data={data}
         horizontal
         pagingEnabled
+        initialNumToRender={1}
+        getItemLayout={getItemLayout}
         windowSize={3}
         ref={flatListRef}
         keyExtractor={(_, index) => index.toString()}
@@ -96,7 +119,6 @@ export function TabFlatList({
         onScroll={handleScroll}
         onMomentumScrollEnd={handleScrollEnd}
         scrollEventThrottle={16}
-        onScrollToIndexFailed={() => {}}
         {...flatListOptions}
       />
     </>

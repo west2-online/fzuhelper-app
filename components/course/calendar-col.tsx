@@ -4,7 +4,7 @@ import { type LayoutRectangle, View } from 'react-native';
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
 
-import { CoursePageContext } from '@/app/(tabs)';
+import { CoursePageContext } from '@/context/course-page';
 import {
   COURSE_TYPE,
   COURSE_WITHOUT_ATTENDANCE,

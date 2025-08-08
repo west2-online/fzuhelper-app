@@ -73,7 +73,7 @@ export const SCHEDULE_ITEM_MARGIN = 1;
 export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
 export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
 export const LEFT_TIME_COLUMN_WIDTH = 32;
-export const TOP_CALENDAR_HEIGHT = 72;
+export const TOP_CALENDAR_HEIGHT = 68;
 
 export const COURSE_TYPE = 0;
 export const EXAM_TYPE = 1;
@@ -222,7 +222,7 @@ export class CourseCache {
 
     // 将数据保存到原生共享存储中，以便在小组件中调用
     const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
-    const courseSettings = await readCourseSetting();
+    const courseSettings = await getCourseSetting();
     const term = courseSettings.selectedSemester;
     const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
     const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
@@ -775,30 +775,36 @@ export const defaultCourseSetting: CourseSetting = {
   calendarSubscribeUrl: '',
 };
 
-// 将传入的 courseSetting 与 defaultCourseSetting 合并
-export const normalizeCourseSetting = (courseSetting: Partial<CourseSetting> = {}): CourseSetting => {
-  // 如果传入的 courseSetting 为空，则返回默认设置
-  if (!courseSetting) {
+/**
+ * 读取课程设置，如果用户没有修改过则返回默认值
+ */
+export const getCourseSetting = async (): Promise<CourseSetting> => {
+  const settingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
+
+  if (!settingJson) {
     return defaultCourseSetting;
   }
 
-  // 合并默认设置和传入的设置
-  return { ...defaultCourseSetting, ...courseSetting } as CourseSetting;
-};
-
-// 读取课程设置
-export const readCourseSetting = async (): Promise<CourseSetting> => {
-  const setting = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-
-  if (!setting) {
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(defaultCourseSetting));
-    return defaultCourseSetting;
-  }
-
-  const config = normalizeCourseSetting(JSON.parse(setting));
-  await AsyncStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(config));
+  // 始终做合并操作，避免因用户未调整设置/后期有新设置加入而JSON中尚不存在，导致没有默认值
+  const config = { ...defaultCourseSetting, ...JSON.parse(settingJson) } as CourseSetting;
 
   return config;
+};
+
+/**
+ * 更新课程设置
+ * 只存储用户主动修改的配置，不存储默认值，目的是让后续改动默认值自动生效
+ * @param newSetting - 改动部分的设置，不要传入getCourseSetting返回的完整设置
+ */
+export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): Promise<void> => {
+  const currentSettingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
+  const currentSetting = currentSettingJson ? JSON.parse(currentSettingJson) : {};
+  const updatedSetting = { ...currentSetting, ...newSetting };
+  const updatedSettingJson = JSON.stringify(updatedSetting);
+  // 有实际变更才写入
+  if (currentSettingJson !== updatedSettingJson) {
+    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, updatedSettingJson);
+  }
 };
 
 // 强制刷新数据（即不使用本地缓存）

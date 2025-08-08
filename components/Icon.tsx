@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Href, router } from 'expo-router';
 import React from 'react';
-import { Pressable, View, useColorScheme } from 'react-native';
+import { View, useColorScheme } from 'react-native';
+import { BorderlessButton } from 'react-native-gesture-handler';
 
 interface IconProps {
   name: keyof typeof Ionicons.glyphMap; // 限制为 Ionicons 支持的图标名称
@@ -22,17 +23,17 @@ export const Icon: React.FC<IconProps> = ({ name, size = 24, color, className, h
 
   if (href) {
     return (
-      <Pressable className={className} onPress={() => router.push(href)}>
-        {IconComponent}
-      </Pressable>
+      <View className={className}>
+        <BorderlessButton onPress={() => router.push(href)}>{IconComponent}</BorderlessButton>
+      </View>
     );
   }
 
   if (onPress) {
     return (
-      <Pressable className={className} onPress={onPress}>
-        {IconComponent}
-      </Pressable>
+      <View className={className}>
+        <BorderlessButton onPress={onPress}>{IconComponent}</BorderlessButton>
+      </View>
     );
   }
 

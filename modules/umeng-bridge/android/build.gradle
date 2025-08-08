@@ -52,23 +52,23 @@ dependencies {
 //  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getKotlinVersion()}"
 
     // 友盟统计SDK
-    api 'com.umeng.umsdk:common:9.8.2'
-    api 'com.umeng.umsdk:asms:1.8.7.1'
+    api 'com.umeng.umsdk:common:9.8.6'
+    api 'com.umeng.umsdk:asms:1.8.7.2'
     // 友盟Push相关依赖
-    api 'com.umeng.umsdk:push:6.7.2'
+    api 'com.umeng.umsdk:push:6.7.4'
     // 小米
-    api 'com.umeng.umsdk:xiaomi-umengaccs:2.1.0'
-    api 'com.umeng.umsdk:xiaomi-push:5.9.9'
+    api 'com.umeng.umsdk:xiaomi-umengaccs:2.2.0'
+    api 'com.umeng.umsdk:xiaomi-push:6.0.1'
     // 华为
-    api 'com.umeng.umsdk:huawei-umengaccs:2.1.0'
+    api 'com.umeng.umsdk:huawei-umengaccs:2.2.0'
     api 'com.huawei.hms:push:6.13.0.300'
     // OPPO
-    api 'com.umeng.umsdk:oppo-umengaccs:2.1.0'
-    api 'com.umeng.umsdk:oppo-push:3.4.0'
+    api 'com.umeng.umsdk:oppo-umengaccs:2.2.0'
+    api 'com.umeng.umsdk:oppo-push:3.5.3'
     // vivo
-    api 'com.umeng.umsdk:vivo-umengaccs:2.1.0'
-    api 'com.umeng.umsdk:vivo-push:3.0.0.7'
+    api 'com.umeng.umsdk:vivo-umengaccs:2.2.0'
+    api 'com.umeng.umsdk:vivo-push:4.0.6.0'
     // 荣耀
-    api 'com.umeng.umsdk:honor-umengaccs:2.1.0'
-    api 'com.umeng.umsdk:honor-push:7.0.61.303'
+    api 'com.umeng.umsdk:honor-umengaccs:2.2.0'
+    api 'com.umeng.umsdk:honor-push:8.0.12.307'
 }

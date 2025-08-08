@@ -96,6 +96,7 @@ export default function SearchPage() {
             renderItem={({ item }) => (
               <TouchableOpacity
                 className="h-16 w-full flex-row items-center px-6 py-2"
+                activeOpacity={0.7}
                 onPress={() => {
                   handlePressItem(item);
                   saveSearchHistory(searchQuery);
@@ -114,7 +115,7 @@ export default function SearchPage() {
           <View className="p-4">
             <View className="mb-2 flex-row items-center justify-between">
               <Text className="font-bold">搜索历史</Text>
-              <TouchableOpacity onPress={clearSearchHistory}>
+              <TouchableOpacity onPress={clearSearchHistory} activeOpacity={0.7}>
                 <Trash2 size={20} color="gray" />
               </TouchableOpacity>
             </View>
@@ -123,6 +124,7 @@ export default function SearchPage() {
                 <TouchableOpacity
                   key={index}
                   className="border-b border-border p-2"
+                  activeOpacity={0.7}
                   onPress={() => {
                     setSearchQuery(query);
                     saveSearchHistory(query);

@@ -71,13 +71,16 @@ export default function PaperPage() {
     }, [currentPath]),
   );
 
+  const headerRight = useCallback(() => {
+    return <SearchButton currentPath={currentPath} papers={currentPapers} />;
+  }, [currentPath, currentPapers]);
+
   return (
     <>
       <Stack.Screen
         options={{
           title: '历年卷',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => <SearchButton currentPath={currentPath} papers={currentPapers} />,
+          headerRight: headerRight,
         }}
       />
       <PageContainer>

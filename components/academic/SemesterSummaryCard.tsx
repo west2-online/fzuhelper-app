@@ -1,6 +1,7 @@
 import { Text } from '@/components/ui/text';
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { SemesterSummary } from '@/types/academic';
+import { memo } from 'react';
 import { View } from 'react-native';
 import { Card } from '../ui/card';
 
@@ -8,9 +9,9 @@ interface SemesterSummaryCardProps {
   summary: SemesterSummary;
 }
 
-export default function SemesterSummaryCard({ summary }: SemesterSummaryCardProps) {
+function SemesterSummaryCard({ summary }: SemesterSummaryCardProps) {
   return (
-    <Card className="mt-3 p-3">
+    <Card className="p-3">
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-col items-start">
           <Text className="text-sm text-text-primary">总课程数</Text>
@@ -37,3 +38,5 @@ export default function SemesterSummaryCard({ summary }: SemesterSummaryCardProp
     </Card>
   );
 }
+
+export default memo(SemesterSummaryCard);

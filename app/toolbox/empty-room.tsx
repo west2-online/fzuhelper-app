@@ -14,7 +14,8 @@ import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { TouchableOpacity, View, useColorScheme } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import DateTimePicker, { useDefaultClassNames } from 'react-native-ui-datepicker';
 
 type Campus = '旗山校区' | '铜盘校区' | '晋江校区' | '泉港校区' | '怡山校区' | '集美校区' | '鼓浪屿校区';
@@ -37,10 +38,12 @@ function DateNavigator({ date, onPress }: DateNavigatorProps) {
   const iconColor = useMemo(() => (currentColorScheme === 'dark' ? 'white' : 'black'), [currentColorScheme]);
 
   return (
-    <TouchableOpacity className="flex-row items-center" onPressIn={onPress}>
-      <Text className="pr-2 text-lg">{date}</Text>
-      <CalendarDaysIcon size={20} color={iconColor} />
-    </TouchableOpacity>
+    <Pressable onPress={onPress}>
+      <View className="flex-row items-center">
+        <Text className="pr-2 text-lg">{date}</Text>
+        <CalendarDaysIcon size={20} color={iconColor} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -87,15 +90,17 @@ export default function EmptyRoomPage() {
     setShowFAQ(prev => !prev);
   }, []);
 
+  const headerRight = useCallback(
+    () => <DateNavigator date={selectedDate.format(DATE_FMT)} onPress={() => setIsDateTimePickerVisible(true)} />,
+    [selectedDate],
+  );
+
   return (
     <>
       <Stack.Screen
         options={{
           title: '空教室',
-          // eslint-disable-next-line react/no-unstable-nested-components
-          headerRight: () => (
-            <DateNavigator date={selectedDate.format(DATE_FMT)} onPress={() => setIsDateTimePickerVisible(true)} />
-          ),
+          headerRight: headerRight,
         }}
       />
       <PageContainer>
@@ -104,7 +109,8 @@ export default function EmptyRoomPage() {
           {/* 左侧按钮 */}
           <TouchableOpacity
             className="flex-1 flex-row items-center justify-center px-2 py-2"
-            onPressIn={() => setIsRangeStartPickerVisible(true)}
+            activeOpacity={0.7}
+            onPress={() => setIsRangeStartPickerVisible(true)}
           >
             <Text className="pr-1">第 {selectedRange.start} 节</Text>
             <Icon name={isRangeStartPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
@@ -114,7 +120,8 @@ export default function EmptyRoomPage() {
           {/* 右侧按钮 */}
           <TouchableOpacity
             className="flex-1 flex-row items-center justify-center px-2 py-2"
-            onPressIn={() => setIsRangeEndPickerVisible(true)}
+            activeOpacity={0.7}
+            onPress={() => setIsRangeEndPickerVisible(true)}
           >
             <Text className="pr-1">第 {selectedRange.end} 节</Text>
             <Icon name={isRangeEndPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
@@ -122,14 +129,13 @@ export default function EmptyRoomPage() {
           {/* 校区按钮 */}
           <TouchableOpacity
             className="ml-3 flex-1 flex-row items-center justify-center px-2 py-2"
-            onPressIn={() => setCampusPickerVisible(true)}
+            activeOpacity={0.7}
+            onPress={() => setCampusPickerVisible(true)}
           >
             <Text className="pr-1">{selectedCampus}</Text>
             <Icon name={isCampusPickerVisible ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
           </TouchableOpacity>
-          <Pressable onPress={handleModalVisible} className="flex-right flex-row items-center">
-            <Icon name="help-circle-outline" size={26} className="mr-4" />
-          </Pressable>
+          <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />
         </View>
         {loadingState === 'success' ? (
           <ClassroomList data={roomData} />
