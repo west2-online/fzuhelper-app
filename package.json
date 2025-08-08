@@ -96,7 +96,7 @@
     "react-native-device-info": "^14.0.4",
     "react-native-edge-to-edge": "1.6.0",
     "react-native-gesture-handler": "~2.24.0",
-    "react-native-image-crop-picker": "^0.50.1",
+    "react-native-image-crop-picker": "^0.51.0",
     "react-native-image-zoom-viewer": "^3.0.1",
     "react-native-keyboard-controller": "^1.17.5",
     "react-native-mime-types": "^2.5.0",

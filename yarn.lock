@@ -8560,10 +8560,10 @@ react-native-gesture-handler@~2.24.0:
     hoist-non-react-statics "^3.3.0"
     invariant "^2.2.4"
 
-react-native-image-crop-picker@^0.50.1:
-  version "0.50.1"
-  resolved "https://registry.yarnpkg.com/react-native-image-crop-picker/-/react-native-image-crop-picker-0.50.1.tgz#db627a378daa7cfc7500a6bc6188510bb2325f5a"
-  integrity sha512-2xtyKLU08AFqjRb1hUsSanO2OK9aCtfjggKzVhq/GDSfOI+WRGhoElcMuKeQEi3ey6mivz7UNFOOvNCqGjzKBA==
+react-native-image-crop-picker@^0.51.0:
+  version "0.51.0"
+  resolved "https://registry.yarnpkg.com/react-native-image-crop-picker/-/react-native-image-crop-picker-0.51.0.tgz#673748d97459c0f03c63dd835418b1ef94ee7f01"
+  integrity sha512-hY0pxnPkTj75dUTfqoCkwIqCrStd/SK6j2CNEcMww8AIUx7Wp6HQVrF6ZzZK8waxvoO9t7kORwjTG2u1piuGqw==
 
 react-native-image-pan-zoom@^2.1.12:
   version "2.1.12"
