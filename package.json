@@ -73,7 +73,6 @@
     "expo-intent-launcher": "~12.1.5",
     "expo-linear-gradient": "~14.1.5",
     "expo-linking": "~7.1.7",
-    "expo-localization": "~16.1.6",
     "expo-navigation-bar": "~4.2.7",
     "expo-quick-actions": "^4.0.2",
     "expo-router": "~5.1.3",

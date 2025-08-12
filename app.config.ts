@@ -74,7 +74,6 @@ const config: ExpoConfig = {
     ],
   },
   plugins: [
-    'expo-localization',
     'expo-router',
     [
       'react-native-permissions',
