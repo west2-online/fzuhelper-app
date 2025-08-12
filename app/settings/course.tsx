@@ -56,17 +56,13 @@ export default function CourseSettingPage() {
     try {
       const result = await getApiV1JwchTermList(); // 数据格式样例： ['202401', '202402']
       setSemesters(result.data.data); // 更新学期数据源
-      setSettings(prevSettings => ({
-        ...prevSettings,
-        selectedSemester: prevSettings.selectedSemester || semesters[0],
-      }));
     } catch (error: any) {
       const data = handleError(error) as { code: string; message: string };
       if (data) {
         toast.error(data?.message || '未知错误');
       }
     }
-  }, [semesters, handleError]);
+  }, [handleError]);
 
   // 选择学期开关
   const handleOpenTermSelectPicker = useCallback(async () => {
@@ -79,13 +75,14 @@ export default function CourseSettingPage() {
   // 确认选择学期
   const handleConfirmTermSelectPicker = useCallback((selectedValue: string) => {
     setPickerVisible(false);
-    // 对于研究生，我们只在对外的显示（即 Label 内容等）上显示标准研究生学期，比如 2024-2025-1，但内部存储的永远是和本科生等价的 202401 等字样
+    // 对于研究生，我们内部存储的是和本科生等价的 202401 等字样
+    const newValue =
+      LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? convertSemester(selectedValue) : selectedValue;
     setSettings(prevSettings => ({
       ...prevSettings,
-      selectedSemester:
-        LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? convertSemester(selectedValue) : selectedValue,
-      // selectedValue,
+      selectedSemester: newValue,
     }));
+    updateCourseSetting({ selectedSemester: newValue });
   }, []);
 
   // 设置是否显示非本周课程
