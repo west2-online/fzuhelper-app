@@ -1,6 +1,10 @@
 {
-  "name": "福uu",
-  "description": "福大學生的學習生活助手",
-  "CFBundleDisplayName": "福uu",
-  "app_name": "福uu"
+  "ios": {
+    "name": "福uu",
+    "description": "福大學生的學習生活助手",
+    "CFBundleDisplayName": "福uu"
+  },
+  "android": {
+    "app_name": "福uu"
+  }
 }

@@ -1,11 +1,15 @@
 {
-  "name": "fzuhelper",
-  "description": "A convenient app for students of Fuzhou University",
-  "CFBundleDisplayName": "FzuHelper",
-  "app_name": "FzuHelper",
-  "NSCalendarsFullAccessUsageDescription": "we need to apply for calendar permissions to export class schedules, exam room arrangements, etc. to the calendar",
-  "NSCameraUsageDescription": "we need to apply for camera permissions to provide functions such as taking photos and uploading avatars",
-  "NSPhotoLibraryUsageDescription": "we need to apply for album permissions to provide functions such as uploading avatars",
-  "NSPushNotificationUsageDescription": "we will use push notifications to push grade information and the latest notifications from the Academic Affairs Office. Notifications are supervised by Fuzhou University and will not disclose your personal information.",
-  "NSUserTrackingUsageDescription": "we will use the device ID to analyze software usage in order to provide better services and fix vulnerabilities"
+  "ios": {
+    "name": "fzuhelper",
+    "description": "A convenient app for students of Fuzhou University",
+    "CFBundleDisplayName": "FzuHelper",
+    "NSCalendarsFullAccessUsageDescription": "we need to apply for calendar permissions to export class schedules, exam room arrangements, etc. to the calendar",
+    "NSCameraUsageDescription": "we need to apply for camera permissions to provide functions such as taking photos and uploading avatars",
+    "NSPhotoLibraryUsageDescription": "we need to apply for album permissions to provide functions such as uploading avatars",
+    "NSPushNotificationUsageDescription": "we will use push notifications to push grade information and the latest notifications from the Academic Affairs Office. Notifications are supervised by Fuzhou University and will not disclose your personal information.",
+    "NSUserTrackingUsageDescription": "we will use the device ID to analyze software usage in order to provide better services and fix vulnerabilities"
+  },
+  "android": {
+    "app_name": "FzuHelper"
+  }
 }
