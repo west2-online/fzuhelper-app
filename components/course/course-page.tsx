@@ -185,7 +185,7 @@ const CoursePage: React.FC = () => {
     () => (
       <Pressable
         onPress={() => {
-          if (selectedWeek !== -1) {
+          if (currentWeek !== -1) {
             // 如果是当前学期，点击快捷跳转到当前周
             safeSetSelectedWeek(currentWeek);
           }
@@ -194,7 +194,7 @@ const CoursePage: React.FC = () => {
         <Text className="ml-4 text-2xl font-medium">课程表</Text>
       </Pressable>
     ),
-    [selectedWeek, safeSetSelectedWeek, currentWeek],
+    [safeSetSelectedWeek, currentWeek],
   );
 
   const headerTitle = useCallback(
