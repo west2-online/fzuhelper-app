@@ -156,6 +156,11 @@ export default function HomePage() {
                 <Text>Not Found Page</Text>
               </Button>
             </Link>
+            <Link href="/devtools/multi-state-test" asChild>
+              <Button>
+                <Text>Multi State Test</Text>
+              </Button>
+            </Link>
 
             {/* 功能测试 */}
             <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
