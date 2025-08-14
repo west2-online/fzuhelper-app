@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
+// eslint-disable-next-line no-restricted-imports
 import { Alert, Button, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const MAX_LENGTH = 50; // 设置最大长度
