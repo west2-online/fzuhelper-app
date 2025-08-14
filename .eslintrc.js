@@ -1,5 +1,5 @@
 // https://docs.expo.dev/guides/using-eslint/
-const { forbiddenList } = require('./forbidden-rule.js');
+const forbiddenRule = require('./forbidden-rule');
 
 module.exports = {
   root: true,
@@ -24,11 +24,19 @@ module.exports = {
     ],
     'no-restricted-imports': [
       'error',
-      ...forbiddenList.map(item => ({
+      ...forbiddenRule.map(item => ({
         name: item.source,
         importNames: item.names,
         message: item.message,
       })),
     ],
   },
+  overrides: forbiddenRule
+    .filter(item => item.allowIn?.length)
+    .map(item => ({
+      files: item.allowIn.map(path => `${path}**/*`),
+      rules: {
+        'no-restricted-imports': 'off',
+      },
+    })),
 };
