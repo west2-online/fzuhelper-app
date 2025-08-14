@@ -34,7 +34,7 @@ module.exports = {
   overrides: forbiddenRule
     .filter(item => item.allowIn?.length)
     .map(item => ({
-      files: item.allowIn.map(path => `${path}**/*`),
+      files: item.allowIn.map(path => (path.endsWith('/') ? path + '**/*' : path + '/**/*')),
       rules: {
         'no-restricted-imports': 'off',
       },

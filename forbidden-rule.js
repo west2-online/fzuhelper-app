@@ -8,7 +8,7 @@
  *   source: string; // 模块路径
  *   names: string[]; // 禁用的具体导出名（空数组表示整个模块）
  *   message: string; // 报错信息
- *   allowIn?: string[]; // 白名单路径（可选，字符串数组，支持局部匹配）
+ *   allowIn?: string[]; // 白名单路径（可选，字符串数组，支持完整匹配或路径匹配）
  * }
  */
 

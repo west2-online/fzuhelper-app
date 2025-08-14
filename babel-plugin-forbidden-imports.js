@@ -1,4 +1,5 @@
 const forbiddenRule = require('./forbidden-rule');
+const path = require('path');
 
 module.exports = function ({ types: t }) {
   return {
@@ -19,8 +20,18 @@ module.exports = function ({ types: t }) {
           if (importSource !== rule.source) continue;
 
           // 白名单路径匹配，跳过
-          if (rule.allowIn?.some(allowPath => filename.includes(allowPath))) {
-            return;
+          if (
+            rule.allowIn?.some(allowPath => {
+              const fileAbs = path.resolve(filename);
+              const allowAbs = path.resolve(allowPath);
+              // 文件名完全匹配，或在允许的目录内
+              return (
+                fileAbs === allowAbs ||
+                (path.isAbsolute(path.relative(allowAbs, fileAbs)) && path.relative(allowAbs, fileAbs).startsWith('..'))
+              );
+            })
+          ) {
+            continue;
           }
 
           // 检查是否导入了禁止的名称
