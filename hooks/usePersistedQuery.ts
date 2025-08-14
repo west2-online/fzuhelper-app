@@ -1,12 +1,7 @@
 import type { DefaultError, QueryClient, QueryKey } from '@tanstack/query-core';
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 
-import { queryClient } from '@/components/query-provider';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
-
-export const clearAllCache = () => {
-  queryClient.clear(); // 清空所有的 React Query 缓存
-};
 
 // 这个 hooks 实现了一个简单的缓存机制
 // 优先使用未过期的缓存数据，否则请求服务器并更新缓存

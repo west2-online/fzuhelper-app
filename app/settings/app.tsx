@@ -12,17 +12,18 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import LabelSwitch from '@/components/label-switch';
-import { clearAllCache } from '@/hooks/usePersistedQuery';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { CourseCache } from '@/lib/course';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AcademicPage() {
   const redirect = useRedirectWithoutHistory();
   const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // (仅 Android) 发布渠道
+  const queryClient = useQueryClient();
 
   // 清除数据
   const handleClearData = () => {
@@ -38,7 +39,7 @@ export default function AcademicPage() {
           await CourseCache.clear(); // 清除课程缓存
           await LocalUser.clear(); // 清除本地用户
           await AsyncStorage.clear(); // 清空 AsyncStorage
-          clearAllCache(); // 清除所有缓存
+          queryClient.clear(); // 清除所有缓存
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
             redirect('/(guest)');
@@ -62,7 +63,7 @@ export default function AcademicPage() {
             await CourseCache.clear();
             await LocalUser.clear();
             await AsyncStorage.clear(); // 清空 AsyncStorage
-            clearAllCache(); // 清除所有缓存
+            queryClient.clear(); // 清除所有缓存
             redirect('/(guest)');
           } catch (error) {
             console.error('Error clearing storage:', error);
