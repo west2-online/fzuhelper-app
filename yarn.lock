@@ -5275,11 +5275,6 @@ expo-tracking-transparency@~5.2.4:
   resolved "https://registry.yarnpkg.com/expo-tracking-transparency/-/expo-tracking-transparency-5.2.4.tgz#f3e343e9094376e89ec590444ac05dda6b4ecd25"
   integrity sha512-Evog1rmbSLrODuG8AukEoV0y1RzQiJelX95rFuXY3kxHZQbiBOQ7YzAOsuYACztDf4XDoSODStdHSgUkgKNxJA==
 
-expo-web-browser@~14.2.0:
-  version "14.2.0"
-  resolved "https://registry.yarnpkg.com/expo-web-browser/-/expo-web-browser-14.2.0.tgz#d8fb521ae349aebbf5c0ca32448877480124c06c"
-  integrity sha512-6S51d8pVlDRDsgGAp8BPpwnxtyKiMWEFdezNz+5jVIyT+ctReW42uxnjRgtsdn5sXaqzhaX+Tzk/CWaKCyC0hw==
-
 expo@^53.0.0:
   version "53.0.19"
   resolved "https://registry.yarnpkg.com/expo/-/expo-53.0.19.tgz#69f8ed224efadf517d3ff66dde3d536fb3e8f00a"
