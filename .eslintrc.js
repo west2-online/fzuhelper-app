@@ -24,19 +24,38 @@ module.exports = {
     ],
     'no-restricted-imports': [
       'error',
-      ...forbiddenRule.map(item => ({
-        name: item.source,
-        importNames: item.names,
-        message: item.message,
-      })),
+      {
+        patterns: forbiddenRule.flatMap(item =>
+          item.names.map(name => ({
+            group: [item.source],
+            importNames: [name],
+            message: item.message,
+          })),
+        ),
+      },
     ],
   },
   overrides: forbiddenRule
     .filter(item => item.allowIn?.length)
-    .map(item => ({
-      files: item.allowIn.map(path => (path.endsWith('/') ? path + '**/*' : path + '/**/*')),
-      rules: {
-        'no-restricted-imports': 'off',
-      },
-    })),
+    .flatMap(item =>
+      item.allowIn.map(allowPath => ({
+        files: allowPath.endsWith('/') ? allowPath + '**/*' : allowPath + '/**/*',
+        rules: {
+          'no-restricted-imports': [
+            'error',
+            {
+              patterns: forbiddenRule
+                .filter(rule => rule !== item) // 排除当前规则，保留其他规则
+                .flatMap(rule =>
+                  rule.names.map(name => ({
+                    group: [rule.source],
+                    importNames: [name],
+                    message: rule.message,
+                  })),
+                ),
+            },
+          ],
+        },
+      })),
+    ),
 };

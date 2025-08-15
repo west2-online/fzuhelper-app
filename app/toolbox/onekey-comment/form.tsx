@@ -1,5 +1,5 @@
 import { fromByteArray } from 'base64-js';
-import { Tabs } from 'expo-router';
+import { Stack } from 'expo-router';
 import { RotateCwIcon } from 'lucide-react-native';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { FlatList, Image, RefreshControl, TouchableOpacity, useWindowDimensions, View } from 'react-native';
@@ -60,7 +60,7 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
     }),
   }));
 
-  const handleScoreTextChange = (text: string) => {
+  const handleScoreTextChange = useCallback((text: string) => {
     // 移除非数字字符
     const numericText = text.replace(/[^0-9]/g, '');
     const num = parseInt(numericText, 10);
@@ -72,7 +72,7 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
       const clamped = Math.min(Math.max(num, 0), 100);
       setScore(clamped.toString());
     }
-  };
+  }, []);
 
   return (
     <View className="mx-4 mt-4 space-y-2 rounded-xl border border-border bg-card p-5">
@@ -124,7 +124,8 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
   const [modalVisible, setModalVisible] = useState(false);
   const [recaptchaInput, setCaptchaInput] = useState('');
   const childRefs = useRef<(CourseCardRef | null)[]>([]);
-  const getAllFormData = () => {
+
+  const getAllFormData = useCallback(() => {
     const allData: CourseFormInfo[] = [];
     Object.values(childRefs.current).forEach(ref => {
       if (ref && ref.getFormData) {
@@ -132,9 +133,9 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
       }
     });
     return allData;
-  };
+  }, []);
 
-  const checkForm = () => {
+  const checkForm = useCallback(() => {
     const allForm = getAllFormData();
     for (let i = 0; i < allForm.length; i++) {
       if (allForm[i].score === '') {
@@ -147,7 +148,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
       }
     }
     return true;
-  };
+  }, [courses, getAllFormData]);
 
   const refreshCourses = useCallback(async () => {
     setLoading(true);
@@ -189,7 +190,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
     refreshCaptcha();
     setCaptchaInput('');
     refreshCourses();
-  }, [courses, onekey, recaptchaInput, refreshCaptcha, refreshCourses]);
+  }, [courses, getAllFormData, onekey, recaptchaInput, refreshCaptcha, refreshCourses]);
 
   useEffect(() => {
     refreshCourses();
@@ -314,7 +315,7 @@ export default function OnekeyCommentFormPage() {
 
   return (
     <>
-      <Tabs.Screen
+      <Stack.Screen
         options={{
           title: '一键评议',
         }}
