@@ -124,7 +124,8 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
   const [modalVisible, setModalVisible] = useState(false);
   const [recaptchaInput, setCaptchaInput] = useState('');
   const childRefs = useRef<(CourseCardRef | null)[]>([]);
-  const getAllFormData = () => {
+
+  const getAllFormData = useCallback(() => {
     const allData: CourseFormInfo[] = [];
     Object.values(childRefs.current).forEach(ref => {
       if (ref && ref.getFormData) {
@@ -132,7 +133,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
       }
     });
     return allData;
-  };
+  }, []);
 
   const checkForm = useCallback(() => {
     const allForm = getAllFormData();
@@ -147,7 +148,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
       }
     }
     return true;
-  }, [courses]);
+  }, [courses, getAllFormData]);
 
   const refreshCourses = useCallback(async () => {
     setLoading(true);
@@ -189,7 +190,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
     refreshCaptcha();
     setCaptchaInput('');
     refreshCourses();
-  }, [courses, onekey, recaptchaInput, refreshCaptcha, refreshCourses]);
+  }, [courses, getAllFormData, onekey, recaptchaInput, refreshCaptcha, refreshCourses]);
 
   useEffect(() => {
     refreshCourses();
