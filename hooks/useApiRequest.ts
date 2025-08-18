@@ -6,11 +6,12 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 type ApiReturn<T> = AxiosResponse<{ code: string; message: string; data: T }>;
 type ApiFunction<T, R> = (params: T) => Promise<ApiReturn<R>>;
 
-interface useApiRequestOption<TData> {
+interface useApiRequestOption<TData, TParam> {
   staleTime?: number;
   enabled?: boolean;
   retry?: number;
   persist?: boolean;
+  queryKey?: (string | TParam)[];
   onSuccess?: (data: TData) => void;
   errorHandler?: (errorData: any) => any;
 }
@@ -23,7 +24,7 @@ interface useApiRequestOption<TData> {
  *   - staleTime - 缓存过期时间（毫秒），默认为 5 分钟，设置为 0 表示不缓存
  *   - enabled - 是否自动发起请求，默认为 true
  *   - retry - 自动重试次数，默认不重试
- *   - persist - 是否存入 AsyncStorage 持久化，默认为 false，即内存缓存
+ *   - persist - 是否存入 AsyncStorage 持久化，默认为 false，即内存缓存；启用时必须设置 queryKey
  *   - onSuccess - 查询成功时的回调函数
  *   - errorHandler - 自定义错误处理，接受 hooks/useSafeResponseSolve 中的错误处理结果后进一步处理，返回结果会覆盖原本返回的 error
  * @returns UseQueryResult<TData, any> - 返回的查询结果对象，常用部分如下：
@@ -39,12 +40,17 @@ interface useApiRequestOption<TData> {
 export default function useApiRequest<TParam, TReturn>(
   apiRequest: ApiFunction<TParam, TReturn>,
   params: TParam = {} as TParam,
-  option: useApiRequestOption<TReturn> = {},
+  option: useApiRequestOption<TReturn, TParam> = {},
 ): UseQueryResult<TReturn, any> {
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
+
+  if (option.persist && !option.queryKey) {
+    throw new Error('persist 启用时，请设置 queryKey，保证缓存稳定性');
+  }
+
   return useQuery({
     // 此处把函数转换为 string 作为查询字符串的一部分，避免不同 api 的返回混在一起
-    queryKey: [params, apiRequest.toString()],
+    queryKey: option.queryKey ?? [params, apiRequest.toString()],
     queryFn: async () => {
       try {
         return (await apiRequest(params)).data.data;

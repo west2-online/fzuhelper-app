@@ -1,5 +1,5 @@
 import { Href, router, Tabs } from 'expo-router';
-import { use, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
@@ -8,7 +8,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1CourseDate, getApiV1JwchUserInfo } from '@/api/generate';
-import { EXPIRE_ONE_DAY } from '@/lib/constants';
+import { EXPIRE_ONE_DAY, JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
 import { UserInfo } from '@/types/user';
 
 import AvatarDefault from '@/assets/images/my/avatar_default.png';
@@ -18,13 +18,13 @@ import HelpIcon from '@/assets/images/my/ic_help.png';
 import useApiRequest from '@/hooks/useApiRequest';
 
 const defaultUserInfo: UserInfo = {
-  stu_id: '未知',
-  name: '未知',
-  birthday: '未知',
-  sex: '未知',
-  college: '未知',
-  grade: '未知',
-  major: '未知',
+  stu_id: '',
+  name: '',
+  birthday: '',
+  sex: '',
+  college: '',
+  grade: '',
+  major: '',
 };
 
 const defaultTermInfo = {
@@ -70,6 +70,7 @@ export default function HomePage() {
     {
       staleTime: EXPIRE_ONE_DAY,
       persist: true,
+      queryKey: [JWCH_USER_INFO_KEY],
     },
   );
 
@@ -80,6 +81,7 @@ export default function HomePage() {
     {
       staleTime: EXPIRE_ONE_DAY,
       persist: true,
+      queryKey: [JWCH_CURRENT_SEMESTER_KEY],
     },
   );
 
