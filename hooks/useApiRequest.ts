@@ -10,6 +10,7 @@ interface useApiRequestOption<TData> {
   staleTime?: number;
   enabled?: boolean;
   retry?: number;
+  persist?: boolean;
   onSuccess?: (data: TData) => void;
   errorHandler?: (errorData: any) => any;
 }
@@ -21,7 +22,8 @@ interface useApiRequestOption<TData> {
  * @param option useApiRequestOption - 客户端请求选项 （可选）
  *   - staleTime - 缓存过期时间（毫秒），默认为 5 分钟，设置为 0 表示不缓存
  *   - enabled - 是否自动发起请求，默认为 true
- *   - retry - 自动重试次数，默认为 0
+ *   - retry - 自动重试次数，默认不重试
+ *   - persist - 是否存入 AsyncStorage 持久化，默认为 false，即内存缓存
  *   - onSuccess - 查询成功时的回调函数
  *   - errorHandler - 自定义错误处理，接受 hooks/useSafeResponseSolve 中的错误处理结果后进一步处理，返回结果会覆盖原本返回的 error
  * @returns UseQueryResult<TData, any> - 返回的查询结果对象，常用部分如下：
@@ -48,7 +50,7 @@ export default function useApiRequest<TParam, TReturn>(
         return (await apiRequest(params)).data.data;
       } catch (err: any) {
         const errorData = handleError(err);
-        // 抛出后，isError 状态会变为 true
+        // 抛出后，isError 变为 true，且本次结果不会被缓存
         if (option.errorHandler) {
           throw option.errorHandler(errorData);
         } else {
@@ -56,9 +58,13 @@ export default function useApiRequest<TParam, TReturn>(
         }
       }
     },
-    staleTime: option.staleTime ?? 5 * 60 * 1000,
+    meta: {
+      // 持久化处理逻辑见 components/query-provider.tsx
+      persist: option.persist ?? false,
+    },
+    staleTime: option.staleTime ?? 0,
     enabled: option.enabled ?? true,
-    retry: option.retry ?? 0,
+    retry: option.retry ?? false,
     select: data => {
       option.onSuccess?.(data);
       return data;
