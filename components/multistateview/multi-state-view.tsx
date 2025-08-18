@@ -14,7 +14,8 @@ export enum STATE {
 
 interface MultiStateViewProps {
   state: STATE;
-  content: React.ReactNode;
+  content: React.ReactElement;
+  /** 加载失败或网络错误时，点击刷新的处理函数 */
   refresh?: () => void;
 }
 
