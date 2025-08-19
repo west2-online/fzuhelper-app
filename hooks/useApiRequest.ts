@@ -6,13 +6,12 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 type ApiReturn<T> = AxiosResponse<{ code: string; message: string; data: T }>;
 type ApiFunction<T, R> = (params: T) => Promise<ApiReturn<R>>;
 
-interface useApiRequestOption<TData, TParam> {
+interface useApiRequestOption<TParam> {
   staleTime?: number;
   enabled?: boolean;
   retry?: number;
   persist?: boolean;
   queryKey?: (string | TParam)[];
-  onSuccess?: (data: TData) => void;
 }
 
 /**
@@ -24,7 +23,6 @@ interface useApiRequestOption<TData, TParam> {
  *   - enabled - 是否自动发起请求，默认为 true
  *   - retry - 自动重试次数，默认不重试
  *   - persist - 是否存入 AsyncStorage 持久化，默认为 false，即内存缓存；启用时必须设置 queryKey
- *   - onSuccess - 查询成功时的回调函数
  * @returns UseQueryResult<TData, any> - 返回的查询结果对象，常用部分如下：
  *   - isFetching - 是否正在加载中
  *   - isError - 是否出错
@@ -39,7 +37,7 @@ interface useApiRequestOption<TData, TParam> {
 export default function useApiRequest<TParam, TReturn>(
   apiRequest: ApiFunction<TParam, TReturn>,
   params: TParam = {} as TParam,
-  option: useApiRequestOption<TReturn, TParam> = {},
+  option: useApiRequestOption<TParam> = {},
 ): UseQueryResult<TReturn, any> {
   const { handleError } = useSafeResponseSolve(); // HTTP 请求错误处理
 
@@ -66,9 +64,5 @@ export default function useApiRequest<TParam, TReturn>(
     staleTime: option.staleTime ?? 0,
     enabled: option.enabled ?? true,
     retry: option.retry ?? false,
-    select: data => {
-      option.onSuccess?.(data);
-      return data;
-    },
   });
 }
