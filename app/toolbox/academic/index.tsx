@@ -17,18 +17,11 @@ import useApiRequest from '@/hooks/useApiRequest';
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { pushToWebViewJWCH } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
-import { toast } from 'sonner-native';
-
-const errorHandler = (error: any) => {
-  if (error) {
-    toast.error(error.msg ? error.msg : '培养计划没有找到');
-  }
-};
 
 export default function AcademicPage() {
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const { refetch } = useApiRequest(getApiV1JwchAcademicPlan, {}, { enabled: false, errorHandler });
+  const { refetch } = useApiRequest(getApiV1JwchAcademicPlan, {}, { enabled: false });
 
   // 菜单项数据
   const MENU_ITEMS: Tool[] = [

@@ -13,7 +13,6 @@ interface useApiRequestOption<TData, TParam> {
   persist?: boolean;
   queryKey?: (string | TParam)[];
   onSuccess?: (data: TData) => void;
-  errorHandler?: (errorData: any) => any;
 }
 
 /**
@@ -26,12 +25,12 @@ interface useApiRequestOption<TData, TParam> {
  *   - retry - 自动重试次数，默认不重试
  *   - persist - 是否存入 AsyncStorage 持久化，默认为 false，即内存缓存；启用时必须设置 queryKey
  *   - onSuccess - 查询成功时的回调函数
- *   - errorHandler - 自定义错误处理，接受 hooks/useSafeResponseSolve 中的错误处理结果后进一步处理，返回结果会覆盖原本返回的 error
  * @returns UseQueryResult<TData, any> - 返回的查询结果对象，常用部分如下：
  *   - isFetching - 是否正在加载中
  *   - isError - 是否出错
  *   - refetch - 刷新函数
  *   - error - 错误对象
+ *   - dataUpdatedAt - 数据最后更新时间戳
  * @example 基础示例
  * // 使用 useMemo 包裹参数对象
  * const params = { ... };
@@ -57,11 +56,7 @@ export default function useApiRequest<TParam, TReturn>(
       } catch (err: any) {
         const errorData = handleError(err);
         // 抛出后，isError 变为 true，且本次结果不会被缓存
-        if (option.errorHandler) {
-          throw option.errorHandler(errorData);
-        } else {
-          throw errorData;
-        }
+        throw errorData;
       }
     },
     meta: {

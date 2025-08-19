@@ -1,43 +1,34 @@
 import { Stack } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
 
 import { Icon } from '@/components/Icon';
 import ExamRoomCard from '@/components/academic/ExamRoomCard';
 import FAQModal from '@/components/faq-modal';
 import PageContainer from '@/components/page-container';
 import { TabFlatList } from '@/components/tab-flatlist';
-import { Text } from '@/components/ui/text';
 
-import { ResultEnum } from '@/api/enum';
 import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
 import LastUpdateTime from '@/components/last-update-time';
-import Loading from '@/components/loading';
+import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_EXAM_ROOM } from '@/lib/FAQ';
 import { formatExamData } from '@/lib/exam-room';
 import { MergedExamData } from '@/types/academic';
 import React from 'react';
-
-// 处理API错误
-const errorHandler = (data: any) => {
-  if (data) {
-    if (data.code === ResultEnum.BizErrorCode) {
-      return;
-    }
-    toast.error(data.message || '发生未知错误，请稍后再试');
-  }
-};
+import { toast } from 'sonner-native';
 
 interface TermContentProps {
   term: string;
 }
 
 const TermContent = React.memo<TermContentProps>(({ term }) => {
+  const [state, setState] = useState(STATE.LOADING);
   const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
-  const { data, dataUpdatedAt, isLoading, refetch } = useApiRequest(getApiV1JwchClassroomExam, { term });
+  const { data, dataUpdatedAt, isFetching, isError, error, refetch } = useApiRequest(getApiV1JwchClassroomExam, {
+    term,
+  });
   const termData = useMemo(
     () =>
       formatExamData(data || []).sort((a, b) => {
@@ -79,13 +70,6 @@ const TermContent = React.memo<TermContentProps>(({ term }) => {
     return <ExamRoomCard item={item} />;
   }, []);
 
-  const renderListEmptyComponent = useMemo(() => {
-    if (isLoading) {
-      return null;
-    }
-    return <Text className="text-center text-text-secondary">暂无考试数据</Text>;
-  }, [isLoading]);
-
   const renderListFooterComponent = useMemo(() => {
     if (termData.length > 0) {
       return <LastUpdateTime lastUpdated={lastUpdated} />;
@@ -93,17 +77,38 @@ const TermContent = React.memo<TermContentProps>(({ term }) => {
     return null;
   }, [termData.length, lastUpdated]);
 
+  useEffect(() => {
+    if (isFetching) {
+      setState(STATE.LOADING);
+    } else if (isError) {
+      if (error && error.message) {
+        toast.error(error.message);
+      }
+      setState(STATE.ERROR);
+    } else if (!termData || termData.length === 0) {
+      setState(STATE.EMPTY);
+    } else {
+      setState(STATE.CONTENT);
+    }
+  }, [isFetching, isError, error, termData]);
+
   return (
-    <FlatList
-      data={termData}
-      keyExtractor={keyExtractor}
-      renderItem={renderItem}
-      refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
-      contentContainerStyle={contentContainerStyle}
-      contentContainerClassName="mt-3 mx-4 gap-3"
+    <MultiStateView
+      state={state}
       style={flatListStyle}
-      ListEmptyComponent={renderListEmptyComponent}
-      ListFooterComponent={renderListFooterComponent}
+      content={
+        <FlatList
+          data={termData}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+          contentContainerStyle={contentContainerStyle}
+          contentContainerClassName="mt-3 mx-4 gap-3"
+          style={flatListStyle}
+          ListFooterComponent={renderListFooterComponent}
+        />
+      }
+      refresh={refetch}
     />
   );
 });
@@ -111,25 +116,32 @@ const TermContent = React.memo<TermContentProps>(({ term }) => {
 TermContent.displayName = 'TermContent';
 
 export default function ExamRoomPage() {
+  const [state, setState] = useState(STATE.LOADING);
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
-  const onSuccess = useCallback(
-    (terms: string[]) => {
-      if (!currentTerm && terms.length) {
-        setCurrentTerm(terms[0]);
-      }
-    },
-    [currentTerm],
-  );
+
   // 获取学期列表（当前用户）
-  const { data: termList, isLoading: isLoadingTermList } = useApiRequest(
-    getApiV1JwchTermList,
-    {},
-    {
-      onSuccess,
-      errorHandler,
-    },
-  );
+  const { data: termList, isFetching, isError, error, refetch } = useApiRequest(getApiV1JwchTermList);
+
   const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ
+
+  useEffect(() => {
+    if (isFetching) {
+      setState(STATE.LOADING);
+    } else if (isError) {
+      if (error && error.message) {
+        toast.error(error.message);
+      }
+      setState(STATE.ERROR);
+    } else if (!termList || termList.length === 0) {
+      setState(STATE.EMPTY);
+    } else {
+      // 只在首次加载（termList 存在且 currentTerm 为空）时设置 currentTerm
+      if (!currentTerm) {
+        setCurrentTerm(termList[0]);
+      }
+      setState(STATE.CONTENT);
+    }
+  }, [termList, isFetching, isError, error, currentTerm]);
 
   // 处理 Modal 显示事件
   const handleModalVisible = useCallback(() => {
@@ -155,16 +167,19 @@ export default function ExamRoomPage() {
       />
 
       <PageContainer>
-        {isLoadingTermList ? (
-          <Loading />
-        ) : (
-          <TabFlatList
-            data={termList ?? []}
-            value={currentTerm}
-            onChange={setCurrentTerm}
-            renderContent={renderContent}
-          />
-        )}
+        <MultiStateView
+          state={state}
+          className="flex-1"
+          content={
+            <TabFlatList
+              data={termList ?? []}
+              value={currentTerm}
+              onChange={setCurrentTerm}
+              renderContent={renderContent}
+            />
+          }
+          refresh={refetch}
+        />
       </PageContainer>
 
       {/* FAQ Modal */}
