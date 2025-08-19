@@ -3,15 +3,16 @@ import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persi
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
-export const QueryProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 1000 * 60 * 5, // 5 minutes
-      },
+// 导出 QueryClient 实例供纯逻辑调用使用
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
     },
-  });
+  },
+});
 
+export const QueryProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const asyncStoragePersister = createAsyncStoragePersister({
     storage: AsyncStorage,
   });

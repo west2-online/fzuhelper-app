@@ -33,7 +33,7 @@ export default function HomePage() {
     const termsData = await fetchWithCache(
       [COURSE_TERMS_LIST_KEY],
       () => getApiV1TermsList(),
-      7 * EXPIRE_ONE_DAY, // 缓存 7 天
+      { staleTime: 7 * EXPIRE_ONE_DAY }, // 缓存 7 天
     );
 
     const locateDateRes = await locateDate();

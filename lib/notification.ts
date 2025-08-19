@@ -126,7 +126,7 @@ export class NotificationManager {
     const data = await fetchWithCache(
       [EXAM_ROOM_KEY],
       () => getApiV1JwchClassroomExam({ term: semester }),
-      14 * EXPIRE_ONE_DAY, // 缓存 14 天
+      { staleTime: 14 * EXPIRE_ONE_DAY }, // 缓存 14 天
     );
     // 如果有数据，则提取需要考试的考场信息，聚合成一个数组
     // 对于每个item，聚合 name, teacher, credit 三个字段，然后计算 md5，作为 tag
@@ -146,7 +146,7 @@ export class NotificationManager {
     const data = await fetchWithCache(
       [GRADE_LIST_KEY],
       () => getApiV1JwchAcademicScores(),
-      14 * EXPIRE_ONE_DAY, // 缓存14 天
+      { staleTime: 14 * EXPIRE_ONE_DAY }, // 缓存14 天
     );
 
     // 如果有数据，则提取需要考试的考场信息，聚合成一个数组
