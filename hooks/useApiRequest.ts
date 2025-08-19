@@ -56,7 +56,7 @@ export default function useApiRequest<TParam, TReturn>(
       } catch (err: any) {
         const errorData = handleError(err);
         // 抛出后，isError 变为 true，且本次结果不会被缓存
-        throw errorData;
+        throw { type: err.type, data: errorData };
       }
     },
     meta: {

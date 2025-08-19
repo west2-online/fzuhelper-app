@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,10 +10,10 @@ import { TabFlatList } from '@/components/tab-flatlist';
 import { TermsInfoResponse_Event } from '@/api/backend';
 import { getApiV1JwchTermList, getApiV1TermsInfo } from '@/api/generate';
 import LastUpdateTime from '@/components/last-update-time';
-import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
+import MultiStateView from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
+import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import React from 'react';
-import { toast } from 'sonner-native';
 
 interface CourseContentProps {
   term: string;
@@ -21,10 +21,14 @@ interface CourseContentProps {
 
 // 每个学期的内容
 const AcademicContent = React.memo<CourseContentProps>(({ term }) => {
-  const [state, setState] = useState(STATE.LOADING);
   const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
   // 获取学期数据
-  const { data, dataUpdatedAt, isFetching, isError, error, refetch } = useApiRequest(getApiV1TermsInfo, { term });
+  const apiResult = useApiRequest(getApiV1TermsInfo, { term });
+  const { data, dataUpdatedAt, isFetching, refetch } = apiResult;
+
+  const { state } = useMultiStateRequest(apiResult, {
+    emptyCondition: _data => !_data?.events || _data.events.length === 0,
+  });
 
   const termData = useMemo(() => data?.events || [], [data]);
   const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
@@ -43,21 +47,6 @@ const AcademicContent = React.memo<CourseContentProps>(({ term }) => {
   }, [lastUpdated]);
 
   const flatListStyle = useMemo(() => ({ width: screenWidth }), [screenWidth]);
-
-  useEffect(() => {
-    if (isFetching) {
-      setState(STATE.LOADING);
-    } else if (isError) {
-      if (error && error.message) {
-        toast.error(error.message);
-      }
-      setState(STATE.ERROR);
-    } else if (!termData || termData.length === 0) {
-      setState(STATE.EMPTY);
-    } else {
-      setState(STATE.CONTENT);
-    }
-  }, [isFetching, isError, error, termData]);
 
   return (
     <MultiStateView
@@ -83,30 +72,21 @@ const AcademicContent = React.memo<CourseContentProps>(({ term }) => {
 AcademicContent.displayName = 'AcademicContent';
 
 export default function AcademicCalendarPage() {
-  const [state, setState] = useState(STATE.LOADING);
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
 
   // 获取学期列表（当前用户）
-  const { data: termList, isFetching, isError, error, refetch } = useApiRequest(getApiV1JwchTermList);
+  const apiResult = useApiRequest(getApiV1JwchTermList);
+  const { data: termList, refetch } = apiResult;
 
-  useEffect(() => {
-    if (isFetching) {
-      setState(STATE.LOADING);
-    } else if (isError) {
-      if (error && error.message) {
-        toast.error(error.message);
-      }
-      setState(STATE.ERROR);
-    } else if (!termList || termList.length === 0) {
-      setState(STATE.EMPTY);
-    } else {
-      // 只在首次加载（terms 存在且 currentTerm 为空）时设置 currentTerm
+  const { state } = useMultiStateRequest(apiResult, {
+    emptyCondition: data => !data || data.length === 0,
+    onContent: data => {
+      // 只在首次加载（termList 存在且 currentTerm 为空）时设置 currentTerm
       if (!currentTerm) {
-        setCurrentTerm(termList[0]);
+        setCurrentTerm(data[0]);
       }
-      setState(STATE.CONTENT);
-    }
-  }, [termList, isFetching, isError, error, currentTerm]);
+    },
+  });
 
   return (
     <>
