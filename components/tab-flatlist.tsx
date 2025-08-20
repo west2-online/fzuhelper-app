@@ -42,24 +42,42 @@ export function TabFlatList({
   const tabsScrollViewRef = externalTabsScrollViewRef || internalTabsScrollViewRef;
   const flatListRef = useRef<FlatList<any>>(null);
   const scrollX = useRef(0);
+  const isScrollingRef = useRef(false);
+  const isFirstRenderRef = useRef(true);
 
-  // 处理 flatList 滚动
+  // 处理 tab 点击切换
   const handleTabChange = (newValue: string) => {
+    if (newValue === value) return;
+
     onChange?.(newValue);
     const index = data.findIndex(item => item === newValue);
     if (flatListRef.current && index > -1) {
+      isScrollingRef.current = true;
       flatListRef.current.scrollToIndex({ index, animated: true });
     }
   };
 
-  // 当value改变时，更新Tabs的ScrollView滚动位置
+  // 当 value 改变时，同步更新 FlatList 位置和 Tabs ScrollView 位置
   useEffect(() => {
     const index = data.findIndex(item => item === value);
-    if (tabsScrollViewRef.current && index > -1) {
-      const scrollTo = index * tabWidth - (internalScreenWidth / 2 - tabWidth / 2);
-      tabsScrollViewRef.current.scrollTo({ x: scrollTo, animated: true });
+    if (index === -1) return;
+
+    // 首次渲染不使用动画
+    const useAnimation = !isFirstRenderRef.current;
+
+    if (flatListRef.current && !isScrollingRef.current) {
+      flatListRef.current.scrollToIndex({ index, animated: useAnimation });
     }
-  }, [value, screenWidth, data, tabWidth, tabsScrollViewRef, internalScreenWidth]);
+
+    if (tabsScrollViewRef.current) {
+      const scrollTo = index * tabWidth - (internalScreenWidth / 2 - tabWidth / 2);
+      tabsScrollViewRef.current.scrollTo({ x: scrollTo, animated: useAnimation });
+    }
+
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+    }
+  }, [value, data, tabWidth, tabsScrollViewRef, internalScreenWidth]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
@@ -69,10 +87,17 @@ export function TabFlatList({
   const handleScrollEnd = useCallback(() => {
     const index = Math.round(scrollX.current / internalScreenWidth);
     const newValue = data[Math.min(Math.max(index, 0), data.length - 1)];
+
+    isScrollingRef.current = false;
+
     if (newValue && newValue !== value) {
       onChange?.(newValue);
     }
   }, [value, data, onChange, internalScreenWidth]);
+
+  const handleScrollBeginDrag = useCallback(() => {
+    isScrollingRef.current = true;
+  }, []);
 
   const getItemLayout = useCallback(
     (_: any, index: number) => ({
@@ -113,10 +138,12 @@ export function TabFlatList({
         getItemLayout={getItemLayout}
         windowSize={3}
         ref={flatListRef}
+        initialScrollIndex={data.findIndex(item => item === value)}
         keyExtractor={(_, index) => index.toString()}
         showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => renderContent(item)}
         onScroll={handleScroll}
+        onScrollBeginDrag={handleScrollBeginDrag}
         onMomentumScrollEnd={handleScrollEnd}
         scrollEventThrottle={16}
         {...flatListOptions}
