@@ -17,6 +17,7 @@ import EmptyView from '@/components/multistateview/empty-view';
 import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
+import { GRADE_CACHE_KEY, JWCH_TERM_LIST_KEY } from '@/lib/constants';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
 
 interface TermContentProps {
@@ -94,7 +95,7 @@ export default function GradesPage() {
     isFetching: isFetchingTermList,
     isError: isErrorTermList,
     refetch: refetchTermList,
-  } = useApiRequest(getApiV1JwchTermList);
+  } = useApiRequest(getApiV1JwchTermList, {}, { persist: true, queryKey: [JWCH_TERM_LIST_KEY] });
 
   // 访问 west2-online 服务器获取成绩数据（由于教务处限制，只能获取全部数据）
   // 由于教务处限制，成绩数据会直接返回所有课程的成绩，我们需要在本地进行区分，因此引入了下一个获取学期列表的函数
@@ -104,7 +105,7 @@ export default function GradesPage() {
     isFetching: isFetchingAcademicData,
     isError: isErrorAcademicData,
     refetch: refetchAcademicData,
-  } = useApiRequest(getApiV1JwchAcademicScores);
+  } = useApiRequest(getApiV1JwchAcademicScores, {}, { persist: true, queryKey: [GRADE_CACHE_KEY] });
 
   // MultiStateView 状态管理
   useEffect(() => {

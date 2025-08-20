@@ -29,6 +29,7 @@ export const JWCH_COOKIES_DOMAIN = 'https://jwcjwxt2.fzu.edu.cn:81'; // JWCH Coo
 export const JWCH_LOCATE_DATE_URL = 'https://jwcjwxt2.fzu.edu.cn:82/week.asp'; // JWCH 定位日期 URL
 export const JWCH_LOCATE_DATE_CACHE_KEY = 'jwch_locate_date'; // JWCH 定位日期缓存 Key
 export const JWCH_CURRENT_SEMESTER_KEY = 'jwch_current_semester'; // 当前学期信息
+export const JWCH_TERM_LIST_KEY = 'jwch_term_list';
 
 // 研究生教务系统
 // 以 YJSY_ 开头
@@ -100,6 +101,7 @@ export const EXAM_ROOM_KEY = 'exam_room';
 
 // 成绩
 export const GRADE_LIST_KEY = 'grade_list';
+export const GRADE_CACHE_KEY = 'grade_cache';
 
 // 历年卷
 export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';
