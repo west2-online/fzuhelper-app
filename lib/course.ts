@@ -15,6 +15,7 @@ import { setWidgetData } from '@/modules/native-widget';
 import { MergedExamData } from '@/types/academic';
 import type { PartiallyOptional } from '@/types/utils';
 import { randomUUID } from '@/utils/crypto';
+import { fetchWithCache } from '@/utils/fetch-with-cache';
 import { allocateColorForCourse, clearColorMapping, courseColors, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -815,12 +816,11 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
   }
 
   // 课程信息
-  const data = await getApiV1JwchCourseList({ term: queryTerm, is_refresh: true });
-  const cacheToStore = {
-    data: data,
-    timestamp: Date.now(),
-  };
-  await AsyncStorage.setItem([COURSE_DATA_KEY, queryTerm].join('__'), JSON.stringify(cacheToStore));
+  const data = await fetchWithCache(
+    [COURSE_DATA_KEY, queryTerm],
+    () => getApiV1JwchCourseList({ term: queryTerm, is_refresh: true }),
+    { staleTime: 0 }, // 强制刷新
+  );
 
   // locate-date
   await locateDate(true); // 强制更新缓存

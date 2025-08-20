@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
-import { ACCESS_TOKEN_KEY, JWCH_USER_INFO_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
 import { get } from '@/modules/native-request';
 import { Buffer } from 'buffer';
 import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
@@ -74,7 +74,6 @@ export class LocalUser {
       LOCAL_USER_CREDENTIAL_KEY,
       ACCESS_TOKEN_KEY,
       REFRESH_TOKEN_KEY,
-      JWCH_USER_INFO_KEY,
     ]);
   }
 

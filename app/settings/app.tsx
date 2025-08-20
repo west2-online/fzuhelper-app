@@ -13,7 +13,7 @@ import { Text } from '@/components/ui/text';
 
 import LabelSwitch from '@/components/label-switch';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import { COURSE_SETTINGS_KEY, RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { CourseCache } from '@/lib/course';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
@@ -62,8 +62,8 @@ export default function AcademicPage() {
           try {
             await CourseCache.clear();
             await LocalUser.clear();
-            await AsyncStorage.clear(); // 清空 AsyncStorage
-            queryClient.clear(); // 清除所有缓存
+            queryClient.clear(); // 清除网络缓存
+            await AsyncStorage.removeItem(COURSE_SETTINGS_KEY); // 避免账号切换残留学期、订阅链接等数据
             redirect('/(guest)');
           } catch (error) {
             console.error('Error clearing storage:', error);
