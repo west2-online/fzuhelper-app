@@ -112,6 +112,11 @@ export default function HomePage() {
                 <Text>AsyncStorage Manager</Text>
               </Button>
             </Link>
+            <Link href="/devtools/react-query-storage-list" asChild>
+              <Button>
+                <Text>React Query Storage</Text>
+              </Button>
+            </Link>
             <Link href="/devtools/push-tools" asChild>
               <Button>
                 <Text>Push Tools</Text>
