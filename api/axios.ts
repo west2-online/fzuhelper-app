@@ -100,6 +100,7 @@ request.interceptors.response.use(
           queue.forEach(({ reject }) => reject(error));
           refreshing = false;
           queue = [];
+          return rejectWith({ type: RejectEnum.AuthFailed });
         }
       }
       // 处理 jwch cookie异常
