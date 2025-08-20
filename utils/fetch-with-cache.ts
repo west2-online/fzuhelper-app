@@ -7,18 +7,21 @@ import { toast } from 'sonner-native';
  * 此函数可以在纯逻辑中调用，参数意义与useApiRequest相同
  * @param queryKey - 查询键
  * @param queryFn - 查询函数
- * @param options - 选项
+ * @param option - 选项
+ *   - staleTime - 缓存过期时间（毫秒），默认设置为 0 表示不缓存，如有则优先使用缓存
+ *   - retry - 自动重试次数，默认不重试
+ *   - persist - 是否存入 AsyncStorage 持久化，由于历史原因，默认为 true
  */
 export async function fetchWithCache<TQueryFnData>(
   queryKey: QueryKey,
   queryFn: (...args: any[]) => Promise<TQueryFnData>,
-  options: {
+  option: {
     persist?: boolean;
     staleTime?: number;
     retry?: boolean | number;
   } = {},
 ): Promise<TQueryFnData> {
-  const { persist = true, staleTime = 0, retry = false } = options;
+  const { persist = true, staleTime = 0, retry = false } = option;
 
   try {
     return await queryClient.fetchQuery({
