@@ -81,10 +81,6 @@ export default function OfficeNoticePage() {
     }
   }, [error, isError, isFetching, isLoadingMore, noticeList.length, pageNum]);
 
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
-
   const handleNoticePress = useCallback(async (url: string) => {
     // 不使用 webview 是因为教务通知中往往会下载文件，webview 不太好保存什么的
     await Linking.openURL(url);
