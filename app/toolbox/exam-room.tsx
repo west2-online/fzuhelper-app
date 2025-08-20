@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,24 +11,27 @@ import { TabFlatList } from '@/components/tab-flatlist';
 
 import { getApiV1JwchClassroomExam, getApiV1JwchTermList } from '@/api/generate';
 import LastUpdateTime from '@/components/last-update-time';
-import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
+import MultiStateView from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
+import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { FAQ_EXAM_ROOM } from '@/lib/FAQ';
 import { formatExamData } from '@/lib/exam-room';
 import { MergedExamData } from '@/types/academic';
 import React from 'react';
-import { toast } from 'sonner-native';
 
 interface TermContentProps {
   term: string;
 }
 
 const TermContent = React.memo<TermContentProps>(({ term }) => {
-  const [state, setState] = useState(STATE.LOADING);
   const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
-  const { data, dataUpdatedAt, isFetching, isError, error, refetch } = useApiRequest(getApiV1JwchClassroomExam, {
-    term,
+  const apiResult = useApiRequest(getApiV1JwchClassroomExam, { term });
+  const { data, dataUpdatedAt, isFetching, refetch } = apiResult;
+
+  const { state } = useMultiStateRequest(apiResult, {
+    emptyCondition: responseData => !responseData || responseData.length === 0,
   });
+
   const termData = useMemo(
     () =>
       formatExamData(data || []).sort((a, b) => {
@@ -77,21 +80,6 @@ const TermContent = React.memo<TermContentProps>(({ term }) => {
     return null;
   }, [termData.length, lastUpdated]);
 
-  useEffect(() => {
-    if (isFetching) {
-      setState(STATE.LOADING);
-    } else if (isError) {
-      if (error && error.message) {
-        toast.error(error.message);
-      }
-      setState(STATE.ERROR);
-    } else if (!termData || termData.length === 0) {
-      setState(STATE.EMPTY);
-    } else {
-      setState(STATE.CONTENT);
-    }
-  }, [isFetching, isError, error, termData]);
-
   return (
     <MultiStateView
       state={state}
@@ -116,32 +104,23 @@ const TermContent = React.memo<TermContentProps>(({ term }) => {
 TermContent.displayName = 'TermContent';
 
 export default function ExamRoomPage() {
-  const [state, setState] = useState(STATE.LOADING);
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
 
   // 获取学期列表（当前用户）
-  const { data: termList, isFetching, isError, error, refetch } = useApiRequest(getApiV1JwchTermList);
+  const apiResult = useApiRequest(getApiV1JwchTermList);
+  const { data: termList, refetch } = apiResult;
 
-  const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ
-
-  useEffect(() => {
-    if (isFetching) {
-      setState(STATE.LOADING);
-    } else if (isError) {
-      if (error && error.message) {
-        toast.error(error.message);
-      }
-      setState(STATE.ERROR);
-    } else if (!termList || termList.length === 0) {
-      setState(STATE.EMPTY);
-    } else {
+  const { state } = useMultiStateRequest(apiResult, {
+    emptyCondition: data => !data || data.length === 0,
+    onContent: data => {
       // 只在首次加载（termList 存在且 currentTerm 为空）时设置 currentTerm
       if (!currentTerm) {
-        setCurrentTerm(termList[0]);
+        setCurrentTerm(data[0]);
       }
-      setState(STATE.CONTENT);
-    }
-  }, [termList, isFetching, isError, error, currentTerm]);
+    },
+  });
+
+  const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ
 
   // 处理 Modal 显示事件
   const handleModalVisible = useCallback(() => {

@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,36 +9,18 @@ import PageContainer from '@/components/page-container';
 
 import { getApiV1JwchAcademicCredit } from '@/api/generate';
 import LastUpdateTime from '@/components/last-update-time';
-import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
+import MultiStateView from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
-import { toast } from 'sonner-native';
+import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 
 export default function CreditsPage() {
-  const [state, setState] = useState(STATE.LOADING);
-  const {
-    data: creditData,
-    dataUpdatedAt,
-    isFetching,
-    isError,
-    error,
-    refetch,
-  } = useApiRequest(getApiV1JwchAcademicCredit);
+  const apiResult = useApiRequest(getApiV1JwchAcademicCredit);
+  const { data: creditData, dataUpdatedAt, isFetching, refetch } = apiResult;
   const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]); // 数据最后更新时间
 
-  useEffect(() => {
-    if (isFetching) {
-      setState(STATE.LOADING);
-    } else if (isError) {
-      if (error && error.message) {
-        toast.error(error.message);
-      }
-      setState(STATE.ERROR);
-    } else if (!creditData || creditData.length === 0) {
-      setState(STATE.EMPTY);
-    } else {
-      setState(STATE.CONTENT);
-    }
-  }, [isFetching, isError, error, creditData]);
+  const { state } = useMultiStateRequest(apiResult, {
+    emptyCondition: data => !data || data.length === 0,
+  });
 
   return (
     <>

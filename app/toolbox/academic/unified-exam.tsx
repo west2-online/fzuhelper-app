@@ -1,44 +1,25 @@
 import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
 
 import { UnifiedExamCard } from '@/components/academic/UnifiedExamCard';
 import PageContainer from '@/components/page-container';
 
 import { getApiV1JwchAcademicUnifiedExam } from '@/api/generate';
 import LastUpdateTime from '@/components/last-update-time';
-import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
+import MultiStateView from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
+import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 
 export default function UnifiedExamScorePage() {
-  const [state, setState] = useState(STATE.LOADING);
   // 获取统考成绩数据
-  const {
-    data: unifiedExamData,
-    dataUpdatedAt,
-    isFetching,
-    isError,
-    error,
-    refetch,
-  } = useApiRequest(getApiV1JwchAcademicUnifiedExam);
+  const apiResult = useApiRequest(getApiV1JwchAcademicUnifiedExam);
+  const { data: unifiedExamData, dataUpdatedAt, isFetching, refetch } = apiResult;
   const lastUpdated = new Date(dataUpdatedAt);
 
-  useEffect(() => {
-    if (isFetching) {
-      setState(STATE.LOADING);
-    } else if (isError) {
-      if (error && error.message) {
-        toast.error(error.message);
-      }
-      setState(STATE.ERROR);
-    } else if (!unifiedExamData || unifiedExamData.length === 0) {
-      setState(STATE.EMPTY);
-    } else {
-      setState(STATE.CONTENT);
-    }
-  }, [isFetching, isError, error, unifiedExamData]);
+  const { state } = useMultiStateRequest(apiResult, {
+    emptyCondition: data => !data || data.length === 0,
+  });
 
   return (
     <>

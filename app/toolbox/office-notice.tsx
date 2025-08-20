@@ -62,6 +62,7 @@ export default function OfficeNoticePage() {
     setPageNum(nextPage);
   }, [isLoadingMore, isEnd, isFetching, pageNum]);
 
+  // 这里的状态管理涉及到分页，较为复杂，暂不使用 useMultiStateRequest
   useEffect(() => {
     if (isFetching && !isLoadingMore && pageNum === 1) {
       setState(STATE.LOADING);

@@ -1,35 +1,23 @@
 import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
 
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import { getApiV1JwchAcademicGpa } from '@/api/generate';
 import LastUpdateTime from '@/components/last-update-time';
-import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
+import MultiStateView from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
+import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 
 export default function GPAPage() {
-  const [state, setState] = useState(STATE.LOADING);
-  const { data: academicData, isFetching, isError, error, refetch } = useApiRequest(getApiV1JwchAcademicGpa);
+  const apiResult = useApiRequest(getApiV1JwchAcademicGpa);
+  const { data: academicData, isFetching, refetch } = apiResult;
 
-  useEffect(() => {
-    if (isFetching) {
-      setState(STATE.LOADING);
-    } else if (isError) {
-      if (error && error.message) {
-        toast.error(error.message);
-      }
-      setState(STATE.ERROR);
-    } else if (!academicData || !academicData.data || academicData.data.length === 0) {
-      setState(STATE.EMPTY);
-    } else {
-      setState(STATE.CONTENT);
-    }
-  }, [isFetching, isError, error, academicData]);
+  const { state } = useMultiStateRequest(apiResult, {
+    emptyCondition: data => !data || !data.data || data.data.length === 0,
+  });
 
   return (
     <>
