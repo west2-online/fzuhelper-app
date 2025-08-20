@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -14,9 +14,8 @@ import { JwchAcademicScoresResponse_AcademicScoresDataItem } from '@/api/backend
 import { getApiV1JwchAcademicScores, getApiV1JwchTermList } from '@/api/generate';
 import LastUpdateTime from '@/components/last-update-time';
 import EmptyView from '@/components/multistateview/empty-view';
-import MultiStateView from '@/components/multistateview/multi-state-view';
+import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
-import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { GRADE_CACHE_KEY, JWCH_TERM_LIST_KEY } from '@/lib/constants';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
@@ -86,32 +85,44 @@ const TermContent = React.memo<TermContentProps>(({ termData, dataUpdatedAt, onR
 TermContent.displayName = 'TermContent';
 
 export default function GradesPage() {
+  const [state, setState] = useState(STATE.LOADING);
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
 
   // 获取学期列表（当前用户），此处不使用 usePersistedQuery
   // 这和课表的 getApiV1TermsList 不一致，前者（即 getApiV1JwchTermList）只返回用户就读的学期列表
-  const termListApiResult = useApiRequest(getApiV1JwchTermList, {}, { persist: true, queryKey: [JWCH_TERM_LIST_KEY] });
-  const { data: termList, refetch: refetchTermList } = termListApiResult;
+  const {
+    data: termList,
+    isFetching: isFetchingTermList,
+    isError: isErrorTermList,
+    refetch: refetchTermList,
+  } = useApiRequest(getApiV1JwchTermList, {}, { persist: true, queryKey: [JWCH_TERM_LIST_KEY] });
 
   // 访问 west2-online 服务器获取成绩数据（由于教务处限制，只能获取全部数据）
   // 由于教务处限制，成绩数据会直接返回所有课程的成绩，我们需要在本地进行区分，因此引入了下一个获取学期列表的函数
-  const academicApiResult = useApiRequest(
-    getApiV1JwchAcademicScores,
-    {},
-    { persist: true, queryKey: [GRADE_CACHE_KEY] },
-  );
-  const { data: academicData, dataUpdatedAt: academicDataUpdatedAt, refetch: refetchAcademicData } = academicApiResult;
+  const {
+    data: academicData,
+    dataUpdatedAt: academicDataUpdatedAt,
+    isFetching: isFetchingAcademicData,
+    isError: isErrorAcademicData,
+    refetch: refetchAcademicData,
+  } = useApiRequest(getApiV1JwchAcademicScores, {}, { persist: true, queryKey: [GRADE_CACHE_KEY] });
 
-  // 使用 useMultiStateRequest 进行状态管理
-  const { state } = useMultiStateRequest(termListApiResult, {
-    emptyCondition: data => !data || data.length === 0,
-    onContent: data => {
+  // MultiStateView 状态管理，这里涉及到两个请求同时完成才算完成，所以不使用 useMultiStateRequest
+  useEffect(() => {
+    if (isFetchingTermList || isFetchingAcademicData) {
+      setState(STATE.LOADING);
+    } else if (isErrorTermList || isErrorAcademicData) {
+      setState(STATE.ERROR);
+    } else if (!termList || termList.length === 0) {
+      setState(STATE.EMPTY);
+    } else {
       // 只在首次加载（terms 存在且 currentTerm 为空）时设置 currentTerm
       if (!currentTerm) {
-        setCurrentTerm(data[0]);
+        setCurrentTerm(termList[0]);
       }
-    },
-  });
+      setState(STATE.CONTENT);
+    }
+  }, [isFetchingTermList, isFetchingAcademicData, isErrorTermList, isErrorAcademicData, termList, currentTerm]);
 
   const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
 
