@@ -18,6 +18,7 @@ import MultiStateView, { STATE } from '@/components/multistateview/multi-state-v
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { GRADE_CACHE_KEY, JWCH_TERM_LIST_KEY } from '@/lib/constants';
+import { getCourseSetting } from '@/lib/course';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
 
 interface TermContentProps {
@@ -88,6 +89,12 @@ export default function GradesPage() {
   const [state, setState] = useState(STATE.LOADING);
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
 
+  useEffect(() => {
+    getCourseSetting().then(setting => {
+      setCurrentTerm(setting.selectedSemester);
+    });
+  }, []);
+
   // 获取学期列表（当前用户），此处不使用 usePersistedQuery
   // 这和课表的 getApiV1TermsList 不一致，前者（即 getApiV1JwchTermList）只返回用户就读的学期列表
   const {
@@ -116,10 +123,6 @@ export default function GradesPage() {
     } else if (!termList || termList.length === 0) {
       setState(STATE.EMPTY);
     } else {
-      // 只在首次加载（terms 存在且 currentTerm 为空）时设置 currentTerm
-      if (!currentTerm) {
-        setCurrentTerm(termList[0]);
-      }
       setState(STATE.CONTENT);
     }
   }, [isFetchingTermList, isFetchingAcademicData, isErrorTermList, isErrorAcademicData, termList, currentTerm]);

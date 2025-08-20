@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -15,6 +15,8 @@ import MultiStateView from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
 import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { FAQ_EXAM_ROOM } from '@/lib/FAQ';
+import { JWCH_TERM_LIST_KEY } from '@/lib/constants';
+import { getCourseSetting } from '@/lib/course';
 import { formatExamData } from '@/lib/exam-room';
 import { MergedExamData } from '@/types/academic';
 import React from 'react';
@@ -106,18 +108,18 @@ TermContent.displayName = 'TermContent';
 export default function ExamRoomPage() {
   const [currentTerm, setCurrentTerm] = useState<string>(''); // 当前学期
 
+  useEffect(() => {
+    getCourseSetting().then(setting => {
+      setCurrentTerm(setting.selectedSemester);
+    });
+  }, []);
+
   // 获取学期列表（当前用户）
-  const apiResult = useApiRequest(getApiV1JwchTermList);
+  const apiResult = useApiRequest(getApiV1JwchTermList, {}, { persist: true, queryKey: [JWCH_TERM_LIST_KEY] });
   const { data: termList, refetch } = apiResult;
 
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,
-    onContent: data => {
-      // 只在首次加载（termList 存在且 currentTerm 为空）时设置 currentTerm
-      if (!currentTerm) {
-        setCurrentTerm(data[0]);
-      }
-    },
   });
 
   const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ
