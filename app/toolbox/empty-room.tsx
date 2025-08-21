@@ -2,12 +2,13 @@ import { getApiV1CommonClassroomEmpty } from '@/api/generate';
 import { Icon } from '@/components/Icon';
 import ClassroomList from '@/components/classroom-list';
 import FAQModal from '@/components/faq-modal';
-import Loading from '@/components/loading';
+import MultiStateView from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 import useApiRequest from '@/hooks/useApiRequest';
+import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { FAQ_EMPTY_ROOM } from '@/lib/FAQ';
 import { type IntRange } from '@/types/int-range';
 import dayjs from 'dayjs';
@@ -78,11 +79,16 @@ export default function EmptyRoomPage() {
   const [isCampusPickerVisible, setCampusPickerVisible] = useState(false);
   const campusData = CAMPUS_LIST.map(campus => ({ value: campus, label: campus }));
 
-  const { data: roomData, status: loadingState } = useApiRequest(getApiV1CommonClassroomEmpty, {
+  const apiResult = useApiRequest(getApiV1CommonClassroomEmpty, {
     date: selectedDate.format(DATE_FMT),
     campus: selectedCampus,
     startTime: selectedRange.start.toString(),
     endTime: selectedRange.end.toString(),
+  });
+  const { data: roomData, refetch } = apiResult;
+
+  const { state } = useMultiStateRequest(apiResult, {
+    emptyCondition: data => !data || data.length === 0,
   });
 
   // 处理 Modal 显示事件
@@ -137,13 +143,13 @@ export default function EmptyRoomPage() {
           </TouchableOpacity>
           <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />
         </View>
-        {loadingState === 'success' ? (
-          <ClassroomList data={roomData} />
-        ) : loadingState === 'pending' ? (
-          <Loading className="flex-1" />
-        ) : (
-          <Text>获取空教室数据失败</Text> // FIXME: 替换为加载失败图片
-        )}
+
+        <MultiStateView
+          state={state}
+          className="flex-1"
+          content={<ClassroomList data={roomData || []} />}
+          refresh={refetch}
+        />
         {/* 日期选择器 */}
         <FloatModal
           visible={isDateTimePickerVisible}

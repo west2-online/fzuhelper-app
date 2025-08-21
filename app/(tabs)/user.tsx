@@ -1,5 +1,5 @@
 import { Href, router, Tabs } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
@@ -7,37 +7,35 @@ import LabelIconEntry from '@/components/label-icon-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
-import { getApiV1JwchUserInfo } from '@/api/generate';
-import usePersistedQuery from '@/hooks/usePersistedQuery';
+import { getApiV1CourseDate, getApiV1JwchUserInfo } from '@/api/generate';
 import { EXPIRE_ONE_DAY, JWCH_CURRENT_SEMESTER_KEY, JWCH_USER_INFO_KEY } from '@/lib/constants';
-import { fetchJwchLocateDate } from '@/lib/locate-date';
-import { JWCHLocateDateResult } from '@/types/data';
 import { UserInfo } from '@/types/user';
 
 import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
 import EcardIcon from '@/assets/images/my/ic_ecard.png';
 import HelpIcon from '@/assets/images/my/ic_help.png';
+import useApiRequest from '@/hooks/useApiRequest';
 
 const defaultUserInfo: UserInfo = {
-  stu_id: '未知',
-  name: '未知',
-  birthday: '未知',
-  sex: '未知',
-  college: '未知',
-  grade: '未知',
-  major: '未知',
+  stu_id: '',
+  name: '',
+  birthday: '',
+  sex: '',
+  college: '',
+  grade: '',
+  major: '',
 };
 
-const defaultTermInfo: JWCHLocateDateResult = {
-  week: -1,
-  year: -1,
-  term: -1,
+const defaultTermInfo = {
+  week: '',
+  year: '',
+  term: '',
 };
 
-export default function HomePage() {
+export default function UserPage() {
   const [userInfo, setUserInfo] = useState<UserInfo>(defaultUserInfo);
-  const [termInfo, setTermInfo] = useState<JWCHLocateDateResult>(defaultTermInfo);
+  const [termInfo, setTermInfo] = useState(defaultTermInfo);
 
   interface MenuItem {
     icon: ImageSourcePropType;
@@ -66,23 +64,31 @@ export default function HomePage() {
   ];
 
   // 获取用户信息
-  const { data: userData } = usePersistedQuery({
-    queryKey: [JWCH_USER_INFO_KEY],
-    queryFn: () => getApiV1JwchUserInfo(),
-    cacheTime: 1 * EXPIRE_ONE_DAY, // 缓存 1 天
-  });
+  const { data: userData } = useApiRequest(
+    getApiV1JwchUserInfo,
+    {},
+    {
+      staleTime: EXPIRE_ONE_DAY,
+      persist: true,
+      queryKey: [JWCH_USER_INFO_KEY],
+    },
+  );
 
   // 获取当前学期信息
-  const { data: termData } = usePersistedQuery({
-    queryKey: [JWCH_CURRENT_SEMESTER_KEY],
-    queryFn: () => fetchJwchLocateDate(),
-    cacheTime: EXPIRE_ONE_DAY, // 缓存 1 天
-  });
+  const { data: termData } = useApiRequest(
+    getApiV1CourseDate,
+    {},
+    {
+      staleTime: EXPIRE_ONE_DAY,
+      persist: true,
+      queryKey: [JWCH_CURRENT_SEMESTER_KEY],
+    },
+  );
 
   // 在组件加载时初始化数据
   useEffect(() => {
     if (userData) {
-      setUserInfo(userData.data.data);
+      setUserInfo(userData);
     } else {
       setUserInfo(defaultUserInfo); // 清空学期信息
     }
@@ -96,15 +102,18 @@ export default function HomePage() {
     }
   }, [termData]);
 
+  const headerRight = useCallback(() => {
+    return <Icon href="/settings/app" name="settings-outline" size={24} className="mr-4" />;
+  }, []);
+
   return (
     <>
+      <Tabs.Screen
+        options={{
+          headerRight: headerRight,
+        }}
+      />
       <PageContainer>
-        <Tabs.Screen
-          options={{
-            // eslint-disable-next-line react/no-unstable-nested-components
-            headerRight: () => <Icon href="/settings/app" name="settings-outline" size={24} className="mr-4" />,
-          }}
-        />
         {/* 用户信息 */}
         <View>
           <View className="flex flex-row items-center p-8">
@@ -137,7 +146,7 @@ export default function HomePage() {
                     if (item.link) {
                       router.push(item.link);
                     } else {
-                      item.operation && item.operation();
+                      item.operation?.();
                     }
                   }}
                 />

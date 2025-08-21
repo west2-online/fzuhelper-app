@@ -1,5 +1,6 @@
 import FAQContent, { FAQItem } from '@/components/faq-content';
-import React, { memo } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { memo, useCallback, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 interface FAQModalProps {
@@ -9,11 +10,23 @@ interface FAQModalProps {
 }
 
 const FAQModal: React.FC<FAQModalProps> = ({ visible, onClose, data }) => {
+  const [pageVisible, setPageVisible] = useState(true);
+
+  // 当所在页面可见时才显示
+  useFocusEffect(
+    useCallback(() => {
+      setPageVisible(true);
+      return () => {
+        setPageVisible(false);
+      };
+    }, []),
+  );
+
   return (
     <Modal
       animationType="fade"
       transparent={true}
-      visible={visible}
+      visible={visible && pageVisible}
       onRequestClose={onClose}
       statusBarTranslucent
       navigationBarTranslucent

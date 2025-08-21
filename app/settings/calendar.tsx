@@ -39,7 +39,7 @@ export default function PersonalInfoListPage() {
         const resultData = await fetchWithCache(
           [CALENDAR_SUBSCRIPTION_TOKEN_KEY],
           () => getApiV1JwchCourseCalendarToken(),
-          30 * EXPIRE_ONE_DAY,
+          { staleTime: 30 * EXPIRE_ONE_DAY },
         );
 
         console.log('获取到的订阅地址', resultData.data.data);

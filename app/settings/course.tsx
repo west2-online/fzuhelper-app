@@ -15,7 +15,9 @@ import { getApiV1JwchTermList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import LastUpdateTime from '@/components/last-update-time';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
+import useApiRequest from '@/hooks/useApiRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { JWCH_TERM_LIST_KEY } from '@/lib/constants';
 import {
   CourseCache,
   defaultCourseSetting,
@@ -31,7 +33,6 @@ export default function CourseSettingPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
-  const [semesters, setSemesters] = useState<string[]>([]);
   const { handleError } = useSafeResponseSolve();
   const [isLoadingSemester, setLoadingSemester] = useState(false);
 
@@ -51,26 +52,28 @@ export default function CourseSettingPage() {
     CourseCache.save();
   }, [settings]);
 
-  // 获取用户就读学期数据
-  const getTermsData = useCallback(async () => {
-    try {
-      const result = await getApiV1JwchTermList(); // 数据格式样例： ['202401', '202402']
-      setSemesters(result.data.data); // 更新学期数据源
-    } catch (error: any) {
-      const data = handleError(error) as { code: string; message: string };
-      if (data) {
-        toast.error(data?.message || '未知错误');
-      }
-    }
-  }, [handleError]);
+  // 获取学期列表（当前用户），进入页面时进行预加载
+  const {
+    data: termList,
+    isError,
+    refetch,
+  } = useApiRequest(getApiV1JwchTermList, {}, { persist: true, queryKey: [JWCH_TERM_LIST_KEY] });
 
-  // 选择学期开关
+  // 选择学期开关，如果前面的加载失败会再次尝试加载
   const handleOpenTermSelectPicker = useCallback(async () => {
-    setLoadingSemester(true);
-    await getTermsData();
-    setPickerVisible(true);
-    setLoadingSemester(false);
-  }, [getTermsData]);
+    if (isError) {
+      setLoadingSemester(true);
+      const result = await refetch();
+      setLoadingSemester(false);
+      if (!result.isError) {
+        setPickerVisible(true);
+      } else if (result.error?.message) {
+        toast.error(result.error.message);
+      }
+    } else {
+      setPickerVisible(true);
+    }
+  }, [isError, refetch]);
 
   // 确认选择学期
   const handleConfirmTermSelectPicker = useCallback((selectedValue: string) => {
@@ -224,7 +227,7 @@ export default function CourseSettingPage() {
             <PickerModal
               visible={isPickerVisible}
               title="选择学期"
-              data={semesters.map(s => ({
+              data={(termList ?? []).map(s => ({
                 value: s,
                 label: s,
               }))}

@@ -1,10 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
-import { ACCESS_TOKEN_KEY, JWCH_USER_INFO_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
+import { queryClient } from '@/components/query-provider';
+import { ACCESS_TOKEN_KEY, COURSE_SETTINGS_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
 import { get } from '@/modules/native-request';
 import { Buffer } from 'buffer';
 import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
+import { CourseCache } from './course';
 import UserLogin from './user-login';
 
 // 本地用户信息
@@ -74,7 +76,6 @@ export class LocalUser {
       LOCAL_USER_CREDENTIAL_KEY,
       ACCESS_TOKEN_KEY,
       REFRESH_TOKEN_KEY,
-      JWCH_USER_INFO_KEY,
     ]);
   }
 
@@ -274,4 +275,11 @@ export async function checkCookieSSO(credentials: SSOCredentials) {
   }
 
   return true;
+}
+
+export async function logoutUser() {
+  await CourseCache.clear(); // 清除课程缓存
+  await LocalUser.clear(); // 清除本地用户
+  queryClient.clear(); // 清除网络缓存
+  await AsyncStorage.removeItem(COURSE_SETTINGS_KEY); // 避免账号切换残留学期、订阅链接等数据
 }

@@ -75,7 +75,7 @@ const CoursePage: React.FC = () => {
         const fetchedData = await fetchWithCache(
           [COURSE_DATA_KEY, queryTerm],
           () => getApiV1JwchCourseList({ term: queryTerm, is_refresh: false }),
-          EXPIRE_ONE_DAY, // 缓存一天
+          { staleTime: EXPIRE_ONE_DAY }, // 缓存一天
         );
 
         // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
@@ -89,7 +89,7 @@ const CoursePage: React.FC = () => {
           const examData = await fetchWithCache(
             [EXAM_ROOM_KEY, queryTerm],
             () => getApiV1JwchClassroomExam({ term: queryTerm }),
-            EXPIRE_ONE_DAY,
+            { staleTime: EXPIRE_ONE_DAY },
           );
 
           const mergedExamData = formatExamData(examData.data.data);

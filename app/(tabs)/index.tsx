@@ -7,7 +7,6 @@ import Loading from '@/components/loading';
 import { getApiV1TermsList } from '@/api/generate';
 import PageContainer from '@/components/page-container';
 import { CoursePageContext, CoursePageContextProps } from '@/context/course-page';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting, updateCourseSetting } from '@/lib/course';
 import locateDate, { getWeeksBySemester } from '@/lib/locate-date';
@@ -22,7 +21,6 @@ export default function HomePage() {
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
 
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否下拉刷新
-  const { handleError } = useSafeResponseSolve();
 
   // loadData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
   const loadConfigAndDateResult = useCallback(async () => {
@@ -33,7 +31,7 @@ export default function HomePage() {
     const termsData = await fetchWithCache(
       [COURSE_TERMS_LIST_KEY],
       () => getApiV1TermsList(),
-      7 * EXPIRE_ONE_DAY, // 缓存 7 天
+      { staleTime: 7 * EXPIRE_ONE_DAY }, // 缓存 7 天
     );
 
     const locateDateRes = await locateDate();
@@ -114,15 +112,13 @@ export default function HomePage() {
       loadConfigAndDateResult();
       // toast.success('刷新成功');
     } catch (error: any) {
-      const data = handleError(error) as { code: string; message: string };
-      console.log(data);
-      if (data) {
-        toast.error(data.message ? data.message : '未知错误');
-      }
+      console.log(error);
+      // 刷新失败，显示缓存数据
+      loadConfigAndDateResult();
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, coursePageContextProps, loadConfigAndDateResult, handleError]);
+  }, [isRefreshing, coursePageContextProps, loadConfigAndDateResult]);
 
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置
   // 具体加载课程的逻辑在 CoursePage 组件中

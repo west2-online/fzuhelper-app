@@ -112,6 +112,11 @@ export default function HomePage() {
                 <Text>AsyncStorage Manager</Text>
               </Button>
             </Link>
+            <Link href="/devtools/react-query-storage-list" asChild>
+              <Button>
+                <Text>React Query Storage</Text>
+              </Button>
+            </Link>
             <Link href="/devtools/push-tools" asChild>
               <Button>
                 <Text>Push Tools</Text>
@@ -154,6 +159,11 @@ export default function HomePage() {
             <Link href="/+not-found" asChild>
               <Button>
                 <Text>Not Found Page</Text>
+              </Button>
+            </Link>
+            <Link href="/devtools/multi-state-test" asChild>
+              <Button>
+                <Text>Multi State Test</Text>
               </Button>
             </Link>
 
