@@ -12,18 +12,16 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import LabelSwitch from '@/components/label-switch';
+import { queryClient } from '@/components/query-provider';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { COURSE_SETTINGS_KEY, RELEASE_CHANNEL_KEY } from '@/lib/constants';
-import { CourseCache } from '@/lib/course';
+import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
-import { LocalUser } from '@/lib/user';
+import { logoutUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
-import { useQueryClient } from '@tanstack/react-query';
 
-export default function AcademicPage() {
+export default function SettingPage() {
   const redirect = useRedirectWithoutHistory();
   const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // (仅 Android) 发布渠道
-  const queryClient = useQueryClient();
 
   // 清除数据
   const handleClearData = () => {
@@ -36,8 +34,6 @@ export default function AcademicPage() {
         text: '清除',
         style: 'destructive',
         onPress: async () => {
-          await CourseCache.clear(); // 清除课程缓存
-          await LocalUser.clear(); // 清除本地用户
           await AsyncStorage.clear(); // 清空 AsyncStorage
           queryClient.clear(); // 清除所有缓存
           toast.success('清除完成，请重新登录');
@@ -50,7 +46,7 @@ export default function AcademicPage() {
   };
   // 登出
   const handleLogout = () => {
-    Alert.alert('确认退出', '确认要退出登录吗？(含教务系统、统一身份认证等全部登录内容）', [
+    Alert.alert('确认退出', '确认要退出登录吗？（含教务系统、统一身份认证等全部登录内容）', [
       {
         text: '取消',
         style: 'cancel',
@@ -60,10 +56,8 @@ export default function AcademicPage() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await CourseCache.clear();
-            await LocalUser.clear();
-            queryClient.clear(); // 清除网络缓存
-            await AsyncStorage.removeItem(COURSE_SETTINGS_KEY); // 避免账号切换残留学期、订阅链接等数据
+            await logoutUser();
+            await SSOlogoutAndCleanData();
             redirect('/(guest)');
           } catch (error) {
             console.error('Error clearing storage:', error);
@@ -167,8 +161,8 @@ export default function AcademicPage() {
               <LabelEntry leftText="课程表设置" />
             </Link>
             <LabelEntry leftText="清除数据" onPress={handleClearData} />
-            <LabelEntry leftText="退出登录(全部)" onPress={handleLogout} />
-            <LabelEntry leftText="退出登录(仅统一身份认证)" onPress={handleSSOLogout} />
+            <LabelEntry leftText="退出登录（全部）" onPress={handleLogout} />
+            <LabelEntry leftText="退出登录（统一身份认证）" onPress={handleSSOLogout} />
             <LabelEntry leftText="重置忽略的提示" onPress={handleResetIgnoredAlerts} />
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">隐私</Text>

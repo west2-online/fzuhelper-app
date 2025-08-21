@@ -1,7 +1,6 @@
 import { RejectEnum } from '@/api/enum';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { CourseCache } from '@/lib/course';
-import { LocalUser } from '@/lib/user';
+import { logoutUser } from '@/lib/user';
 import { type RejectError } from '@/types/reject-error';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
@@ -37,8 +36,7 @@ export const useSafeResponseSolve = () => {
               {
                 text: '确认',
                 onPress: async () => {
-                  LocalUser.clear();
-                  CourseCache.clear();
+                  await logoutUser();
                   redirect('/(guest)/academic-login');
                 },
               },
@@ -57,8 +55,7 @@ export const useSafeResponseSolve = () => {
                 {
                   text: '确认',
                   onPress: async () => {
-                    LocalUser.clear();
-                    CourseCache.clear();
+                    await logoutUser();
                     redirect('/(guest)/academic-login');
                   },
                 },
