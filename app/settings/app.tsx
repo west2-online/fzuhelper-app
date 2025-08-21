@@ -16,7 +16,7 @@ import { queryClient } from '@/components/query-provider';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
-import { logoutUser } from '@/lib/user';
+import { LocalUser, logoutUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
 
 export default function SettingPage() {
@@ -36,6 +36,7 @@ export default function SettingPage() {
         onPress: async () => {
           await AsyncStorage.clear(); // 清空 AsyncStorage
           queryClient.clear(); // 清除所有缓存
+          await LocalUser.clear(); // 清除本地用户
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
             redirect('/(guest)');
