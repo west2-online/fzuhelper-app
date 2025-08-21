@@ -33,7 +33,7 @@ const defaultTermInfo = {
   term: '',
 };
 
-export default function HomePage() {
+export default function UserPage() {
   const [userInfo, setUserInfo] = useState<UserInfo>(defaultUserInfo);
   const [termInfo, setTermInfo] = useState(defaultTermInfo);
 
@@ -146,7 +146,7 @@ export default function HomePage() {
                     if (item.link) {
                       router.push(item.link);
                     } else {
-                      item.operation && item.operation();
+                      item.operation?.();
                     }
                   }}
                 />

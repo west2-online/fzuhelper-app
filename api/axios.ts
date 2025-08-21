@@ -12,6 +12,12 @@ const baseURL = 'https://fzuhelper.west2.online/';
 const request = axios.create({
   baseURL,
   timeout: 5000,
+  // 禁用本地缓存
+  headers: {
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
+  },
 });
 
 type PromiseExecutorParameters = Parameters<ConstructorParameters<typeof Promise<AxiosResponse<any, any>>>[0]>;
