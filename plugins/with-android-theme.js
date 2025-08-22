@@ -13,7 +13,47 @@ function withCustomAppTheme(config) {
           $: { name: 'colorAccent' },
           _: '@color/colorAccent',
         });
+
+        // HyperOS 2 Android 15 TextInput (EditText) 内容不垂直居中问题修复
+        style.item.push({
+          $: { name: 'android:textViewStyle' },
+          _: '@style/Widget.App.TextView',
+        });
+        style.item.push({
+          $: { name: 'editTextStyle' },
+          _: '@style/Widget.App.EditText',
+        });
+        style.item.push({
+          $: { name: 'android:editTextStyle' },
+          _: '@style/Widget.App.EditText',
+        });
       }
+    });
+    styles.resources.style.push({
+      $: { name: 'Widget.App.TextView', parent: 'Widget.AppCompat.TextView' },
+      item: [
+        {
+          $: { name: 'android:elegantTextHeight' },
+          _: 'false',
+        },
+        {
+          $: { name: 'android:useLocalePreferredLineHeightForMinimum' },
+          _: 'false',
+        },
+      ],
+    });
+    styles.resources.style.push({
+      $: { name: 'Widget.App.EditText', parent: 'Widget.AppCompat.EditText' },
+      item: [
+        {
+          $: { name: 'android:elegantTextHeight' },
+          _: 'false',
+        },
+        {
+          $: { name: 'android:useLocalePreferredLineHeightForMinimum' },
+          _: 'false',
+        },
+      ],
     });
 
     return androidStylesConfig;
