@@ -1,6 +1,7 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
 import { getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
+import { queryClient } from '@/components/query-provider';
 import {
   CLASS_BREAK_EVENING,
   CLASS_BREAK_NOON,
@@ -206,61 +207,65 @@ export class CourseCache {
    * 保存缓存数据
    */
   public static async save(): Promise<void> {
-    await AsyncStorage.setItem(
-      COURSE_CURRENT_CACHE_KEY,
-      JSON.stringify({
-        courseData: this.cachedData,
-        courseDigest: this.cachedDigest,
-        examData: this.cachedExamData,
-        examDigest: this.cachedExamDigest,
-        customData: this.cachedCustomData,
-        customDigest: this.cachedCustomDigest,
-        priorityCounter: this.priorityCounter,
-        lastCourseUpdateTime: this.lastCourseUpdateTime,
-        lastExamUpdateTime: this.lastExamUpdateTime,
-      } as CacheCourseData),
-    );
-
-    // 将数据保存到原生共享存储中，以便在小组件中调用
-    const termsList = JSON.parse((await AsyncStorage.getItem(COURSE_TERMS_LIST_KEY)) ?? '[]');
-    const courseSettings = await getCourseSetting();
-    const term = courseSettings.selectedSemester;
-    const currentTerm = termsList.data.data.data.terms.find((termData: any) => termData.term === term);
-    const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
-    const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
-    const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
-    if (Platform.OS === 'ios') {
-      // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
-      // 只能在常量中定义这个 identifier
-      const storage = new ExtensionStorage(IOS_APP_GROUP);
-      storage.set(
+    try {
+      await AsyncStorage.setItem(
         COURSE_CURRENT_CACHE_KEY,
         JSON.stringify({
           courseData: this.cachedData,
+          courseDigest: this.cachedDigest,
           examData: this.cachedExamData,
+          examDigest: this.cachedExamDigest,
           customData: this.cachedCustomData,
+          customDigest: this.cachedCustomDigest,
+          priorityCounter: this.priorityCounter,
           lastCourseUpdateTime: this.lastCourseUpdateTime,
           lastExamUpdateTime: this.lastExamUpdateTime,
-          startDate: currentTerm.start_date,
-          maxWeek: maxWeek,
-        }),
-      ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
-      ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-    } else if (Platform.OS === 'android') {
-      setWidgetData(
-        JSON.stringify({
-          courseData: this.cachedData,
-          examData: this.cachedExamData,
-          customData: this.cachedCustomData,
-          startDate: currentTerm.start_date,
-          maxWeek: maxWeek,
-          showNonCurrentWeekCourses: showNonCurrentWeekCourses,
-          hiddenCoursesWithoutAttendances: hiddenCoursesWithoutAttendances,
-        }),
-        Constants.expoConfig?.android?.package,
+        } as CacheCourseData),
       );
+
+      // 将数据保存到原生共享存储中，以便在小组件中调用
+      const termsList = (await queryClient.getQueryData([COURSE_TERMS_LIST_KEY])) as any;
+      const courseSettings = await getCourseSetting();
+      const term = courseSettings.selectedSemester;
+      const currentTerm = termsList.data.data.terms.find((termData: any) => termData.term === term);
+      const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+      const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
+      const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
+      if (Platform.OS === 'ios') {
+        // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
+        // 只能在常量中定义这个 identifier
+        const storage = new ExtensionStorage(IOS_APP_GROUP);
+        storage.set(
+          COURSE_CURRENT_CACHE_KEY,
+          JSON.stringify({
+            courseData: this.cachedData,
+            examData: this.cachedExamData,
+            customData: this.cachedCustomData,
+            lastCourseUpdateTime: this.lastCourseUpdateTime,
+            lastExamUpdateTime: this.lastExamUpdateTime,
+            startDate: currentTerm.start_date,
+            maxWeek: maxWeek,
+          }),
+        ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
+        ExtensionStorage.reloadWidget(); // 保存后需要重载一次
+      } else if (Platform.OS === 'android') {
+        setWidgetData(
+          JSON.stringify({
+            courseData: this.cachedData,
+            examData: this.cachedExamData,
+            customData: this.cachedCustomData,
+            startDate: currentTerm.start_date,
+            maxWeek: maxWeek,
+            showNonCurrentWeekCourses: showNonCurrentWeekCourses,
+            hiddenCoursesWithoutAttendances: hiddenCoursesWithoutAttendances,
+          }),
+          Constants.expoConfig?.android?.package,
+        );
+      }
+      console.log('同步课程到小组件成功');
+    } catch (e) {
+      console.error('同步课程到小组件失败', e);
     }
-    console.log('Saved cached course data to widget.');
   }
 
   /**
