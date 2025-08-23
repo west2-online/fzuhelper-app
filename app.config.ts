@@ -185,6 +185,28 @@ const config: ExpoConfig = {
     ],
     './plugins/with-android-theme',
     '@bacons/apple-targets', // Apple Targets (e.g. widget)
+    [
+      'expo-font',
+      {
+        android: {
+          fonts: [
+            {
+              fontFamily: 'Roboto',
+              fontDefinitions: [
+                {
+                  path: './assets/fonts/Roboto-Regular.ttf',
+                  weight: 400,
+                },
+                {
+                  path: './assets/fonts/Roboto-Bold.ttf',
+                  weight: 700,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

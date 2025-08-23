@@ -1,12 +1,12 @@
 import { createTransformProps } from 'react-fast-hoc';
-import * as RN from 'react-native';
+import { Platform, StyleSheet, Text } from 'react-native';
 
 export default () => {
-  if (RN.Platform.OS !== 'android') {
+  if (Platform.OS !== 'android') {
     return;
   }
 
-  const styles = RN.StyleSheet.create({
+  const styles = StyleSheet.create({
     font: { fontFamily: 'Roboto' },
   });
 
@@ -23,7 +23,7 @@ export default () => {
     },
   );
 
-  Object.assign(RN.Text, transform(RN.Text));
+  Object.assign(Text, transform(Text));
 
   console.log('Patch text component complete');
 };

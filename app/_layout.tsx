@@ -17,7 +17,6 @@ import { LearningCenterContextProvider } from '@/context/learning-center';
 import { getColorScheme } from '@/lib/appearance';
 import { StackNavigatorScreenOptions } from '@/lib/constants';
 import patchTextComponent from '@/utils/patch-text-component';
-import patchTextRender from '@/utils/patch-text-render';
 
 import '../global.css';
 
@@ -38,7 +37,6 @@ export default function RootLayout() {
     // https://github.com/facebook/react-native/issues/15114#issuecomment-2422537975
     try {
       patchTextComponent();
-      patchTextRender();
     } catch (e) {
       console.error('Failed to patch text component', e);
     }
