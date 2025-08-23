@@ -19,11 +19,15 @@ export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
   };
 }
 
-// 基于教务处的数据定位今天是第几周，以及今天的日期
-// 返回一个对象，包含 date（当前日期）、week（当前周数）、day（当前星期几）、semester（当前学期，格式样例：202401）
-// e.g. { date: '2024/06/01', week: 23, day: 3, semester: '202401' }
-// 这个函数应当只会在课表业务中涉及
-// 使用了本地缓存，但是缓存逻辑和 PersistentQuery 不同，我们只在跨周时重新获取数据
+/**
+ * 基于教务处的数据定位今天是第几周，以及今天的日期
+ * 返回一个对象，包含 date（当前日期）、week（当前周数）、day（当前星期几）、semester（当前学期，格式样例：202401）
+ * e.g. { date: '2024/06/01', week: 23, day: 3, semester: '202401' }
+ * 这个函数应当只会在课表业务中涉及
+ * 使用了本地缓存，但是缓存逻辑和 PersistentQuery 不同，我们只在跨周时重新获取数据
+ * 调用接口取数据，需要用 handleError 做 catch
+ * @param noCache 是否使用缓存，默认使用
+ */
 export default async function locateDate(noCache = false): Promise<LocateDateResult> {
   // 获取当前日期
   const currentDate = dayjs();

@@ -14,6 +14,7 @@ import { NotificationManager } from '@/lib/notification';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 export default function HomePage() {
   const [coursePageContextProps, setCoursePageContextProps] = useState<CoursePageContextProps | null>(null);
@@ -21,6 +22,8 @@ export default function HomePage() {
   const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
 
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否下拉刷新
+
+  const { handleError } = useSafeResponseSolve();
 
   // loadData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
   const loadConfigAndDateResult = useCallback(async () => {
@@ -34,7 +37,15 @@ export default function HomePage() {
       { staleTime: 7 * EXPIRE_ONE_DAY }, // 缓存 7 天
     );
 
-    const locateDateRes = await locateDate();
+    let locateDateRes;
+    try {
+      locateDateRes = await locateDate();
+    } catch (error: any) {
+      console.log(error);
+      handleError(error);
+      toast.error('获取当前周失败，请稍后再试');
+      return;
+    }
 
     // 获取最新的课表设置
     const setting = await getCourseSetting();
@@ -67,7 +78,7 @@ export default function HomePage() {
     // const endTime = Date.now(); // 记录结束时间
     // const elapsedTime = endTime - startTime; // 计算耗时
     // console.log(`loadData function took ${elapsedTime}ms to complete.`);
-  }, []);
+  }, [handleError]);
 
   // 当加载的时候会读取 COURSE_SETTINGS，里面有一个字段会存储当前选择的学期（不一定是最新学期）
   useFocusEffect(
@@ -113,12 +124,13 @@ export default function HomePage() {
       // toast.success('刷新成功');
     } catch (error: any) {
       console.log(error);
+      handleError(error);
       // 刷新失败，显示缓存数据
       loadConfigAndDateResult();
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, coursePageContextProps, loadConfigAndDateResult]);
+  }, [isRefreshing, coursePageContextProps, loadConfigAndDateResult, handleError]);
 
   // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置
   // 具体加载课程的逻辑在 CoursePage 组件中
