@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -21,8 +22,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="背景不透明度:"
-            android:textColor="?attr/colorOnSurface"
+            android:text="背景不透明度："
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="16sp" />
 
         <TextView
@@ -31,35 +32,31 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
             android:text="80%"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="16sp" />
     </LinearLayout>
 
     <SeekBar
         android:id="@+id/background_alpha_seekbar"
         android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:min="1"/>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:background="?attr/colorSurface"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:orientation="horizontal">
 
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="课程不透明度:"
-            android:textColor="?attr/colorOnSurface"
+            android:text="课程不透明度："
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="16sp" />
 
         <TextView
@@ -68,7 +65,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="80%"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="16sp" />
 
         <Spinner
@@ -82,24 +79,21 @@
     <SeekBar
         android:id="@+id/foreground_alpha_seekbar"
         android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:min="1"/>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:background="?attr/colorSurface"/>
 
     <TextView
         android:id="@+id/refresh_data"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="20dp"
         android:height="50dp"
         android:gravity="center_vertical"
         android:text="刷新数据"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="?android:attr/textColorPrimary"
         android:textSize="16sp" />
 
 </LinearLayout>
