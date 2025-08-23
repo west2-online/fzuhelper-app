@@ -123,17 +123,6 @@ export default function AboutPage() {
                 <Text className="text-primary">贡献名录</Text>
               </Link>
             </View>
-            <View className="flex-row">
-              {/* 标准样式，请勿改动 */}
-              <Text className="text-sm text-text-secondary">本APP由</Text>
-              <Text
-                className="text-sm text-primary"
-                onPress={() => Linking.openURL('https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral')}
-              >
-                又拍云
-              </Text>
-              <Text className="text-sm text-text-secondary">提供CDN加速/云存储服务</Text>
-            </View>
             <Pressable className="flex-row items-center" onPress={() => Linking.openURL('https://beian.miit.gov.cn/')}>
               <Text className="mr-1 text-sm text-text-secondary">ICP备案号：闽ICP备19020557号-4A</Text>
               <Icon name="chevron-forward" size={10} />
