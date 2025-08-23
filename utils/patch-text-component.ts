@@ -1,72 +1,22 @@
 import { createTransformProps } from 'react-fast-hoc';
 import { Platform, StyleSheet, Text } from 'react-native';
-import { getManufacturerSync, getSystemVersion } from 'react-native-device-info';
-
-// 检测文本是否同时包含中文和非中文字符
-const hasChineseAndAlphanumeric = (text: string): boolean => {
-  const chineseRegex = /[\u4e00-\u9fff]/; // 中文字符
-  const nonChineseRegex = /[^\u4e00-\u9fff]/; // 非中文字符
-
-  return chineseRegex.test(text) && nonChineseRegex.test(text);
-};
-
-// 检查文本最后一个字符是否为空格
-const endsWithSpace = (children: any): boolean => {
-  if (typeof children === 'string') {
-    return children.endsWith(' ');
-  } else if (Array.isArray(children)) {
-    if (children.length === 0) {
-      return false;
-    }
-    const lastChild = children[children.length - 1];
-    return endsWithSpace(lastChild);
-  }
-  return false;
-};
-
-// 递归检查children中是否有符合条件的文本
-const shouldAddSpace = (children: any): boolean => {
-  if (typeof children === 'string') {
-    return hasChineseAndAlphanumeric(children);
-  } else if (Array.isArray(children)) {
-    return children.some(child => shouldAddSpace(child));
-  }
-  return false;
-};
 
 export default () => {
   if (Platform.OS !== 'android') {
     return;
   }
 
-  // HyperOS2 (Android 15) 有文本排版优化选项，默认开启，开启时会引起文本截断。是否开启我们无从得知
-  const isHyperOS2 = getManufacturerSync() === 'Xiaomi' && parseInt(getSystemVersion().split('.')[0], 10) >= 15;
-
   const styles = StyleSheet.create({
     font: { fontFamily: 'Roboto' },
   });
 
   const transform = createTransformProps(
-    props => {
-      // 通用 Patch
-      let processedProps: any = {
-        textBreakStrategy: 'simple',
-        numberOfLines: 0,
-        ...props,
-        style: [styles.font, props.style],
-      };
-
-      // 只有在 HyperOS2 设备上，且文本同时包含中文和非中文字符，且最后一个字符不是空格时才添加空格
-      if (isHyperOS2 && props.children && shouldAddSpace(props.children) && !endsWithSpace(props.children)) {
-        if (typeof props.children === 'string') {
-          processedProps.children = props.children + ' ';
-        } else if (Array.isArray(props.children)) {
-          processedProps.children = [...props.children, ' '];
-        }
-      }
-
-      return processedProps;
-    },
+    props => ({
+      textBreakStrategy: 'simple',
+      numberOfLines: 0,
+      ...props,
+      style: [styles.font, props.style],
+    }),
     {
       namePrefix: 'Reset.',
       mimicToNewComponent: false,
