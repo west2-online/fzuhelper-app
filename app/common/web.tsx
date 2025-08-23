@@ -6,7 +6,7 @@ import CookieManager from '@react-native-cookies/cookies';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform, Share, useColorScheme, View } from 'react-native';
+import { BackHandler, Platform, Share, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
@@ -24,7 +24,7 @@ import {
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
-import { checkCookieSSO, LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 

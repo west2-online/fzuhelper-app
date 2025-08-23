@@ -17,7 +17,7 @@ import { MergedExamData } from '@/types/academic';
 import type { PartiallyOptional } from '@/types/utils';
 import { randomUUID } from '@/utils/crypto';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
-import { allocateColorForCourse, clearColorMapping, courseColors, getExamColor } from '@/utils/random-color';
+import { allocateColorForCourse, clearColorMapping, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
@@ -563,7 +563,6 @@ export class CourseCache {
     // 为每个课程生成颜色并扩展数据
     const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
       const id = this.allocateID(); // 分配一个新的 ID
-      console.log('为课程' + schedule.name + '分配颜色: ' + courseColors[id % courseColors.length]);
       return {
         ...schedule,
         color: allocateColorForCourse(schedule.name), // 分配颜色
