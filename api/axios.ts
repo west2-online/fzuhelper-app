@@ -92,7 +92,7 @@ request.interceptors.response.use(
           });
           if (res.data.code !== ResultEnum.SuccessCode) {
             // 这里颗粒度粗一点，直接表示鉴权失败，统一返回 Login 页
-            return rejectWith({ type: RejectEnum.AuthFailed });
+            throw new Error(JSON.stringify(res.data));
           }
           await refreshToken(res.headers);
           queue.forEach(({ config: queuedConfig, resolve }) => {
@@ -103,7 +103,7 @@ request.interceptors.response.use(
           return request(config);
         } catch (error: unknown) {
           console.log('refresh token error:', error); // 此处可以控制台打印一下问题
-          queue.forEach(({ reject }) => reject(error));
+          queue.forEach(({ reject }) => reject({ type: RejectEnum.AuthFailed }));
           refreshing = false;
           queue = [];
           return rejectWith({ type: RejectEnum.AuthFailed });
