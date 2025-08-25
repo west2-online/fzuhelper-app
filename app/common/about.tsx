@@ -24,6 +24,9 @@ import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-upd
 const CLICK_TO_SHOW_CODE = 2;
 const CLICK_TO_SHOW_DEVTOOLS = 7;
 
+const URL_JOIN_US = 'https://west2-online.feishu.cn/wiki/CFkrwmyUsi5lmVkCYjOcKX2znGb';
+const ICP_REGISTRATION = '闽ICP备19020557号-4A';
+
 export default function AboutPage() {
   const [clickCount, setClickCount] = useState(0);
   const { handleError } = useSafeResponseSolve();
@@ -85,7 +88,7 @@ export default function AboutPage() {
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
-            <Pressable onPress={() => Linking.openURL('https://site.west2.online/')}>
+            <Pressable onPress={() => pushToWebViewNormal('https://site.west2.online/')}>
               <DescriptionListRow>
                 <DescriptionListTerm>
                   <Text className="text-text-secondary">研发团队</Text>
@@ -107,28 +110,46 @@ export default function AboutPage() {
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
+            <Pressable onPress={() => router.push('/common/qualifications' as Href)}>
+              <DescriptionListRow>
+                <DescriptionListTerm>
+                  <Text className="text-text-secondary">资质证照信息</Text>
+                </DescriptionListTerm>
+                <DescriptionListDescription className="flex-row items-center">
+                  <Text>点击查看 </Text>
+                  <Icon name="chevron-forward" size={14} />
+                </DescriptionListDescription>
+              </DescriptionListRow>
+            </Pressable>
           </DescriptionList>
 
-          <SafeAreaView className="flex-1 items-center justify-end gap-2" edges={['bottom']}>
+          <SafeAreaView className="flex-1 items-center justify-end gap-2 px-4" edges={['bottom']}>
             <View className="flex-row">
               <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议')}>
                 服务协议
               </Text>
-              <Text className="mx-3 text-primary">|</Text>
+              <Text className="mx-2 text-primary">|</Text>
               <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策')}>
                 隐私政策
               </Text>
-              <Text className="mx-3 text-primary">|</Text>
+              <Text className="mx-2 text-primary">|</Text>
               <Link href="/contributors" asChild>
                 <Text className="text-primary">贡献名录</Text>
               </Link>
+              <Text className="mx-2 text-primary">|</Text>
+              <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_JOIN_US, '加入我们')}>
+                加入我们
+              </Text>
             </View>
-            <Pressable className="flex-row items-center" onPress={() => Linking.openURL('https://beian.miit.gov.cn/')}>
-              <Text className="mr-1 text-sm text-text-secondary">ICP备案号：闽ICP备19020557号-4A</Text>
+            <Pressable
+              className="flex-row items-center"
+              onPress={() => pushToWebViewNormal('https://beian.miit.gov.cn/')}
+            >
+              <Text className="mr-1 text-sm text-text-secondary">ICP备案号：{ICP_REGISTRATION}</Text>
               <Icon name="chevron-forward" size={10} />
             </Pressable>
             <Text className="text-center text-sm text-text-secondary">
-              通过福州大学网络安全和信息化办公室安全质量检测
+              已通过福州大学网络安全和信息化办公室安全质量检测
             </Text>
             <Text className="mb-6 text-center text-sm text-text-tertiary">
               Copyright &copy; 2017-{new Date().getFullYear()} west2-online. All Rights Reserved.
