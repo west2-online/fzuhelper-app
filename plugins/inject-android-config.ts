@@ -66,6 +66,17 @@ function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
         }
     }`,
     );
+    contents = insertAfter(
+      contents,
+      'android {',
+      `
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+        }
+    }`,
+    );
     // versionCode根据commit次数设置
     // 前三位对应版本名，后三位或更多对应commit次数
     contents = contents.replace(

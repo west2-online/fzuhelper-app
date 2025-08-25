@@ -34,18 +34,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12.0
+          node-version: 22
           cache: yarn
 
       - uses: actions/setup-java@v4
         with:
           distribution: microsoft
-          java-version: 17.0
+          java-version: 17
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 8.8
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile --prefer-offline
