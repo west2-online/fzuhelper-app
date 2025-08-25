@@ -16,7 +16,6 @@ interface LabelEntryProps {
   className?: string;
 }
 
-// eslint-disable-next-line react/display-name
 const LabelEntry: React.FC<LabelEntryProps> = forwardRef<React.ComponentRef<typeof TouchableOpacity>, LabelEntryProps>(
   ({ leftText, rightText, description, onPress, disabled = false, noIcon = false, className }, ref) => (
     <TouchableOpacity
@@ -39,5 +38,7 @@ const LabelEntry: React.FC<LabelEntryProps> = forwardRef<React.ComponentRef<type
     </TouchableOpacity>
   ),
 );
+
+LabelEntry.displayName = 'LabelEntry';
 
 export default LabelEntry;

@@ -88,7 +88,7 @@ export default function AboutPage() {
                 </DescriptionListDescription>
               </DescriptionListRow>
             </Pressable>
-            <Pressable onPress={() => Linking.openURL('https://site.west2.online/')}>
+            <Pressable onPress={() => pushToWebViewNormal('https://site.west2.online/')}>
               <DescriptionListRow>
                 <DescriptionListTerm>
                   <Text className="text-text-secondary">研发团队</Text>
@@ -123,25 +123,28 @@ export default function AboutPage() {
             </Pressable>
           </DescriptionList>
 
-          <SafeAreaView className="flex-1 items-center justify-end gap-2" edges={['bottom']}>
+          <SafeAreaView className="flex-1 items-center justify-end gap-2 px-4" edges={['bottom']}>
             <View className="flex-row">
               <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议')}>
                 服务协议
               </Text>
-              <Text className="mx-3 text-primary">|</Text>
+              <Text className="mx-2 text-primary">|</Text>
               <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策')}>
                 隐私政策
               </Text>
-              <Text className="mx-3 text-primary">|</Text>
+              <Text className="mx-2 text-primary">|</Text>
               <Link href="/contributors" asChild>
                 <Text className="text-primary">贡献名录</Text>
               </Link>
-              <Text className="mx-3 text-primary">|</Text>
-              <Link href={URL_JOIN_US} asChild>
-                <Text className="text-primary">加入我们</Text>
-              </Link>
+              <Text className="mx-2 text-primary">|</Text>
+              <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_JOIN_US, '加入我们')}>
+                加入我们
+              </Text>
             </View>
-            <Pressable className="flex-row items-center" onPress={() => Linking.openURL('https://beian.miit.gov.cn/')}>
+            <Pressable
+              className="flex-row items-center"
+              onPress={() => pushToWebViewNormal('https://beian.miit.gov.cn/')}
+            >
               <Text className="mr-1 text-sm text-text-secondary">ICP备案号：{ICP_REGISTRATION}</Text>
               <Icon name="chevron-forward" size={10} />
             </Pressable>
