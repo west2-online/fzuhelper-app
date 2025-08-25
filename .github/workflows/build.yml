@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches:
-      - chore/ci+apk
+      - master
   workflow_dispatch:
 
 concurrency:
