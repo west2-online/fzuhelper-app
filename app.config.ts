@@ -88,7 +88,6 @@ const config: ExpoConfig = {
           useLegacyPackaging: true,
           enableProguardInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
-          enableDangerousExperimentalLeanBuilds: true,
           usesCleartextTraffic: true,
           extraMavenRepos: ['https://developer.huawei.com/repo/'],
         },
