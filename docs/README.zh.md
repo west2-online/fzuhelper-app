@@ -82,7 +82,7 @@ yarn ios --device
 克隆仓库并安装依赖：
 
 ```bash
-git clone https://github.com/renbaoshuo/fzuhelper-app.git
+git clone https://github.com/west2-online/fzuhelper-app.git
 cd fzuhelper-app
 yarn install
 ```
