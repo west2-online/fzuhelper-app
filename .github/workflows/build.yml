@@ -13,7 +13,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout source code
@@ -39,7 +39,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          distribution: microsoft
+          distribution: temurin
           java-version: 17
 
       - name: Setup Gradle
@@ -63,6 +63,28 @@ jobs:
           KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
           KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
           SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
+
+      - name: Zipalign and Sign APK
+        run: |
+          cd android/app/build/outputs/apk/release
+          mv app-release.apk unsigned.apk
+
+          # zipalign 优化
+          $ANDROID_SDK_ROOT/build-tools/35.0.0/zipalign -P 16 -z -f -v 4 unsigned.apk aligned.apk
+
+          # apksigner 签名
+          $ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner sign \
+            --ks $GITHUB_WORKSPACE/android/app/$KEYSTORE_PATH \
+            --ks-key-alias $KEY_ALIAS \
+            --ks-pass pass:$KEYSTORE_PASSWORD \
+            --key-pass pass:$KEY_PASSWORD \
+            --out app-arm64-v8a-release.apk \
+            aligned.apk
+        env:
+          KEYSTORE_PATH: 'keystore.jks'
+          KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
 
       - name: Extract Version Info
         shell: bash
