@@ -162,7 +162,7 @@ export const DATETIME_FORMAT = `${DATE_FORMAT} ${TIME_FORMAT}`;
 export const DATETIME_SECOND_FORMAT = `${DATE_FORMAT} ${TIME_SECOND_FORMAT}`;
 
 // 发布通道
-export const RELEASE_CHANNEL_KEY = 'release_channel';
+export const ANDROID_RELEASE_CHANNEL_KEY = 'release_channel';
 
 // 主题设置
 export const COLOR_SCHEME_KEY = 'color_scheme';

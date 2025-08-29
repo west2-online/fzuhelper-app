@@ -1,6 +1,6 @@
 import type { VersionAndroidResponse_Data } from '@/api/backend';
 import { getApiV2VersionAndroid } from '@/api/generate';
-import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import { ANDROID_RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -68,7 +68,16 @@ const showAndroidUpdateDialog = (data: VersionAndroidResponse_Data) => {
   Alert.alert(`发现新版本 ${data.version_name}`, `更新内容：\n\n${data.changelog}`, buttons);
 };
 
-type ReleaseChannelType = 'release' | 'beta';
+export type ReleaseChannelType = 'release' | 'beta';
+
+export const getReleaseChannel = async (): Promise<ReleaseChannelType> => {
+  const storedChannel = (await AsyncStorage.getItem(ANDROID_RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
+  return storedChannel ?? 'release';
+};
+
+export const storeReleaseChannel = async (channel: ReleaseChannelType) => {
+  await AsyncStorage.setItem(ANDROID_RELEASE_CHANNEL_KEY, channel);
+};
 
 const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: UpdateCallbacks) => {
   // 判断是否为调试版，是则跳过
@@ -78,9 +87,18 @@ const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: 
   }
 
   try {
-    const releaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
-    const result = await getApiV2VersionAndroid();
-    const config = result.data.data[releaseChannel || 'release']; // 测试期间仅在beta通道更新
+    const data = (await getApiV2VersionAndroid()).data.data;
+    const releaseChannel = await getReleaseChannel();
+    let config;
+    if (releaseChannel === 'release') {
+      config = data.release;
+    } else {
+      if (parseInt(data.beta.version_code, 10) > parseInt(data.release.version_code, 10)) {
+        config = data.beta;
+      } else {
+        config = data.release;
+      }
+    }
 
     if (parseInt(config.version_code, 10) > parseInt(DeviceInfo.getBuildNumber(), 10)) {
       callbacks?.onUpdate?.(config);
