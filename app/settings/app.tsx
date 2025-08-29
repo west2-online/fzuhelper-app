@@ -14,10 +14,10 @@ import { Text } from '@/components/ui/text';
 import LabelSwitch from '@/components/label-switch';
 import { queryClient } from '@/components/query-provider';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser, logoutUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
+import { getReleaseChannel, storeReleaseChannel } from '@/utils/android-update';
 
 export default function SettingPage() {
   const redirect = useRedirectWithoutHistory();
@@ -90,40 +90,36 @@ export default function SettingPage() {
     ]);
   };
 
-  const handleChangeReleaseChannel = () => {
-    if (Platform.OS === 'ios') {
-      Alert.alert(
-        '内测计划',
-        '苹果内测版 App 由 TestFlight 统一管理，点击确认打开内测指引，如需重新回归正式版可以在 App Store 中重新下载',
-        [
-          {
-            text: '取消',
-            style: 'cancel',
+  const handleChangeReleaseChannelIOS = () => {
+    Alert.alert(
+      '内测计划',
+      '苹果内测版 App 由 TestFlight 统一管理，点击确认打开内测指引，如需重新回归正式版可以在 App Store 中重新下载',
+      [
+        {
+          text: '取消',
+          style: 'cancel',
+        },
+        {
+          text: '确定',
+          onPress: async () => {
+            Linking.openURL('https://testflight.apple.com/join/UubMBYAm');
           },
-          {
-            text: '确定',
-            onPress: async () => {
-              Linking.openURL('https://testflight.apple.com/join/UubMBYAm');
-            },
-          },
-        ],
-      );
-    } else if (Platform.OS === 'android') {
-      setReleaseChannel(prev => (prev !== 'beta' ? 'beta' : 'release'));
-    }
+        },
+      ],
+    );
+  };
+
+  const handleChangeReleaseChannelAndroid = () => {
+    const newChannel = releaseChannel === 'beta' ? 'release' : 'beta';
+    setReleaseChannel(newChannel);
+    storeReleaseChannel(newChannel);
   };
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      AsyncStorage.getItem(RELEASE_CHANNEL_KEY).then(setReleaseChannel);
+      getReleaseChannel().then(setReleaseChannel);
     }
   }, []);
-
-  useEffect(() => {
-    if (Platform.OS === 'android') {
-      if (releaseChannel) AsyncStorage.setItem(RELEASE_CHANNEL_KEY, releaseChannel);
-    }
-  }, [releaseChannel]);
 
   // 添加重置忽略设置的函数
   const handleResetIgnoredAlerts = () => {
@@ -190,11 +186,11 @@ export default function SettingPage() {
               <LabelSwitch
                 label="加入内测计划"
                 value={releaseChannel === 'beta'}
-                onValueChange={handleChangeReleaseChannel}
+                onValueChange={handleChangeReleaseChannelAndroid}
               />
             )}
             {Platform.OS === 'ios' && (
-              <LabelEntry leftText="TestFlight 内测计划" onPress={handleChangeReleaseChannel} />
+              <LabelEntry leftText="TestFlight 内测计划" onPress={handleChangeReleaseChannelIOS} />
             )}
 
             <Link href="/common/about" asChild>
