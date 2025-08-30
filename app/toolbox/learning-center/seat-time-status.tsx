@@ -256,9 +256,8 @@ export default function SeatTimeStatusPage() {
                   {/* 时间块网格 */}
                   <View className="mb-1 w-full flex-row flex-wrap justify-start">
                     {timeDiamondList.map(item => (
-                      <View className="box-border w-1/4 p-1">
+                      <View className="box-border w-1/4 p-1" key={item.index}>
                         <TouchableOpacity
-                          key={item.index}
                           className={getTimeBlockStyle(item)}
                           disabled={item.occupy === 1}
                           activeOpacity={0.7}
