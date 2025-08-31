@@ -30,8 +30,8 @@ struct Provider: AppIntentTimelineProvider {
     async -> SimpleEntry
   {
     SimpleEntry(
-      date: Date(), courseName: "样例课程", courseLocation: "教室A",
-      courseWeekday: "周一", courseSection: "1-2节", courseRemark: "备注信息",
+      date: Date(), courseName: "软件项目管理", courseLocation: "文2-104",
+      courseWeekday: "周二", courseSection: "5-6节", courseRemark: "暂无备注",
       courseWeek: -1, showUpdateTime: configuration.showLastUpdateTime,
       notCurrentWeek: false)
   }
@@ -202,7 +202,7 @@ struct widgetEntryView: View {
             if entry.courseWeek > 0 {
               HStack {
                 Text(
-                  (entry.notCurrentWeek ? "(非本周)" : "第 \(entry.courseWeek) 周")
+                  (entry.notCurrentWeek ? "（非本周）" : "第 \(entry.courseWeek) 周")
                 )
                 .font(.caption)
                 .foregroundColor(secondaryTextColor)
@@ -246,7 +246,7 @@ struct widgetEntryView: View {
           if entry.courseWeek > 0 {
             HStack {
               Text(
-                "第 \(entry.courseWeek) 周" + (entry.notCurrentWeek ? "(非本周)" : "")
+                "第 \(entry.courseWeek) 周" + (entry.notCurrentWeek ? "（非本周）" : "")
               )
               .font(entry.notCurrentWeek ? .caption : .subheadline)
               .foregroundColor(secondaryTextColor)
@@ -305,6 +305,7 @@ struct widget: Widget {
     .supportedFamilies(
       [.systemSmall, .systemMedium, .accessoryRectangular]
     )  // 只支持小和中
+    .contentMarginsDisabledIfAvailable()
   }
 }
 
@@ -337,6 +338,25 @@ extension View {
       return background(backgroundView)
     }
   }
+}
+
+extension WidgetConfiguration
+{
+    // 禁用自动添加的边距，和我们设定的背景色不一致
+    // https://developer.apple.com/forums/thread/731423?answerId=758108022#758108022
+    func contentMarginsDisabledIfAvailable() -> some WidgetConfiguration
+    {
+        #if compiler(>=5.9) // Xcode 15
+            if #available(iOSApplicationExtension 17.0, *) {
+                return self.contentMarginsDisabled()
+            }
+            else {
+                return self
+            }
+        #else
+            return self
+        #endif
+    }
 }
 
 
