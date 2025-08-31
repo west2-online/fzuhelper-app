@@ -85,6 +85,7 @@ const CourseWeek: React.FC<CourseWeekProps> = ({ week, startDate, schedulesByDay
           contentContainerClassName="flex flex-row"
           showsVerticalScrollIndicator={false}
           overScrollMode="never"
+          bounces={false}
         >
           {/* （左侧）时间列 */}
           <TimeCol height={flatListLayout.height - TOP_CALENDAR_HEIGHT} />
