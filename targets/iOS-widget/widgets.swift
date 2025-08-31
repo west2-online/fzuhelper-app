@@ -30,8 +30,8 @@ struct Provider: AppIntentTimelineProvider {
     async -> SimpleEntry
   {
     SimpleEntry(
-      date: Date(), courseName: "样例课程", courseLocation: "教室A",
-      courseWeekday: "周一", courseSection: "1-2节", courseRemark: "备注信息",
+      date: Date(), courseName: "软件项目管理", courseLocation: "文2-104",
+      courseWeekday: "周二", courseSection: "5-6节", courseRemark: "暂无备注",
       courseWeek: -1, showUpdateTime: configuration.showLastUpdateTime,
       notCurrentWeek: false)
   }
@@ -202,7 +202,7 @@ struct widgetEntryView: View {
             if entry.courseWeek > 0 {
               HStack {
                 Text(
-                  (entry.notCurrentWeek ? "(非本周)" : "第 \(entry.courseWeek) 周")
+                  (entry.notCurrentWeek ? "（非本周）" : "第 \(entry.courseWeek) 周")
                 )
                 .font(.caption)
                 .foregroundColor(secondaryTextColor)
@@ -246,7 +246,7 @@ struct widgetEntryView: View {
           if entry.courseWeek > 0 {
             HStack {
               Text(
-                "第 \(entry.courseWeek) 周" + (entry.notCurrentWeek ? "(非本周)" : "")
+                "第 \(entry.courseWeek) 周" + (entry.notCurrentWeek ? "（非本周）" : "")
               )
               .font(entry.notCurrentWeek ? .caption : .subheadline)
               .foregroundColor(secondaryTextColor)
