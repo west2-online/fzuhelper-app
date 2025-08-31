@@ -305,6 +305,7 @@ struct widget: Widget {
     .supportedFamilies(
       [.systemSmall, .systemMedium, .accessoryRectangular]
     )  // 只支持小和中
+    .contentMarginsDisabledIfAvailable()
   }
 }
 
@@ -337,6 +338,25 @@ extension View {
       return background(backgroundView)
     }
   }
+}
+
+extension WidgetConfiguration
+{
+    // 禁用自动添加的边距，和我们设定的背景色不一致
+    // https://developer.apple.com/forums/thread/731423?answerId=758108022#758108022
+    func contentMarginsDisabledIfAvailable() -> some WidgetConfiguration
+    {
+        #if compiler(>=5.9) // Xcode 15
+            if #available(iOSApplicationExtension 17.0, *) {
+                return self.contentMarginsDisabled()
+            }
+            else {
+                return self
+            }
+        #else
+            return self
+        #endif
+    }
 }
 
 
