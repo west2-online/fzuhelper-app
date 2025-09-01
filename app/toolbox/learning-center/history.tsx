@@ -11,7 +11,6 @@ import { Text } from '@/components/ui/text';
 
 import { useLearningCenterApi } from '@/context/learning-center';
 import { fetchAppointmentsData } from '@/utils/learning-center/api-service';
-import { SeatMappingUtil } from '@/utils/learning-center/seat-mapping';
 
 const PAGE_SIZE = 30; // 每次请求返回的数据量
 
@@ -22,18 +21,6 @@ export default function HistoryPage() {
   const [isBottom, setIsBottom] = useState(false); // 判断是否请求了所有的数据
   const insets = useSafeAreaInsets();
   const api = useLearningCenterApi();
-  const [seatMap, setSeatMap] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    let mounted = true;
-    SeatMappingUtil.initialize().then(() => {
-      if (mounted) setSeatMap(SeatMappingUtil.seatMap as Record<string, string>);
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   // 请求数据
   const fetchData = useCallback(
@@ -88,16 +75,19 @@ export default function HistoryPage() {
           <FlatList
             data={data}
             renderItem={({ item }) => {
-              const getSpaceNameFromId = (spaceId?: string) => {
-                if (!spaceId) return '';
-                const found = Object.entries(seatMap).find(([, v]) => v === String(spaceId));
-                return found ? found[0] : String(spaceId);
-              };
+              // 预处理 spaceName：'796-1' -> '797', '799-1' -> '800'
+              let spaceNameProcessed = item.spaceName;
+              if (spaceNameProcessed === '796-1') {
+                spaceNameProcessed = '797';
+              } else if (spaceNameProcessed === '799-1') {
+                spaceNameProcessed = '800';
+              }
+
               return (
                 <HistoryAppointmentCard
                   key={item.id}
                   id={item.id}
-                  spaceName={getSpaceNameFromId((item as any).spaceId)}
+                  spaceName={spaceNameProcessed}
                   floor={item.floor}
                   date={item.date}
                   beginTime={item.beginTime}
