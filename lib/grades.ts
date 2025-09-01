@@ -129,8 +129,6 @@ export const calSingleTermSummary = (data: CourseGradesData[]) => {
   const filteredData = removeReexaminationCourse(data);
   const gpaRelevantData = getGpaRelevantData(filteredData);
 
-  console.log(filteredData);
-
   // 本学期总课程数
   const totalCount = filteredData.length;
   // 本学期总修学分
