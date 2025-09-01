@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/text';
 
 import { useLearningCenterApi } from '@/context/learning-center';
 import { fetchAppointmentsData } from '@/utils/learning-center/api-service';
+import { SeatMappingUtil } from '@/utils/learning-center/seat-mapping';
 
 const PAGE_SIZE = 30; // 每次请求返回的数据量
 
@@ -21,14 +22,26 @@ export default function HistoryPage() {
   const [isBottom, setIsBottom] = useState(false); // 判断是否请求了所有的数据
   const insets = useSafeAreaInsets();
   const api = useLearningCenterApi();
+  const [seatMap, setSeatMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let mounted = true;
+    SeatMappingUtil.initialize().then(() => {
+      if (mounted) setSeatMap(SeatMappingUtil.seatMap as Record<string, string>);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // 请求数据
   const fetchData = useCallback(
-    async (page: number, replace = false) => {
+    async (pageNumber: number, replace = false) => {
       try {
         // 请求数据
         const appointmentData = await api.fetchAppointments({
-          currentPage: page,
+          currentPage: pageNumber,
           pageSize: PAGE_SIZE,
           auditStatus: '',
         });
@@ -39,9 +52,9 @@ export default function HistoryPage() {
         }
 
         // 更新数据
-        setPage(page);
+        setPage(pageNumber);
         setData(prevData => (replace ? appointmentData : [...prevData, ...appointmentData]));
-        console.log(`拉取了第 ${page} 页`);
+        console.log(`拉取了第 ${pageNumber} 页`);
       } catch (error: any) {
         toast.error(`加载数据失败: ${error.message}`);
       } finally {
@@ -74,22 +87,29 @@ export default function HistoryPage() {
         ) : (
           <FlatList
             data={data}
-            renderItem={({ item }) => (
-              <HistoryAppointmentCard
-                key={item.id}
-                id={item.id}
-                spaceName={item.spaceName}
-                floor={item.floor}
-                date={item.date}
-                beginTime={item.beginTime}
-                endTime={item.endTime}
-                regionName={item.regionName}
-                seatCode={item.seatCode}
-                auditStatus={item.auditStatus}
-                sign={item.sign}
-                onRefresh={refresh}
-              />
-            )}
+            renderItem={({ item }) => {
+              const getSpaceNameFromId = (spaceId?: string) => {
+                if (!spaceId) return '';
+                const found = Object.entries(seatMap).find(([, v]) => v === String(spaceId));
+                return found ? found[0] : String(spaceId);
+              };
+              return (
+                <HistoryAppointmentCard
+                  key={item.id}
+                  id={item.id}
+                  spaceName={getSpaceNameFromId((item as any).spaceId)}
+                  floor={item.floor}
+                  date={item.date}
+                  beginTime={item.beginTime}
+                  endTime={item.endTime}
+                  regionName={item.regionName}
+                  seatCode={item.seatCode}
+                  auditStatus={item.auditStatus}
+                  sign={item.sign}
+                  onRefresh={refresh}
+                />
+              );
+            }}
             refreshControl={
               // 下拉刷新
               <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
