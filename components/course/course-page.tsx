@@ -92,13 +92,9 @@ const CoursePage: React.FC = () => {
             { staleTime: EXPIRE_ONE_DAY },
           );
 
-          const mergedExamData = formatExamData(examData.data.data);
-          if (mergedExamData.length > 0 && !CourseCache.compareDigest(EXAM_TYPE, mergedExamData)) {
-            CourseCache.mergeExamCourses(mergedExamData, currentTerm.start_date, currentTerm.end_date);
-            hasChanged = true;
-          } else if (mergedExamData.length === 0) {
-            // 如果没有考试数据，但之前有缓存，则清除考试数据缓存
-            CourseCache.clearExamData();
+          const formattedExamData = formatExamData(examData.data.data);
+          if (!CourseCache.compareDigest(EXAM_TYPE, formattedExamData)) {
+            CourseCache.mergeExamCourses(formattedExamData, currentTerm.start_date, currentTerm.end_date);
             hasChanged = true;
           }
         }
