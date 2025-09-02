@@ -60,6 +60,7 @@
     "expo-constants": "~17.1.7",
     "expo-crypto": "~14.1.5",
     "expo-font": "^13.3.2",
+    "expo-haptics": "~14.1.4",
     "expo-image": "~2.3.2",
     "expo-intent-launcher": "~12.1.5",
     "expo-linear-gradient": "~14.1.5",
