@@ -24,37 +24,42 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
   const DURATION = 250; // 动画时长
   const slideAnim = useRef(new Animated.Value(HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const isAnimating = useRef(false);
 
   // 避免动画卡顿，callback将在动画结束后调用
   const handleAnimation = useCallback(
     (isEnter: boolean, callback?: () => void) => {
-      if (isEnter) {
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: DURATION,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: DURATION,
-            useNativeDriver: true,
-          }),
-        ]).start(callback);
-      } else {
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: DURATION,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: HEIGHT,
-            duration: DURATION,
-            useNativeDriver: true,
-          }),
-        ]).start(callback);
-      }
+      if (isAnimating.current) return;
+      isAnimating.current = true;
+      const animations = isEnter
+        ? [
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: DURATION,
+              useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+              toValue: 0,
+              duration: DURATION,
+              useNativeDriver: true,
+            }),
+          ]
+        : [
+            Animated.timing(fadeAnim, {
+              toValue: 0,
+              duration: DURATION,
+              useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+              toValue: HEIGHT,
+              duration: DURATION,
+              useNativeDriver: true,
+            }),
+          ];
+      Animated.parallel(animations).start(() => {
+        isAnimating.current = false;
+        callback?.();
+      });
     },
     [fadeAnim, slideAnim],
   );
