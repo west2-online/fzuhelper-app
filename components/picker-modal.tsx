@@ -90,9 +90,6 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
         <Animated.View
           className="space-y-6 rounded-t-3xl bg-background p-6"
           style={{ transform: [{ translateY: slideAnim }] }}
-          onLayout={event => {
-            console.log(event.nativeEvent.layout.height);
-          }}
         >
           <View className="flex-row justify-between">
             <Pressable onPress={handleClose}>
