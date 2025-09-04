@@ -25,6 +25,7 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
   const slideAnim = useRef(new Animated.Value(HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  // 避免动画卡顿，callback将在动画结束后调用
   const handleAnimation = useCallback(
     (isEnter: boolean, callback?: () => void) => {
       if (isEnter) {
@@ -81,9 +82,11 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
   return (
     <Modal visible={visible} transparent navigationBarTranslucent statusBarTranslucent onRequestClose={handleClose}>
       <View className="flex flex-1 justify-end">
+        {/* 背景阴影 */}
         <Animated.View className="absolute h-full w-full" style={{ opacity: fadeAnim }}>
           <Pressable className="flex-1 bg-[#00000050]" onPress={handleClose} />
         </Animated.View>
+        {/* Picker部分 */}
         <Animated.View
           className="space-y-6 rounded-t-3xl bg-background p-6"
           style={{ transform: [{ translateY: slideAnim }] }}
