@@ -1,6 +1,6 @@
 import WheelPicker from '@quidone/react-native-wheel-picker';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, View, useColorScheme } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Modal, Pressable, View, useColorScheme } from 'react-native';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
@@ -20,34 +20,76 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
   const colorScheme = useColorScheme();
   const itemTextStyle = useMemo(() => ({ color: colorScheme === 'dark' ? 'white' : 'black' }), [colorScheme]);
 
+  const HEIGHT = 300; // 预估总高度
+  const DURATION = 250; // 动画时长
+  const slideAnim = useRef(new Animated.Value(HEIGHT)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const handleAnimation = useCallback(
+    (isEnter: boolean, callback?: () => void) => {
+      if (isEnter) {
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: DURATION,
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: DURATION,
+            useNativeDriver: true,
+          }),
+        ]).start(callback);
+      } else {
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: DURATION,
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: HEIGHT,
+            duration: DURATION,
+            useNativeDriver: true,
+          }),
+        ]).start(callback);
+      }
+    },
+    [fadeAnim, slideAnim],
+  );
+
   useEffect(() => {
     // newArch下，关闭时重置选中值，打开时重新渲染，否则高度偏移有问题
     setTempValue(visible ? value : (undefined as T));
-    // visible && setTempValue(value);
-  }, [value, visible]);
+    if (visible) {
+      handleAnimation(true);
+    }
+  }, [visible, value, slideAnim, fadeAnim, handleAnimation]);
+
+  const handleClose = useCallback(() => {
+    handleAnimation(false, onClose);
+  }, [handleAnimation, onClose]);
 
   const handleConfirm = useCallback(() => {
-    onConfirm(tempValue);
-  }, [onConfirm, tempValue]);
+    handleAnimation(false, () => onConfirm(tempValue));
+  }, [onConfirm, tempValue, handleAnimation]);
 
   const onValueChanged = useCallback(({ item }: { item: { value: T } }) => {
     setTempValue(item.value);
   }, []);
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      navigationBarTranslucent
-      statusBarTranslucent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent navigationBarTranslucent statusBarTranslucent onRequestClose={handleClose}>
       <View className="flex flex-1 justify-end">
-        <Pressable className="absolute h-full w-full bg-[#00000050]" onPress={onClose} />
-        <View className="space-y-6 rounded-t-3xl bg-background p-6">
+        <Animated.View className="absolute h-full w-full" style={{ opacity: fadeAnim }}>
+          <Pressable className="flex-1 bg-[#00000050]" onPress={handleClose} />
+        </Animated.View>
+        <Animated.View
+          className="space-y-6 rounded-t-3xl bg-background p-6"
+          style={{ transform: [{ translateY: slideAnim }] }}
+        >
           <View className="flex-row justify-between">
-            <Pressable onPress={onClose}>
+            <Pressable onPress={handleClose}>
               <IcCancel className="m-1 h-6 w-6" />
             </Pressable>
             <Text className="text-xl font-bold text-primary">{title}</Text>
@@ -55,8 +97,14 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
               <IcConfirm className="m-1 h-6 w-6" />
             </Pressable>
           </View>
-          <WheelPicker data={data} value={tempValue} onValueChanged={onValueChanged} itemTextStyle={itemTextStyle} />
-        </View>
+          <WheelPicker
+            data={data}
+            value={tempValue}
+            onValueChanged={onValueChanged}
+            itemTextStyle={itemTextStyle}
+            enableScrollByTapOnItem
+          />
+        </Animated.View>
       </View>
     </Modal>
   );

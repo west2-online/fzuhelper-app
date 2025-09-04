@@ -1696,12 +1696,13 @@
   dependencies:
     make-synchronized "^0.2.8"
 
-"@quidone/react-native-wheel-picker@^1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@quidone/react-native-wheel-picker/-/react-native-wheel-picker-1.4.1.tgz#9f0762465f119a574ff50090f7f460fce90e6f14"
-  integrity sha512-y0Kf3ToC01HcQ2BfNQlBuOO0i0quFfik1HO5DoCZpSlwMhFJt8UYqIc2TryRvsRxbgahBST7W17qXnVj9LDTMw==
+"@quidone/react-native-wheel-picker@^1.6.1":
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/@quidone/react-native-wheel-picker/-/react-native-wheel-picker-1.6.1.tgz#1dae922a82b6c9553c5116fc2be342c64e062d5c"
+  integrity sha512-EFmrqM5k8OUr8k44cU4YRg2WPQwwG+ZtUr04qESNqhOFlvktFCrq6wH2PwnMzBel0Z+9t2PgsMh/2uoTse5RfA==
   dependencies:
     "@rozhkov/react-useful-hooks" "^1.0.10"
+    date-fns "^4.1.0"
 
 "@radix-ui/primitive@1.1.2":
   version "1.1.2"
@@ -4172,6 +4173,11 @@ data-view-byte-offset@^1.0.1:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
+date-fns@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-4.1.0.tgz#64b3d83fff5aa80438f5b1a633c2e83b8a1c2d14"
+  integrity sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==
+
 dayjs@^1.11.13:
   version "1.11.13"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.13.tgz#92430b0139055c3ebb60150aa13e860a4b5a366c"
@@ -5174,14 +5180,7 @@ expo-file-system@~18.1.11:
   resolved "https://registry.yarnpkg.com/expo-file-system/-/expo-file-system-18.1.11.tgz#a563c715c4bb5c18729d6d104e8c6cdfbd383e69"
   integrity sha512-HJw/m0nVOKeqeRjPjGdvm+zBi5/NxcdPf8M8P3G2JFvH5Z8vBWqVDic2O58jnT1OFEy0XXzoH9UqFu7cHg9DTQ==
 
-expo-font@^13.3.2:
-  version "13.3.2"
-  resolved "https://registry.yarnpkg.com/expo-font/-/expo-font-13.3.2.tgz#1b5a1a14d6827a48a3f003577d5f7dc6b344a1d3"
-  integrity sha512-wUlMdpqURmQ/CNKK/+BIHkDA5nGjMqNlYmW0pJFXY/KE/OG80Qcavdu2sHsL4efAIiNGvYdBS10WztuQYU4X0A==
-  dependencies:
-    fontfaceobserver "^2.1.0"
-
-expo-font@~13.3.2:
+expo-font@^13.3.2, expo-font@~13.3.2:
   version "13.3.2"
   resolved "https://registry.yarnpkg.com/expo-font/-/expo-font-13.3.2.tgz#1b5a1a14d6827a48a3f003577d5f7dc6b344a1d3"
   integrity sha512-wUlMdpqURmQ/CNKK/+BIHkDA5nGjMqNlYmW0pJFXY/KE/OG80Qcavdu2sHsL4efAIiNGvYdBS10WztuQYU4X0A==
