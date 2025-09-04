@@ -20,7 +20,7 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
   const colorScheme = useColorScheme();
   const itemTextStyle = useMemo(() => ({ color: colorScheme === 'dark' ? 'white' : 'black' }), [colorScheme]);
 
-  const HEIGHT = 300; // 预估总高度
+  const HEIGHT = 310; // 预估总高度
   const DURATION = 250; // 动画时长
   const slideAnim = useRef(new Animated.Value(HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -90,6 +90,9 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
         <Animated.View
           className="space-y-6 rounded-t-3xl bg-background p-6"
           style={{ transform: [{ translateY: slideAnim }] }}
+          onLayout={event => {
+            console.log(event.nativeEvent.layout.height);
+          }}
         >
           <View className="flex-row justify-between">
             <Pressable onPress={handleClose}>
