@@ -1,6 +1,7 @@
 import WheelPicker from '@quidone/react-native-wheel-picker';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Modal, Pressable, View, useColorScheme } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Modal, Pressable, View, useColorScheme } from 'react-native';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
@@ -22,43 +23,16 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
 
   const HEIGHT = 310; // 预估总高度
   const DURATION = 250; // 动画时长
-  const slideAnim = useRef(new Animated.Value(HEIGHT)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const isAnimating = useRef(false);
-
+  const slideAnim = useSharedValue(HEIGHT);
+  const fadeAnim = useSharedValue(0);
   // 避免动画卡顿，callback将在动画结束后调用
   const handleAnimation = useCallback(
     (isEnter: boolean, callback?: () => void) => {
-      if (isAnimating.current) return;
-      isAnimating.current = true;
-      const animations = isEnter
-        ? [
-            Animated.timing(fadeAnim, {
-              toValue: 1,
-              duration: DURATION,
-              useNativeDriver: true,
-            }),
-            Animated.timing(slideAnim, {
-              toValue: 0,
-              duration: DURATION,
-              useNativeDriver: true,
-            }),
-          ]
-        : [
-            Animated.timing(fadeAnim, {
-              toValue: 0,
-              duration: DURATION,
-              useNativeDriver: true,
-            }),
-            Animated.timing(slideAnim, {
-              toValue: HEIGHT,
-              duration: DURATION,
-              useNativeDriver: true,
-            }),
-          ];
-      Animated.parallel(animations).start(() => {
-        isAnimating.current = false;
-        callback?.();
+      fadeAnim.value = withTiming(isEnter ? 1 : 0, { duration: DURATION });
+      slideAnim.value = withTiming(isEnter ? 0 : HEIGHT, { duration: DURATION }, () => {
+        if (callback) {
+          runOnJS(callback)();
+        }
       });
     },
     [fadeAnim, slideAnim],
@@ -84,18 +58,23 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
     setTempValue(item.value);
   }, []);
 
+  const backgroundStyle = useAnimatedStyle(() => ({
+    opacity: fadeAnim.value,
+  }));
+
+  const pickerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: slideAnim.value }],
+  }));
+
   return (
     <Modal visible={visible} transparent navigationBarTranslucent statusBarTranslucent onRequestClose={handleClose}>
       <View className="flex flex-1 justify-end">
         {/* 背景阴影 */}
-        <Animated.View className="absolute h-full w-full" style={{ opacity: fadeAnim }}>
+        <Animated.View className="absolute h-full w-full" style={backgroundStyle}>
           <Pressable className="flex-1 bg-[#00000050]" onPress={handleClose} />
         </Animated.View>
         {/* Picker部分 */}
-        <Animated.View
-          className="space-y-6 rounded-t-3xl bg-background p-6"
-          style={{ transform: [{ translateY: slideAnim }] }}
-        >
+        <Animated.View className="space-y-6 rounded-t-3xl bg-background p-6" style={pickerStyle}>
           <View className="flex-row justify-between">
             <Pressable onPress={handleClose}>
               <IcCancel className="m-1 h-6 w-6" />
