@@ -5,8 +5,9 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import { DARKEN_BACKGROUND_KEY } from './constants';
 
 const hasCustomBackground = async () => {
-  const path = getBackgroundImagePath();
-  return await ReactNativeBlobUtil.fs.exists(path);
+  // const path = getBackgroundImagePath();
+  // return await ReactNativeBlobUtil.fs.exists(path);
+  return false;
 };
 
 const getBackgroundImagePath = () => {

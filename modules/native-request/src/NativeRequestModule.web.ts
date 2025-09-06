@@ -1,9 +1,13 @@
-import { EventEmitter } from 'expo-modules-core';
-
-const emitter = new EventEmitter({} as any);
-
 export default {
-  async get(url: string) {
-    return url + 'web';
+  get(...args: any) {
+    console.log('TODO: get', args);
+  },
+
+  post(...args: any) {
+    console.log('TODO: post', args);
+  },
+
+  postJSON(...args: any) {
+    console.log('TODO: postJSON', args);
   },
 };

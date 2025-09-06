@@ -138,13 +138,6 @@ const config: ExpoConfig = {
       },
     ],
     [
-      'expo-tracking-transparency',
-      {
-        userTrackingPermission:
-          '请允许我们搜集可以用于追踪您或您的设备的应用相关数据，这将会用于投放个性化内容，如教务处通知推送、成绩更新推送等内容.',
-      },
-    ],
-    [
       'react-native-edge-to-edge',
       {
         android: {

@@ -2,7 +2,7 @@ import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_DOMAIN, SSO_LOGIN_COOKIE_KEY } from '@/lib/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import CookieManager from '@react-native-cookies/cookies';
+// import CookieManager from '@react-native-cookies/cookies';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useRef } from 'react';
@@ -51,12 +51,12 @@ export default function LearningCenterTokenPage() {
         if (extractedToken) {
           await AsyncStorage.setItem(LEARNING_CENTER_TOKEN_KEY, extractedToken);
 
-          const cookies = await CookieManager.get(SSO_LOGIN_COOKIE_DOMAIN);
-          const SOURCEID_TGC = cookies.SOURCEID_TGC.value;
-          console.log('获取到的 SSO Cookie:', SOURCEID_TGC);
-          await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, `SOURCEID_TGC=${SOURCEID_TGC}`);
-          toast.success('登录成功');
-          router.replace('/(tabs)'); // 跳转到首页
+          // const cookies = await CookieManager.get(SSO_LOGIN_COOKIE_DOMAIN);
+          // const SOURCEID_TGC = cookies.SOURCEID_TGC.value;
+          // console.log('获取到的 SSO Cookie:', SOURCEID_TGC);
+          // await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, `SOURCEID_TGC=${SOURCEID_TGC}`);
+          // toast.success('登录成功');
+          // router.replace('/(tabs)'); // 跳转到首页
         }
       }
     },

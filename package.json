@@ -15,7 +15,8 @@
     "prebuild:ios": "expo prebuild --platform ios",
     "test": "jest --watchAll",
     "lint": "expo lint",
-    "openapi": "openapi-ts"
+    "openapi": "openapi-ts",
+    "web": "expo start --web"
   },
   "jest": {
     "preset": "jest-expo"
@@ -71,7 +72,6 @@
     "expo-splash-screen": "~0.30.10",
     "expo-status-bar": "~2.2.3",
     "expo-system-ui": "~5.0.11",
-    "expo-tracking-transparency": "~5.2.4",
     "htmlparser2": "^10.0.0",
     "lucide-react-native": "^0.525.0",
     "nativewind": "^4.1.23",

@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Dimensions, PixelRatio } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import ImagePicker from 'react-native-image-crop-picker';
+// import ImagePicker from 'react-native-image-crop-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -57,32 +57,32 @@ export default function AppearancePage() {
 
   const selectPicture = useCallback(async () => {
     // 获取屏幕宽高
-    const { width, height } = Dimensions.get('screen');
-    const scale = PixelRatio.get();
-    ImagePicker.openPicker({
-      mediaType: 'photo',
-    })
-      .then(async image => {
-        // https://github.com/ivpusic/react-native-image-crop-picker/issues/1367#issuecomment-841350648
-        let croppedImage = await ImagePicker.openCropper({
-          path: image.path,
-          width: width * scale,
-          height: height * scale,
-          mediaType: 'photo',
-        });
-        await setDarkenBackground(true); // 默认压暗，用户可以手动关闭
-        await setBackgroundImage(croppedImage.path);
-        await ReactNativeBlobUtil.fs.unlink(image.path);
-        toast.success('设置成功，应用将重启');
-        redirect('/(guest)');
-      })
-      .catch(err => {
-        console.log('error', err);
-        if (err.code === 'E_PICKER_CANCELLED') {
-          return;
-        }
-        toast.error('设置失败：' + err);
-      });
+    // const { width, height } = Dimensions.get('screen');
+    // const scale = PixelRatio.get();
+    // ImagePicker.openPicker({
+    //   mediaType: 'photo',
+    // })
+    //   .then(async image => {
+    //     // https://github.com/ivpusic/react-native-image-crop-picker/issues/1367#issuecomment-841350648
+    //     let croppedImage = await ImagePicker.openCropper({
+    //       path: image.path,
+    //       width: width * scale,
+    //       height: height * scale,
+    //       mediaType: 'photo',
+    //     });
+    //     await setDarkenBackground(true); // 默认压暗，用户可以手动关闭
+    //     await setBackgroundImage(croppedImage.path);
+    //     await ReactNativeBlobUtil.fs.unlink(image.path);
+    //     toast.success('设置成功，应用将重启');
+    //     redirect('/(guest)');
+    //   })
+    //   .catch(err => {
+    //     console.log('error', err);
+    //     if (err.code === 'E_PICKER_CANCELLED') {
+    //       return;
+    //     }
+    //     toast.error('设置失败：' + err);
+    //   });
   }, [redirect]);
 
   const restoreDefault = useCallback(async () => {

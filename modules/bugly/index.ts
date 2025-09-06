@@ -1,3 +1,5 @@
 // Reexport the native module.
 // and on native platforms to BuglyModule.ts
-export { default } from './src/BuglyModule';
+import BuglyModule from './src/BuglyModule';
+
+export default BuglyModule;

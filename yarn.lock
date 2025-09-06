@@ -5393,11 +5393,6 @@ expo-system-ui@~5.0.11:
     "@react-native/normalize-colors" "0.79.6"
     debug "^4.3.2"
 
-expo-tracking-transparency@~5.2.4:
-  version "5.2.4"
-  resolved "https://registry.yarnpkg.com/expo-tracking-transparency/-/expo-tracking-transparency-5.2.4.tgz#f3e343e9094376e89ec590444ac05dda6b4ecd25"
-  integrity sha512-Evog1rmbSLrODuG8AukEoV0y1RzQiJelX95rFuXY3kxHZQbiBOQ7YzAOsuYACztDf4XDoSODStdHSgUkgKNxJA==
-
 expo@53.0.22:
   version "53.0.22"
   resolved "https://registry.yarnpkg.com/expo/-/expo-53.0.22.tgz#ff61b6bcdf0855b7b88ca5ca0f622e12cbdb1d0f"
