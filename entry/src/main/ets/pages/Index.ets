@@ -1,0 +1,80 @@
+import { webview } from '@kit.ArkWeb';
+import { BusinessError } from '@kit.BasicServicesKit';
+
+@Entry
+@Component
+struct Index {
+  controller: webview.WebviewController = new webview.WebviewController();
+  PREFIX = 'https://fzuhelper.local/'
+  mimeTypeMap = new Map([
+    ["html", 'text/html'],
+    ["js", "text/javascript"],
+    ["css", "text/css"],
+    ["png", "image/png"],
+    ["jpg", "image/jpeg"],
+    ["jpeg", "image/jpeg"],
+    ["webp", "image/webp"],
+    ["gif", "image/gif"],
+    ["ttf", "font/ttf"],
+    ["ico", "image/x-icon"],
+    ["woff", "font/woff"],
+    ["woff2", "font/woff2"],
+    ["json", "application/json"]
+  ])
+
+  aboutToAppear(): void {
+    try {
+      // 配置Web开启无线调试模式，指定TCP Socket的端口。
+      webview.WebviewController.setWebDebuggingAccess(true);
+    } catch (error) {
+      console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
+    }
+  }
+
+  build() {
+    RelativeContainer() {
+      Web({
+        src: this.PREFIX + 'index.html',
+        controller: this.controller
+      })
+        .width('100%')
+        .height('100%')
+        .domStorageAccess(true)
+        .javaScriptAccess(true)
+        .fileAccess(true)
+        .geolocationAccess(true)
+        .horizontalScrollBarAccess(false)
+        .mixedMode(MixedMode.All)
+        .onInterceptRequest((event) => {
+          if (!event) {
+            return null
+          }
+          // 解决跨域，router.replace等问题
+          const url = event.request.getRequestUrl()
+          console.log("WEBVIEW INTERCEPT: " + url)
+          if (url.startsWith(this.PREFIX)) {
+            let rawfileName: string = 'bundle/' + url.substring(this.PREFIX.length)
+            console.log(rawfileName)
+            let suffix = url.substring(url.lastIndexOf('.') + 1).toLowerCase()
+            console.log(suffix)
+            let mimeType = this.mimeTypeMap.get(suffix);
+            if (typeof mimeType === 'string') {
+              let response = new WebResourceResponse();
+              response.setResponseData($rawfile(rawfileName));
+              response.setResponseEncoding('utf-8');
+              response.setResponseMimeType(mimeType);
+              response.setResponseCode(200);
+              response.setReasonMessage('OK');
+              response.setResponseIsReady(true);
+              console.log('returning...')
+              return response;
+            }
+            console.error('Prefix match but fail to load')
+          }
+          return null
+        })
+    }
+    .height('100%')
+    .width('100%')
+  }
+}
