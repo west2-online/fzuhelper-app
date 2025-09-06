@@ -142,11 +142,11 @@ export class NotificationManager {
   private static async calMarkDigest(semester: string): Promise<string[]> {
     let result: string[] = [];
 
-    // 由于只需要知道课程信息，而课程信息在选课结束后就会提供（只是没成绩），所以缓存时间直接给 14 天
+    // 由于只需要知道课程信息，而课程信息在选课结束后就会提供（只是没成绩），所以缓存时间直接给 7 天
     const data = await fetchWithCache(
       [GRADE_LIST_KEY],
       () => getApiV1JwchAcademicScores(),
-      { staleTime: 14 * EXPIRE_ONE_DAY }, // 缓存14 天
+      { staleTime: 7 * EXPIRE_ONE_DAY }, // 缓存 7 天
     );
 
     // 如果有数据，则提取需要考试的考场信息，聚合成一个数组
@@ -156,7 +156,7 @@ export class NotificationManager {
       // 过滤出当前学期的课程
       const filteredData = data.data.data.filter(item => item.term === semester);
       for (const item of filteredData) {
-        result.push(await md5([item.name, item.term, item.teacher, item.elective_type].join('|'), 32));
+        result.push(await md5([item.name, item.term, item.teacher, item.elective_type, item.classroom].join('|'), 32));
       }
     }
 
