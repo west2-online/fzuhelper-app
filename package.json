@@ -16,7 +16,8 @@
     "test": "jest --watchAll",
     "lint": "expo lint",
     "openapi": "openapi-ts",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "bundle": "expo export -p web"
   },
   "jest": {
     "preset": "jest-expo"
