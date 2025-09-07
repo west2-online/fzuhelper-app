@@ -54,6 +54,7 @@
     "dayjs": "^1.11.13",
     "domhandler": "^5.0.3",
     "domutils": "^3.2.2",
+    "dsbridge": "^3.1.4",
     "expo": "53.0.22",
     "expo-blur": "~14.1.5",
     "expo-build-properties": "~0.14.8",
