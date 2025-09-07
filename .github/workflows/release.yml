@@ -1,0 +1,69 @@
+name: Publish Release
+
+on:
+  workflow_call:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: outputs
+          path: ${{ github.workspace }}/outputs/
+
+      - name: Extract APK
+        id: apk-info
+        shell: bash
+        run: |
+          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
+          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
+          echo "APK_FILENAME=FzuHelper_${APP_VERSION_NAME}(${APP_VERSION_CODE}).apk" >> "$GITHUB_OUTPUT"
+          mv $GITHUB_WORKSPACE/outputs/apk/release/app-arm64-v8a-release.apk $APK_FILENAME
+
+      - name: Get version info
+        id: version-info
+        run: |
+          CURRENT_VERSION=${GITHUB_REF_NAME}
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+          git fetch --tags --force
+          ALL_TAGS=$(git tag -l "*.*.*" --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')
+          
+          PREV_TAG=$(echo "$ALL_TAGS" | grep -B1 "$GITHUB_REF_NAME" | head -n1)
+          
+          [ -z "$PREV_TAG" ] && PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          CHANGELOG=$(git log --pretty=format:"- [%%h] %%s (by %%an)" \
+            --date=short \
+            --no-merges \
+            ${{ steps.version-info.outputs.prev_tag }}..HEAD | sed 's/%/%%/g')
+
+          COMPARE_URL="https://github.com/${{ github.repository }}/compare/${{ steps.version-info.outputs.prev_tag }}...${{ github.ref_name }}"
+          
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "## [${{ steps.version-info.outputs.current_version }}]($COMPARE_URL)" >> $GITHUB_OUTPUT
+          echo "### $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.version-info.outputs.current_version }}
+          generate_release_notes: true  # 自动生成发布说明
+          body: ${{ steps.changelog.outputs.changelog }}
+          prerelease: false
+          files: |
+            ${{ steps.apk-info.outputs.apk_filename }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
