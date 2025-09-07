@@ -1,7 +1,7 @@
 {
   "app": {
     "bundleName": "com.west2online.fzuhelper",
-    "vendor": "example",
+    "vendor": "west2online",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "icon": "$media:layered_image",

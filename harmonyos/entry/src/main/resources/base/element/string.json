@@ -2,15 +2,15 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "module description"
+      "value": "FzuHelper"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "FzuHelper"
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
+      "value": "FzuHelper"
     }
   ]
 }
