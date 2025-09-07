@@ -1,0 +1,15 @@
+/node_modules
+/oh_modules
+/local.properties
+/.idea
+**/build
+/.hvigor
+.cxx
+/.clangd
+/.clang-format
+/.clang-tidy
+**/.test
+/.appanalyzer
+
+entry/src/main/resources/rawfile/bundle/*
+!entry/src/main/resources/rawfile/bundle/.gitkeep
