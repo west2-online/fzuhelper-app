@@ -18,6 +18,7 @@ import { getColorScheme } from '@/lib/appearance';
 import { StackNavigatorScreenOptions } from '@/lib/constants';
 import patchTextComponent from '@/utils/patch-text-component';
 
+import 'utils/patch-alert';
 import '../global.css';
 
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
