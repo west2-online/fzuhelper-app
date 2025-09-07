@@ -12,4 +12,3 @@
 /.appanalyzer
 
 entry/src/main/resources/rawfile/bundle/*
-!entry/src/main/resources/rawfile/bundle/.gitkeep

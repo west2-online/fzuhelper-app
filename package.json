@@ -17,7 +17,7 @@
     "lint": "expo lint",
     "openapi": "openapi-ts",
     "web": "expo start --web",
-    "bundle": "expo export -p web"
+    "bundle": "expo export -p web --output-dir ./harmonyos/entry/src/main/resources/rawfile/bundle"
   },
   "jest": {
     "preset": "jest-expo"
