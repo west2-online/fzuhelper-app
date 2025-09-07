@@ -1,10 +1,12 @@
 import { webview } from '@kit.ArkWeb';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { WebViewControllerProxy } from '@hzw/ohos-dsbridge'
+import { NativeRequestModule } from '../bridge/NativeRequestModule';
 
 @Entry
 @Component
 struct Index {
-  controller: webview.WebviewController = new webview.WebviewController();
+  controller: WebViewControllerProxy = WebViewControllerProxy.createController();
   PREFIX = 'https://fzuhelper.local/'
   mimeTypeMap = new Map([
     ["html", 'text/html'],
@@ -29,18 +31,20 @@ struct Index {
     } catch (error) {
       console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
     }
+    this.controller.addJavascriptObject(new NativeRequestModule(), 'NativeRequest')
   }
 
   build() {
     RelativeContainer() {
       Web({
         src: this.PREFIX + 'index.html',
-        controller: this.controller
+        controller: this.controller.webviewController
       })
         .width('100%')
         .height('100%')
         .domStorageAccess(true)
         .javaScriptAccess(true)
+        .javaScriptProxy(this.controller.javaScriptProxy)
         .fileAccess(true)
         .geolocationAccess(true)
         .horizontalScrollBarAccess(false)
