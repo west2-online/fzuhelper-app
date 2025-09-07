@@ -19,9 +19,10 @@ jobs:
         id: apk-info
         shell: bash
         run: |
-          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
-          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
-          echo "APK_FILENAME=FzuHelper_${APP_VERSION_NAME}(${APP_VERSION_CODE}).apk" >> "$GITHUB_OUTPUT"
+          APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)
+          APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)
+          APK_FILENAME="FzuHelper_${APP_VERSION_NAME}(${APP_VERSION_CODE}).apk"
+          echo "apk_filename=$APK_FILENAME" >> "$GITHUB_OUTPUT"
           mv $GITHUB_WORKSPACE/outputs/apk/release/app-arm64-v8a-release.apk $APK_FILENAME
 
       - name: Checkout source code

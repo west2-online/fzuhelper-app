@@ -19,28 +19,21 @@ jobs:
         id: version-info
         shell: bash
         run: |
-          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
-          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
+          APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)
+          APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)
           {
             echo "CHANGELOG<<BSEOF"
             cat $GITHUB_WORKSPACE/outputs/changelog
             echo "BSEOF"
           } >> "$GITHUB_OUTPUT"
-          echo "APK_FILENAME=FzuHelper_${APP_VERSION_NAME}(${APP_VERSION_CODE}).apk" >> "$GITHUB_OUTPUT"
+          APK_FILENAME="FzuHelper_${APP_VERSION_NAME}(${APP_VERSION_CODE}).apk"
+          echo "apk_filename=$APK_FILENAME" >> "$GITHUB_OUTPUT"
           mv $GITHUB_WORKSPACE/outputs/apk/release/app-arm64-v8a-release.apk $APK_FILENAME
 
       - name: Delete alpha using GitHub CLI
         run: |
-          if gh release view alpha; then
-            gh release delete alpha --yes
-          else
-            echo "No alpha release exists."
-          fi
-          if gh tag view alpha; then
-            gh tag delete alpha --yes
-          else
-            echo "No alpha tag exists."
-          fi
+          gh release delete alpha --yes >/dev/null 2>&1 || echo "No alpha release exists."
+          gh api -X DELETE repos/${GITHUB_REPOSITORY}/git/refs/tags/alpha >/dev/null 2>&1 || echo "No alpha tag exists."
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -55,6 +48,6 @@ jobs:
             此版本为新架构测试版，请提前加入内测群 1020036141 了解详情
           prerelease: true
           files: |
-            ${{ steps.version-info.outputs.APK_FILENAME }}
+            ${{ steps.version-info.outputs.apk_filename }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
