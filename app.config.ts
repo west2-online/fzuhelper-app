@@ -204,6 +204,7 @@ const config: ExpoConfig = {
   ],
   experiments: {
     typedRoutes: true,
+    baseUrl: '/local/',
   },
 };
 

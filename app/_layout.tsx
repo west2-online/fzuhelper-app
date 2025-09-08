@@ -52,6 +52,7 @@ export default function RootLayout() {
             <GestureHandlerRootView>
               <LearningCenterContextProvider>
                 <Stack screenOptions={StackNavigatorScreenOptions}>
+                  <Stack.Screen name="(guest)" />
                   <Stack.Screen name="+not-found" />
                 </Stack>
 

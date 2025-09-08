@@ -59,13 +59,25 @@ const GRADUATE_ID_PREFIX = '00000';
 class UserLogin {
   #cookies: Record<string, string> = {};
 
-  #setCookies(_newCookies: string) {
-    const newCookies: Record<string, string> = Object.fromEntries(
-      _newCookies
-        .split(',')
-        .map(cookie => cookie.trim())
-        .map(cookie => cookie.split(';')[0].split('=')),
-    );
+  #setCookies(_newCookies: any) {
+    let newCookies: Record<string, string> = {};
+    if (typeof _newCookies === 'string') {
+      console.log('cookie is string');
+      newCookies = Object.fromEntries(
+        (_newCookies as string)
+          .split(',')
+          .map(cookie => cookie.trim())
+          .map(cookie => cookie.split(';')[0].split('=')),
+      );
+    } else if (Array.isArray(_newCookies)) {
+      console.log('cookie is array');
+      newCookies = Object.fromEntries(
+        (_newCookies as string[]).map(cookie => cookie.trim()).map(cookie => cookie.split(';')[0].split('=')),
+      );
+    } else {
+      console.log('cookie is unknown', typeof _newCookies);
+      return;
+    }
 
     // 后面的 newCookies 会覆盖前面的 this.#cookies
     this.#cookies = { ...this.#cookies, ...newCookies };
@@ -100,6 +112,9 @@ class UserLogin {
     if (resHeaders['Set-Cookie']) {
       this.#setCookies(resHeaders['Set-Cookie']);
     }
+    if (resHeaders['set-cookie']) {
+      this.#setCookies(resHeaders['set-cookie']);
+    }
 
     return data;
   }
@@ -109,6 +124,9 @@ class UserLogin {
 
     if (resHeaders['Set-Cookie']) {
       this.#setCookies(resHeaders['Set-Cookie']);
+    }
+    if (resHeaders['set-cookie']) {
+      this.#setCookies(resHeaders['set-cookie']);
     }
 
     return { data: data, headers: resHeaders };

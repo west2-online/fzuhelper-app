@@ -7,7 +7,7 @@ import { NativeRequestModule } from '../bridge/NativeRequestModule';
 @Component
 struct Index {
   controller: WebViewControllerProxy = WebViewControllerProxy.createController();
-  PREFIX = 'https://fzuhelper.local/'
+  PREFIX = 'https://fzuhelper.west2.online/local/'
   mimeTypeMap = new Map([
     ["html", 'text/html'],
     ["js", "text/javascript"],
@@ -76,6 +76,34 @@ struct Index {
             console.error('Prefix match but fail to load')
           }
           return null
+        })
+        .onAlert((event) => {
+          if (event) {
+            console.log('event.url:' + event.url);
+            console.log('event.message:' + event.message);
+            const title = event.message.split('\n')[0];
+            const text = event.message.split('\n', 2)[1];
+            this.getUIContext().showAlertDialog({
+              title: title,
+              message: text,
+              primaryButton: {
+                value: 'cancel',
+                action: () => {
+                  event.result.handleCancel();
+                }
+              },
+              secondaryButton: {
+                value: 'ok',
+                action: () => {
+                  event.result.handleConfirm();
+                }
+              },
+              cancel: () => {
+                event.result.handleCancel();
+              }
+            })
+          }
+          return true;
         })
     }
     .height('100%')
