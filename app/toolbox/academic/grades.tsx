@@ -20,6 +20,7 @@ import { FAQ_COURSE_GRADE } from '@/lib/FAQ';
 import { GRADE_CACHE_KEY, JWCH_TERM_LIST_KEY } from '@/lib/constants';
 import { getCourseSetting } from '@/lib/course';
 import { calSingleTermSummary, parseScore } from '@/lib/grades';
+import { toast } from 'sonner-native';
 
 interface TermContentProps {
   termData: JwchAcademicScoresResponse_AcademicScoresDataItem[];
@@ -101,6 +102,7 @@ export default function GradesPage() {
     data: termList,
     isFetching: isFetchingTermList,
     isError: isErrorTermList,
+    error: errorTermList,
     refetch: refetchTermList,
   } = useApiRequest(getApiV1JwchTermList, {}, { persist: true, queryKey: [JWCH_TERM_LIST_KEY] });
 
@@ -111,6 +113,7 @@ export default function GradesPage() {
     dataUpdatedAt: academicDataUpdatedAt,
     isFetching: isFetchingAcademicData,
     isError: isErrorAcademicData,
+    error: errorAcademicData,
     refetch: refetchAcademicData,
   } = useApiRequest(getApiV1JwchAcademicScores, {}, { persist: true, queryKey: [GRADE_CACHE_KEY] });
 
@@ -119,13 +122,26 @@ export default function GradesPage() {
     if (isFetchingTermList || isFetchingAcademicData) {
       setState(STATE.LOADING);
     } else if (isErrorTermList || isErrorAcademicData) {
+      const errorMsgList = [errorTermList?.data?.message, errorAcademicData?.data?.message].filter(Boolean);
+      if (errorMsgList.length > 0) {
+        toast.error(errorMsgList.join('\n'));
+      }
       setState(STATE.ERROR);
     } else if (!termList || termList.length === 0) {
       setState(STATE.EMPTY);
     } else {
       setState(STATE.CONTENT);
     }
-  }, [isFetchingTermList, isFetchingAcademicData, isErrorTermList, isErrorAcademicData, termList, currentTerm]);
+  }, [
+    isFetchingTermList,
+    isFetchingAcademicData,
+    isErrorTermList,
+    isErrorAcademicData,
+    termList,
+    currentTerm,
+    errorTermList,
+    errorAcademicData,
+  ]);
 
   const [showFAQ, setShowFAQ] = useState(false); // 是否显示 FAQ 模态框
 

@@ -67,8 +67,8 @@ export default function OfficeNoticePage() {
     if (isFetching && !isLoadingMore && pageNum === 1) {
       setState(STATE.LOADING);
     } else if (isError) {
-      if (error && error.message) {
-        toast.error(error.message);
+      if (error?.data?.message) {
+        toast.error(error.data.message);
       }
       setIsLoadingMore(false);
       if (pageNum === 1) {
