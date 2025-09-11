@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
+import { RejectEnum } from '@/api/enum';
 import { getApiV1LoginAccessToken } from '@/api/generate';
 import PageContainer from '@/components/page-container';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
@@ -118,6 +119,12 @@ const LoginPage: React.FC = () => {
       // 存储所需的信息，这里存储了学号、密码、ID 和 Cookies（后两位负责请求时发送）
       await LocalUser.setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
       await LocalUser.setCredentials(id, cookies); // 设置登录凭据
+      if (!(await LocalUser.checkCredentials())) {
+        Promise.reject({
+          type: RejectEnum.NativeLoginFailed,
+          data: '登录数据异常，请重试',
+        });
+      }
       setAegisConfig({ uin: username });
       console.log('aegis set uin:', username);
       if (Platform.OS === 'android') {

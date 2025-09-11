@@ -285,7 +285,7 @@ class UserLogin {
 
     if (typeof _captcha !== 'string') {
       captcha = await this.autoVerifyCaptcha(_captcha);
-      console.log('auto veryfy captcha result:', captcha);
+      console.log('auto verify captcha result:', captcha);
     } else {
       captcha = _captcha;
     }

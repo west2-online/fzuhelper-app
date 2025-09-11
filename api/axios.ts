@@ -116,6 +116,12 @@ request.interceptors.response.use(
         refreshing = true;
         try {
           await LocalUser.login();
+          if (!(await LocalUser.checkCredentials())) {
+            rejectWith({
+              type: RejectEnum.ReLoginFailed,
+              data: '登录数据异常，请重试',
+            });
+          }
           queue.forEach(({ config: queuedConfig, resolve }) => {
             resolve(request(queuedConfig));
           });

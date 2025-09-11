@@ -218,7 +218,7 @@ export class LocalUser {
   }
 }
 
-// （本科生教务系统）检查 JWCH 的 Cookie 是否有效，如果无效，重新自动登录
+// （本科生教务系统）检查 JWCH 的 Cookie 是否有效，检查串号
 async function checkCookieJWCH(credentials: LoginCredentials) {
   const COOKIE_CHECK_URL = 'https://jwcjwxt2.fzu.edu.cn:81/jcxx/xsxx/StudentInformation.aspx?id='; // 尝试访问学生个人信息页面
   if (!credentials.identifier || !credentials.cookies) {
@@ -235,6 +235,7 @@ async function checkCookieJWCH(credentials: LoginCredentials) {
   const schoolid = /id="ContentPlaceHolder1_LB_xh">(\d+)/.exec(str)?.[1];
 
   const userid = (await LocalUser.getUser()).userid;
+  console.log('checkCookieJWCH: from info page: ', schoolid, 'from user input: ', userid);
   if (!schoolid || !userid) {
     return false;
   }
@@ -242,7 +243,7 @@ async function checkCookieJWCH(credentials: LoginCredentials) {
   return (schoolid && userid && schoolid === userid) || false;
 }
 
-// （研究生教务系统）检查 JWCH 的 Cookie 是否有效，如果无效，重新自动登录
+// （研究生教务系统）检查 JWCH 的 Cookie 是否有效
 async function checkCookieYJSY(credentials: LoginCredentials) {
   const COOKIE_CHECK_URL = 'https://yjsglxt.fzu.edu.cn/xsgl/xsxx_show.aspx'; // 尝试访问学生个人信息页面
   if (!credentials.cookies) {
@@ -260,7 +261,7 @@ async function checkCookieYJSY(credentials: LoginCredentials) {
   return true;
 }
 
-// （统一认证登录）检查 SSO 的 Cookie 是否有效，如果无效，重新自动登录
+// （统一认证登录）检查 SSO 的 Cookie 是否有效
 export async function checkCookieSSO(credentials: SSOCredentials) {
   const COOKIE_CHECK_URL = 'https://sso.fzu.edu.cn/login'; // 尝试访问学生个人信息页面
   if (!credentials.cookies) {
