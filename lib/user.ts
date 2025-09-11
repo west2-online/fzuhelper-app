@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { RejectEnum } from '@/api/enum';
 import { getApiV1LoginAccessToken } from '@/api/generate';
 import { queryClient } from '@/components/query-provider';
 import { ACCESS_TOKEN_KEY, COURSE_SETTINGS_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
@@ -155,34 +156,19 @@ export class LocalUser {
     }
     let newIdentifier: string = '';
     let newCookies: string = '';
-    switch (this.type) {
-      case USER_TYPE_UNDERGRADUATE:
-        try {
-          // 本科生登录
-          const captchaImage = await this.loginObject.getCaptcha();
-          const result = await this.loginObject.login(this.userid, this.password, captchaImage, false);
-          newIdentifier = result.id;
-          newCookies = result.cookies;
-        } catch (err: any) {
-          throw new Error(err);
-        }
-        break;
-      case USER_TYPE_POSTGRADUATE:
-        try {
-          // 研究生登录
-          const result = await this.loginObject.login(this.userid, this.password, '', true);
-          newIdentifier = result.id;
-          newCookies = result.cookies;
-        } catch (err: any) {
-          throw new Error(err);
-        }
-        break;
-      default:
-        return; // 不做任何事情，直接返回
-    }
+
+    const result = await this.loginObject.login(
+      this.userid,
+      this.password,
+      captcha,
+      this.type === USER_TYPE_POSTGRADUATE,
+    );
+    newIdentifier = result.id;
+    newCookies = result.cookies;
 
     // 通用逻辑，存储登录凭证并获取 AccessToken
     await this.setCredentials(newIdentifier, newCookies);
+    await this.checkCredentialsAndThrow();
     try {
       await getApiV1LoginAccessToken();
       return Promise.resolve();
@@ -193,7 +179,7 @@ export class LocalUser {
   }
 
   /**
-   * 检查登录凭据是否过期
+   * 检查登录凭据是否过期、本科是否串号
    * @returns 返回过期状态，失败或过期均返回 false
    */
   public static async checkCredentials(): Promise<boolean> {
@@ -215,6 +201,20 @@ export class LocalUser {
         break; // 不做任何事情
     }
     return false;
+  }
+
+  /**
+   * 检查登录凭据是否过期、本科是否串号
+   * @throws 如果检查失败会抛出异常
+   */
+  public static async checkCredentialsAndThrow(): Promise<void> {
+    if (!(await this.checkCredentials())) {
+      return Promise.reject({
+        type: RejectEnum.NativeLoginFailed,
+        data: '登录数据异常，请重试',
+      });
+    }
+    return Promise.resolve();
   }
 }
 

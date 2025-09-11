@@ -1,4 +1,6 @@
+import { ACCESS_TOKEN_KEY } from '@/lib/constants';
 import { LocalUser } from '@/lib/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function isAccountExist() {
   // 如果没有加载过用户信息，加载一次后再进行判断
@@ -7,5 +9,6 @@ export async function isAccountExist() {
     await LocalUser.load();
   }
   const userInfo = LocalUser.getUser();
-  return !!userInfo.userid;
+  const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+  return !!userInfo.userid || !!accessToken;
 }
