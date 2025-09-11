@@ -67,13 +67,12 @@ export default function Web() {
 
       const cookieValid = await LocalUser.checkCredentials();
       if (!cookieValid) {
-        // 如果 Cookie 无效，则重新登录
-        const userInfo = LocalUser.getUser();
-        if (!userInfo.password || !userInfo.userid) {
-          toast.error('登录失效，请重新登录');
-          return;
-        } else {
+        try {
           await LocalUser.login();
+        } catch (error) {
+          console.error('教务系统登录失败:', error);
+          toast.error('登录失败，请稍后再试');
+          return;
         }
       }
       const credentials = LocalUser.getCredentials();
