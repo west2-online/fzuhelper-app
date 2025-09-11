@@ -133,7 +133,7 @@ const CoursePage: React.FC = () => {
   // 订阅刷新事件，触发时更新课程数据状态
   useEffect(() => {
     const refreshHandler = () => {
-      setSchedulesByDays(CourseCache.getCachedData(setting.selectedSemester) ?? []);
+      setSchedulesByDays(CourseCache.getCachedData(setting.selectedSemester));
     };
     CourseCache.addRefreshListener(refreshHandler);
     return () => {
