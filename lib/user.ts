@@ -1,8 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { RejectEnum } from '@/api/enum';
 import { getApiV1LoginAccessToken } from '@/api/generate';
 import { queryClient } from '@/components/query-provider';
-import { ACCESS_TOKEN_KEY, COURSE_SETTINGS_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
+import {
+  ACCESS_TOKEN_KEY,
+  COURSE_SETTINGS_KEY,
+  EMPTY_ROOM_SELECTED_CAMPUS_KEY,
+  REFRESH_TOKEN_KEY,
+} from '@/lib/constants';
 import { get } from '@/modules/native-request';
 import { Buffer } from 'buffer';
 import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
@@ -155,34 +161,19 @@ export class LocalUser {
     }
     let newIdentifier: string = '';
     let newCookies: string = '';
-    switch (this.type) {
-      case USER_TYPE_UNDERGRADUATE:
-        try {
-          // 本科生登录
-          const captchaImage = await this.loginObject.getCaptcha();
-          const result = await this.loginObject.login(this.userid, this.password, captchaImage, false);
-          newIdentifier = result.id;
-          newCookies = result.cookies;
-        } catch (err: any) {
-          throw new Error(err);
-        }
-        break;
-      case USER_TYPE_POSTGRADUATE:
-        try {
-          // 研究生登录
-          const result = await this.loginObject.login(this.userid, this.password, '', true);
-          newIdentifier = result.id;
-          newCookies = result.cookies;
-        } catch (err: any) {
-          throw new Error(err);
-        }
-        break;
-      default:
-        return; // 不做任何事情，直接返回
-    }
+
+    const result = await this.loginObject.login(
+      this.userid,
+      this.password,
+      captcha,
+      this.type === USER_TYPE_POSTGRADUATE,
+    );
+    newIdentifier = result.id;
+    newCookies = result.cookies;
 
     // 通用逻辑，存储登录凭证并获取 AccessToken
     await this.setCredentials(newIdentifier, newCookies);
+    await this.checkCredentialsAndThrow();
     try {
       await getApiV1LoginAccessToken();
       return Promise.resolve();
@@ -193,7 +184,7 @@ export class LocalUser {
   }
 
   /**
-   * 检查登录凭据是否过期
+   * 检查登录凭据是否过期、本科是否串号
    * @returns 返回过期状态，失败或过期均返回 false
    */
   public static async checkCredentials(): Promise<boolean> {
@@ -216,9 +207,23 @@ export class LocalUser {
     }
     return false;
   }
+
+  /**
+   * 检查登录凭据是否过期、本科是否串号
+   * @throws 如果检查失败会抛出异常
+   */
+  public static async checkCredentialsAndThrow(): Promise<void> {
+    if (!(await this.checkCredentials())) {
+      return Promise.reject({
+        type: RejectEnum.NativeLoginFailed,
+        data: '登录数据异常，请重试',
+      });
+    }
+    return Promise.resolve();
+  }
 }
 
-// （本科生教务系统）检查 JWCH 的 Cookie 是否有效，如果无效，重新自动登录
+// （本科生教务系统）检查 JWCH 的 Cookie 是否有效，检查串号
 async function checkCookieJWCH(credentials: LoginCredentials) {
   const COOKIE_CHECK_URL = 'https://jwcjwxt2.fzu.edu.cn:81/jcxx/xsxx/StudentInformation.aspx?id='; // 尝试访问学生个人信息页面
   if (!credentials.identifier || !credentials.cookies) {
@@ -235,6 +240,7 @@ async function checkCookieJWCH(credentials: LoginCredentials) {
   const schoolid = /id="ContentPlaceHolder1_LB_xh">(\d+)/.exec(str)?.[1];
 
   const userid = (await LocalUser.getUser()).userid;
+  console.log('checkCookieJWCH: from info page: ', schoolid, 'from user input: ', userid);
   if (!schoolid || !userid) {
     return false;
   }
@@ -242,7 +248,7 @@ async function checkCookieJWCH(credentials: LoginCredentials) {
   return (schoolid && userid && schoolid === userid) || false;
 }
 
-// （研究生教务系统）检查 JWCH 的 Cookie 是否有效，如果无效，重新自动登录
+// （研究生教务系统）检查 JWCH 的 Cookie 是否有效
 async function checkCookieYJSY(credentials: LoginCredentials) {
   const COOKIE_CHECK_URL = 'https://yjsglxt.fzu.edu.cn/xsgl/xsxx_show.aspx'; // 尝试访问学生个人信息页面
   if (!credentials.cookies) {
@@ -260,7 +266,7 @@ async function checkCookieYJSY(credentials: LoginCredentials) {
   return true;
 }
 
-// （统一认证登录）检查 SSO 的 Cookie 是否有效，如果无效，重新自动登录
+// （统一认证登录）检查 SSO 的 Cookie 是否有效
 export async function checkCookieSSO(credentials: SSOCredentials) {
   const COOKIE_CHECK_URL = 'https://sso.fzu.edu.cn/login'; // 尝试访问学生个人信息页面
   if (!credentials.cookies) {
@@ -281,5 +287,6 @@ export async function logoutUser() {
   await CourseCache.clear(); // 清除课程缓存
   await LocalUser.clear(); // 清除本地用户
   queryClient.clear(); // 清除网络缓存
-  await AsyncStorage.removeItem(COURSE_SETTINGS_KEY); // 避免账号切换残留学期、订阅链接等数据
+  // 避免账号切换残留学期、订阅链接、空教室校区偏好等数据
+  await AsyncStorage.multiRemove([COURSE_SETTINGS_KEY, EMPTY_ROOM_SELECTED_CAMPUS_KEY]);
 }

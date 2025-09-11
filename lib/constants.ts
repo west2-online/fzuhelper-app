@@ -121,6 +121,9 @@ export const COURSE_SYMBOLS_MAP = {
   '★': '[二专业]',
 } as const;
 
+// 空教室
+export const EMPTY_ROOM_SELECTED_CAMPUS_KEY = 'empty_room_selected_campus';
+
 // for RNR
 // please sync it with values in `global.css`
 export const NAV_THEME = {

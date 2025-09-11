@@ -9,7 +9,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
-import { getApiV1LoginAccessToken } from '@/api/generate';
 import PageContainer from '@/components/page-container';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
@@ -112,20 +111,16 @@ const LoginPage: React.FC = () => {
     setIsLoggingIn(true); // 禁用按钮
 
     try {
-      // 尝试进行登录
-      const { id, cookies } = await loginRef.current!.login(username, password, captcha, isPostGraduate);
-      // 到此处即视为登录成功
-      // 存储所需的信息，这里存储了学号、密码、ID 和 Cookies（后两位负责请求时发送）
+      // 存储登录所需的信息
       await LocalUser.setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
-      await LocalUser.setCredentials(id, cookies); // 设置登录凭据
+      // 登录、获取 token、检查串号等逻辑
+      await LocalUser.login();
+      // 登录成功
       setAegisConfig({ uin: username });
       console.log('aegis set uin:', username);
       if (Platform.OS === 'android') {
         BuglyModule.setUserId(username);
       }
-
-      // 通过提供 id和 cookies 获取访问令牌
-      await getApiV1LoginAccessToken();
 
       // 跳转到首页
       redirect('/(tabs)');
@@ -157,6 +152,12 @@ const LoginPage: React.FC = () => {
       });
     }
   }, [handleError]);
+
+  const handleTextChange = useCallback((text: string) => {
+    // 只保留数字
+    const filteredText = text.replace(/[^0-9]/g, '');
+    setCaptcha(filteredText);
+  }, []);
 
   return (
     <>
@@ -201,8 +202,9 @@ const LoginPage: React.FC = () => {
                   <View className="mb-12 w-full flex-row items-center justify-between">
                     <Input
                       value={captcha}
-                      onChangeText={setCaptcha}
+                      onChangeText={handleTextChange}
                       placeholder="请输入验证码"
+                      keyboardType="numeric"
                       className="mr-4 flex-1 px-1 py-3"
                     />
                     <TouchableOpacity onPress={refreshCaptcha} activeOpacity={0.7}>
