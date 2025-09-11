@@ -2,7 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getApiV1LoginAccessToken } from '@/api/generate';
 import { queryClient } from '@/components/query-provider';
-import { ACCESS_TOKEN_KEY, COURSE_SETTINGS_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
+import {
+  ACCESS_TOKEN_KEY,
+  COURSE_SETTINGS_KEY,
+  EMPTY_ROOM_SELECTED_CAMPUS_KEY,
+  REFRESH_TOKEN_KEY,
+} from '@/lib/constants';
 import { get } from '@/modules/native-request';
 import { Buffer } from 'buffer';
 import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
@@ -281,5 +286,6 @@ export async function logoutUser() {
   await CourseCache.clear(); // 清除课程缓存
   await LocalUser.clear(); // 清除本地用户
   queryClient.clear(); // 清除网络缓存
-  await AsyncStorage.removeItem(COURSE_SETTINGS_KEY); // 避免账号切换残留学期、订阅链接等数据
+  // 避免账号切换残留学期、订阅链接、空教室校区偏好等数据
+  await AsyncStorage.multiRemove([COURSE_SETTINGS_KEY, EMPTY_ROOM_SELECTED_CAMPUS_KEY]);
 }
