@@ -7,6 +7,7 @@ import Loading from '@/components/loading';
 import { getApiV1TermsList } from '@/api/generate';
 import PageContainer from '@/components/page-container';
 import { CoursePageContext, CoursePageContextProps } from '@/context/course-page';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting, updateCourseSetting } from '@/lib/course';
 import locateDate, { getWeeksBySemester } from '@/lib/locate-date';
@@ -14,7 +15,6 @@ import { NotificationManager } from '@/lib/notification';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 export default function HomePage() {
   const [coursePageContextProps, setCoursePageContextProps] = useState<CoursePageContextProps | null>(null);
