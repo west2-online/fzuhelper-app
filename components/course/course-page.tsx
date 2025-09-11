@@ -163,6 +163,17 @@ const CoursePage: React.FC = () => {
     [safeSetSelectedWeek, selectedWeek],
   );
 
+  const viewabilityConfig = useMemo(
+    () => ({
+      itemVisiblePercentThreshold: 50,
+    }),
+    [],
+  );
+
+  const viewabilityConfigCallbackPairs = useRef([
+    { viewabilityConfig, onViewableItemsChanged: handleViewableItemsChanged },
+  ]);
+
   // 生成周数选择器的数据
   const weekPickerData = useMemo(
     () =>
@@ -283,10 +294,7 @@ const CoursePage: React.FC = () => {
         initialScrollIndex={selectedWeek - 1} // 初始滚动位置
         renderItem={renderItem}
         onLayout={onLayout}
-        onViewableItemsChanged={handleViewableItemsChanged}
-        viewabilityConfig={{
-          itemVisiblePercentThreshold: 50,
-        }}
+        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
         showsHorizontalScrollIndicator={false} // 隐藏水平滚动条
       />
 
