@@ -279,26 +279,27 @@ class UserLogin {
     return;
   }
 
-  async login(username: string, password: string, _captcha: string | Uint8Array, isGraduate = false) {
-    let captcha: string;
+  async login(username: string, password: string, _captcha?: string, isPostGraduate = false) {
     let identifier: string;
 
-    if (typeof _captcha !== 'string') {
-      captcha = await this.autoVerifyCaptcha(_captcha);
-      console.log('auto veryfy captcha result:', captcha);
-    } else {
-      captcha = _captcha;
-    }
-
-    // 研究生和本科生进行区分
-    if (isGraduate) {
-      await this.#graduateLogin(username, password);
-      identifier = GRADUATE_ID_PREFIX + username; // 采用前导 0 拼接
-    } else {
+    if (!isPostGraduate) {
+      // 本科生
+      let captcha: string;
+      if (!_captcha) {
+        const captchaImage = await this.getCaptcha();
+        captcha = await this.autoVerifyCaptcha(captchaImage);
+        console.log('auto verify captcha result:', captcha);
+      } else {
+        captcha = _captcha;
+      }
       const { token, id: id0, num } = await this.#loginCheck(username, password, captcha);
       await this.#ssoLogin(token);
       const { id } = await this.#finishLogin(id0, num);
       identifier = id;
+    } else {
+      // 研究生
+      await this.#graduateLogin(username, password);
+      identifier = GRADUATE_ID_PREFIX + username; // 采用前导 0 拼接
     }
 
     return {
