@@ -55,6 +55,7 @@ export type CustomCourse = ExtendCourseBase & {
   type: 2;
   storageKey: string; // 预留给后端的存储 key
   lastUpdateTime: string; // 最后更新时间
+  semester: string; // 学期
 };
 
 export type CourseInfo = ExtendCourse | CustomCourse;
@@ -145,12 +146,12 @@ export class CourseCache {
   /**
    * 获取缓存数据
    */
-  public static getCachedData(): Record<number, CourseInfo[]> | null {
-    const mergedData: Record<number, CourseInfo[]> = {};
-
-    if (!this.cachedData && !this.cachedExamData) {
-      return null;
+  public static getCachedData(selectedSemester: string): Record<number, CourseInfo[]> {
+    if (!this.cachedData && !this.cachedExamData && !this.cachedCustomData) {
+      return {};
     }
+
+    const mergedData: Record<number, CourseInfo[]> = {};
 
     // 合并课程数据
     if (this.cachedData) {
@@ -175,7 +176,9 @@ export class CourseCache {
       for (const [day, customs] of Object.entries(this.cachedCustomData)) {
         const dayIndex = Number(day);
         if (!mergedData[dayIndex]) mergedData[dayIndex] = [];
-        mergedData[dayIndex].push(...customs);
+        // course.semester 如果为空，则为旧版所添加，不做过滤，在所有学期展示，由用户自己决定去删除或者编辑
+        const filteredCustoms = customs.filter(course => !course.semester || course.semester === selectedSemester);
+        mergedData[dayIndex].push(...filteredCustoms);
       }
     }
 

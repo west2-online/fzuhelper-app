@@ -99,7 +99,7 @@ const CoursePage: React.FC = () => {
           }
         }
         if (!hasCache || hasChanged) {
-          setSchedulesByDays(CourseCache.getCachedData() ?? []);
+          setSchedulesByDays(CourseCache.getCachedData(setting.selectedSemester));
         }
         if (hasCache && hasChanged) toast.info('课程数据已刷新');
         setNeedForceFetch(false);
@@ -108,7 +108,7 @@ const CoursePage: React.FC = () => {
         toast.error('课程数据获取失败，请检查网络连接，将使用本地缓存');
       }
     };
-    setSchedulesByDays(CourseCache.getCachedData() ?? []);
+    setSchedulesByDays(CourseCache.getCachedData(setting.selectedSemester));
     fetchData();
     setCacheInitialized(prev => {
       // 如果先前已经初始化过，说明是切换周数，则需要重置周
@@ -127,18 +127,19 @@ const CoursePage: React.FC = () => {
     currentTerm.term,
     currentTerm.start_date,
     currentTerm.end_date,
+    setting.selectedSemester,
   ]);
 
   // 订阅刷新事件，触发时更新课程数据状态
   useEffect(() => {
     const refreshHandler = () => {
-      setSchedulesByDays(CourseCache.getCachedData() ?? []);
+      setSchedulesByDays(CourseCache.getCachedData(setting.selectedSemester));
     };
     CourseCache.addRefreshListener(refreshHandler);
     return () => {
       CourseCache.removeRefreshListener(refreshHandler);
     };
-  }, []);
+  }, [setting.selectedSemester]);
 
   // 生成一周的日期数据
   const weekArray = useMemo(
