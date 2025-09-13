@@ -2,7 +2,7 @@
   "name": "fzuhelper-app",
   "main": "expo-router/entry",
   "//": "下面的 version 每一位都只能是【一位】数字！！！",
-  "version": "7.1.8",
+  "version": "7.1.9",
   "private": true,
   "scripts": {
     "start": "expo start",
@@ -44,7 +44,7 @@
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-query-persist-client": "^5.85.3",
     "aegis-rn-sdk": "^1.39.1",
-    "axios": "^1.8.2",
+    "axios": "^1.12.0",
     "base64-js": "^1.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
