@@ -174,6 +174,11 @@ internal fun updateNextClassWidget(
 
             } else {
                 setViewLayoutMargin(
+                    R.id.container, RemoteViews.MARGIN_TOP,
+                    0f, TypedValue.COMPLEX_UNIT_DIP
+                )
+
+                setViewLayoutMargin(
                     R.id.container, RemoteViews.MARGIN_BOTTOM,
                     0f, TypedValue.COMPLEX_UNIT_DIP
                 )
