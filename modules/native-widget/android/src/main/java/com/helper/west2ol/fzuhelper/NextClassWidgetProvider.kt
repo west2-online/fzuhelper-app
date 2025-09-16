@@ -160,16 +160,16 @@ internal fun updateNextClassWidget(
                 val minHeight =
                     options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
 
-                val verticalMargin = max((minHeight - minWidth) / 2, 0)
+                val verticalCenteringMargin = max((minHeight - minWidth) / 2, 0)
 
                 setViewLayoutMargin(
                     R.id.container, RemoteViews.MARGIN_TOP,
-                    verticalMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
+                    verticalCenteringMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
                 )
 
                 setViewLayoutMargin(
                     R.id.container, RemoteViews.MARGIN_BOTTOM,
-                    verticalMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
+                    verticalCenteringMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
                 )
 
             } else {
