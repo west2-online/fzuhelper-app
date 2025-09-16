@@ -52,20 +52,6 @@ function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
       `// Caution! In production, you need to generate your own keystore file.\n            // see https://reactnative.dev/docs/signed-apk-android.\n            signingConfig signingConfigs.debug`,
       'signingConfig signingConfigs.release',
     );
-    // abi配置
-    contents = insertAfter(
-      contents,
-      'android {',
-      `
-    splits {
-        abi {
-            reset()
-            enable true
-            universalApk false
-            include "arm64-v8a"
-        }
-    }`,
-    );
     // versionCode根据commit次数设置
     // 前三位对应版本名，后三位或更多对应commit次数
     contents = contents.replace(
@@ -77,7 +63,10 @@ function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
       contents,
       'defaultConfig {',
       `
-        resourceConfigurations += ['zh', 'zh-rCN', 'zh-rTW', 'en']`,
+        resourceConfigurations += ['zh', 'zh-rCN', 'zh-rTW', 'en']
+        ndk {
+            abiFilters "arm64-v8a"
+        }`,
     );
     // https://kirillzyusko.github.io/react-native-keyboard-controller/docs/troubleshooting#filename-longer-than-260-characters
     if (process.platform === 'win32') {
