@@ -22,7 +22,7 @@ import '../global.css';
 import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
-  dsn: 'http://13e1bc6938f243e88a2ceaf93383042b@10.0.2.2:8000/1',
+  dsn: '<dsn_string>',
 
   // Adds more context data to events (IP address, cookies, user, etc.)
   // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
