@@ -31,3 +31,5 @@ nativewind-env.d.ts
 
 # yarn
 yarn-error.log
+
+.env.local

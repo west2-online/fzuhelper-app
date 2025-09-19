@@ -19,9 +19,26 @@ import { StackNavigatorScreenOptions } from '@/lib/constants';
 import patchTextComponent from '@/utils/patch-text-component';
 
 import '../global.css';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'http://13e1bc6938f243e88a2ceaf93383042b@10.0.2.2:8000/1',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
@@ -65,7 +82,7 @@ export default function RootLayout() {
       </QueryProvider>
     </SafeAreaProvider>
   );
-}
+});
 
 const toastStyle = {
   // For better toast background on android

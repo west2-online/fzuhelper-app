@@ -208,6 +208,24 @@ const config: ExpoConfig = {
         },
       },
     ],
+    [
+      '@sentry/react-native/expo',
+      {
+        url: 'https://<sentry_host>/',
+        project: '<project_name>',
+        organization: '<organization_name>',
+        experimental_android: {
+          enableAndroidGradlePlugin: true,
+          autoUploadProguardMapping: true,
+          includeProguardMapping: true,
+          dexguardEnabled: true,
+          uploadNativeSymbols: true,
+          autoUploadNativeSymbols: true,
+          includeNativeSources: true,
+          includeSourceContext: true,
+        },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
