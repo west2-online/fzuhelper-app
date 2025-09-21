@@ -255,16 +255,20 @@ export default function SplashScreen() {
         ) : (
           <View className="flex h-full flex-col">
             {/* Splash内容 */}
-            <View className="mb-10 flex-1">
+            <View className="relative mb-10 flex-1">
               {/* Image 占据全部空间 */}
               <Image className="h-full w-full" src={splashImage} resizeMode="cover" />
               {/* TouchableOpacity 放置在 Image 的下方 */}
               {splashType !== 1 && (
-                <TouchableOpacity onPress={handleSplashClick} activeOpacity={0.7}>
-                  <View className="mx-auto -mt-28 mb-10 h-auto w-1/2 flex-1 items-center justify-center rounded-full bg-black/60">
+                <View className="absolute bottom-10 left-0 right-0 flex items-center">
+                  <TouchableOpacity
+                    onPress={handleSplashClick}
+                    activeOpacity={0.7}
+                    className="h-16 w-1/2 items-center justify-center rounded-full bg-black/60 py-2"
+                  >
                     <Text className="text-white">{splashText}</Text>
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
 
