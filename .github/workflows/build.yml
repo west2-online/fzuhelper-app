@@ -8,12 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
-    env:
-      KEYSTORE_PATH: 'keystore.jks'
-      KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
-      KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
-      KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
-
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -54,27 +48,14 @@ jobs:
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease --build-cache --parallel --configure-on-demand --max-workers=$(nproc) \
-            -D org.gradle.jvmargs="-Xmx4g -Xms1g -XX:MetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
+          ./gradlew app:packageRelease --daemon --build-cache --parallel --configure-on-demand --max-workers=1024 \
+            -D org.gradle.jvmargs="-Xmx12g -Xms12g -XX:MetaspaceSize=12g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
         env:
+          KEYSTORE_PATH: 'keystore.jks'
+          KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
           SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
-
-      - name: Zipalign and Sign APK
-        run: |
-          cd android/app/build/outputs/apk/release
-          mv app-release.apk unsigned.apk
-
-          # zipalign 优化
-          $ANDROID_SDK_ROOT/build-tools/35.0.0/zipalign -P 16 -z -f -v 4 unsigned.apk aligned.apk
-
-          # apksigner 签名
-          $ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner sign \
-            --ks $GITHUB_WORKSPACE/android/app/$KEYSTORE_PATH \
-            --ks-key-alias $KEY_ALIAS \
-            --ks-pass pass:$KEYSTORE_PASSWORD \
-            --key-pass pass:$KEY_PASSWORD \
-            --out app-arm64-v8a-release.apk \
-            aligned.apk
 
       - name: Extract Version Info
         shell: bash

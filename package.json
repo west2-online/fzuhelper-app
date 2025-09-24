@@ -9,7 +9,7 @@
     "android": "expo run:android",
     "a:conn": "adb reverse tcp:8081 tcp:8081",
     "a:pkg": "cd android && ./gradlew packageRelease",
-    "a:install": "adb install android/app/build/outputs/apk/release/app-release.apk",
+    "a:install": "adb install android/app/build/outputs/apk/release/app-arm64-v8a-release.apk",
     "ios": "expo run:ios",
     "prebuild:android": "expo prebuild --platform android",
     "prebuild:ios": "expo prebuild --platform ios",
