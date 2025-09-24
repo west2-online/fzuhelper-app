@@ -26,3 +26,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
     uses: ./.github/workflows/release.yml
+
+  version:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: release
+    uses: ./.github/workflows/version.yml
