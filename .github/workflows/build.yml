@@ -48,8 +48,8 @@ jobs:
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease --daemon --build-cache --parallel --configure-on-demand --max-workers=1024 \
-            -D org.gradle.jvmargs="-Xmx12g -Xms12g -XX:MetaspaceSize=12g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
+          ./gradlew app:packageRelease --build-cache --parallel --configure-on-demand --max-workers=$(nproc) \
+            -D org.gradle.jvmargs="-Xmx4g -Xms1g -XX:MetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
