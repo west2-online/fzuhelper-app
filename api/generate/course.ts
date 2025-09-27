@@ -30,7 +30,7 @@ export async function getApiV1CourseDate(options?: { [key: string]: unknown }) {
   });
 }
 
-/** 获取日历 Token GET /api/v1/jwch/course/calendar/token https://apifox.com/web/project/3275694/apis/api-260933216-run */
+/** 获取日历 Token Header 里面的 id 应该是学号而非 jwc url 的 id对于本科生就是正常的学号研究生是需要有前导零的 GET /api/v1/jwch/course/calendar/token https://apifox.com/web/project/3275694/apis/api-260933216-run */
 export async function getApiV1JwchCourseCalendarToken(options?: {
   [key: string]: unknown;
 }) {
