@@ -1,4 +1,4 @@
-import { Link, useRouter, type Href } from 'expo-router';
+import { type Href, Link, useRouter } from 'expo-router';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
@@ -27,7 +27,7 @@ import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
-import Banner, { BannerType, type BannerContent } from '@/components/banner';
+import Banner, { type BannerContent, BannerType } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -36,7 +36,7 @@ import { showIgnorableAlert } from '@/lib/common-settings';
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { cn } from '@/lib/utils';
 import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { toolOnPress, ToolType, UserType, type Tool } from '@/utils/tools';
+import { IndexedTool, type Tool, toolOnPress, ToolType, UserType } from '@/utils/tools';
 
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen } from '@/api/generate';
@@ -51,14 +51,16 @@ const DEFAULT_BANNERS: BannerContent[] = [
   { image: BannerImage3, text: '', type: BannerType.NULL },
 ];
 
-const DEFAULT_TOOLS: Tool[] = [
+const DEFAULT_TOOLS: IndexedTool[] = [
   {
+    id: 1,
     name: '学业状况',
     icon: GradeIcon,
     type: ToolType.LINK,
     href: '/toolbox/academic',
   },
   {
+    id: 2,
     name: '教务通知',
     icon: NotificationIcon,
     type: ToolType.LINK,
@@ -66,30 +68,35 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 3,
     name: '历年卷',
     icon: FileIcon,
     type: ToolType.LINK,
     href: '/toolbox/paper',
   },
   {
+    id: 4,
     name: '空教室',
     icon: RoomIcon,
     type: ToolType.LINK,
     href: '/toolbox/empty-room',
   },
   {
+    id: 5,
     name: '考场查询',
     icon: ExamRoomIcon,
     type: ToolType.LINK,
     href: '/toolbox/exam-room',
   },
   {
+    id: 6,
     name: '一键评议',
     icon: OneKeyIcon,
     type: ToolType.LINK,
     href: '/toolbox/onekey-comment',
   },
   {
+    id: 7,
     name: '选课',
     icon: XuankeIcon,
     type: ToolType.LINK,
@@ -97,6 +104,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 8,
     name: '各类申请',
     icon: ApplicationIcon,
     type: ToolType.LINK,
@@ -104,6 +112,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 9,
     name: '学生证',
     icon: IDCardIcon,
     type: ToolType.LINK,
@@ -111,6 +120,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 10,
     name: '毕业设计',
     icon: GraduationIcon,
     type: ToolType.LINK,
@@ -118,6 +128,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 11,
     name: '嘉锡讲坛',
     icon: JiaXiIcon,
     type: ToolType.WEBVIEW,
@@ -129,6 +140,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 12,
     name: '智慧餐厅',
     icon: ZHCTIcon,
     type: ToolType.WEBVIEW,
@@ -138,6 +150,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 13,
     name: '校园指南',
     icon: WikiIcon,
     type: ToolType.WEBVIEW,
@@ -147,6 +160,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 14,
     name: '飞跃手册',
     icon: FZURunIcon,
     type: ToolType.WEBVIEW,
@@ -156,12 +170,14 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 15,
     name: '学习中心',
     icon: StudyCenterIcon,
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
   },
   {
+    id: 16,
     name: '公寓报修',
     icon: ApartmentIcon,
     type: ToolType.FUNCTION,
@@ -191,6 +207,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 17,
     name: '电动车',
     icon: ElectroCarIcon,
     type: ToolType.FUNCTION,
@@ -220,6 +237,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 18,
     name: '校本化',
     icon: XiaoBenIcon,
     type: ToolType.FUNCTION,
@@ -249,6 +267,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 19,
     name: '失物招领',
     icon: LostFoundIcon,
     type: ToolType.WEBVIEW,
@@ -259,12 +278,14 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 20,
     name: '水电缴费',
     icon: UtilityPaymentIcon,
     type: ToolType.LINK,
     href: '/toolbox/utility-payment',
   },
   {
+    id: 21,
     name: '更多',
     icon: MoreIcon,
     type: ToolType.LINK,
@@ -273,11 +294,12 @@ const DEFAULT_TOOLS: Tool[] = [
 ];
 
 // 工具函数：处理工具数据，按列数填充占位符
-const processTools = (tools: Tool[], columns: number): Tool[] => {
+const processTools = (tools: IndexedTool[], columns: number): IndexedTool[] => {
   const remainder = tools.length % columns;
   if (remainder === 0) return tools; // 不需要填充
 
   const placeholders = Array(columns - remainder).fill({
+    id: -1,
     name: '',
     icon: null,
     type: ToolType.NULL,
