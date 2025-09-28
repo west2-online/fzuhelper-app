@@ -359,9 +359,13 @@ function applyExtraToTool(tool: Partial<ToolboxTool>, item: any): Partial<Toolbo
           console.error('webview params无效：', extra);
         }
       } catch (e) {
-        console.error('webview params parse失败：', e);
+        console.error('webview params parse失败：', extra, e);
       }
       break;
+    case ToolType.NULL:
+      // 没有extra
+      break;
+    case ToolType.FUNCTION: // 不支持动态修改为FUNCTION
     default:
       console.error('配置中工具类型不支持：', item);
       break;
