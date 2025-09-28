@@ -16,7 +16,7 @@ export type UserType = typeof USER_TYPE_UNDERGRADUATE | typeof USER_TYPE_POSTGRA
 
 export type Tool = {
   name: string;
-  icon: React.FC<SvgProps> | string | null;
+  icon?: any;
   userTypes?: UserType[]; // 可选属性，用于指定适用的用户类型
 } & (
   | {

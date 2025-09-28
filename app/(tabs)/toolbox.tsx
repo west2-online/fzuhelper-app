@@ -33,8 +33,8 @@ import { Text } from '@/components/ui/text';
 import { showIgnorableAlert } from '@/lib/common-settings';
 
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
-import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { isToolboxTool, ToolboxTool, ToolType, UserType } from '@/utils/tools';
+import { pushToWebViewSSO } from '@/lib/webview';
+import { isToolboxTool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/utils/tools';
 
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen, getApiV1ToolboxConfig } from '@/api/generate';
@@ -502,14 +502,7 @@ const ToolButton = memo(
           if (tool.message) {
             toast.info(tool.message);
           }
-          if (tool.type === ToolType.LINK) {
-            router.push(tool.href);
-          } else if (tool.type === ToolType.WEBVIEW) {
-            router.push(getWebViewHref(tool.params));
-          } else if (tool.type === ToolType.FUNCTION) {
-            tool.action(router);
-          }
-          // 其他类型不支持
+          toolOnPress(tool, router);
         }}
       >
         {tool.icon ? (
