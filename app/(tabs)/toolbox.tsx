@@ -1,7 +1,6 @@
-import { type Href, Link, useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Platform, Pressable, useWindowDimensions, View } from 'react-native';
-import type { SvgProps } from 'react-native-svg';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
@@ -34,14 +33,14 @@ import { Text } from '@/components/ui/text';
 import { showIgnorableAlert } from '@/lib/common-settings';
 
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
-import { cn } from '@/lib/utils';
 import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { isToolboxTool, type Tool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/utils/tools';
+import { isToolboxTool, ToolboxTool, ToolType, UserType } from '@/utils/tools';
 
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen, getApiV1ToolboxConfig } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
 import DeviceInfo from 'react-native-device-info';
+import { toast } from 'sonner-native';
 
 // 工具类型的枚举
 
@@ -357,17 +356,21 @@ const useToolsPageData = (columns: number) => {
     platform: Platform.OS,
   });
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
-  const [toolList, setToolList] = useState<ToolboxTool[]>([]);
-
   const userType = useMemo(() => LocalUser.getUser().type as UserType, []);
 
-  useEffect(() => {
-    const baseTools = DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(userType)).map(tool => ({
-      ...tool,
-    }));
+  const baseTools = useMemo(
+    () =>
+      DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(userType)).map(tool => ({
+        ...tool,
+      })),
+    [userType],
+  );
 
+  const [toolList, setToolList] = useState<ToolboxTool[]>(baseTools);
+
+  useEffect(() => {
     if (configData) {
-      const toolMap = new Map<number, ToolboxTool>(baseTools.map(tool => [tool.id, tool]));
+      const toolMap = new Map<number, ToolboxTool>(baseTools.map(tool => [tool.id, { ...tool }]));
 
       configData.forEach(item => {
         if (item.visible === false) {
@@ -455,7 +458,7 @@ const useToolsPageData = (columns: number) => {
       // 本地的已经有序
       setToolList(baseTools);
     }
-  }, [configData, userType]);
+  }, [configData, baseTools]);
 
   const processedTools = useMemo(() => {
     return processTools(toolList, columns);
@@ -481,59 +484,58 @@ const useToolsPageData = (columns: number) => {
 };
 
 type ToolButtonProps = Omit<ButtonProps, 'size'> & {
-  name: string;
-  icon?: React.FC<SvgProps> | string | null;
+  tool: ToolboxTool;
   textWidth: number;
   fontSize: number;
 };
 
 const ToolButton = memo(
-  forwardRef<React.ComponentRef<typeof Pressable>, ToolButtonProps>(
-    ({ className, icon: Icon, name, onPress, textWidth, fontSize }, ref) => {
-      return (
-        <Button
-          className={cn('mx-0 mb-3 h-auto w-auto items-center justify-start bg-transparent', className)}
-          size="icon"
-          onPress={onPress}
-          ref={ref}
+  forwardRef<React.ComponentRef<typeof Pressable>, ToolButtonProps>(({ tool, textWidth, fontSize }, ref) => {
+    const router = useRouter();
+
+    return (
+      <Button
+        className="mx-0 mb-3 h-auto w-auto items-center justify-start bg-transparent"
+        size="icon"
+        ref={ref}
+        onPress={() => {
+          if (tool.message) {
+            toast.info(tool.message);
+          }
+          if (tool.type === ToolType.LINK) {
+            router.push(tool.href);
+          } else if (tool.type === ToolType.WEBVIEW) {
+            router.push(getWebViewHref(tool.params));
+          } else if (tool.type === ToolType.FUNCTION) {
+            tool.action(router);
+          }
+          // 其他类型不支持
+        }}
+      >
+        {tool.icon ? (
+          typeof tool.icon === 'string' ? (
+            <Image source={{ uri: tool.icon }} className="h-[42px] w-[42px]" />
+          ) : (
+            <tool.icon width="42px" height="42px" />
+          )
+        ) : null}
+        <Text
+          className="mt-0.5 text-center align-middle text-text-secondary"
+          style={{
+            width: textWidth,
+            fontSize: fontSize,
+          }}
+          numberOfLines={2} // 最大行数
+          ellipsizeMode="tail"
         >
-          {Icon ? (
-            typeof Icon === 'string' ? (
-              <Image source={{ uri: Icon }} className="h-[42px] w-[42px]" />
-            ) : (
-              <Icon width="42px" height="42px" />
-            )
-          ) : null}
-          <Text
-            className="mt-0.5 text-center align-middle text-text-secondary"
-            style={{
-              width: textWidth,
-              fontSize: fontSize,
-            }}
-            numberOfLines={2} // 最大行数
-            ellipsizeMode="tail"
-          >
-            {name}
-          </Text>
-        </Button>
-      );
-    },
-  ),
+          {tool.name}
+        </Text>
+      </Button>
+    );
+  }),
 );
 
 ToolButton.displayName = 'ToolButton';
-
-type ToolButtonLinkProps = Omit<ToolButtonProps, 'onPress'> & {
-  href: Href;
-};
-
-const ToolButtonLink = memo<ToolButtonLinkProps>(({ href, ...props }) => (
-  <Link href={href} asChild>
-    <ToolButton {...props} />
-  </Link>
-));
-
-ToolButtonLink.displayName = 'ToolButtonLink';
 
 export default function ToolsPage() {
   const { width: screenWidth } = useWindowDimensions();
@@ -553,51 +555,17 @@ export default function ToolsPage() {
   }, [screenWidth]);
 
   const { bannerList, toolList } = useToolsPageData(columns);
-  const router = useRouter();
 
   // 工具按钮的渲染函数
   const renderToolButton = useCallback(
-    ({ item }: { item: Tool }) => {
-      switch (item.type) {
-        case ToolType.LINK:
-          return (
-            <ToolButtonLink
-              name={item.name}
-              href={item.href}
-              icon={item.icon}
-              textWidth={scaledTextWidth}
-              fontSize={scaledFontSize}
-            />
-          );
-
-        case ToolType.WEBVIEW:
-          return (
-            <ToolButtonLink
-              name={item.name}
-              href={getWebViewHref(item.params)}
-              icon={item.icon}
-              textWidth={scaledTextWidth}
-              fontSize={scaledFontSize}
-            />
-          );
-
-        default:
-          return (
-            <ToolButton
-              name={item.name}
-              icon={item.icon}
-              onPress={() => toolOnPress(item, router)}
-              textWidth={scaledTextWidth}
-              fontSize={scaledFontSize}
-            />
-          );
-      }
+    ({ item }: { item: ToolboxTool }) => {
+      return <ToolButton tool={item} textWidth={scaledTextWidth} fontSize={scaledFontSize} />;
     },
-    [router, scaledTextWidth, scaledFontSize],
+    [scaledTextWidth, scaledFontSize],
   );
 
   // FlatList 的 keyExtractor
-  const keyExtractor = useCallback((item: Tool, index: number) => {
+  const keyExtractor = useCallback((item: ToolboxTool, index: number) => {
     return item.name ? `${item.name}-${index}` : `placeholder-${index}`;
   }, []);
 
