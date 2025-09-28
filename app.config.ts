@@ -19,10 +19,10 @@ try {
 }
 const versionCodePrefix = version.replace(/\./g, '');
 const versionCodeSuffix = String(commitCount).padStart(3, '0');
-// Android
-const versionCode = parseInt(`${versionCodePrefix}${versionCodeSuffix}`, 10);
 // iOS
-const buildNumber = versionCode.toString();
+const buildNumber = versionCodePrefix + versionCodeSuffix;
+// Android
+const versionCode = parseInt(buildNumber, 10);
 
 const config: ExpoConfig = {
   name: 'fzuhelper',

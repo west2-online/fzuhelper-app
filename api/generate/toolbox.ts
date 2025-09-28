@@ -13,13 +13,13 @@ export async function getApiV1ToolboxConfig(
     code: string;
     message: string;
     data: {
-      id: number;
+      tool_id: number;
       visible?: boolean;
-      title?: string;
+      name?: string;
       icon?: string;
       type?: string;
       message?: string;
-      extra?: Record<string, unknown>;
+      extra?: string;
     }[];
   }>('/api/v1/toolbox/config', {
     method: 'GET',
