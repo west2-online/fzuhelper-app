@@ -45,8 +45,18 @@ export function isToolboxTool(obj: any): obj is ToolboxTool {
   return obj && typeof obj.id === 'number' && typeof obj.name === 'string' && 'icon' in obj && 'type' in obj;
 }
 
+// 防抖处理
+let lastClickTime = 0;
+const DEBOUNCE_DELAY = 500;
+
 // 工具按钮的点击事件
 export const toolOnPress = (tool: Tool, router: ReturnType<typeof useRouter>) => {
+  const now = Date.now();
+  if (now - lastClickTime < DEBOUNCE_DELAY) {
+    return;
+  }
+  lastClickTime = now;
+
   switch (tool.type) {
     case ToolType.NULL: // 空操作
       break;
