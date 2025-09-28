@@ -1,8 +1,28 @@
+import { execSync } from 'child_process';
 import { type ExpoConfig } from 'expo/config';
-import 'ts-node/register'; // Add this to import TypeScript files
+import 'ts-node/register';
 import { version } from './package.json';
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
+
+// 内部版本号根据commit次数设置
+// 前三位对应版本名，后三位或更多对应commit次数
+let commitCount = 0;
+try {
+  const stdout = execSync('git rev-list --count HEAD').toString().trim();
+  const parsedInt = parseInt(stdout, 10);
+  if (!isNaN(parsedInt)) {
+    commitCount = parsedInt;
+  }
+} catch (err) {
+  console.error('无法获取 git commit 次数，将使用默认值 0:', err);
+}
+const versionCodePrefix = version.replace(/\./g, '');
+const versionCodeSuffix = String(commitCount).padStart(3, '0');
+// iOS
+const buildNumber = versionCodePrefix + versionCodeSuffix;
+// Android
+const versionCode = parseInt(buildNumber, 10);
 
 const config: ExpoConfig = {
   name: 'fzuhelper',
@@ -17,7 +37,7 @@ const config: ExpoConfig = {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
     bundleIdentifier: IS_DEV ? 'FzuHelper.FzuHelper.dev' : 'FzuHelper.FzuHelper',
-    buildNumber: version,
+    buildNumber,
     bitcode: true,
     supportsTablet: true,
     associatedDomains: ['applinks:fzuhelperapp.west2.online'], // 支持 Apple Universal Link 功能
@@ -58,7 +78,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: IS_DEV ? 'com.helper.west2ol.fzuhelper.dev' : 'com.helper.west2ol.fzuhelper',
-    versionCode: 700001, // 此处不需要修改，将在inject-android-config中自增
+    versionCode,
     edgeToEdgeEnabled: true,
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
