@@ -95,11 +95,20 @@ export default function LearningCenterApi() {
     router.push({ pathname: '/toolbox/learning-center/qr-scanner', params: { appointmentID } });
   }, [appointmentID]);
 
+  const open = useCallback(async () => {
+    router.push('/toolbox/learning-center');
+  }, []);
+
   return (
     <PageContainer className="p-4">
       <ScrollView>
         <SafeAreaView edges={['bottom']}>
           <Stack.Screen options={{ title: '学习中心', headerTransparent: true }} />
+
+          <Button onPress={open} className="my-1">
+            <Text>学习中心主页</Text>
+          </Button>
+
           <Input value={token} onChangeText={setToken} placeholder="token" className="my-1" />
 
           {/* 测试预约历史 */}

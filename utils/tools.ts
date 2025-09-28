@@ -4,7 +4,6 @@ import { toast } from 'sonner-native';
 import type { WebParams } from '@/app/common/web';
 import { USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
-import { SvgProps } from 'react-native-svg';
 
 export enum ToolType {
   LINK = 'link', // 跳转路由
