@@ -364,7 +364,7 @@ function applyExtraToTool(tool: Partial<ToolboxTool>, item: any): Partial<Toolbo
       break;
     case ToolType.NULL:
       // 没有extra
-      break;
+      return { ...tool, type: ToolType.NULL };
     case ToolType.FUNCTION: // 不支持动态修改为FUNCTION
     default:
       console.error('配置中工具类型不支持：', item);
