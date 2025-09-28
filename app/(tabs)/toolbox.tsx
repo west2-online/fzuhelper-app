@@ -343,6 +343,32 @@ function processBannerData(bannerData: LaunchScreenScreenResponse): BannerConten
   return banners;
 }
 
+function applyExtraToTool(tool: Partial<ToolboxTool>, item: any): Partial<ToolboxTool> | null {
+  const { type, extra } = item;
+  if (!type || !extra) return tool;
+
+  switch (type) {
+    case ToolType.LINK:
+      return { ...tool, type: ToolType.LINK, href: extra as Href };
+    case ToolType.WEBVIEW:
+      try {
+        const params = JSON.parse(extra);
+        if (params && typeof params === 'object' && typeof params.url === 'string') {
+          return { ...tool, type: ToolType.WEBVIEW, params };
+        } else {
+          console.error('webview params无效：', extra);
+        }
+      } catch (e) {
+        console.error('webview params parse失败：', e);
+      }
+      break;
+    default:
+      console.error('配置中工具类型不支持：', item);
+      break;
+  }
+  return null;
+}
+
 // 自定义 Hook：管理横幅和工具数据
 const useToolsPageData = (columns: number) => {
   const { data: bannerData } = useApiRequest(getApiV1LaunchScreenScreen, {
@@ -384,20 +410,15 @@ const useToolsPageData = (columns: number) => {
 
         if (existingTool) {
           // 修改已存在的工具
-          const updatedTool = { ...existingTool };
-          if (item.name) updatedTool.name = item.name;
-          if (item.icon) updatedTool.icon = item.icon;
-          if (item.message) updatedTool.message = item.message;
-          if (item.type) {
-            // @ts-ignore
-            updatedTool.type = item.type;
-          }
-          if (item.extra) {
-            // @ts-ignore
-            updatedTool.extra = item.extra;
-          }
-          if (isToolboxTool(updatedTool)) {
-            toolMap.set(item.tool_id, updatedTool);
+          const baseTool = { ...existingTool };
+          if (item.name) baseTool.name = item.name;
+          if (item.icon) baseTool.icon = item.icon;
+          if (item.message) baseTool.message = item.message;
+
+          const updatedTool = applyExtraToTool(baseTool, item);
+
+          if (updatedTool && isToolboxTool(updatedTool)) {
+            toolMap.set(item.tool_id, updatedTool as ToolboxTool);
           } else {
             console.error('修改工具非法：', updatedTool);
           }
@@ -410,42 +431,7 @@ const useToolsPageData = (columns: number) => {
             message: item.message,
           };
 
-          let newTool: Partial<ToolboxTool> | null = null;
-
-          switch (item.type) {
-            case ToolType.LINK:
-              if (item.extra) {
-                newTool = {
-                  ...baseTool,
-                  type: ToolType.LINK,
-                  href: item.extra as Href,
-                };
-              } else {
-                console.error('link类型需要在extra中传入href string：', item);
-              }
-              break;
-            case ToolType.WEBVIEW:
-              if (item.extra) {
-                try {
-                  const params = JSON.parse(item.extra);
-                  if (params && typeof params === 'object' && typeof params.url === 'string') {
-                    newTool = {
-                      ...baseTool,
-                      type: ToolType.WEBVIEW,
-                      params,
-                    };
-                  } else {
-                    console.error('webview params无效：', item.extra);
-                  }
-                } catch (e) {
-                  console.error('webview params parse失败：', e);
-                }
-              }
-              break;
-            default:
-              console.error('配置中新增的工具类型不支持：', item);
-              break;
-          }
+          const newTool = applyExtraToTool(baseTool, item);
 
           if (newTool && isToolboxTool(newTool)) {
             toolMap.set(item.tool_id, newTool as ToolboxTool);
