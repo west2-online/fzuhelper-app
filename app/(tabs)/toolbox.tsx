@@ -39,6 +39,7 @@ import { isToolboxTool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/u
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen, getApiV1ToolboxConfig } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
+import { TOOLBOX_CONFIG_KEY } from '@/lib/constants';
 import DeviceInfo from 'react-native-device-info';
 import { toast } from 'sonner-native';
 
@@ -343,9 +344,9 @@ function processBannerData(bannerData: LaunchScreenScreenResponse): BannerConten
   return banners;
 }
 
-function applyExtraToTool(tool: Partial<ToolboxTool>, item: any): Partial<ToolboxTool> | null {
+function applyTypeAndExtra(tool: Partial<ToolboxTool>, item: any): Partial<ToolboxTool> | null {
   const { type, extra } = item;
-  if (!type || !extra) return tool;
+  if (!type) return tool;
 
   switch (type) {
     case ToolType.LINK:
@@ -380,11 +381,15 @@ const useToolsPageData = (columns: number) => {
     student_id: LocalUser.getUser().userid || '',
     device: Platform.OS,
   });
-  const { data: configData } = useApiRequest(getApiV1ToolboxConfig, {
-    version: parseInt(DeviceInfo.getBuildNumber(), 10),
-    student_id: LocalUser.getUser().userid || '',
-    platform: Platform.OS,
-  });
+  const { data: configData } = useApiRequest(
+    getApiV1ToolboxConfig,
+    {
+      version: parseInt(DeviceInfo.getBuildNumber(), 10),
+      student_id: LocalUser.getUser().userid || '',
+      platform: Platform.OS,
+    },
+    { persist: true, queryKey: [TOOLBOX_CONFIG_KEY] },
+  );
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
   const userType = useMemo(() => LocalUser.getUser().type as UserType, []);
 
@@ -419,7 +424,7 @@ const useToolsPageData = (columns: number) => {
           if (item.icon) baseTool.icon = item.icon;
           if (item.message) baseTool.message = item.message;
 
-          const updatedTool = applyExtraToTool(baseTool, item);
+          const updatedTool = applyTypeAndExtra(baseTool, item);
 
           if (updatedTool && isToolboxTool(updatedTool)) {
             toolMap.set(item.tool_id, updatedTool as ToolboxTool);
@@ -435,7 +440,7 @@ const useToolsPageData = (columns: number) => {
             message: item.message,
           };
 
-          const newTool = applyExtraToTool(baseTool, item);
+          const newTool = applyTypeAndExtra(baseTool, item);
 
           if (newTool && isToolboxTool(newTool)) {
             toolMap.set(item.tool_id, newTool as ToolboxTool);
@@ -465,10 +470,6 @@ const useToolsPageData = (columns: number) => {
   useEffect(() => {
     setBannerList(processedBanners);
   }, [processedBanners]);
-
-  useEffect(() => {
-    setToolList(processedTools);
-  }, [processedTools]);
 
   return { bannerList, toolList: processedTools };
 };

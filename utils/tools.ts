@@ -42,13 +42,7 @@ export type ToolboxTool = Tool & {
 };
 
 export function isToolboxTool(obj: any): obj is ToolboxTool {
-  return (
-    obj &&
-    typeof obj.id === 'number' &&
-    typeof obj.name === 'string' &&
-    ('icon' in obj || obj.icon === null) &&
-    'type' in obj
-  );
+  return obj && typeof obj.id === 'number' && typeof obj.name === 'string' && 'icon' in obj && 'type' in obj;
 }
 
 // 工具按钮的点击事件
