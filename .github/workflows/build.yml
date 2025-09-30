@@ -1,19 +1,12 @@
 name: Build APK
 
 on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
-
-concurrency:
-  group: build
-  cancel-in-progress: true
+  workflow_call:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout source code
@@ -39,7 +32,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          distribution: microsoft
+          distribution: temurin
           java-version: 17
 
       - name: Setup Gradle
@@ -55,8 +48,8 @@ jobs:
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease --daemon --build-cache --parallel --configure-on-demand --max-workers=1024 \
-            -D org.gradle.jvmargs="-Xmx12g -Xms12g -XX:MetaspaceSize=12g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
+          ./gradlew app:packageRelease --build-cache --parallel --configure-on-demand --max-workers=$(nproc) \
+            -D org.gradle.jvmargs="-Xmx4g -Xms1g -XX:MetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
@@ -77,143 +70,3 @@ jobs:
           name: outputs
           path: android/app/build/outputs
           retention-days: 0
-
-  publish:
-    runs-on: ubuntu-latest
-    environment: beta
-    needs:
-      - build
-
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: outputs
-          path: ${{ github.workspace }}/outputs/
-
-      - name: Extract Version Info
-        id: version-info
-        shell: bash
-        run: |
-          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
-          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
-          {
-            echo "CHANGELOG<<BSEOF"
-            cat $GITHUB_WORKSPACE/outputs/changelog
-            echo "BSEOF"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Get Upload Params
-        id: upload-params
-        run: |
-          RESPONSE=$(curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload-params' \
-            --form "password=$ANDROID_UPDATE_PWD")
-          echo "UPYUN_POLICY=$(echo $RESPONSE | jq -r .policy)" >> "$GITHUB_OUTPUT"
-          echo "UPYUN_AUTH=$(echo $RESPONSE | jq -r .authorization)" >> "$GITHUB_OUTPUT"
-        env:
-          ANDROID_UPDATE_PWD: ${{ secrets.ANDROID_UPDATE_PWD }}
-
-      - name: Upload to UPYUN
-        id: upload-apk
-        run: |
-          cd $GITHUB_WORKSPACE/outputs/apk/release
-          mv app-arm64-v8a-release.apk $APK_FILENAME
-          RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \
-            -F "file=@$APK_FILENAME" \
-            -F "policy=$UPYUN_POLICY" \
-            -F "authorization=$UPYUN_AUTH")
-
-          DOWNLOAD_URL="https://download.w2fzu.com$(echo $RESPONSE | jq -r .url)"
-
-          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_OUTPUT"
-        env:
-          APK_FILENAME: FzuHelper_${{ steps.version-info.outputs.APP_VERSION_NAME }}(${{ steps.version-info.outputs.APP_VERSION_CODE }}).apk
-          UPYUN_POLICY: ${{ steps.upload-params.outputs.UPYUN_POLICY }}
-          UPYUN_AUTH: ${{ steps.upload-params.outputs.UPYUN_AUTH }}
-
-      - name: Submit Version Info
-        run: |
-          FEATURE="$CHANGELOG"$'\n\n'"此版本为新架构测试版，请提前加入内测群 1020036141 了解详情"
-          curl --location --request POST 'https://fzuhelper.west2.online/api/v2/url/upload' \
-            --form "version=$APP_VERSION_NAME" \
-            --form "code=$APP_VERSION_CODE" \
-            --form "url=$DOWNLOAD_URL" \
-            --form "feature=$FEATURE" \
-            --form "type=$CHANNEL" \
-            --form "password=$ANDROID_UPDATE_PWD" \
-            --form "force=$FORCE"
-        env:
-          CHANNEL: beta
-          FORCE: true
-          ANDROID_UPDATE_PWD: ${{ secrets.ANDROID_UPDATE_PWD }}
-          APP_VERSION_NAME: ${{ steps.version-info.outputs.APP_VERSION_NAME }}
-          APP_VERSION_CODE: ${{ steps.version-info.outputs.APP_VERSION_CODE }}
-          CHANGELOG: ${{ steps.version-info.outputs.CHANGELOG }}
-          DOWNLOAD_URL: ${{ steps.upload-apk.outputs.DOWNLOAD_URL }}
-
-  publish-alpha:
-    runs-on: ubuntu-latest
-    environment: alpha
-    needs:
-      - build
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: outputs
-          path: ${{ github.workspace }}/outputs/
-
-      - name: Extract Version Info
-        id: version-info
-        shell: bash
-        run: |
-          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
-          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
-          {
-            echo "CHANGELOG<<BSEOF"
-            cat $GITHUB_WORKSPACE/outputs/changelog
-            echo "BSEOF"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Get APK Filename
-        id: get-apk-filename
-        run: |
-          echo "APK_FILENAME=FzuHelper_${APP_VERSION_NAME}(${APP_VERSION_CODE}).apk" >> "$GITHUB_OUTPUT"
-        env:
-          APP_VERSION_NAME: ${{ steps.version-info.outputs.APP_VERSION_NAME }}
-          APP_VERSION_CODE: ${{ steps.version-info.outputs.APP_VERSION_CODE }}
-
-      - name: Delete alpha release using GitHub CLI
-        run: |
-          if gh release view alpha; then
-            gh release delete alpha --yes
-          else
-            echo "No alpha release exists."
-          fi
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Move APK File
-        run: |
-          mv $GITHUB_WORKSPACE/outputs/apk/release/app-arm64-v8a-release.apk $APK_FILENAME
-        env:
-          APK_FILENAME: ${{ steps.get-apk-filename.outputs.apk_filename }}
-
-      - name: Create GitHub Pre-Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: alpha
-          name: 'Alpha'
-          body: |
-            ${{ steps.version-info.outputs.CHANGELOG }}
-
-            此版本为新架构测试版，请提前加入内测群 1020036141 了解详情
-          prerelease: true
-          files: |
-            ${{ steps.get-apk-filename.outputs.apk_filename }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}

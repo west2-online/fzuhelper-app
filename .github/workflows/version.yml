@@ -1,0 +1,66 @@
+name: Auto Bump Version
+
+on:
+  workflow_call:
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract current tag
+        id: tag
+        run: |
+          CURRENT_TAG=${GITHUB_REF_NAME}
+          echo "current=$CURRENT_TAG" >> $GITHUB_OUTPUT
+
+      - name: Calculate next version
+        id: version
+        run: |
+          IFS='.' read -r major minor patch <<< "${{ steps.tag.outputs.current }}"
+
+          if [ "$patch" -lt 9 ]; then
+            patch=$((patch+1))
+          else
+            patch=0
+            if [ "$minor" -lt 9 ]; then
+              minor=$((minor+1))
+            else
+              minor=0
+              major=$((major+1))
+            fi
+          fi
+
+          NEXT_VERSION="$major.$minor.$patch"
+          echo "next=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create branch and commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          BRANCH="bump-version-${{ steps.version.outputs.next }}"
+          git checkout -b $BRANCH
+
+          # 修改 package.json
+          jq '.version = "${{ steps.version.outputs.next }}"' package.json > package.tmp && mv package.tmp package.json
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.version.outputs.next }}"
+          git push origin $BRANCH
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          title: "chore: bump version to ${{ steps.version.outputs.next }}"
+          body: "Auto bump version to ${{ steps.version.outputs.next }} (detected tag ${{ steps.tag.outputs.current }})"
+          base: master
+          branch: bump-version-${{ steps.version.outputs.next }}
+          sign-commits: true
