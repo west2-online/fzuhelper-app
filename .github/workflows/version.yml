@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  bump:
+  bump-version:
     runs-on: ubuntu-latest
     permissions:
       contents: write

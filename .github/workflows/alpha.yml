@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  alpha:
+  publish-alpha:
     runs-on: ubuntu-latest
     permissions:
       contents: write
