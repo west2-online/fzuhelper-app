@@ -40,7 +40,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Create GitHub Pre-Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: alpha
           name: 'Alpha'
@@ -51,5 +51,3 @@ jobs:
           prerelease: true
           files: |
             ${{ steps.version-info.outputs.apk_filename }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
