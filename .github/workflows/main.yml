@@ -11,23 +11,28 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/build.yml
+    secrets: inherit
 
   alpha:
     if: github.ref == 'refs/heads/master'
     needs: build
     uses: ./.github/workflows/alpha.yml
+    secrets: inherit
 
   beta:
     if: github.event_name == 'workflow_dispatch'
     needs: build
     uses: ./.github/workflows/beta.yml
+    secrets: inherit
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
     uses: ./.github/workflows/release.yml
+    secrets: inherit
 
   version:
     if: startsWith(github.ref, 'refs/tags/')
     needs: release
     uses: ./.github/workflows/version.yml
+    secrets: inherit

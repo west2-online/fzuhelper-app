@@ -4,12 +4,17 @@ on:
   workflow_call:
 
 jobs:
-  release:
+  publish-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/download-artifact@v4
         with:
           name: outputs
@@ -24,11 +29,6 @@ jobs:
           APK_FILENAME="FzuHelper_${APP_VERSION_NAME}(${APP_VERSION_CODE}).apk"
           echo "apk_filename=$APK_FILENAME" >> "$GITHUB_OUTPUT"
           mv $GITHUB_WORKSPACE/outputs/apk/release/app-arm64-v8a-release.apk $APK_FILENAME
-
-      - name: Checkout source code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Get version info
         id: version-info
