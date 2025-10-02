@@ -10,6 +10,9 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           name: outputs
@@ -32,8 +35,7 @@ jobs:
 
       - name: Delete alpha using GitHub CLI
         run: |
-          gh release delete alpha --yes >/dev/null 2>&1 || echo "No alpha release exists."
-          gh api -X DELETE repos/${GITHUB_REPOSITORY}/git/refs/tags/alpha >/dev/null 2>&1 || echo "No alpha tag exists."
+          gh release delete alpha --yes --cleanup-tag >/dev/null 2>&1 || echo "No alpha release exists."
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
