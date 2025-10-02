@@ -62,14 +62,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ steps.version-info.outputs.current_version }}
           generate_release_notes: true  # 自动生成发布说明
           body: ${{ steps.changelog.outputs.changelog }}
-          prerelease: false
+          make_latest:  true
           files: |
             ${{ steps.apk-info.outputs.apk_filename }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
