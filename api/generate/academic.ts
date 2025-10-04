@@ -3,15 +3,19 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 学分统计 注意这里可能涉及到辅修 GET /api/v1/jwch/academic/credit https://apifox.com/web/project/3275694/apis/api-109631159-run */
-export async function getApiV1JwchAcademicCredit(options?: {
+/** 学分统计 v2 GET /api/v2/jwch/academic/credit  https://app.apifox.com/link/project/3275694/apis/api-356737870*/
+// 能够区分主修与辅修课程，且由 Server 统一负责总分与剩余分的计算
+export async function getApiV2JwchAcademicCredit(options?: {
   [key: string]: unknown;
 }) {
   return request<{
     code: string;
     message: string;
-    data: { type: string; gain: string; total: string }[];
-  }>('/api/v1/jwch/academic/credit', {
+    data: {
+      type: string;
+      data: { key: string; value: string }[];
+    }[];
+  }>('/api/v2/jwch/academic/credit', {
     method: 'GET',
     ...(options || {}),
   });
