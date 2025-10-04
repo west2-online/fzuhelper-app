@@ -1,81 +1,84 @@
 import { Stack } from 'expo-router';
-import { useMemo } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CreditCard } from '@/components/academic/CreditCard';
-import { DescriptionList } from '@/components/DescriptionList';
-import PageContainer from '@/components/page-container';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-import { getApiV2JwchAcademicCredit } from '@/api/generate';
 import LastUpdateTime from '@/components/last-update-time';
+import EmptyView from '@/components/multistateview/empty-view';
 import MultiStateView from '@/components/multistateview/multi-state-view';
+import PageContainer from '@/components/page-container';
+import { TabFlatList } from '@/components/tab-flatlist';
+
+import { JwchAcademicCreditV2Response_Type } from '@/api/backend';
+import { getApiV2JwchAcademicCredit } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
 import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 
-// 学分组卡片
-const CreditGroupCard = ({ title, items }: { title: string; items: { key: string; value: unknown }[] }) => (
-  <Card className="overflow-hidden rounded-2xl border border-border/40 bg-card/80">
-    <CardHeader className="space-y-1.5 px-5 pb-3 pt-5">
-      <CardTitle className="text-xl font-semibold">{title}</CardTitle>
-    </CardHeader>
-    <CardContent className="flex flex-col gap-4 px-5 pb-5 pt-0">
-      <DescriptionList className="gap-4">
-        {items.map((item, idx) => (
-          <CreditCard key={`${title}-${idx}`} label={item.key} value={item.value} />
-        ))}
-      </DescriptionList>
-    </CardContent>
-  </Card>
-);
+interface TabContentProps {
+  group: JwchAcademicCreditV2Response_Type;
+  dataUpdatedAt: number;
+  onRefresh?: () => void;
+}
+
+const TabContent = React.memo<TabContentProps>(({ group, dataUpdatedAt, onRefresh }) => {
+  const { width: screenWidth } = useWindowDimensions();
+  const { bottom } = useSafeAreaInsets();
+
+  return (
+    <FlatList
+      data={group.data ?? []}
+      keyExtractor={(item, index) => `${item.key}-${index}`}
+      renderItem={({ item }) => <CreditCard label={item.key} value={item.value} />}
+      contentContainerClassName="mt-3 mx-4 gap-6"
+      contentContainerStyle={{ paddingBottom: bottom }}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+      ListEmptyComponent={<EmptyView className="-h-screen-safe-offset-12" />}
+      ListFooterComponent={
+        group.data && group.data.length > 0 ? <LastUpdateTime lastUpdated={new Date(dataUpdatedAt)} /> : null
+      }
+      style={{ width: screenWidth }}
+    />
+  );
+});
+
+TabContent.displayName = 'TabContent';
 
 export default function CreditsPage() {
   const apiResult = useApiRequest(getApiV2JwchAcademicCredit);
-  const { data: creditData, dataUpdatedAt, isFetching, refetch } = apiResult;
-  const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]); // 数据最后更新时间
-
+  const { data: creditData, dataUpdatedAt, refetch } = apiResult;
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,
   });
 
-  type CreditItem = { key: string; value: unknown };
-  type CreditGroup = { type?: string; data?: CreditItem[] };
+  // 过滤掉数据为空的组
+  const validGroups = useMemo(() => (creditData ?? []).filter(g => g.data && g.data.length > 0), [creditData]);
 
-  const groups = (creditData ?? []) as CreditGroup[];
-  const hasMinor = groups.some(g => /辅修/.test(g.type ?? '') && (g.data ?? []).length > 0);
+  const tabList = useMemo(() => validGroups.map(g => g.type ?? '学分情况'), [validGroups]);
+  const [currentTab, setCurrentTab] = useState(tabList[0] ?? '学分情况');
+
+  const renderContent = useCallback(
+    (tab: string) => {
+      const group = validGroups.find(g => g.type === tab);
+      if (!group) return null;
+      return <TabContent group={group} dataUpdatedAt={dataUpdatedAt} onRefresh={refetch} />;
+    },
+    [validGroups, dataUpdatedAt, refetch],
+  );
+
+  const content = useMemo(() => {
+    // 只有一个 Tab （主修专业）就不显示 Tab 栏
+    if (validGroups.length === 1) {
+      return <TabContent group={validGroups[0]} dataUpdatedAt={dataUpdatedAt} onRefresh={refetch} />;
+    }
+    return <TabFlatList data={tabList} value={currentTab} onChange={setCurrentTab} renderContent={renderContent} />;
+  }, [validGroups, tabList, currentTab, renderContent, dataUpdatedAt, refetch]);
 
   return (
     <>
       <Stack.Screen options={{ headerTitle: '学分统计' }} />
       <PageContainer>
-        <MultiStateView
-          state={state}
-          className="flex-1"
-          content={
-            <ScrollView
-              className="flex-1"
-              contentContainerClassName="px-4 pt-4"
-              refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
-            >
-              <SafeAreaView className="flex-1" edges={['bottom']}>
-                <View className="gap-4">
-                  {hasMinor ? (
-                    groups.map((group, idx) => (
-                      <CreditGroupCard key={idx} title={group.type ?? '学分情况'} items={group.data ?? []} />
-                    ))
-                  ) : (
-                    <CreditGroupCard title={groups[0]?.type ?? '学分情况'} items={groups.flatMap(g => g.data ?? [])} />
-                  )}
-                </View>
-
-                {/* 显示最后更新时间 */}
-                <LastUpdateTime lastUpdated={lastUpdated} />
-              </SafeAreaView>
-            </ScrollView>
-          }
-          refresh={refetch}
-        />
+        <MultiStateView state={state} content={content} refresh={refetch} />
       </PageContainer>
     </>
   );
