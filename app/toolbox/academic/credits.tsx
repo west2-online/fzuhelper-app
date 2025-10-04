@@ -55,7 +55,8 @@ export default function CreditsPage() {
   const validGroups = useMemo(() => (creditData ?? []).filter(g => g.data && g.data.length > 0), [creditData]);
 
   const tabList = useMemo(() => validGroups.map(g => g.type ?? '学分情况'), [validGroups]);
-  const [currentTab, setCurrentTab] = useState(tabList[0] ?? '学分情况');
+
+  const [currentTab, setCurrentTab] = useState('主修专业');
 
   const renderContent = useCallback(
     (tab: string) => {
