@@ -1,7 +1,6 @@
 import {
   type getApiV1CommonClassroomEmpty,
   type getApiV1CommonContributor,
-  type getApiV1JwchAcademicCredit,
   type getApiV1JwchAcademicGpa,
   type getApiV1JwchAcademicPlan,
   type getApiV1JwchAcademicScores,
@@ -11,6 +10,7 @@ import {
   type getApiV1LaunchScreenScreen,
   type getApiV1TermsInfo,
   type getApiV1TermsList,
+  type getApiV2JwchAcademicCredit,
   type getApiV2VersionAndroid,
 } from '@/api/generate';
 
@@ -61,9 +61,11 @@ export type JwchAcademicGpaResponse = AsyncReturnType<typeof getApiV1JwchAcademi
 export type JwchAcademicGpaResponse_AcademicGpaData = JwchAcademicGpaResponse['data'];
 export type JwchAcademicGpaResponse_AcademicGpaDataItem = JwchAcademicGpaResponse_AcademicGpaData['data'][0];
 
-// getApiV1JwchAcademicCredit
-export type JwchAcademicCreditResponse = AsyncReturnType<typeof getApiV1JwchAcademicCredit>['data']['data'];
-export type JwchAcademicCreditResponse_AcademicCreditData = JwchAcademicCreditResponse[0];
+// getApiV2JwchAcademicCredit
+export type JwchAcademicCreditV2Response = AsyncReturnType<typeof getApiV2JwchAcademicCredit>['data']['data'];
+export type JwchAcademicCreditV2Response_Type = JwchAcademicCreditV2Response[0];
+export type JwchAcademicCreditV2Response_TypeData = JwchAcademicCreditV2Response_Type['data'];
+export type JwchAcademicCreditV2Response_TypeDataItem = JwchAcademicCreditV2Response_TypeData[0];
 
 // getApiV1JwchAcademicUnifiedExam
 export type JwchAcademicUnifiedExamResponse = AsyncReturnType<typeof getApiV1JwchAcademicUnifiedExam>['data']['data'];
