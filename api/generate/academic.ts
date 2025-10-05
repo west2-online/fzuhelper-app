@@ -4,7 +4,6 @@ import * as API from './types';
 import request from '../axios';
 
 /** 学分统计 v2 GET /api/v2/jwch/academic/credit  https://app.apifox.com/link/project/3275694/apis/api-356737870*/
-// 能够区分主修与辅修课程，且由 Server 统一负责总分与剩余分的计算
 export async function getApiV2JwchAcademicCredit(options?: {
   [key: string]: unknown;
 }) {

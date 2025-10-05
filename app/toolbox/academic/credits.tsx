@@ -27,7 +27,7 @@ const TabContent = React.memo<TabContentProps>(({ group, dataUpdatedAt, onRefres
 
   return (
     <FlatList
-      data={group.data ?? []}
+      data={group.data}
       keyExtractor={(item, index) => `${item.key}-${index}`}
       renderItem={({ item }) => <CreditCard label={item.key} value={item.value} />}
       contentContainerClassName="mt-3 mx-4 gap-6"

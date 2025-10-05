@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 interface CreditCardProps {
   label: string; // 学分类型
-  value: unknown; // 学分值
+  value: string; // 学分值
 }
 
 export const CreditCard: React.FC<CreditCardProps> = ({ label, value }) => {
