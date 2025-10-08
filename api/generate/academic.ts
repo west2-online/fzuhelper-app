@@ -3,18 +3,15 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 学分统计 v2 GET /api/v2/jwch/academic/credit  https://app.apifox.com/link/project/3275694/apis/api-356737870*/
-export async function getApiV2JwchAcademicCredit(options?: {
+/** 学分统计 注意这里可能涉及到辅修 GET /api/v1/jwch/academic/credit https://apifox.com/web/project/3275694/apis/api-109631159-run */
+export async function getApiV1JwchAcademicCredit(options?: {
   [key: string]: unknown;
 }) {
   return request<{
     code: string;
     message: string;
-    data: {
-      type: string;
-      data: { key: string; value: string }[];
-    }[];
-  }>('/api/v2/jwch/academic/credit', {
+    data: { type: string; gain: string; total: string }[];
+  }>('/api/v1/jwch/academic/credit', {
     method: 'GET',
     ...(options || {}),
   });
@@ -80,6 +77,20 @@ export async function getApiV1JwchAcademicUnifiedExam(options?: {
     message: string;
     data: { name: string; score: string; term: string }[];
   }>('/api/v1/jwch/academic/unified-exam', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** 学分统计V2 返回学生的主修与辅修学分情况 GET /api/v2/jwch/academic/credit https://apifox.com/web/project/3275694/apis/api-356737870-run */
+export async function getApiV2JwchAcademicCredit(options?: {
+  [key: string]: unknown;
+}) {
+  return request<{
+    code: string;
+    message: string;
+    data: { type: string; data: { key: string; value: string }[] }[];
+  }>('/api/v2/jwch/academic/credit', {
     method: 'GET',
     ...(options || {}),
   });

@@ -32,6 +32,7 @@ const TabContent = React.memo<TabContentProps>(({ group, dataUpdatedAt, onRefres
       renderItem={({ item }) => <CreditCard label={item.key} value={item.value} />}
       contentContainerClassName="mt-3 mx-4 gap-6"
       contentContainerStyle={{ paddingBottom: bottom }}
+      initialNumToRender={20}
       refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
       ListEmptyComponent={<EmptyView className="-h-screen-safe-offset-12" />}
       ListFooterComponent={
@@ -51,29 +52,26 @@ export default function CreditsPage() {
     emptyCondition: data => !data || data.length === 0,
   });
 
-  // 过滤掉数据为空的组
-  const validGroups = useMemo(() => (creditData ?? []).filter(g => g.data && g.data.length > 0), [creditData]);
-
-  const tabList = useMemo(() => validGroups.map(g => g.type ?? '学分情况'), [validGroups]);
+  const tabList = useMemo(() => (creditData ?? []).map(g => g.type), [creditData]);
 
   const [currentTab, setCurrentTab] = useState('主修专业');
 
   const renderContent = useCallback(
     (tab: string) => {
-      const group = validGroups.find(g => g.type === tab);
+      const group = (creditData ?? []).find(g => g.type === tab);
       if (!group) return null;
       return <TabContent group={group} dataUpdatedAt={dataUpdatedAt} onRefresh={refetch} />;
     },
-    [validGroups, dataUpdatedAt, refetch],
+    [creditData, dataUpdatedAt, refetch],
   );
 
   const content = useMemo(() => {
     // 只有一个 Tab （主修专业）就不显示 Tab 栏
-    if (validGroups.length === 1) {
-      return <TabContent group={validGroups[0]} dataUpdatedAt={dataUpdatedAt} onRefresh={refetch} />;
+    if ((creditData ?? []).length === 1) {
+      return <TabContent group={(creditData ?? [])[0]} dataUpdatedAt={dataUpdatedAt} onRefresh={refetch} />;
     }
     return <TabFlatList data={tabList} value={currentTab} onChange={setCurrentTab} renderContent={renderContent} />;
-  }, [validGroups, tabList, currentTab, renderContent, dataUpdatedAt, refetch]);
+  }, [creditData, tabList, currentTab, renderContent, dataUpdatedAt, refetch]);
 
   return (
     <>
