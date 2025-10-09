@@ -8,7 +8,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Generating build number..."
-CI_BUILD_NUMBER=$(node scripts/generate-build-number.js)
+CI_BUILD_NUMBER=$(node ../../scripts/generate-build-number.js)
 echo "Generated build number: $CI_BUILD_NUMBER"
 
 xcrun agvtool new-version -all "$CI_BUILD_NUMBER"
