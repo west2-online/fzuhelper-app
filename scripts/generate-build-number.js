@@ -1,19 +1,13 @@
 #!/usr/bin/env node
 
 const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+const { version } = require('../package.json');
 
 /**
  * 生成构建版本号
  */
 function generateBuildNumber() {
   try {
-    // 读取 package.json 获取版本号
-    const packageJsonPath = path.join(__dirname, '..', 'package.json');
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-    const version = packageJson.version;
-
     // 内部版本号根据commit次数设置
     // 前三位对应版本名，后三位或更多对应commit次数
     let commitCount = 0;
