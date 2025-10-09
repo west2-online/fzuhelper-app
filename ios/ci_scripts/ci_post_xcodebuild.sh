@@ -1,7 +1,16 @@
 #!/bin/zsh
 # save as ci_scripts/ci_post_xcodebuild.sh in your project root
 
-echo "Rewrite build number: $CI_BUILD_NUMBER"
+# rewrite build number
+git fetch --unshallow
+if [ $? -ne 0 ]; then
+    git fetch --depth=99999
+fi
+
+echo "Generating build number..."
+CI_BUILD_NUMBER=$(node scripts/generate-build-number.js)
+echo "Generated build number: $CI_BUILD_NUMBER"
+
 xcrun agvtool new-version -all "$CI_BUILD_NUMBER"
 
 # 安装 translate-shell 为了多语言支持
