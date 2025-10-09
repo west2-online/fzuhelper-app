@@ -144,6 +144,21 @@ export class CourseCache {
   }
 
   /**
+   * 从包含所有学期自定义课程的cachedCustomData获取本学期自定义课程
+   */
+  public static getCustomCoursesForSemester(selectedSemester: string): Record<number, CustomCourse[]> {
+    if (!this.cachedCustomData) return {};
+
+    const filteredData: Record<number, CustomCourse[]> = {};
+    for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+      const dayIndex = Number(day);
+      // course.semester 如果为空，则为旧版所添加，不做过滤，在所有学期展示，由用户自己决定去删除或者编辑
+      filteredData[dayIndex] = courses.filter(course => !course.semester || course.semester === selectedSemester);
+    }
+    return filteredData;
+  }
+
+  /**
    * 获取缓存数据
    */
   public static getCachedData(selectedSemester: string): Record<number, CourseInfo[]> {
@@ -172,14 +187,11 @@ export class CourseCache {
     }
 
     // 合并自定义课程数据
-    if (this.cachedCustomData) {
-      for (const [day, customs] of Object.entries(this.cachedCustomData)) {
-        const dayIndex = Number(day);
-        if (!mergedData[dayIndex]) mergedData[dayIndex] = [];
-        // course.semester 如果为空，则为旧版所添加，不做过滤，在所有学期展示，由用户自己决定去删除或者编辑
-        const filteredCustoms = customs.filter(course => !course.semester || course.semester === selectedSemester);
-        mergedData[dayIndex].push(...filteredCustoms);
-      }
+    const customCourses = this.getCustomCoursesForSemester(selectedSemester);
+    for (const [day, customs] of Object.entries(customCourses)) {
+      const dayIndex = Number(day);
+      if (!mergedData[dayIndex]) mergedData[dayIndex] = [];
+      mergedData[dayIndex].push(...customs);
     }
 
     return mergedData;
@@ -234,6 +246,7 @@ export class CourseCache {
       const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
       const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
       const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
+      const customCourses = this.getCustomCoursesForSemester(term);
       if (Platform.OS === 'ios') {
         // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
         // 只能在常量中定义这个 identifier
@@ -243,7 +256,7 @@ export class CourseCache {
           JSON.stringify({
             courseData: this.cachedData,
             examData: this.cachedExamData,
-            customData: this.cachedCustomData,
+            customData: customCourses,
             lastCourseUpdateTime: this.lastCourseUpdateTime,
             lastExamUpdateTime: this.lastExamUpdateTime,
             startDate: currentTerm.start_date,
@@ -256,7 +269,7 @@ export class CourseCache {
           JSON.stringify({
             courseData: this.cachedData,
             examData: this.cachedExamData,
-            customData: this.cachedCustomData,
+            customData: customCourses,
             startDate: currentTerm.start_date,
             maxWeek: maxWeek,
             showNonCurrentWeekCourses: showNonCurrentWeekCourses,
@@ -390,8 +403,9 @@ export class CourseCache {
 
     switch (course.type) {
       case COURSE_TYPE:
-        const updatedData = Object.values(this.cachedData).map(day =>
-          day.map(c => {
+        const updatedData: Record<number, ExtendCourse[]> = {};
+        for (const [day, courses] of Object.entries(this.cachedData)) {
+          updatedData[+day] = courses.map(c => {
             if (c.id === course.id) {
               console.log(`Set priority for course ${course.name} to ${this.priorityCounter}`);
               this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
@@ -401,8 +415,8 @@ export class CourseCache {
               };
             }
             return c;
-          }),
-        );
+          });
+        }
 
         this.cachedData = updatedData;
         break;
@@ -411,8 +425,9 @@ export class CourseCache {
           console.log("cachedCustomData is null, this shouldn't happen");
           return;
         }
-        const updatedCustomData = Object.values(this.cachedCustomData).map(day =>
-          day.map(c => {
+        const updatedCustomData: Record<number, CustomCourse[]> = {};
+        for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+          updatedCustomData[+day] = courses.map(c => {
             if (this.isCustomCourse(course) && c.storageKey === course.storageKey) {
               console.log(`Set priority for custom course ${course.name} to ${this.priorityCounter}`);
               this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
@@ -422,8 +437,8 @@ export class CourseCache {
               };
             }
             return c;
-          }),
-        );
+          });
+        }
 
         this.cachedCustomData = updatedCustomData;
         break;

@@ -3,6 +3,7 @@ package com.helper.west2ol.fzuhelper
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.util.Log
 import android.util.TypedValue.COMPLEX_UNIT_DIP
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
@@ -101,7 +102,12 @@ class CourseScheduleWidgetService : RemoteViewsService() {
                 .getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
                 .getString("widgetdata", "")
             if (jsonData != "") {
-                cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
+                try {
+                    cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
+                } catch (e: Exception) {
+                    Log.e("CourseScheduleWidgetService", "Failed to load widget data", e)
+                    return remoteViews
+                }
             } else {
                 return remoteViews
             }
