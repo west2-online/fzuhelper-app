@@ -1,26 +1,12 @@
-import { execSync } from 'child_process';
 import { type ExpoConfig } from 'expo/config';
 import 'ts-node/register';
 import { version } from './package.json';
+import { generateBuildNumber } from './scripts/generate-build-number';
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
 
-// 内部版本号根据commit次数设置
-// 前三位对应版本名，后三位或更多对应commit次数
-let commitCount = 0;
-try {
-  const stdout = execSync('git rev-list --count HEAD').toString().trim();
-  const parsedInt = parseInt(stdout, 10);
-  if (!isNaN(parsedInt)) {
-    commitCount = parsedInt;
-  }
-} catch (err) {
-  console.error('无法获取 git commit 次数，将使用默认值 0:', err);
-}
-const versionCodePrefix = version.replace(/\./g, '');
-const versionCodeSuffix = String(commitCount).padStart(3, '0');
-// iOS
-const buildNumber = versionCodePrefix + versionCodeSuffix;
+// 使用统一的构建版本号生成逻辑
+const buildNumber = generateBuildNumber();
 // Android
 const versionCode = parseInt(buildNumber, 10);
 
