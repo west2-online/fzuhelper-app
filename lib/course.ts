@@ -390,8 +390,9 @@ export class CourseCache {
 
     switch (course.type) {
       case COURSE_TYPE:
-        const updatedData = Object.values(this.cachedData).map(day =>
-          day.map(c => {
+        const updatedData: Record<number, ExtendCourse[]> = {};
+        for (const [day, courses] of Object.entries(this.cachedData)) {
+          updatedData[+day] = courses.map(c => {
             if (c.id === course.id) {
               console.log(`Set priority for course ${course.name} to ${this.priorityCounter}`);
               this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
@@ -401,8 +402,8 @@ export class CourseCache {
               };
             }
             return c;
-          }),
-        );
+          });
+        }
 
         this.cachedData = updatedData;
         break;
@@ -411,8 +412,9 @@ export class CourseCache {
           console.log("cachedCustomData is null, this shouldn't happen");
           return;
         }
-        const updatedCustomData = Object.values(this.cachedCustomData).map(day =>
-          day.map(c => {
+        const updatedCustomData: Record<number, CustomCourse[]> = {};
+        for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+          updatedCustomData[+day] = courses.map(c => {
             if (this.isCustomCourse(course) && c.storageKey === course.storageKey) {
               console.log(`Set priority for custom course ${course.name} to ${this.priorityCounter}`);
               this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
@@ -422,8 +424,8 @@ export class CourseCache {
               };
             }
             return c;
-          }),
-        );
+          });
+        }
 
         this.cachedCustomData = updatedCustomData;
         break;
