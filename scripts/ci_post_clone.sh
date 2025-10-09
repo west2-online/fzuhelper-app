@@ -12,6 +12,11 @@ brew install node yarn cocoapods
 yarn install
 
 # generate and export build number
+git fetch --unshallow
+if [ $? -ne 0 ]; then
+    git fetch --depth=99999
+fi
+
 echo "Generating build number..."
 export CI_BUILD_NUMBER=$(node scripts/generate-build-number.js)
 echo "Generated build number: $CI_BUILD_NUMBER"

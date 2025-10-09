@@ -23,7 +23,7 @@ const config: ExpoConfig = {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
     bundleIdentifier: IS_DEV ? 'FzuHelper.FzuHelper.dev' : 'FzuHelper.FzuHelper',
-    buildNumber,
+    buildNumber, // Xcode Cloud Build 下这个值需要我们手动覆盖一下，见 ci_post_clone.sh 和 ci_post_xcodebuild.sh
     bitcode: true,
     supportsTablet: true,
     associatedDomains: ['applinks:fzuhelperapp.west2.online'], // 支持 Apple Universal Link 功能
