@@ -5,8 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * 生成构建版本号的脚本
- * 从 app.config.ts 中抽取的逻辑
+ * 生成构建版本号
  */
 function generateBuildNumber() {
   try {
