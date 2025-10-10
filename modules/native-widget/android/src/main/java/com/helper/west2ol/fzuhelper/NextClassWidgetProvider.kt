@@ -11,6 +11,7 @@ import android.util.Log
 import android.util.TypedValue
 import android.util.TypedValue.COMPLEX_UNIT_SP
 import android.widget.RemoteViews
+import android.view.View
 import com.google.gson.Gson
 import com.west2online.nativewidget.R
 import java.text.SimpleDateFormat
@@ -60,17 +61,24 @@ internal fun updateNextClassWidget(
 
     val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
 
+    if (getBoolean(context, appWidgetId, "showLastUpdateTime", false)) {
+        views.setViewVisibility(R.id.progress_bar, View.VISIBLE)
+        views.setViewVisibility(R.id.refresh_button, View.GONE)
+        appWidgetManager.updateAppWidget(appWidgetId, views)
+        Thread.sleep(500) //动画时间
+    }
+
     val refreshIntent = Intent(context, NextClassWidgetProvider::class.java).apply {
         action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
         putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
     }
     val refreshPendingIntent = PendingIntent.getBroadcast(
         context,
-        1,
+        appWidgetId,
         refreshIntent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
-    views.setOnClickPendingIntent(R.id.last_update_time, refreshPendingIntent)
+    views.setOnClickPendingIntent(R.id.refresh_button, refreshPendingIntent)
 
     val intent = Intent()
     intent.setClassName(
@@ -79,7 +87,7 @@ internal fun updateNextClassWidget(
     )
     val pendingIntent = PendingIntent.getActivity(
         context,
-        0,
+        appWidgetId,
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
     )
@@ -141,9 +149,11 @@ internal fun updateNextClassWidget(
             val currentDateTime = Calendar.getInstance()
             val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
             val formattedDate = sdf.format(currentDateTime.time)
-            setTextViewText(R.id.last_update_time, "更新于 $formattedDate 点击以刷新")
+            setTextViewText(R.id.last_update_time, "更新于 $formattedDate")
+            views.setViewVisibility(R.id.refresh_button, View.VISIBLE)
         } else {
             setTextViewText(R.id.last_update_time, "")
+            views.setViewVisibility(R.id.refresh_button, View.GONE)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -185,6 +195,8 @@ internal fun updateNextClassWidget(
             }
         }
     }
+
+    views.setViewVisibility(R.id.progress_bar, View.GONE)
 
     appWidgetManager.updateAppWidget(appWidgetId, views)
 }
