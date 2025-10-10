@@ -47,7 +47,7 @@ internal fun updateCourseScheduleWidget(
     )
     val pendingIntent = PendingIntent.getActivity(
         context,
-        0,
+        appWidgetId,
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
     )
