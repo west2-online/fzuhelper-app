@@ -53,12 +53,14 @@ class NextClassWidgetProvider : AppWidgetProvider() {
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 internal fun updateNextClassWidget(
     context: Context,
     appWidgetManager: AppWidgetManager,
     appWidgetId: Int
 ) {
-    CoroutineScope(Dispatchers.IO).launch {
+    // 避免内存泄漏可能
+    GlobalScope.launch(Dispatchers.IO) {
         doConfigMigration(context, appWidgetId)
 
         val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
