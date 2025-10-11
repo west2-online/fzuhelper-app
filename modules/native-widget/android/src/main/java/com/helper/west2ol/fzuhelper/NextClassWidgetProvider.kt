@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.max
+import kotlinx.coroutines.*
 
 /**
  * Implementation of App Widget functionality.
@@ -52,153 +53,157 @@ class NextClassWidgetProvider : AppWidgetProvider() {
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 internal fun updateNextClassWidget(
     context: Context,
     appWidgetManager: AppWidgetManager,
     appWidgetId: Int
 ) {
-    doConfigMigration(context, appWidgetId)
+    // 避免内存泄漏可能
+    GlobalScope.launch(Dispatchers.IO) {
+        doConfigMigration(context, appWidgetId)
 
-    val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
-
-    if (getBoolean(context, appWidgetId, "showLastUpdateTime", false)) {
-        views.setViewVisibility(R.id.progress_bar, View.VISIBLE)
-        views.setViewVisibility(R.id.refresh_button, View.GONE)
-        appWidgetManager.updateAppWidget(appWidgetId, views)
-        Thread.sleep(500) //动画时间
-    }
-
-    val refreshIntent = Intent(context, NextClassWidgetProvider::class.java).apply {
-        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
-    }
-    val refreshPendingIntent = PendingIntent.getBroadcast(
-        context,
-        appWidgetId,
-        refreshIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-    views.setOnClickPendingIntent(R.id.refresh_button, refreshPendingIntent)
-
-    val intent = Intent()
-    intent.setClassName(
-        "com.helper.west2ol.fzuhelper",
-        "com.helper.west2ol.fzuhelper" + ".MainActivity"
-    )
-    val pendingIntent = PendingIntent.getActivity(
-        context,
-        appWidgetId,
-        intent,
-        PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
-    )
-    views.setOnClickPendingIntent(R.id.container, pendingIntent)
-
-    val cacheCourseData: CacheCourseData
-    var nextClass: ClassInfo? = null
-    var hasLocalData = true
-    try {
-        val jsonData = context
-            .getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
-            .getString("widgetdata", "")
-        if (jsonData != "") {
-            cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
-            nextClass = getNextClass(cacheCourseData)
-//            Log.d("NextClassWidgetProvider", "Loaded widget data: $cacheCourseData")
-        } else {
-            hasLocalData = false
-        }
-    } catch (e: Exception) {
-        Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
-    }
-
-    views.apply {
-        if (nextClass != null) {
-            val name = nextClass.courseBean.name
-                .let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
-            val location = nextClass.courseBean.location
-                .let { if (it.length >= 10) it.substring(0, 8) + "..." else it }
-            val section = nextClass.courseBean.remark
-                .ifEmpty { "${nextClass.courseBean.startClass}-${nextClass.courseBean.endClass}节" }
-                .let { if (it.length >= 10) it.substring(0, 8) + "..." else it }
-
-            setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
-            setTextViewText(R.id.course_name, name)
-            setTextViewText(R.id.course_room, location)
-            setTextViewText(R.id.course_section, section)
-            setTextViewText(R.id.course_week, "第${nextClass.week}周")
-            setTextViewText(
-                R.id.course_weekday,
-                "周${getWeekChinese(nextClass.courseBean.weekday)}"
-            )
-        } else {
-            if (hasLocalData) {
-                setTextViewText(R.id.course_name, "放假啦")
-                setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 30f)
-                setTextViewText(R.id.course_room, null)
-            } else {
-                setTextViewText(R.id.course_name, "本地没有数据")
-                setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
-                setTextViewText(R.id.course_room, "请打开课表设置刷新")
-            }
-            setTextViewText(R.id.course_weekday, null)
-            setTextViewText(R.id.course_section, null)
-            setTextViewText(R.id.course_week, null)
-        }
+        val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
 
         if (getBoolean(context, appWidgetId, "showLastUpdateTime", false)) {
-            val currentDateTime = Calendar.getInstance()
-            val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
-            val formattedDate = sdf.format(currentDateTime.time)
-            setTextViewText(R.id.last_update_time, "更新于 $formattedDate")
-            views.setViewVisibility(R.id.refresh_button, View.VISIBLE)
-        } else {
-            setTextViewText(R.id.last_update_time, "")
+            views.setViewVisibility(R.id.progress_bar, View.VISIBLE)
             views.setViewVisibility(R.id.refresh_button, View.GONE)
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+            delay(500) //动画时间
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (getBoolean(
-                    context,
-                    appWidgetId,
-                    "showAsSquare",
-                    false
-                )
-            ) {
-                val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-                val minWidth =
-                    options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 100)
-                val minHeight =
-                    options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
+        val refreshIntent = Intent(context, NextClassWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
+        }
+        val refreshPendingIntent = PendingIntent.getBroadcast(
+            context,
+            appWidgetId,
+            refreshIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        views.setOnClickPendingIntent(R.id.refresh_button, refreshPendingIntent)
 
-                val verticalCenteringMargin = max((minHeight - minWidth) / 2, 0)
+        val intent = Intent()
+        intent.setClassName(
+            "com.helper.west2ol.fzuhelper",
+            "com.helper.west2ol.fzuhelper" + ".MainActivity"
+        )
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            appWidgetId,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
+        )
+        views.setOnClickPendingIntent(R.id.container, pendingIntent)
 
-                setViewLayoutMargin(
-                    R.id.container, RemoteViews.MARGIN_TOP,
-                    verticalCenteringMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
-                )
-
-                setViewLayoutMargin(
-                    R.id.container, RemoteViews.MARGIN_BOTTOM,
-                    verticalCenteringMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
-                )
-
+        val cacheCourseData: CacheCourseData
+        var nextClass: ClassInfo? = null
+        var hasLocalData = true
+        try {
+            val jsonData = context
+                .getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
+                .getString("widgetdata", "")
+            if (jsonData != "") {
+                cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
+                nextClass = getNextClass(cacheCourseData)
+//            Log.d("NextClassWidgetProvider", "Loaded widget data: $cacheCourseData")
             } else {
-                setViewLayoutMargin(
-                    R.id.container, RemoteViews.MARGIN_TOP,
-                    0f, TypedValue.COMPLEX_UNIT_DIP
-                )
+                hasLocalData = false
+            }
+        } catch (e: Exception) {
+            Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
+        }
 
-                setViewLayoutMargin(
-                    R.id.container, RemoteViews.MARGIN_BOTTOM,
-                    0f, TypedValue.COMPLEX_UNIT_DIP
+        views.apply {
+            if (nextClass != null) {
+                val name = nextClass.courseBean.name
+                    .let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
+                val location = nextClass.courseBean.location
+                    .let { if (it.length >= 10) it.substring(0, 8) + "..." else it }
+                val section = nextClass.courseBean.remark
+                    .ifEmpty { "${nextClass.courseBean.startClass}-${nextClass.courseBean.endClass}节" }
+                    .let { if (it.length >= 10) it.substring(0, 8) + "..." else it }
+
+                setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
+                setTextViewText(R.id.course_name, name)
+                setTextViewText(R.id.course_room, location)
+                setTextViewText(R.id.course_section, section)
+                setTextViewText(R.id.course_week, "第${nextClass.week}周")
+                setTextViewText(
+                    R.id.course_weekday,
+                    "周${getWeekChinese(nextClass.courseBean.weekday)}"
                 )
+            } else {
+                if (hasLocalData) {
+                    setTextViewText(R.id.course_name, "放假啦")
+                    setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 30f)
+                    setTextViewText(R.id.course_room, null)
+                } else {
+                    setTextViewText(R.id.course_name, "本地没有数据")
+                    setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
+                    setTextViewText(R.id.course_room, "请打开课表设置刷新")
+                }
+                setTextViewText(R.id.course_weekday, null)
+                setTextViewText(R.id.course_section, null)
+                setTextViewText(R.id.course_week, null)
+            }
+
+            if (getBoolean(context, appWidgetId, "showLastUpdateTime", false)) {
+                val currentDateTime = Calendar.getInstance()
+                val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
+                val formattedDate = sdf.format(currentDateTime.time)
+                setTextViewText(R.id.last_update_time, "更新于 $formattedDate")
+                views.setViewVisibility(R.id.refresh_button, View.VISIBLE)
+            } else {
+                setTextViewText(R.id.last_update_time, "")
+                views.setViewVisibility(R.id.refresh_button, View.GONE)
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (getBoolean(
+                        context,
+                        appWidgetId,
+                        "showAsSquare",
+                        false
+                    )
+                ) {
+                    val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+                    val minWidth =
+                        options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 100)
+                    val minHeight =
+                        options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
+
+                    val verticalCenteringMargin = max((minHeight - minWidth) / 2, 0)
+
+                    setViewLayoutMargin(
+                        R.id.container, RemoteViews.MARGIN_TOP,
+                        verticalCenteringMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
+                    )
+
+                    setViewLayoutMargin(
+                        R.id.container, RemoteViews.MARGIN_BOTTOM,
+                        verticalCenteringMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
+                    )
+
+                } else {
+                    setViewLayoutMargin(
+                        R.id.container, RemoteViews.MARGIN_TOP,
+                        0f, TypedValue.COMPLEX_UNIT_DIP
+                    )
+
+                    setViewLayoutMargin(
+                        R.id.container, RemoteViews.MARGIN_BOTTOM,
+                        0f, TypedValue.COMPLEX_UNIT_DIP
+                    )
+                }
             }
         }
+
+        views.setViewVisibility(R.id.progress_bar, View.GONE)
+
+        appWidgetManager.updateAppWidget(appWidgetId, views)
     }
-
-    views.setViewVisibility(R.id.progress_bar, View.GONE)
-
-    appWidgetManager.updateAppWidget(appWidgetId, views)
 }
 
 
