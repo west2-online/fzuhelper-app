@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import PageContainer from '@/components/page-container';
+import SmsVerificationModal from '@/components/sms-verification-modal';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
@@ -20,7 +21,7 @@ import {
   YMT_ACCESS_TOKEN_KEY,
   YMT_USERNAME_KEY,
 } from '@/lib/constants';
-import SSOLogin from '@/lib/sso-login';
+import SSOLogin, { TwoFactorAuthCallback } from '@/lib/sso-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 import YMTLogin from '@/lib/ymt-login';
 
@@ -37,11 +38,15 @@ const UnifiedLoginPage: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isBackUpEnabled, setIsBackUpEnabled] = useState(false); // 是否启用备用登录方式
   const [isAgree, setIsAgree] = useState(false);
+  const [smsModalVisible, setSmsModalVisible] = useState(false);
+  const [smsPhone, setSmsPhone] = useState('');
+  const [smsTip, setSmsTip] = useState('');
   const { handleError } = useSafeResponseSolve();
   const ymtLogin = useRef<YMTLogin | null>(null);
   const ssoLogin = useRef<SSOLogin | null>(null);
   const isStoredSSOUser = useRef(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const smsCodeResolve = useRef<((code: string) => void) | null>(null);
 
   if (!ymtLogin.current) {
     ymtLogin.current = new YMTLogin();
@@ -65,10 +70,40 @@ const UnifiedLoginPage: React.FC = () => {
     }, []),
   );
 
+  // 处理短信验证码确认
+  const handleSmsConfirm = useCallback((code: string) => {
+    if (smsCodeResolve.current) {
+      smsCodeResolve.current(code);
+      smsCodeResolve.current = null;
+    }
+    setSmsModalVisible(false);
+  }, []);
+
+  // 处理短信验证码取消
+  const handleSmsClose = useCallback(() => {
+    if (smsCodeResolve.current) {
+      smsCodeResolve.current(''); // 返回空字符串表示取消
+      smsCodeResolve.current = null;
+    }
+    setSmsModalVisible(false);
+  }, []);
+
   // 处理SSO登录逻辑
   const handleSSOLogin = useCallback(async () => {
+    // 两步验证回调
+    const twoFactorCallback: TwoFactorAuthCallback = {
+      onSmsRequired: async (phone: string, tip: string) => {
+        return new Promise<string>(resolve => {
+          setSmsPhone(phone);
+          setSmsTip(tip);
+          smsCodeResolve.current = resolve;
+          setSmsModalVisible(true);
+        });
+      },
+    };
+
     try {
-      const cookies = await ssoLogin.current!.login(account, accountPassword);
+      const cookies = await ssoLogin.current!.login(account, accountPassword, twoFactorCallback);
       await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookies);
       await AsyncStorage.setItem(SSO_LOGIN_USER_KEY, JSON.stringify({ account: account, password: accountPassword }));
       console.log('登录SSO成功:', cookies);
@@ -287,6 +322,15 @@ const UnifiedLoginPage: React.FC = () => {
             </View>
           </KeyboardAwareScrollView>
         </SafeAreaView>
+
+        {/* 短信验证码模态框 */}
+        <SmsVerificationModal
+          visible={smsModalVisible}
+          phone={smsPhone}
+          tip={smsTip}
+          onClose={handleSmsClose}
+          onConfirm={handleSmsConfirm}
+        />
       </PageContainer>
     </>
   );

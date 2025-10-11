@@ -2,8 +2,13 @@ import { Buffer } from 'buffer';
 import CryptoJs from 'crypto-js';
 
 import { RejectEnum } from '@/api/enum';
-import { SSO_LOGIN_URL } from '@/lib/constants';
+import { SSO_LOGIN_SMS_URL, SSO_LOGIN_URL, SSO_LOGIN_VERIFY_SMS_CODE_URL } from '@/lib/constants';
 import { get, post } from '@/modules/native-request';
+
+// 两步验证回调接口
+export interface TwoFactorAuthCallback {
+  onSmsRequired: (phone: string, tip: string) => Promise<string>; // 返回用户输入的验证码
+}
 
 // 用于提取 Set-Cookie 中的内容
 function extractKV(raw: string, key: string): string {
@@ -76,13 +81,46 @@ class SSOLogin {
     return resp;
   }
 
+  // 发送短信验证码
+  async sendSmsCode(phone: string, SESSION: string): Promise<{ success: boolean; message?: string }> {
+    /**
+     * @param phone 手机号
+     * @param SESSION 会话cookie
+     * @returns 发送结果
+     **/
+    try {
+      const smsResp = await this.#post({
+        url: SSO_LOGIN_SMS_URL,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Cookie: `SESSION=${SESSION}`,
+        },
+        formData: { businessNo: '0008', phone },
+      });
+
+      const smsRespData = JSON.parse(Buffer.from(smsResp.data).toString('utf-8'));
+
+      if (smsRespData.code === 200) {
+        return { success: true };
+      } else if (smsRespData.code === 412) {
+        return { success: false, message: '验证码发送频率过快，请等待120秒后重试' };
+      } else {
+        return { success: false, message: smsRespData.msg || '验证码发送失败' };
+      }
+    } catch (error) {
+      console.error('发送验证码失败:', error);
+      return { success: false, message: '验证码发送失败' };
+    }
+  }
+
   // 登录, 返回并保存 cookie
-  async login(account: string, password: string) {
+  async login(account: string, password: string, twoFactorCallback?: TwoFactorAuthCallback) {
     /**
      * @param account 学号
      * @param password 密码
      * @returns 登录成功后的 cookie
      **/
+    // 弹出输入提示框
 
     if (account === '' || password === '') {
       throw {
@@ -129,7 +167,73 @@ class SSOLogin {
       },
       formData: data,
     });
-    const SOURCEID_TGC = extractKV(resp.headers['Set-Cookie'], 'SOURCEID_TGC');
+
+    // 检查是否需要两步验证
+    html = Buffer.from(resp.data).toString('utf-8');
+    if (html.includes('<p id="current-login-type">smsLogin</p>')) {
+      // 提取手机号 <p id="phone-number">***********</p>
+      // 提取提示 <p id="second-auth-tip">您正在使用非校内ip登录，请进行手机验证以保障您的账号安全</p>
+      const matchPhone = html.match(/<p id="phone-number">(.*?)<\/p>/);
+      const matchTip = html.match(/<p id="second-auth-tip">(.*?)<\/p>/);
+      const phone = matchPhone ? matchPhone[1] : null;
+      const tip = matchTip ? matchTip[1] : '请进行手机验证以保障您的账号安全';
+
+      if (!phone) {
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: '需要进行手机验证，但未找到手机号',
+        };
+      }
+
+      // 如果没有提供两步验证回调，则抛出错误
+      if (!twoFactorCallback) {
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: '需要进行两步验证，但未提供验证回调',
+        };
+      }
+
+      // 发送验证码
+      const sendResult = await this.sendSmsCode(phone, SESSION);
+      if (!sendResult.success) {
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: sendResult.message || '验证码发送失败',
+        };
+      }
+
+      // 调用回调获取用户输入的验证码
+      const userInputCode = await twoFactorCallback.onSmsRequired(phone, tip);
+      if (!userInputCode) {
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: '用户取消了验证码输入',
+        };
+      }
+
+      // 验证验证码
+      await this.#post({
+        url: SSO_LOGIN_VERIFY_SMS_CODE_URL,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Cookie: `SESSION=${SESSION}`,
+        },
+        // TODO: 默认信任设备,后续可以让用户选择
+        formData: { phone, token: userInputCode, delete: 'false', trustDevice: 'true' },
+      });
+    }
+
+    // 验证完成，检查登录是否成功
+    let SOURCEID_TGC: string;
+    try {
+      SOURCEID_TGC = extractKV(resp.headers['Set-Cookie'], 'SOURCEID_TGC');
+      console.log('登录成功, SOURCEID_TGC:', SOURCEID_TGC);
+    } catch {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '登录失败,请检查账号密码是否正确',
+      };
+    }
 
     const cookies = `SOURCEID_TGC=${SOURCEID_TGC}`;
 
