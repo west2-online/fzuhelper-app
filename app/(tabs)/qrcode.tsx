@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { Tabs as ExpoTabs, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import QRCode from 'react-native-qrcode-svg';
@@ -205,6 +205,11 @@ export default function YiMaTongPage() {
     }, [accessToken]),
   );
 
+  // iOS 16、17标题文字顶部被裁切问题
+  const titleClassname = useMemo(() => {
+    return Platform.OS === 'ios' ? 'pt-1' : '';
+  }, []);
+
   return (
     <>
       <ExpoTabs.Screen options={{ title: '一码通' }} />
@@ -234,13 +239,13 @@ export default function YiMaTongPage() {
                   <ScrollView className="pt-3">
                     <CardHeader>
                       <TabsContent value="消费码">
-                        <CardTitle>消费码</CardTitle>
+                        <CardTitle className={titleClassname}>消费码</CardTitle>
                       </TabsContent>
                       <TabsContent value="认证码">
-                        <CardTitle>认证码</CardTitle>
+                        <CardTitle className={titleClassname}>认证码</CardTitle>
                       </TabsContent>
                       <TabsContent value="入馆码">
-                        <CardTitle>入馆码</CardTitle>
+                        <CardTitle className={titleClassname}>入馆码</CardTitle>
                       </TabsContent>
 
                       <CardDescription className="mt-2">
