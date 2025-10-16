@@ -7,7 +7,7 @@ import { get, post } from '@/modules/native-request';
 
 // 两步验证回调接口
 export interface TwoFactorAuthCallback {
-  onSmsRequired: (phone: string, tip: string) => Promise<string>; // 返回用户输入的验证码
+  onSmsRequired: (phone: string, tip: string, sendSms: () => Promise<void>) => Promise<string>; // 返回用户输入的验证码
 }
 
 // 用于提取 Set-Cookie 中的内容
@@ -159,7 +159,7 @@ class SSOLogin {
     };
 
     // 发送登录请求
-    const resp = await this.#post({
+    let resp = await this.#post({
       url: SSO_LOGIN_URL,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -193,17 +193,19 @@ class SSOLogin {
         };
       }
 
-      // 发送验证码
-      const sendResult = await this.sendSmsCode(phone, SESSION);
-      if (!sendResult.success) {
-        throw {
-          type: RejectEnum.NativeLoginFailed,
-          data: sendResult.message || '验证码发送失败',
-        };
-      }
+      // 创建发送验证码的函数
+      const sendSms = async () => {
+        const sendResult = await this.sendSmsCode(phone, SESSION);
+        if (!sendResult.success) {
+          throw {
+            type: RejectEnum.NativeLoginFailed,
+            data: sendResult.message || '验证码发送失败',
+          };
+        }
+      };
 
       // 调用回调获取用户输入的验证码
-      const userInputCode = await twoFactorCallback.onSmsRequired(phone, tip);
+      const userInputCode = await twoFactorCallback.onSmsRequired(phone, tip, sendSms);
       if (!userInputCode) {
         throw {
           type: RejectEnum.NativeLoginFailed,
@@ -212,7 +214,7 @@ class SSOLogin {
       }
 
       // 验证验证码
-      await this.#post({
+      const verifyResp = await this.#post({
         url: SSO_LOGIN_VERIFY_SMS_CODE_URL,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -221,6 +223,7 @@ class SSOLogin {
         // TODO: 默认信任设备,后续可以让用户选择
         formData: { phone, token: userInputCode, delete: 'false', trustDevice: 'true' },
       });
+      resp = verifyResp;
     }
 
     // 验证完成，检查登录是否成功
@@ -231,7 +234,7 @@ class SSOLogin {
     } catch {
       throw {
         type: RejectEnum.NativeLoginFailed,
-        data: '登录失败,请检查账号密码是否正确',
+        data: '登录失败，请检查账号密码是否正确',
       };
     }
 

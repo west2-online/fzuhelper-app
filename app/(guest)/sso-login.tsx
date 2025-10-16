@@ -38,9 +38,10 @@ const UnifiedLoginPage: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isBackUpEnabled, setIsBackUpEnabled] = useState(false); // 是否启用备用登录方式
   const [isAgree, setIsAgree] = useState(false);
-  const [smsModalVisible, setSmsModalVisible] = useState(false);
+  const [smsModalVisible, setSmsModalVisible] = useState(true);
   const [smsPhone, setSmsPhone] = useState('');
   const [smsTip, setSmsTip] = useState('');
+  const [smsSendFunction, setSmsSendFunction] = useState<(() => Promise<void>) | null>(null);
   const { handleError } = useSafeResponseSolve();
   const ymtLogin = useRef<YMTLogin | null>(null);
   const ssoLogin = useRef<SSOLogin | null>(null);
@@ -92,10 +93,11 @@ const UnifiedLoginPage: React.FC = () => {
   const handleSSOLogin = useCallback(async () => {
     // 两步验证回调
     const twoFactorCallback: TwoFactorAuthCallback = {
-      onSmsRequired: async (phone: string, tip: string) => {
+      onSmsRequired: async (phone: string, tip: string, sendSms: () => Promise<void>) => {
         return new Promise<string>(resolve => {
           setSmsPhone(phone);
           setSmsTip(tip);
+          setSmsSendFunction(() => sendSms); // 保存发送验证码函数
           smsCodeResolve.current = resolve;
           setSmsModalVisible(true);
         });
@@ -330,6 +332,7 @@ const UnifiedLoginPage: React.FC = () => {
           tip={smsTip}
           onClose={handleSmsClose}
           onConfirm={handleSmsConfirm}
+          onSendSms={smsSendFunction || (async () => {})}
         />
       </PageContainer>
     </>
