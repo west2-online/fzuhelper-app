@@ -2,6 +2,7 @@ package com.helper.west2ol.fzuhelper
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -10,6 +11,11 @@ import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.AdapterView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import java.util.concurrent.TimeUnit
 import com.west2online.nativewidget.R
 import com.west2online.nativewidget.databinding.CourseScheduleWidgetConfigurationBinding
 
@@ -35,6 +41,7 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            courseScheduleWidgetUpdate(this)
             val resultValue = Intent()
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             setResult(RESULT_OK, resultValue)
@@ -112,11 +119,24 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
 
         binding.toolbar.inflateMenu(R.menu.widget_configuration)
         binding.toolbar.setOnMenuItemClickListener {
+            courseScheduleWidgetUpdate(this)
             val resultValue = Intent()
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             setResult(RESULT_OK, resultValue)
             finish()
             true
         }
+    }
+
+    fun courseScheduleWidgetUpdate(context: Context) {
+        val request = PeriodicWorkRequestBuilder<CourseScheduleUpdateWorker>(
+            30, TimeUnit.MINUTES, // 最小间隔（实际可能被系统延长）
+            10, TimeUnit.MINUTES  // 容差窗口
+        ).build()
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            "CourseScheduleWidgetUpdate",
+            ExistingPeriodicWorkPolicy.KEEP, // 保留现有工作，避免重复创建
+            request
+        )
     }
 }
