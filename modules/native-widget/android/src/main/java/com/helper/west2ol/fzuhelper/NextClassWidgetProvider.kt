@@ -259,8 +259,6 @@ fun searchNextClassIterative(
     val courseBeans = getCourseBeans(cacheCourseData)
 
     while (currentWeek <= cacheCourseData.maxWeek) {
-        var foundCourses: ExtendCourse? = null
-
         for (course in courseBeans) {
             if (currentWeek in course.startWeek..course.endWeek
                 && ((course.single && currentWeek % 2 == 1) || (course.double && currentWeek % 2 == 0))
