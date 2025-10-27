@@ -38,7 +38,7 @@ const UnifiedLoginPage: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isBackUpEnabled, setIsBackUpEnabled] = useState(false); // 是否启用备用登录方式
   const [isAgree, setIsAgree] = useState(false);
-  const [smsModalVisible, setSmsModalVisible] = useState(true);
+  const [smsModalVisible, setSmsModalVisible] = useState(false);
   const [smsPhone, setSmsPhone] = useState('');
   const [smsTip, setSmsTip] = useState('');
   const [smsSendFunction, setSmsSendFunction] = useState<(() => Promise<void>) | null>(null);
@@ -106,12 +106,17 @@ const UnifiedLoginPage: React.FC = () => {
 
     try {
       const cookies = await ssoLogin.current!.login(account, accountPassword, twoFactorCallback);
+      // 如果返回空字符串，说明用户取消了验证码输入
+      if (!cookies) {
+        console.log('用户取消了SSO登录');
+        return false;
+      }
       await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookies);
       await AsyncStorage.setItem(SSO_LOGIN_USER_KEY, JSON.stringify({ account: account, password: accountPassword }));
       console.log('登录SSO成功:', cookies);
       return true;
     } catch (error: any) {
-      // 这个 code 和 msg 是 SSO 提供的，不是我们自己定义的
+      // 这个 code 和 msg 是 SSO 提供的,不是我们自己定义的
       const data = handleError(error) as { code: string; msg: string };
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.msg);

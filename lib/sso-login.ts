@@ -207,10 +207,8 @@ class SSOLogin {
       // 调用回调获取用户输入的验证码
       const userInputCode = await twoFactorCallback.onSmsRequired(phone, tip, sendSms);
       if (!userInputCode) {
-        throw {
-          type: RejectEnum.NativeLoginFailed,
-          data: '用户取消了验证码输入',
-        };
+        console.log('用户取消了验证码输入');
+        return ''; // 返回空字符串表示用户取消
       }
 
       // 验证验证码
