@@ -12,17 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import {
-  SSO_LOGIN_COOKIE_KEY,
-  SSO_LOGIN_USER_KEY,
-  URL_PRIVACY_POLICY,
-  URL_USER_AGREEMENT,
-  YMT_ACCESS_TOKEN_KEY,
-  YMT_USERNAME_KEY,
-} from '@/lib/constants';
+import { SSO_LOGIN_COOKIE_KEY, SSO_LOGIN_USER_KEY, YMT_ACCESS_TOKEN_KEY, YMT_USERNAME_KEY } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 import YMTLogin from '@/lib/ymt-login';
+import { validateAgreement, validateRequiredField } from '@/utils/login-validation';
+import { openPrivacyPolicy, openUserAgreement } from '@/utils/policy-links';
 
 interface SSOUser {
   account: string;
@@ -102,16 +97,6 @@ const UnifiedLoginPage: React.FC = () => {
     return false;
   }, [account, accountPassword, handleError]);
 
-  // 打开服务协议
-  const openUserAgreement = useCallback(() => {
-    pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
-  }, []);
-
-  // 打开隐私政策
-  const openPrivacyPolicy = useCallback(() => {
-    pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
-  }, []);
-
   // 忘记密码
   const openForgetPassword = useCallback(() => {
     pushToWebViewNormal(URL_FORGET_PASSWORD, '重置密码');
@@ -137,17 +122,13 @@ const UnifiedLoginPage: React.FC = () => {
 
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
-    if (!isAgree) {
-      toast.error('请先阅读并同意服务协议和隐私政策');
-      scrollViewRef.current?.scrollToEnd();
+    if (!validateAgreement(isAgree, scrollViewRef)) {
       return;
     }
-    if (!account) {
-      toast.error('请输入用户名');
+    if (!validateRequiredField(account, '用户名')) {
       return;
     }
-    if (!accountPassword) {
-      toast.error('请输入密码');
+    if (!validateRequiredField(accountPassword, '密码')) {
       return;
     }
 

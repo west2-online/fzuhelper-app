@@ -13,11 +13,12 @@ import PageContainer from '@/components/page-container';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { setAegisConfig } from '@/lib/aegis';
-import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 import BuglyModule from '@/modules/bugly';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
+import { validateAgreement, validateRequiredField } from '@/utils/login-validation';
+import { openPrivacyPolicy, openUserAgreement } from '@/utils/policy-links';
 
 const URL_RESET_PASSWORD_UNDERGRADUATE = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
 const URL_RESET_PASSWORD_POSTGRADUATE = 'https://yjsglxt.fzu.edu.cn/ResetPassword.aspx';
@@ -34,16 +35,6 @@ const LoginPage: React.FC = () => {
   const [isAgree, setIsAgree] = useState(false);
   const [isPostGraduate, setIsPostGraduate] = useState(false);
   const { handleError } = useSafeResponseSolve();
-
-  // 打开服务协议
-  const openUserAgreement = useCallback(() => {
-    pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
-  }, []);
-
-  // 打开隐私政策
-  const openPrivacyPolicy = useCallback(() => {
-    pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
-  }, []);
 
   // 打开重置密码
   const openResetPassword = useCallback(() => {
@@ -84,22 +75,17 @@ const LoginPage: React.FC = () => {
 
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
-    if (!isAgree) {
-      toast.error('请先阅读并同意服务协议和隐私政策');
-      scrollViewRef.current?.scrollToEnd();
+    if (!validateAgreement(isAgree, scrollViewRef)) {
       return;
     }
     // 研究生不需要输入验证码
-    if (!isPostGraduate && !captcha) {
-      toast.error('请输入验证码');
+    if (!isPostGraduate && !validateRequiredField(captcha, '验证码')) {
       return;
     }
-    if (!username) {
-      toast.error('请输入学号');
+    if (!validateRequiredField(username, '学号')) {
       return;
     }
-    if (!password) {
-      toast.error('请输入密码');
+    if (!validateRequiredField(password, '密码')) {
       return;
     }
 

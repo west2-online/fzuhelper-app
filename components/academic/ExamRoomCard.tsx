@@ -1,4 +1,3 @@
-import dayjs from 'dayjs';
 import { View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
@@ -6,29 +5,15 @@ import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { MergedExamData } from '@/types/academic';
+import { formatCourseName } from '@/utils/course-format';
+import { formatDate } from '@/utils/date-format';
 
-import { COURSE_SYMBOLS_MAP, DATE_FORMAT } from '@/lib/constants';
 import { memo } from 'react';
-
-const SYMBOLS = Object.keys(COURSE_SYMBOLS_MAP);
-const SYMBOLS_REGEX = new RegExp(`[${SYMBOLS.join('')}]`, 'g');
-
-// 格式化日期
-const formatDate = (date?: Date) => (date ? dayjs(date).format(DATE_FORMAT) : undefined);
-
-// 获取课程名称（处理特殊符号映射）
-const getCourseName = (name: string) =>
-  name
-    .replace(SYMBOLS_REGEX, symbol =>
-      symbol in COURSE_SYMBOLS_MAP ? COURSE_SYMBOLS_MAP[symbol as keyof typeof COURSE_SYMBOLS_MAP] : symbol,
-    )
-    .trim();
 
 interface CourseCardProps {
   item: MergedExamData;
 }
 
-// 考场卡片组件
 const ExamRoomCard: React.FC<CourseCardProps> = ({ item }) => (
   <Card className={cn('p-3', item.isFinished && 'opacity-50')}>
     {/* 考试课程 */}
@@ -36,7 +21,7 @@ const ExamRoomCard: React.FC<CourseCardProps> = ({ item }) => (
       <View className="flex flex-shrink flex-grow flex-row items-center">
         <Icon name={item.isFinished ? 'checkmark-circle' : 'alert-circle'} size={16} className="mr-2" />
         <Text className="mr-1 flex-shrink font-bold" numberOfLines={1}>
-          {getCourseName(item.name)}
+          {formatCourseName(item.name)}
         </Text>
         {item.credit !== undefined && item.credit !== '0' && (
           <Text className="mr-2 flex-shrink-0 text-sm text-text-secondary"> ({item.credit} 学分)</Text>
