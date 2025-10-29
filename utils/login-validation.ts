@@ -8,7 +8,7 @@ import { toast } from 'sonner-native';
  * @param scrollViewRef - Optional ref to scroll view to scroll to end on error
  * @returns true if agreed, false otherwise (shows error toast)
  */
-export const validateAgreement = (isAgree: boolean, scrollViewRef?: RefObject<ScrollView>): boolean => {
+export const validateAgreement = (isAgree: boolean, scrollViewRef?: RefObject<ScrollView | null>): boolean => {
   if (!isAgree) {
     toast.error('请先阅读并同意服务协议和隐私政策');
     scrollViewRef?.current?.scrollToEnd();
