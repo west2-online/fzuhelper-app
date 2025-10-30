@@ -1,4 +1,6 @@
 import dayjs from 'dayjs';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -11,6 +13,9 @@ import { Text } from '@/components/ui/text';
 
 import { useLearningCenterApi } from '@/context/learning-center';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 export default function QrScannerPage() {
   const router = useRouter();
@@ -56,11 +61,7 @@ export default function QrScannerPage() {
       }
 
       // 检查当前时间是否在有效期内
-      return (
-        (currentTime.isAfter(startTime) && currentTime.isBefore(endTime)) ||
-        currentTime.isSame(startTime) ||
-        currentTime.isSame(endTime)
-      );
+      return currentTime.isSameOrAfter(startTime) && currentTime.isSameOrBefore(endTime);
     } catch (error) {
       console.error('QR码验证失败:', error);
       return false;

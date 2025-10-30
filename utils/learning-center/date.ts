@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 
 // 判断时间是否已过
 export const isTimePast = (date: Date, timeStr: string): boolean => {
-  const isToday = formatDate(date, 'YYYY-MM-DD') === formatDate(new Date(), 'YYYY-MM-DD');
+  const isToday = formatDate(date, 'YYYY-MM-DD') === dayjs().format('YYYY-MM-DD');
 
   if (!isToday) return false;
 
