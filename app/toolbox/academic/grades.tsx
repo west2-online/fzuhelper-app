@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Tabs } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
@@ -31,7 +32,7 @@ interface TermContentProps {
 // 单个学期的内容
 const TermContent = React.memo<TermContentProps>(({ termData, dataUpdatedAt, onRefresh }) => {
   const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
-  const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
+  const lastUpdated = useMemo(() => dayjs(dataUpdatedAt).toDate(), [dataUpdatedAt]);
   const summary = useMemo(() => calSingleTermSummary(termData), [termData]);
   const sortedTermData = useMemo(() => {
     return termData.sort((a, b) => parseScore(b.score) - parseScore(a.score));

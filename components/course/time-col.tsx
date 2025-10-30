@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
@@ -20,11 +21,7 @@ const isTimeInRange = (currentTime: string, startTime: string, endTime: string):
 
 // 获取当前时间的字符串格式（HH:mm）
 const getCurrentTime = () => {
-  const now = new Date();
-  const hours = now.getHours().toString().padStart(2, '0');
-  const minutes = now.getMinutes().toString().padStart(2, '0');
-
-  return `${hours}:${minutes}`;
+  return dayjs().format('HH:mm');
 };
 
 interface TimeColProps {

@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
@@ -36,7 +37,7 @@ const TabContent = React.memo<TabContentProps>(({ group, dataUpdatedAt, onRefres
       refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
       ListEmptyComponent={<EmptyView className="-h-screen-safe-offset-12" />}
       ListFooterComponent={
-        group.data && group.data.length > 0 ? <LastUpdateTime lastUpdated={new Date(dataUpdatedAt)} /> : null
+        group.data && group.data.length > 0 ? <LastUpdateTime lastUpdated={dayjs(dataUpdatedAt).toDate()} /> : null
       }
       style={{ width: screenWidth }}
     />

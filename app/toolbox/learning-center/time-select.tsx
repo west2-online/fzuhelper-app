@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { router, Stack } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
@@ -13,14 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SeatsPage() {
   // 修改默认日期，如果当前时间晚于或等于22:00则为次日
-  const now = new Date();
-  const defaultDate = now.getHours() >= 22 ? new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) : now;
+  const now = dayjs();
+  const defaultDate = now.hour() >= 22 ? now.add(1, 'day').toDate() : now.toDate();
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const [beginTime, setBeginTime] = useState<string | null>(null);
   const [endTime, setEndTime] = useState<string | null>(null);
 
   // 生成未来7天的日期
-  const dates = useMemo(() => Array.from({ length: 7 }, (_, index) => addHours(new Date(), 24 * index)), []);
+  const dates = useMemo(() => Array.from({ length: 7 }, (_, index) => addHours(dayjs().toDate(), 24 * index)), []);
 
   // 生成时间段 8:00 - 22:30 每隔30分钟
   const timeSlots = useMemo(() => {
@@ -130,7 +131,7 @@ export default function SeatsPage() {
         scrollEnabled={false}
         renderItem={({ item }) => (
           <DateCard
-            date={item.getDate().toString()}
+            date={dayjs(item).date().toString()}
             day={formatDate(item, 'EEE')}
             onPress={() => {
               setSelectedDate(item);

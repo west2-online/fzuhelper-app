@@ -6,16 +6,11 @@ export const isTimePast = (date: Date, timeStr: string): boolean => {
 
   if (!isToday) return false;
 
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-
+  const now = dayjs();
   const [hour, minute] = timeStr.split(':').map(Number);
+  const targetTime = dayjs().hour(hour).minute(minute);
 
-  if (currentHour > hour) return true;
-  if (currentHour === hour && currentMinute >= minute) return true;
-
-  return false;
+  return now.isAfter(targetTime) || now.isSame(targetTime);
 };
 
 // 格式化日期
@@ -47,5 +42,5 @@ export const calculateHoursDifference = (startTime: string, endTime: string): nu
 
 // 添加指定小时到当前日期
 export const addHours = (date: Date, hours: number): Date => {
-  return new Date(date.getTime() + hours * 60 * 60 * 1000);
+  return dayjs(date).add(hours, 'hour').toDate();
 };

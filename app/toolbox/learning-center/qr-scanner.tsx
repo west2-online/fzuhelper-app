@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -40,22 +41,26 @@ export default function QrScannerPage() {
         return false;
       }
 
-      const startTime = new Date(parts[1]);
-      const endTime = new Date(parts[2]);
-      const currentTime = new Date();
+      const startTime = dayjs(parts[1]);
+      const endTime = dayjs(parts[2]);
+      const currentTime = dayjs();
 
-      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+      if (!startTime.isValid() || !endTime.isValid()) {
         return false;
       }
 
       // 验证时间间隔为1分钟
-      const timeDiffInMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+      const timeDiffInMinutes = endTime.diff(startTime, 'minute', true);
       if (Math.abs(timeDiffInMinutes - 1) > 0.1) {
         return false;
       }
 
       // 检查当前时间是否在有效期内
-      return currentTime >= startTime && currentTime <= endTime;
+      return (
+        (currentTime.isAfter(startTime) && currentTime.isBefore(endTime)) ||
+        currentTime.isSame(startTime) ||
+        currentTime.isSame(endTime)
+      );
     } catch (error) {
       console.error('QR码验证失败:', error);
       return false;

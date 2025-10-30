@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import dayjs from 'dayjs';
 import { Stack, useFocusEffect } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
@@ -105,7 +106,7 @@ export default function SplashScreen() {
       const lastDate = await AsyncStorage.getItem(SPLASH_DATE);
       let displayCount = 0;
       // 如果上次展示不是今天，重置计数
-      if (lastDate !== new Date().toDateString()) {
+      if (lastDate !== dayjs().format('YYYY-MM-DD')) {
         await AsyncStorage.setItem(SPLASH_DISPLAY_COUNT, '0');
       } else {
         displayCount = Number(await AsyncStorage.getItem(SPLASH_DISPLAY_COUNT));
@@ -124,7 +125,7 @@ export default function SplashScreen() {
       setShowSplashImage(true);
       await AsyncStorage.multiSet([
         [SPLASH_DISPLAY_COUNT, (displayCount + 1).toString()],
-        [SPLASH_DATE, new Date().toDateString()],
+        [SPLASH_DATE, dayjs().format('YYYY-MM-DD')],
       ]);
     } catch {
       // 不使用 handleError，静默处理
