@@ -10,6 +10,7 @@ import {
   COURSE_DATA_KEY,
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
+  DATETIME_SECOND_FORMAT,
   IOS_APP_GROUP,
 } from '@/lib/constants';
 import { setWidgetData } from '@/modules/native-widget';
@@ -458,7 +459,7 @@ export class CourseCache {
    */
   public static mergeExamCourses(exam: MergedExamData[], semesterStart: string, semesterEnd: string) {
     // 更新时间戳
-    this.lastExamUpdateTime = dayjs().format('YYYY/M/D HH:mm:ss');
+    this.lastExamUpdateTime = dayjs().format(DATETIME_SECOND_FORMAT);
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(exam);
     // 如果当前 digest 和上一次的 digest 一致，则不再进行后续处理
@@ -563,7 +564,7 @@ export class CourseCache {
     /* 缓存校对处理，如果缓存和传入的数据一致，不做任何改动 */
 
     // 更新时间戳
-    this.lastCourseUpdateTime = dayjs().format('YYYY/M/D HH:mm:ss');
+    this.lastCourseUpdateTime = dayjs().format(DATETIME_SECOND_FORMAT);
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(tempData);
 
