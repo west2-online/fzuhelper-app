@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { LearningCenterContext } from '@/context/learning-center';
+import { DATE_FORMAT_DASH } from '@/lib/constants';
 import dayjs from 'dayjs';
 import { router, Stack } from 'expo-router';
 import { useCallback, useContext, useState } from 'react';
@@ -13,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 export default function LearningCenterApi() {
-  const [date, setDate] = useState(dayjs().add(3, 'day').format('YYYY-MM-DD')); // 初始化为三天后的日期
+  const [date, setDate] = useState(dayjs().add(3, 'day').format(DATE_FORMAT_DASH)); // 初始化为三天后的日期
   const [beginTime, setStartTime] = useState(''); // 开始时间
   const [endTime, setEndTime] = useState(''); // 结束时间
   const [spaceName, setSpaceName] = useState('');

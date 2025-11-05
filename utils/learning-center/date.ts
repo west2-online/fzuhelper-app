@@ -1,8 +1,10 @@
 import dayjs from 'dayjs';
 
+import { DATE_FORMAT_DASH } from '@/lib/constants';
+
 // 判断时间是否已过
 export const isTimePast = (date: Date, timeStr: string): boolean => {
-  const isToday = formatDate(date, 'YYYY-MM-DD') === dayjs().format('YYYY-MM-DD');
+  const isToday = formatDate(date, DATE_FORMAT_DASH) === dayjs().format(DATE_FORMAT_DASH);
 
   if (!isToday) return false;
 

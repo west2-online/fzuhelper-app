@@ -4,7 +4,7 @@ import isoWeekPlugin from 'dayjs/plugin/isoWeek';
 
 import { getApiV1CourseDate } from '@/api/generate';
 import type { LocateDateResult } from '@/api/interface';
-import { DATE_FORMAT_FULL, JWCH_LOCATE_DATE_CACHE_KEY } from '@/lib/constants';
+import { DATE_FORMAT_DASH, DATE_FORMAT_FULL, JWCH_LOCATE_DATE_CACHE_KEY } from '@/lib/constants';
 import { JWCHLocateDateResult } from '@/types/data';
 
 dayjs.extend(isoWeekPlugin);
@@ -83,7 +83,7 @@ export function getFirstDateByWeek(semesterStart: string, currentWeek: number): 
   // 如果学期开始日期不是星期一，则调整到最近的星期一
   const firstDayOfWeek = adjustedStartDate.add((currentWeek - 1) * 7, 'day');
 
-  return firstDayOfWeek.format('YYYY-MM-DD'); // 返回日期字符串格式 YYYY-MM-DD
+  return firstDayOfWeek.format(DATE_FORMAT_DASH); // 返回日期字符串格式 YYYY-MM-DD
 }
 
 // 根据学期开始日期和当前周数获取当前周的日期（会返回一个完整的一周）
@@ -91,7 +91,7 @@ export function getDatesByWeek(semesterStart: string, currentWeek: number): stri
   const firstDayOfWeek = dayjs(getFirstDateByWeek(semesterStart, currentWeek));
 
   return Array.from({ length: 7 }, (_, i) => {
-    return firstDayOfWeek.add(i, 'day').format('YYYY-MM-DD'); // 返回日期字符串格式 YYYY-MM-DD
+    return firstDayOfWeek.add(i, 'day').format(DATE_FORMAT_DASH); // 返回日期字符串格式 YYYY-MM-DD
   });
 }
 
