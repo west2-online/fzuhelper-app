@@ -259,39 +259,14 @@ fun searchNextClassIterative(
     val courseBeans = getCourseBeans(cacheCourseData)
 
     while (currentWeek <= cacheCourseData.maxWeek) {
-        var foundExam: ExtendCourse? = null
-        var foundCustom: ExtendCourse? = null
-        var foundOrdinary: ExtendCourse? = null
-
         for (course in courseBeans) {
             if (currentWeek in course.startWeek..course.endWeek
                 && ((course.single && currentWeek % 2 == 1) || (course.double && currentWeek % 2 == 0))
                 && currentWeekday == course.weekday
                 && currentSection == course.startClass
             ) {
-                when (course.type) {
-                    1 -> {
-                        foundExam = course
-                    }
-
-                    2 -> {
-                        foundCustom = course
-                    }
-
-                    0 -> {
-                        foundOrdinary = course
-                    }
-                }
+                return ClassInfo(currentWeek, course) // 按优先级排序，无需区分普通，考试，自定义
             }
-        }
-
-        // 优先级：考试>自定义课程>教务处导入课程
-        if (foundExam != null) {
-            return ClassInfo(currentWeek, foundExam)
-        } else if (foundCustom != null) {
-            return ClassInfo(currentWeek, foundCustom)
-        } else if (foundOrdinary != null) {
-            return ClassInfo(currentWeek, foundOrdinary)
         }
 
         // Move to the next section, day or week
