@@ -1,36 +1,25 @@
 import { Tabs } from 'expo-router';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, View, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
-import { toast } from 'sonner-native';
 
 import { Icon } from '@/components/Icon';
-import Loading from '@/components/loading';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
 
-import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
-import { COURSE_DATA_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
-import { COURSE_TYPE, CourseCache, EXAM_TYPE, type CourseInfo } from '@/lib/course';
-import { formatExamData } from '@/lib/exam-room';
-import { deConvertSemester, getFirstDateByWeek } from '@/lib/locate-date';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
-import { fetchWithCache } from '@/utils/fetch-with-cache';
+import { getFirstDateByWeek } from '@/lib/locate-date';
 
 import { CoursePageContext } from '@/context/course-page';
 import { hasCustomBackground } from '@/lib/appearance';
+
 import CourseWeek from './course-week';
 
-// 课程表页面
 const CoursePage: React.FC = () => {
-  const { setting, currentWeek, currentTerm, maxWeek } = useContext(CoursePageContext);
+  const { currentWeek, currentTerm, maxWeek, schedulesByDays } = useContext(CoursePageContext);
 
   const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek)); // 选中周数，非当前学期则定位到第一周
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions(); // 获取屏幕宽度
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 }); // FlatList 的布局信息
-  const [schedulesByDays, setSchedulesByDays] = useState<Record<number, CourseInfo[]>>([]); // 目前的课程数据，按天归类
-  const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
-  const [needForceFetch, setNeedForceFetch] = useState(false); // 是否需要强制刷新
   const [customBackground, setCustomBackground] = useState(false);
 
   useEffect(() => {
@@ -57,89 +46,6 @@ const CoursePage: React.FC = () => {
     },
     [maxWeek],
   );
-
-  // 【查询课程数据】
-  // 使用含缓存处理的查询 hooks，这样当网络请求失败时，会返回缓存数据
-  // 注：此时访问的是 west2-online 的服务器，而不是教务系统的服务器
-  useEffect(() => {
-    // 拉取新数据的函数
-    const fetchData = async () => {
-      try {
-        // 异步获取联网课程数据
-        let hasChanged = false; // 是否有数据变更
-        const hasCache = CourseCache.hasCachedData(); // 先判断是否有缓存
-        let queryTerm = currentTerm.term;
-        if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
-          queryTerm = deConvertSemester(currentTerm.term);
-        }
-        const fetchedData = await fetchWithCache(
-          [COURSE_DATA_KEY, queryTerm],
-          () => getApiV1JwchCourseList({ term: queryTerm, is_refresh: false }),
-          { staleTime: EXPIRE_ONE_DAY }, // 缓存一天
-        );
-
-        // 如果没有缓存，或缓存数据和新数据不一致，则更新数据
-        if (!hasCache || !CourseCache.compareDigest(COURSE_TYPE, fetchedData.data.data)) {
-          CourseCache.setCourses(fetchedData.data.data);
-          hasChanged = true;
-        }
-
-        // 若开启导入考场，则再拉取考场数据
-        if (setting.exportExamToCourseTable) {
-          const examData = await fetchWithCache(
-            [EXAM_ROOM_KEY, queryTerm],
-            () => getApiV1JwchClassroomExam({ term: queryTerm }),
-            { staleTime: EXPIRE_ONE_DAY },
-          );
-
-          const formattedExamData = formatExamData(examData.data.data);
-          if (!CourseCache.compareDigest(EXAM_TYPE, formattedExamData)) {
-            CourseCache.mergeExamCourses(formattedExamData, currentTerm.start_date, currentTerm.end_date);
-            hasChanged = true;
-          }
-        }
-        if (!hasCache || hasChanged) {
-          setSchedulesByDays(CourseCache.getCachedData(setting.selectedSemester));
-        }
-        if (hasCache && hasChanged) toast.info('课程数据已刷新');
-        setNeedForceFetch(false);
-      } catch (error: any) {
-        console.error(error);
-        toast.error('课程数据获取失败，请检查网络连接，将使用本地缓存');
-      }
-    };
-    setSchedulesByDays(CourseCache.getCachedData(setting.selectedSemester));
-    fetchData();
-    setCacheInitialized(prev => {
-      // 如果先前已经初始化过，说明是切换周数，则需要重置周
-      if (prev) {
-        // 此时再进行滚动到指定周数，添加 NeedForceFetch 标记，强制刷新数据
-        // 此时会让页面进入 Loading 状态
-        setNeedForceFetch(true);
-        safeSetSelectedWeek(currentWeek);
-      }
-      return true;
-    });
-  }, [
-    currentWeek,
-    safeSetSelectedWeek,
-    setting.exportExamToCourseTable,
-    currentTerm.term,
-    currentTerm.start_date,
-    currentTerm.end_date,
-    setting.selectedSemester,
-  ]);
-
-  // 订阅刷新事件，触发时更新课程数据状态
-  useEffect(() => {
-    const refreshHandler = () => {
-      setSchedulesByDays(CourseCache.getCachedData(setting.selectedSemester));
-    };
-    CourseCache.addRefreshListener(refreshHandler);
-    return () => {
-      CourseCache.removeRefreshListener(refreshHandler);
-    };
-  }, [setting.selectedSemester]);
 
   // 生成一周的日期数据
   const weekArray = useMemo(
@@ -257,9 +163,7 @@ const CoursePage: React.FC = () => {
     [safeSetSelectedWeek],
   );
 
-  return !cacheInitialized || needForceFetch ? (
-    <Loading />
-  ) : (
+  return (
     <>
       {/* 顶部 Tab 导航栏 */}
       <Tabs.Screen
