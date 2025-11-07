@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useFocusEffect } from 'expo-router';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, View, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
@@ -239,9 +239,11 @@ function CoursePage() {
 export default function HomePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [resetKey, setResetKey] = useState(0);
+  const prevSettingsRef = useRef<string | null>(null);
 
   const { handleError } = useSafeResponseSolve();
 
+  // 初始化通知管理器
   useEffect(() => {
     const initNotification = setTimeout(async () => {
       try {
@@ -254,6 +256,36 @@ export default function HomePage() {
 
     return () => clearTimeout(initNotification);
   }, []);
+
+  // 监听页面 focus，检测设置变化
+  useFocusEffect(
+    useCallback(() => {
+      const checkSettingsChange = async () => {
+        const currentSettings = await getCourseSetting();
+        const currentSettingsStr = JSON.stringify(currentSettings);
+
+        // 首次加载时保存设置
+        if (prevSettingsRef.current === null) {
+          prevSettingsRef.current = currentSettingsStr;
+          return;
+        }
+
+        // 检测设置是否变化
+        if (prevSettingsRef.current !== currentSettingsStr) {
+          console.log('Settings changed, invalidating cache');
+          prevSettingsRef.current = currentSettingsStr;
+
+          // 使 React Query 缓存失效，触发重新加载
+          await queryClient.invalidateQueries({ queryKey: ['course-page-all-data'] });
+
+          // 重置组件（触发 Suspense 重新渲染）
+          setResetKey(prev => prev + 1);
+        }
+      };
+
+      checkSettingsChange();
+    }, []),
+  );
 
   const onRefresh = useCallback(async () => {
     if (isRefreshing) return;
