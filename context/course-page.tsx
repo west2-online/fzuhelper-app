@@ -1,8 +1,8 @@
 import { createContext } from 'react';
 
-import { TermsListResponse_Term } from '@/api/backend';
-import { CourseSetting } from '@/api/interface';
-import { CourseInfo } from '@/lib/course';
+import type { TermsListResponse_Term } from '@/api/backend';
+import type { CourseSetting } from '@/api/interface';
+import type { CourseInfo } from '@/lib/course';
 
 export interface CoursePageContextProps {
   setting: CourseSetting; // 课程表设置
@@ -15,3 +15,5 @@ export interface CoursePageContextProps {
 
 // 此处这样写仅为了通过类型检查，实际使用时不可能为空
 export const CoursePageContext = createContext<CoursePageContextProps>({} as CoursePageContextProps);
+
+export const CoursePageProvider = CoursePageContext.Provider;

@@ -12,7 +12,7 @@ import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { queryClient } from '@/components/query-provider';
 import { Text } from '@/components/ui/text';
-import { CoursePageContext } from '@/context/course-page';
+import { CoursePageProvider } from '@/context/course-page';
 import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { hasCustomBackground } from '@/lib/appearance';
@@ -183,7 +183,7 @@ function CoursePage() {
   }, []);
 
   return (
-    <CoursePageContext
+    <CoursePageProvider
       value={{
         setting: coursePageData.setting,
         currentWeek,
@@ -232,7 +232,7 @@ function CoursePage() {
         onClose={onClose}
         onConfirm={onConfirm}
       />
-    </CoursePageContext>
+    </CoursePageProvider>
   );
 }
 
