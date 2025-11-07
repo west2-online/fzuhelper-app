@@ -37,7 +37,7 @@ function CoursePage() {
     };
   }, [coursePageData.setting.selectedSemester]);
 
-  const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek));
+  const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek)); // 选中周数，非当前学期则定位到第一周
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const { width } = useWindowDimensions();
   const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });
@@ -53,7 +53,7 @@ function CoursePage() {
 
   const flatListRef = useRef<FlatList>(null);
 
-  // 周数切换
+  // 周数切换，注意改变选中周必须使用该函数，以避免 FlatList 滚动越界导致崩溃
   const safeSetSelectedWeek = useCallback(
     (week: number, scrollTo: boolean = true) => {
       const targetWeek = Math.max(1, Math.min(week, maxWeek));
@@ -109,6 +109,7 @@ function CoursePage() {
       <Pressable
         onPress={() => {
           if (currentWeek !== -1) {
+            // 如果是当前学期，点击快捷跳转到当前周
             safeSetSelectedWeek(currentWeek);
           }
         }}
@@ -141,6 +142,7 @@ function CoursePage() {
     [],
   );
 
+  // 提供固定的布局信息，有助于性能优化
   const getItemLayout = useCallback(
     (_: any, index: number) => ({
       length: width,
@@ -150,6 +152,7 @@ function CoursePage() {
     [width],
   );
 
+  // 渲染列表项（此处一项为一屏的内容）
   const renderItem = useCallback(
     ({ item }: { item: { week: number; firstDate: string } }) => (
       <CourseWeek
@@ -202,8 +205,8 @@ function CoursePage() {
         horizontal
         pagingEnabled
         data={weekArray}
-        initialNumToRender={1}
-        windowSize={3}
+        initialNumToRender={1} // 初始渲染数量，影响首屏速度
+        windowSize={3} // 预加载窗口大小
         getItemLayout={getItemLayout}
         initialScrollIndex={selectedWeek - 1}
         renderItem={renderItem}
