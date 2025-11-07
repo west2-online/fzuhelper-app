@@ -6,8 +6,7 @@ interface CoursePageContextProps {
   setting: CourseSetting; // 课程表设置
 }
 
-// 此处这样写仅为了通过类型检查，实际使用时不可能为空
-const CoursePageContext = createContext<CoursePageContextProps>({} as CoursePageContextProps);
+const CoursePageContext = createContext<CoursePageContextProps | null>(null);
 
 export const CoursePageProvider = CoursePageContext.Provider;
 
