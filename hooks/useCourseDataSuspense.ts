@@ -53,7 +53,7 @@ export function useCoursePageData() {
       const currentWeek = locateDateRes.semester === selectedSemester ? locateDateRes.week : -1;
 
       // 5. 获取当前学期信息
-      const currentTerm = termsData?.data.data.terms.find(t => t.term === selectedSemester);
+      const currentTerm = termsData?.data?.data?.terms?.find(t => t.term === selectedSemester);
 
       if (!termsData || !currentTerm) {
         console.error('Failed to load term data: ', termsData, currentTerm);
