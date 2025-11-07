@@ -178,19 +178,10 @@ function CoursePage() {
     [safeSetSelectedWeek],
   );
 
-  const refetch = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ['course-page-all-data'] });
-  }, []);
-
   return (
     <CoursePageProvider
       value={{
         setting: coursePageData.setting,
-        currentWeek,
-        currentTerm,
-        maxWeek,
-        schedulesByDays,
-        refetch,
       }}
     >
       {/* 顶部 Tab 导航栏 */}
