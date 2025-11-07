@@ -4,7 +4,13 @@ import { toast } from 'sonner-native';
 import type { TermsListResponse_Term } from '@/api/backend';
 import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
-import { COURSE_DATA_KEY, COURSE_TERMS_LIST_KEY, EXAM_ROOM_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
+import {
+  COURSE_DATA_KEY,
+  COURSE_PAGE_ALL_DATA_KEY,
+  COURSE_TERMS_LIST_KEY,
+  EXAM_ROOM_KEY,
+  EXPIRE_ONE_DAY,
+} from '@/lib/constants';
 import {
   COURSE_TYPE,
   CourseCache,
@@ -32,7 +38,7 @@ export interface CoursePageData {
  */
 export function useCoursePageData() {
   const { data } = useSuspenseQuery({
-    queryKey: ['course-page-all-data'],
+    queryKey: [COURSE_PAGE_ALL_DATA_KEY],
     queryFn: async (): Promise<CoursePageData> => {
       // 0. 确保缓存已加载（幂等操作，可以多次调用）
       await CourseCache.load();

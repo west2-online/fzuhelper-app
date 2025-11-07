@@ -16,6 +16,7 @@ import { CoursePageProvider } from '@/context/course-page';
 import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { hasCustomBackground } from '@/lib/appearance';
+import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
@@ -267,7 +268,7 @@ export default function HomePage() {
           prevSettingsRef.current = currentSettingsStr;
 
           // 使 React Query 缓存失效，触发重新加载
-          await queryClient.invalidateQueries({ queryKey: ['course-page-all-data'] });
+          await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
 
           // 重置组件（触发 Suspense 重新渲染）
           setResetKey(prev => prev + 1);
@@ -287,7 +288,7 @@ export default function HomePage() {
 
       await forceRefreshCourseData(queryTerm);
 
-      await queryClient.invalidateQueries({ queryKey: ['course-page-all-data'] });
+      await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
 
       setResetKey(prev => prev + 1);
     } catch (error: any) {
