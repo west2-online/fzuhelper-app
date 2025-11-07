@@ -309,7 +309,7 @@ export default function HomePage() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         contentContainerClassName="flex-1"
       >
-        <CourseErrorBoundary onReset={() => setResetKey(prev => prev + 1)}>
+        <CourseErrorBoundary onReset={() => setResetKey(prev => prev + 1)} handleError={handleError}>
           <Suspense fallback={<Loading />}>
             <CoursePage key={resetKey} />
           </Suspense>

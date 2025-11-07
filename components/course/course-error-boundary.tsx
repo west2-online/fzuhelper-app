@@ -1,51 +1,48 @@
 import { Component, type ReactNode } from 'react';
-import { View } from 'react-native';
+import { toast } from 'sonner-native';
 
-import { Button } from '@/components/ui/button';
-import { Text } from '@/components/ui/text';
+import ErrorView from '@/components/multistateview/error-view';
 
 interface CourseErrorBoundaryProps {
   children: ReactNode;
   onReset?: () => void;
+  handleError?: (error: any) => void;
 }
 
 interface CourseErrorBoundaryState {
   hasError: boolean;
-  error: Error | null;
 }
 
 export class CourseErrorBoundary extends Component<CourseErrorBoundaryProps, CourseErrorBoundaryState> {
   constructor(props: CourseErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): CourseErrorBoundaryState {
-    return { hasError: true, error };
+  static getDerivedStateFromError(_error: Error): CourseErrorBoundaryState {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
     console.error('CourseErrorBoundary caught an error:', error, errorInfo);
+
+    // 调用 handleError 显示 toast 错误提示
+    if (this.props.handleError) {
+      this.props.handleError(error);
+    } else {
+      // 如果没有传入 handleError，显示默认错误提示
+      toast.error(error.message || '加载失败，请检查网络连接');
+    }
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false });
     this.props.onReset?.();
   };
 
   render() {
     if (this.state.hasError) {
-      return (
-        <View className="flex-1 items-center justify-center bg-background p-6">
-          <Text className="mb-4 text-xl font-semibold text-foreground">加载失败</Text>
-          <Text className="mb-6 text-center text-muted-foreground">
-            {this.state.error?.message || '无法加载课表数据，请检查网络连接后重试'}
-          </Text>
-          <Button onPress={this.handleReset}>
-            <Text>重试</Text>
-          </Button>
-        </View>
-      );
+      return <ErrorView refresh={this.handleReset} />;
     }
 
     return this.props.children;
