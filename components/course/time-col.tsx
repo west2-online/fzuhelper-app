@@ -1,7 +1,8 @@
+import dayjs from 'dayjs';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { CLASS_SCHEDULES } from '@/lib/constants';
+import { CLASS_SCHEDULES, TIME_FORMAT } from '@/lib/constants';
 import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
 import { cn } from '@/lib/utils';
 
@@ -20,11 +21,7 @@ const isTimeInRange = (currentTime: string, startTime: string, endTime: string):
 
 // 获取当前时间的字符串格式（HH:mm）
 const getCurrentTime = () => {
-  const now = new Date();
-  const hours = now.getHours().toString().padStart(2, '0');
-  const minutes = now.getMinutes().toString().padStart(2, '0');
-
-  return `${hours}:${minutes}`;
+  return dayjs().format(TIME_FORMAT);
 };
 
 interface TimeColProps {

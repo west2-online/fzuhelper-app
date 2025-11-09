@@ -5,23 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { LearningCenterContext } from '@/context/learning-center';
+import { DATE_FORMAT_DASH } from '@/lib/constants';
+import dayjs from 'dayjs';
 import { router, Stack } from 'expo-router';
 import { useCallback, useContext, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-// 用于生成符合后端要求的日期格式
-const formatDate = (timestamp: number) => {
-  const date = new Date(timestamp);
-  const year = date.getFullYear();
-  const month = ('0' + (date.getMonth() + 1)).slice(-2);
-  const day = ('0' + date.getDate()).slice(-2);
-  return `${year}-${month}-${day}`;
-};
-
 export default function LearningCenterApi() {
-  const [date, setDate] = useState(formatDate(Date.now() + 24 * 60 * 60 * 3000)); // 初始化为三天后的日期
+  const [date, setDate] = useState(dayjs().add(3, 'day').format(DATE_FORMAT_DASH)); // 初始化为三天后的日期
   const [beginTime, setStartTime] = useState(''); // 开始时间
   const [endTime, setEndTime] = useState(''); // 结束时间
   const [spaceName, setSpaceName] = useState('');

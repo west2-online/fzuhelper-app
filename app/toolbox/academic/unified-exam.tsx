@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +16,7 @@ export default function UnifiedExamScorePage() {
   // 获取统考成绩数据
   const apiResult = useApiRequest(getApiV1JwchAcademicUnifiedExam);
   const { data: unifiedExamData, dataUpdatedAt, isFetching, refetch } = apiResult;
-  const lastUpdated = new Date(dataUpdatedAt);
+  const lastUpdated = dayjs(dataUpdatedAt).toDate();
 
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,

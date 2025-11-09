@@ -162,6 +162,7 @@ export const IOS_APP_GROUP = 'group.FzuHelper.NextCourse'; // iOS App Group，�
 // 日期时间格式化
 export const DATE_FORMAT = 'YYYY/M/D';
 export const DATE_FORMAT_FULL = 'YYYY/MM/DD';
+export const DATE_FORMAT_DASH = 'YYYY-MM-DD';
 export const TIME_FORMAT = 'HH:mm';
 export const TIME_SECOND_FORMAT = `${TIME_FORMAT}:ss`;
 export const DATETIME_FORMAT = `${DATE_FORMAT} ${TIME_FORMAT}`;
