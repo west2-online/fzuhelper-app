@@ -1,6 +1,6 @@
 {
   "app": {
-    "bundleName": "com.west2online.fzuhelper.hm",
+    "bundleName": "com.west2online.fzuhelper",
     "vendor": "west2online",
     "versionCode": 1000000,
     "versionName": "1.0.0",
