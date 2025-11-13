@@ -3,7 +3,7 @@ import CryptoJs from 'crypto-js';
 
 import { RejectEnum } from '@/api/enum';
 import { SSO_LOGIN_SMS_URL, SSO_LOGIN_URL, SSO_LOGIN_VERIFY_SMS_CODE_URL } from '@/lib/constants';
-import { get, post } from '@/modules/native-request';
+import { get, post, postJSON } from '@/modules/native-request';
 
 // 两步验证回调接口
 export interface TwoFactorAuthCallback {
@@ -70,7 +70,6 @@ class SSOLogin {
     formData?: Record<string, string>;
   }) {
     const resp = this.#request('POST', url, headers, formData);
-    // console.log(resp);
     return resp;
   }
 
@@ -88,15 +87,18 @@ class SSOLogin {
      * @param SESSION 会话cookie
      * @returns 发送结果
      **/
+    const { csrfKey, csrfValue } = genCSRFToken();
     try {
-      const smsResp = await this.#post({
-        url: SSO_LOGIN_SMS_URL,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+      const smsResp = await postJSON(
+        SSO_LOGIN_SMS_URL,
+        {
+          'Content-Type': 'application/json',
           Cookie: `SESSION=${SESSION}`,
+          'Csrf-Key': csrfKey,
+          'Csrf-Value': csrfValue,
         },
-        formData: { businessNo: '0008', phone },
-      });
+        { businessNo: '0008', phone },
+      );
 
       const smsRespData = JSON.parse(Buffer.from(smsResp.data).toString('utf-8'));
 
@@ -173,10 +175,8 @@ class SSOLogin {
     if (html.includes('<p id="current-login-type">smsLogin</p>')) {
       // 提取手机号 <p id="phone-number">***********</p>
       // 提取提示 <p id="second-auth-tip">您正在使用非校内ip登录，请进行手机验证以保障您的账号安全</p>
-      const matchPhone = html.match(/<p id="phone-number">(.*?)<\/p>/);
-      const matchTip = html.match(/<p id="second-auth-tip">(.*?)<\/p>/);
-      const phone = matchPhone ? matchPhone[1] : null;
-      const tip = matchTip ? matchTip[1] : '请进行手机验证以保障您的账号安全';
+      const phone = html.match(/<p id="phone-number">(.*?)<\/p>/)?.[1] || null;
+      const tip = html.match(/<p id="second-auth-tip">(.*?)<\/p>/)?.[1] || '请进行手机验证以保障您的账号安全';
 
       if (!phone) {
         throw {
@@ -212,18 +212,18 @@ class SSOLogin {
       }
 
       // 验证验证码
-      const verifyResp = await this.#post({
-        url: SSO_LOGIN_VERIFY_SMS_CODE_URL,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+      const { csrfKey, csrfValue } = genCSRFToken();
+      resp = await postJSON(
+        SSO_LOGIN_VERIFY_SMS_CODE_URL,
+        {
+          'Content-Type': 'application/json',
           Cookie: `SESSION=${SESSION}`,
+          'Csrf-Key': csrfKey,
+          'Csrf-Value': csrfValue,
         },
-        // TODO: 默认信任设备,后续可以让用户选择
-        formData: { phone, token: userInputCode, delete: 'false', trustDevice: 'true' },
-      });
-      resp = verifyResp;
+        { phone, token: userInputCode, delete: 'false', trustDevice: 'false' },
+      );
     }
-
     // 验证完成，检查登录是否成功
     let SOURCEID_TGC: string;
     try {
@@ -398,6 +398,30 @@ function encrypt(raw_password: string, keyBase64: string): string {
 
   // 返回 base64 编码格式的加密后密码
   return encrypted.toString();
+}
+
+function genCSRFToken(): { csrfKey: string; csrfValue: string } {
+  /**
+   * 生成 CSRF token
+   * @returns { key: 原始32位随机字符串, csrfValue: 计算得到的 CSRF token }
+   */
+  // 随机生成32位字符串 A-a-0-9
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let csrfKey = '';
+  for (let i = 0; i < 32; i++) {
+    csrfKey += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  // 把字符串转为 base64
+  const base64Key = Buffer.from(csrfKey, 'utf-8').toString('base64');
+  // 把 base64 斩断组合 -> 前一半 + 原base64字符串 + 后一半
+  const halfLength = Math.floor(base64Key.length / 2);
+  const tokenData = base64Key.substring(0, halfLength) + base64Key + base64Key.substring(halfLength);
+
+  // 对组合 base64 求 MD5
+  const csrfValue = CryptoJs.MD5(tokenData).toString();
+
+  return { csrfKey, csrfValue };
 }
 
 export default SSOLogin;
