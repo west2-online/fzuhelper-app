@@ -1,13 +1,21 @@
-import { TermsListResponse_Term } from '@/api/backend';
-import { CourseSetting } from '@/api/interface';
-import { createContext } from 'react';
+import { createContext, useContext } from 'react';
 
-export interface CoursePageContextProps {
+import type { CourseSetting } from '@/api/interface';
+
+interface CoursePageContextProps {
   setting: CourseSetting; // 课程表设置
-  currentWeek: number; // 今天在选中学期的周数，如果今天不在选中学期内则为-1
-  currentTerm: TermsListResponse_Term; // 当前选中学期基本信息
-  maxWeek: number; // 当前选中学期的最大周数
 }
 
-// 此处这样写仅为了通过类型检查，实际使用时不可能为空
-export const CoursePageContext = createContext<CoursePageContextProps>({} as CoursePageContextProps);
+const CoursePageContext = createContext<CoursePageContextProps | null>(null);
+
+export const CoursePageProvider = CoursePageContext.Provider;
+
+export function useCoursePageSetting(): CourseSetting {
+  const context = useContext(CoursePageContext);
+
+  if (!context) {
+    throw new Error('useCoursePageSetting must be used within CoursePageProvider');
+  }
+
+  return context.setting;
+}

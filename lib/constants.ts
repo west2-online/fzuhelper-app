@@ -67,6 +67,7 @@ export const COURSE_SETTINGS_KEY = 'course_settings';
 export const COURSE_DATA_KEY = 'course_data';
 export const COURSE_LOCAL_CALENDAR_ID_KEY = 'course_local_calendar_id';
 export const COURSE_TERMS_LIST_KEY = 'course_terms_list';
+export const COURSE_PAGE_ALL_DATA_KEY = 'course_page_all_data';
 export const CLASS_SCHEDULES = [
   ['08:20', '09:05'],
   ['09:15', '10:00'],
