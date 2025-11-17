@@ -13,24 +13,17 @@
       "ios": {
         "simulator": true,
         "buildConfiguration": "debug"
-      },
-      "env": {
-        "NODE_ENV": "development"
       }
     },
     "production": {
       "developmentClient": false,
       "distribution": "internal",
-      "autoIncrement": true,
       "android": {
         "buildType": "apk"
       },
       "ios": {
         "simulator": false,
         "buildConfiguration": "release"
-      },
-      "env": {
-        "NODE_ENV": "production"
       }
     }
   }
