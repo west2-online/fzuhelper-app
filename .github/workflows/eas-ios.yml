@@ -1,0 +1,40 @@
+name: Build iOS (EAS)
+
+on:
+  push:
+    branches:
+      - eas
+
+jobs:
+  build_ios:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EAS_TOKEN }}
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Write Apple ASC API Key
+        run: echo "$EXPO_ASC_API_KEY" > "./AuthKey.p8"
+        env:
+          EXPO_ASC_API_KEY: ${{ secrets.EXPO_ASC_API_KEY }}
+
+      - name: EAS Build iOS
+        run: eas build --platform ios --profile production --non-interactive
+        env:
+          EXPO_ASC_API_KEY_PATH: "./AuthKey.p8"
+          EXPO_ASC_KEY_ID: ${{ secrets.EXPO_ASC_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.EXPO_ASC_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.EXPO_APPLE_TEAM_ID }}
+          EXPO_APPLE_TEAM_TYPE: ${{ secrets.EXPO_APPLE_TEAM_TYPE }}
