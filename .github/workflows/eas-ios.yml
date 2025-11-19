@@ -3,7 +3,7 @@ name: Build IPA
 on:
   push:
     branches:
-      - eas
+      - master
 
 jobs:
   build_ios:
