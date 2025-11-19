@@ -1,20 +1,33 @@
-name: Build iOS (EAS)
+name: Build IPA
 
 on:
   push:
     branches:
-      - eas
+      - master
 
 jobs:
   build_ios:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 22
+          cache: 'yarn'
 
       - name: Setup EAS CLI
         uses: expo/expo-github-action@v8
@@ -23,7 +36,7 @@ jobs:
           token: ${{ secrets.EAS_TOKEN }}
 
       - name: Install Dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile --prefer-offline
 
       - name: Write Apple ASC API Key
         run: echo "$EXPO_ASC_API_KEY" | base64 -d > "./AuthKey.p8"
