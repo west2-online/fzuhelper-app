@@ -26,7 +26,7 @@ jobs:
         run: yarn install
 
       - name: Write Apple ASC API Key
-        run: echo "$EXPO_ASC_API_KEY" > "./AuthKey.p8"
+        run: echo "$EXPO_ASC_API_KEY" | base64 -d > "./AuthKey.p8"
         env:
           EXPO_ASC_API_KEY: ${{ secrets.EXPO_ASC_API_KEY }}
 
