@@ -1,7 +1,9 @@
+name: Build iOS (EAS)
+
 on:
   push:
     branches:
-      - eas
+      - master
 
 jobs:
   fingerprint:
@@ -25,3 +27,11 @@ jobs:
     params:
       platform: ios
       profile: production
+
+  testflight:
+    name: Upload to TestFlight
+    needs: [build_ios]
+    type: testflight
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}
+      changelog: ${{ github.event.head_commit.message }}

@@ -3,11 +3,11 @@ name: Build IPA
 on:
   push:
     branches:
-      - master
+      - eas
 
 jobs:
   build_ios:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -38,16 +38,11 @@ jobs:
       - name: Install Dependencies
         run: yarn install --frozen-lockfile --prefer-offline
 
-      - name: Write Apple ASC API Key
-        run: echo "$EXPO_ASC_API_KEY" | base64 -d > "./AuthKey.p8"
-        env:
-          EXPO_ASC_API_KEY: ${{ secrets.EXPO_ASC_API_KEY }}
-
       - name: EAS Build iOS
-        run: eas build --platform ios --profile production --non-interactive
-        env:
-          EXPO_ASC_API_KEY_PATH: "./AuthKey.p8"
-          EXPO_ASC_KEY_ID: ${{ secrets.EXPO_ASC_KEY_ID }}
-          EXPO_ASC_ISSUER_ID: ${{ secrets.EXPO_ASC_ISSUER_ID }}
-          EXPO_APPLE_TEAM_ID: ${{ secrets.EXPO_APPLE_TEAM_ID }}
-          EXPO_APPLE_TEAM_TYPE: ${{ secrets.EXPO_APPLE_TEAM_TYPE }}
+        run: eas build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
+
+      - name: Upload to Github Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: ./build/fzuhelper.ipa
