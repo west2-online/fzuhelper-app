@@ -1,0 +1,38 @@
+on:
+  push:
+    branches:
+      - eas
+
+jobs:
+  test:
+    steps:
+      - uses: eas/checkout
+      - run: |
+          git fetch --deepen 3 || { echo "Failed to fetch git history"; exit 1; }
+          GIT_LOG=$(git log -3 --pretty=format:"%s%n%b") || { echo "Failed to get git log"; exit 1; }
+          echo "$GIT_LOG"
+
+      - name: Write Apple ASC API Key
+        run: echo "$EXPO_ASC_API_KEY" | base64 -d > "./AuthKey.p8"
+        env:
+          EXPO_ASC_API_KEY: ${{ env.EXPO_ASC_API_KEY }}
+
+      - id: Fingerprint
+        type: fingerprint
+        environment: production
+
+      - id: GetBuild
+        needs: [Fingerprint]
+        type: get-build
+        params:
+          fingerprint_hash: ${{ steps.Fingerprint.outputs.ios_fingerprint_hash }}
+          profile: production
+
+      - id: BuildiOS
+        needs: [GetBuild]
+        if: ${{ !steps.GetBuild.outputs.build_id }}
+        type: build
+        params:
+          platform: ios
+          profile: production
+      
