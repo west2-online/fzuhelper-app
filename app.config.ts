@@ -9,7 +9,9 @@ const IS_DEV = process.env.APP_VARIANT === 'development';
 // 前三位对应版本名，后三位或更多对应commit次数
 let commitCount = 0;
 try {
-  const res = execSync('curl -sI "https://api.github.com/repos/west2-online/fzuhelper-app/commits?per_page=1"').toString();
+  const res = execSync(
+    'curl -sI "https://api.github.com/repos/west2-online/fzuhelper-app/commits?per_page=1"',
+  ).toString();
   const count = res.match(/&page=(\d+)>; rel="last"/);
   commitCount = count ? parseInt(count[1], 10) : 0;
 } catch (err) {
@@ -232,7 +234,7 @@ const config: ExpoConfig = {
   },
   extra: {
     eas: {
-      projectId: "7f521ea8-db0e-4bf3-a6ce-ff469936e540"
+      projectId: '7f521ea8-db0e-4bf3-a6ce-ff469936e540',
     },
   },
 };
