@@ -1,9 +1,7 @@
 name: Build IPA
 
 on:
-  push:
-    branches:
-      - master
+  workflow_call:
 
 jobs:
   build_ios:
@@ -33,7 +31,7 @@ jobs:
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
-          token: ${{ secrets.EAS_TOKEN }}
+          token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install Dependencies
         run: yarn install --frozen-lockfile --prefer-offline
