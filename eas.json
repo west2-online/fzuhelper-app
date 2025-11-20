@@ -12,8 +12,7 @@
       },
       "ios": {
         "simulator": true,
-        "buildConfiguration": "debug",
-        "enterpriseProvisioning": "universal"
+        "buildConfiguration": "debug"
       },
       "env": {
         "APP_VARIANT": "development"

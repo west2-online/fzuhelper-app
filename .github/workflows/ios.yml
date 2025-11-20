@@ -39,10 +39,16 @@ jobs:
       - name: EAS Build iOS
         run: eas build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
 
-      - name: Fetch Recent Git Logs
+      - name: Generate Changelog
+        id: changelog
         run: |
           git fetch --deepen 3 || { echo "Failed to fetch git history"; exit 1; }
           GIT_LOG=$(git log -3 --pretty=format:"%s%n%b") || { echo "Failed to get git log"; exit 1; }
+          {
+            echo "CHANGELOG<<BSEOF"
+            echo -e "同步自 Github 最近三条提交记录:\n $GIT_LOG"
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: EAS Submit iOS
-        run: eas submit --platform ios --profile production --non-interactive --path=./build/fzuhelper.ipa --what-to-test="$GIT_LOG"
+        run: eas submit --platform ios --profile production --non-interactive --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}"
