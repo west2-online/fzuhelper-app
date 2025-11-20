@@ -41,8 +41,10 @@ jobs:
       - name: EAS Build iOS
         run: eas build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
 
-      - name: Upload to Github Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build
-          path: ./build/fzuhelper.ipa
+      - name: Fetch Recent Git Logs
+        run: |
+          git fetch --deepen 3 || { echo "Failed to fetch git history"; exit 1; }
+          GIT_LOG=$(git log -3 --pretty=format:"%s%n%b") || { echo "Failed to get git log"; exit 1; }
+
+      - name: EAS Submit iOS
+        run: eas submit --platform ios --profile production --non-interactive --path=./build/fzuhelper.ipa --what-to-test="$GIT_LOG"
