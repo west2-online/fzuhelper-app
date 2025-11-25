@@ -26,5 +26,16 @@
       "ios": {
       }
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "866768101",
+        "appleTeamId": "MEWHFZ92DY",
+        "sku": "Robin_002",
+        "language": "zh-Hans",
+        "bundleIdentifier": "FzuHelper.FzuHelper"
+      }
+    }
   }
 }
