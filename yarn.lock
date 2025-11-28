@@ -3128,11 +3128,6 @@ acorn@^8.1.0, acorn@^8.11.0, acorn@^8.15.0, acorn@^8.4.1, acorn@^8.8.1, acorn@^8
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.15.0.tgz#a360898bc415edaac46c8241f6383975b930b816"
   integrity sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==
 
-aegis-rn-sdk@^1.39.1:
-  version "1.39.1"
-  resolved "https://registry.yarnpkg.com/aegis-rn-sdk/-/aegis-rn-sdk-1.39.1.tgz#9a8aad34b15da91dc967e61b384b09cbcbf834c5"
-  integrity sha512-kPdyvieiFJ1XytbreXrUbpVc5DJ71HtOWyh/8uo9ZBx9ZcSyxWWzfGJeTuqolc/+EnKLnPdkQNB+c8MfQmBmiA==
-
 agent-base@6:
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/agent-base/-/agent-base-6.0.2.tgz#49fff58577cfee3f37176feab4c22e00f86d7f77"
