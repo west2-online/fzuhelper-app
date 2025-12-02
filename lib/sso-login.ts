@@ -161,7 +161,7 @@ class SSOLogin {
     };
 
     // 发送登录请求
-    let resp = await this.#post({
+    let loginResp = await this.#post({
       url: SSO_LOGIN_URL,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -171,7 +171,7 @@ class SSOLogin {
     });
 
     // 检查是否需要两步验证
-    html = Buffer.from(resp.data).toString('utf-8');
+    html = Buffer.from(loginResp.data).toString('utf-8');
     if (html.includes('<p id="current-login-type">smsLogin</p>')) {
       // 提取手机号 <p id="phone-number">***********</p>
       // 提取提示 <p id="second-auth-tip">您正在使用非校内ip登录，请进行手机验证以保障您的账号安全</p>
@@ -213,7 +213,7 @@ class SSOLogin {
 
       // 验证验证码
       const { csrfKey, csrfValue } = genCSRFToken();
-      resp = await postJSON(
+      const verifyResp = await postJSON(
         SSO_LOGIN_VERIFY_SMS_CODE_URL,
         {
           'Content-Type': 'application/json',
@@ -223,11 +223,37 @@ class SSOLogin {
         },
         { phone, token: userInputCode, delete: 'false', trustDevice: 'false' },
       );
+
+      const respData = JSON.parse(Buffer.from(verifyResp.data).toString('utf-8'));
+      if (respData.code !== 200) {
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: respData.msg || '验证码验证失败',
+        };
+      }
+      // 接着完成登录流程
+      loginResp = await this.#post({
+        url: SSO_LOGIN_URL,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Cookie: `SESSION=${SESSION}`,
+        },
+        formData: {
+          username: account,
+          password: userInputCode,
+          type: 'smsLogin',
+          _eventId: 'submit',
+          geolocation: '',
+          execution: execution,
+          captcha_code: '',
+          trustDevice: 'false',
+        },
+      });
     }
     // 验证完成，检查登录是否成功
     let SOURCEID_TGC: string;
     try {
-      SOURCEID_TGC = extractKV(resp.headers['Set-Cookie'], 'SOURCEID_TGC');
+      SOURCEID_TGC = extractKV(loginResp.headers['Set-Cookie'], 'SOURCEID_TGC');
       console.log('登录成功, SOURCEID_TGC:', SOURCEID_TGC);
     } catch {
       throw {
