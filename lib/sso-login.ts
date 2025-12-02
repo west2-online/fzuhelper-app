@@ -2,8 +2,13 @@ import { Buffer } from 'buffer';
 import CryptoJs from 'crypto-js';
 
 import { RejectEnum } from '@/api/enum';
-import { SSO_LOGIN_URL } from '@/lib/constants';
-import { get, post } from '@/modules/native-request';
+import { SSO_LOGIN_SMS_URL, SSO_LOGIN_URL, SSO_LOGIN_VERIFY_SMS_CODE_URL } from '@/lib/constants';
+import { get, post, postJSON } from '@/modules/native-request';
+
+// 两步验证回调接口
+export interface TwoFactorAuthCallback {
+  onSmsRequired: (phone: string, tip: string, sendSms: () => Promise<void>) => Promise<string>; // 返回用户输入的验证码
+}
 
 // 用于提取 Set-Cookie 中的内容
 function extractKV(raw: string, key: string): string {
@@ -65,7 +70,6 @@ class SSOLogin {
     formData?: Record<string, string>;
   }) {
     const resp = this.#request('POST', url, headers, formData);
-    // console.log(resp);
     return resp;
   }
 
@@ -76,13 +80,49 @@ class SSOLogin {
     return resp;
   }
 
+  // 发送短信验证码
+  async sendSmsCode(phone: string, SESSION: string): Promise<{ success: boolean; message?: string }> {
+    /**
+     * @param phone 手机号
+     * @param SESSION 会话cookie
+     * @returns 发送结果
+     **/
+    const { csrfKey, csrfValue } = genCSRFToken();
+    try {
+      const smsResp = await postJSON(
+        SSO_LOGIN_SMS_URL,
+        {
+          'Content-Type': 'application/json',
+          Cookie: `SESSION=${SESSION}`,
+          'Csrf-Key': csrfKey,
+          'Csrf-Value': csrfValue,
+        },
+        { businessNo: '0008', phone },
+      );
+
+      const smsRespData = JSON.parse(Buffer.from(smsResp.data).toString('utf-8'));
+
+      if (smsRespData.code === 200) {
+        return { success: true };
+      } else if (smsRespData.code === 412) {
+        return { success: false, message: '验证码发送频率过快，请等待120秒后重试' };
+      } else {
+        return { success: false, message: smsRespData.msg || '验证码发送失败' };
+      }
+    } catch (error) {
+      console.error('发送验证码失败:', error);
+      return { success: false, message: '验证码发送失败' };
+    }
+  }
+
   // 登录, 返回并保存 cookie
-  async login(account: string, password: string) {
+  async login(account: string, password: string, twoFactorCallback?: TwoFactorAuthCallback) {
     /**
      * @param account 学号
      * @param password 密码
      * @returns 登录成功后的 cookie
      **/
+    // 弹出输入提示框
 
     if (account === '' || password === '') {
       throw {
@@ -121,7 +161,7 @@ class SSOLogin {
     };
 
     // 发送登录请求
-    const resp = await this.#post({
+    let resp = await this.#post({
       url: SSO_LOGIN_URL,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -129,7 +169,72 @@ class SSOLogin {
       },
       formData: data,
     });
-    const SOURCEID_TGC = extractKV(resp.headers['Set-Cookie'], 'SOURCEID_TGC');
+
+    // 检查是否需要两步验证
+    html = Buffer.from(resp.data).toString('utf-8');
+    if (html.includes('<p id="current-login-type">smsLogin</p>')) {
+      // 提取手机号 <p id="phone-number">***********</p>
+      // 提取提示 <p id="second-auth-tip">您正在使用非校内ip登录，请进行手机验证以保障您的账号安全</p>
+      const phone = html.match(/<p id="phone-number">(.*?)<\/p>/)?.[1] || null;
+      const tip = html.match(/<p id="second-auth-tip">(.*?)<\/p>/)?.[1] || '请进行手机验证以保障您的账号安全';
+
+      if (!phone) {
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: '需要进行手机验证，但未找到手机号',
+        };
+      }
+
+      // 如果没有提供两步验证回调，则抛出错误
+      if (!twoFactorCallback) {
+        throw {
+          type: RejectEnum.NativeLoginFailed,
+          data: '需要进行两步验证，但未提供验证回调',
+        };
+      }
+
+      // 创建发送验证码的函数
+      const sendSms = async () => {
+        const sendResult = await this.sendSmsCode(phone, SESSION);
+        if (!sendResult.success) {
+          throw {
+            type: RejectEnum.NativeLoginFailed,
+            data: sendResult.message || '验证码发送失败',
+          };
+        }
+      };
+
+      // 调用回调获取用户输入的验证码
+      const userInputCode = await twoFactorCallback.onSmsRequired(phone, tip, sendSms);
+      if (!userInputCode) {
+        console.log('用户取消了验证码输入');
+        return ''; // 返回空字符串表示用户取消
+      }
+
+      // 验证验证码
+      const { csrfKey, csrfValue } = genCSRFToken();
+      resp = await postJSON(
+        SSO_LOGIN_VERIFY_SMS_CODE_URL,
+        {
+          'Content-Type': 'application/json',
+          Cookie: `SESSION=${SESSION}`,
+          'Csrf-Key': csrfKey,
+          'Csrf-Value': csrfValue,
+        },
+        { phone, token: userInputCode, delete: 'false', trustDevice: 'false' },
+      );
+    }
+    // 验证完成，检查登录是否成功
+    let SOURCEID_TGC: string;
+    try {
+      SOURCEID_TGC = extractKV(resp.headers['Set-Cookie'], 'SOURCEID_TGC');
+      console.log('登录成功, SOURCEID_TGC:', SOURCEID_TGC);
+    } catch {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '登录失败，请检查账号密码是否正确',
+      };
+    }
 
     const cookies = `SOURCEID_TGC=${SOURCEID_TGC}`;
 
@@ -293,6 +398,30 @@ function encrypt(raw_password: string, keyBase64: string): string {
 
   // 返回 base64 编码格式的加密后密码
   return encrypted.toString();
+}
+
+function genCSRFToken(): { csrfKey: string; csrfValue: string } {
+  /**
+   * 生成 CSRF token
+   * @returns { key: 原始32位随机字符串, csrfValue: 计算得到的 CSRF token }
+   */
+  // 随机生成32位字符串 A-a-0-9
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let csrfKey = '';
+  for (let i = 0; i < 32; i++) {
+    csrfKey += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  // 把字符串转为 base64
+  const base64Key = Buffer.from(csrfKey, 'utf-8').toString('base64');
+  // 把 base64 斩断组合 -> 前一半 + 原base64字符串 + 后一半
+  const halfLength = Math.floor(base64Key.length / 2);
+  const tokenData = base64Key.substring(0, halfLength) + base64Key + base64Key.substring(halfLength);
+
+  // 对组合 base64 求 MD5
+  const csrfValue = CryptoJs.MD5(tokenData).toString();
+
+  return { csrfKey, csrfValue };
 }
 
 export default SSOLogin;
