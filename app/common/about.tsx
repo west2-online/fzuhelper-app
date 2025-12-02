@@ -7,6 +7,7 @@ import {
 import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
+import dayjs from 'dayjs';
 import Constants from 'expo-constants';
 import { Href, Link, Stack, router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -152,7 +153,7 @@ export default function AboutPage() {
               已通过福州大学网络安全和信息化办公室安全质量检测
             </Text>
             <Text className="mb-6 text-center text-sm text-text-tertiary">
-              Copyright &copy; 2017-{new Date().getFullYear()} west2-online. All Rights Reserved.
+              Copyright &copy; 2017-{dayjs().year()} west2-online. All Rights Reserved.
             </Text>
           </SafeAreaView>
         </View>

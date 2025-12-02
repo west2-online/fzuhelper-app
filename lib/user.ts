@@ -151,6 +151,10 @@ export class LocalUser {
     };
   }
 
+  public static getCaptcha(): Promise<Uint8Array> {
+    return this.loginObject.getCaptcha();
+  }
+
   /**
    * 调用登录函数，会内部自动判断用户类型
    * @param captcha （可选）验证码，研究生完全不需要

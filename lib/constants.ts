@@ -69,6 +69,7 @@ export const COURSE_SETTINGS_KEY = 'course_settings';
 export const COURSE_DATA_KEY = 'course_data';
 export const COURSE_LOCAL_CALENDAR_ID_KEY = 'course_local_calendar_id';
 export const COURSE_TERMS_LIST_KEY = 'course_terms_list';
+export const COURSE_PAGE_ALL_DATA_KEY = 'course_page_all_data';
 export const CLASS_SCHEDULES = [
   ['08:20', '09:05'],
   ['09:15', '10:00'],
@@ -164,6 +165,7 @@ export const IOS_APP_GROUP = 'group.FzuHelper.NextCourse'; // iOS App Group，�
 // 日期时间格式化
 export const DATE_FORMAT = 'YYYY/M/D';
 export const DATE_FORMAT_FULL = 'YYYY/MM/DD';
+export const DATE_FORMAT_DASH = 'YYYY-MM-DD';
 export const TIME_FORMAT = 'HH:mm';
 export const TIME_SECOND_FORMAT = `${TIME_FORMAT}:ss`;
 export const DATETIME_FORMAT = `${DATE_FORMAT} ${TIME_FORMAT}`;

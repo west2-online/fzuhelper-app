@@ -1,151 +1,320 @@
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-
-import CoursePage from '@/components/course/course-page';
-import Loading from '@/components/loading';
-
-import { getApiV1TermsList } from '@/api/generate';
-import PageContainer from '@/components/page-container';
-import { CoursePageContext, CoursePageContextProps } from '@/context/course-page';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { COURSE_TERMS_LIST_KEY, EXPIRE_ONE_DAY } from '@/lib/constants';
-import { CourseCache, forceRefreshCourseData, getCourseSetting, updateCourseSetting } from '@/lib/course';
-import locateDate, { getWeeksBySemester } from '@/lib/locate-date';
-import { NotificationManager } from '@/lib/notification';
-import { fetchWithCache } from '@/utils/fetch-with-cache';
+import { Tabs, useFocusEffect } from 'expo-router';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FlatList, Pressable, View, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
 
+import { Icon } from '@/components/Icon';
+import { CourseErrorBoundary } from '@/components/course/course-error-boundary';
+import CourseWeek from '@/components/course/course-week';
+import Loading from '@/components/loading';
+import PageContainer from '@/components/page-container';
+import PickerModal from '@/components/picker-modal';
+import { queryClient } from '@/components/query-provider';
+import { Text } from '@/components/ui/text';
+import { CoursePageProvider } from '@/context/course-page';
+import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { hasCustomBackground } from '@/lib/appearance';
+import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
+import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
+import { getFirstDateByWeek } from '@/lib/locate-date';
+import { NotificationManager } from '@/lib/notification';
+
+function CoursePage() {
+  const coursePageData = useCoursePageData();
+  const { currentWeek, currentTerm, maxWeek } = coursePageData;
+
+  const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
+
+  useEffect(() => {
+    const refreshHandler = () => {
+      setSchedulesByDays(CourseCache.getCachedData(coursePageData.setting.selectedSemester));
+    };
+    CourseCache.addRefreshListener(refreshHandler);
+    return () => {
+      CourseCache.removeRefreshListener(refreshHandler);
+    };
+  }, [coursePageData.setting.selectedSemester]);
+
+  const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek)); // 选中周数，非当前学期则定位到第一周
+  const [showWeekSelector, setShowWeekSelector] = useState(false);
+  const { width } = useWindowDimensions();
+  const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });
+  const [customBackground, setCustomBackground] = useState(false);
+
+  useEffect(() => {
+    const checkBackground = async () => {
+      const result = await hasCustomBackground();
+      setCustomBackground(result);
+    };
+    checkBackground();
+  }, []);
+
+  const flatListRef = useRef<FlatList>(null);
+
+  // 周数切换，注意改变选中周必须使用该函数，以避免 FlatList 滚动越界导致崩溃
+  const safeSetSelectedWeek = useCallback(
+    (week: number, scrollTo: boolean = true) => {
+      const targetWeek = Math.max(1, Math.min(week, maxWeek));
+      setSelectedWeek(targetWeek);
+      if (scrollTo && flatListRef.current) {
+        flatListRef.current.scrollToIndex({
+          index: targetWeek - 1,
+          animated: false,
+        });
+      }
+    },
+    [maxWeek],
+  );
+
+  // 生成周数据
+  const weekArray = useMemo(
+    () =>
+      Array.from({ length: maxWeek }, (_, i) => ({
+        week: i + 1,
+        firstDate: getFirstDateByWeek(currentTerm.start_date, i + 1),
+      })),
+    [maxWeek, currentTerm],
+  );
+
+  // 通过 viewability 回调获取当前周
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken<(typeof weekArray)[0]>[] }) => {
+      if (viewableItems.length > 0) {
+        const firstViewableWeek = viewableItems[0].item.week;
+        if (firstViewableWeek !== selectedWeek) {
+          safeSetSelectedWeek(firstViewableWeek, false);
+        }
+      }
+    },
+    [safeSetSelectedWeek, selectedWeek],
+  );
+
+  const weekPickerData = useMemo(
+    () =>
+      Array.from({ length: maxWeek }, (_, i) => ({
+        value: String(i + 1),
+        label: `第 ${i + 1} 周`,
+      })),
+    [maxWeek],
+  );
+
+  const headerBackground = useCallback(() => {
+    return !customBackground ? <View className="flex-1 bg-card" /> : undefined;
+  }, [customBackground]);
+
+  const headerLeft = useCallback(
+    () => (
+      <Pressable
+        onPress={() => {
+          if (currentWeek !== -1) {
+            // 如果是当前学期，点击快捷跳转到当前周
+            safeSetSelectedWeek(currentWeek);
+          }
+        }}
+      >
+        <Text className="ml-4 text-2xl font-medium">课程表</Text>
+      </Pressable>
+    ),
+    [safeSetSelectedWeek, currentWeek],
+  );
+
+  const headerTitle = useCallback(
+    () => (
+      <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
+        <Text className="mr-1 text-lg">
+          第 {selectedWeek} 周 {selectedWeek === currentWeek ? '(本周)' : ''}
+        </Text>
+        <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+      </Pressable>
+    ),
+    [selectedWeek, currentWeek, showWeekSelector],
+  );
+
+  const headerRight = useCallback(
+    () => (
+      <>
+        <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
+        <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
+      </>
+    ),
+    [],
+  );
+
+  // 提供固定的布局信息，有助于性能优化
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: width,
+      offset: width * index,
+      index,
+    }),
+    [width],
+  );
+
+  // 渲染列表项（此处一项为一屏的内容）
+  const renderItem = useCallback(
+    ({ item }: { item: { week: number; firstDate: string } }) => (
+      <CourseWeek
+        key={item.week}
+        week={item.week}
+        startDate={item.firstDate}
+        schedulesByDays={schedulesByDays}
+        flatListLayout={flatListLayout}
+      />
+    ),
+    [schedulesByDays, flatListLayout],
+  );
+
+  const onLayout = useCallback(({ nativeEvent }: { nativeEvent: { layout: LayoutRectangle } }) => {
+    setFlatListLayout(nativeEvent.layout);
+  }, []);
+
+  const onClose = useCallback(() => {
+    setShowWeekSelector(false);
+  }, []);
+
+  const onConfirm = useCallback(
+    (selectedValue: string) => {
+      setShowWeekSelector(false);
+      safeSetSelectedWeek(parseInt(selectedValue, 10));
+    },
+    [safeSetSelectedWeek],
+  );
+
+  return (
+    <CoursePageProvider
+      value={{
+        setting: coursePageData.setting,
+      }}
+    >
+      {/* 顶部 Tab 导航栏 */}
+      <Tabs.Screen
+        options={{
+          headerBackground,
+          headerLeft,
+          headerTitle,
+          headerRight,
+        }}
+      />
+
+      {/* 课程表详情 */}
+      <FlatList
+        className="flex-1"
+        ref={flatListRef}
+        horizontal
+        pagingEnabled
+        data={weekArray}
+        initialNumToRender={1} // 初始渲染数量，影响首屏速度
+        windowSize={3} // 预加载窗口大小
+        getItemLayout={getItemLayout}
+        initialScrollIndex={selectedWeek - 1}
+        renderItem={renderItem}
+        onLayout={onLayout}
+        onViewableItemsChanged={handleViewableItemsChanged}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+        }}
+        showsHorizontalScrollIndicator={false}
+      />
+
+      {/* 周数选择器 */}
+      <PickerModal
+        visible={showWeekSelector}
+        title="选择周数"
+        data={weekPickerData}
+        value={String(selectedWeek)}
+        onClose={onClose}
+        onConfirm={onConfirm}
+      />
+    </CoursePageProvider>
+  );
+}
+
 export default function HomePage() {
-  const [coursePageContextProps, setCoursePageContextProps] = useState<CoursePageContextProps | null>(null);
-
-  const [cacheInitialized, setCacheInitialized] = useState(false); // 缓存是否初始化
-
-  const [isRefreshing, setIsRefreshing] = useState(false); // 是否下拉刷新
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+  const prevSettingsRef = useRef<string | null>(null);
 
   const { handleError } = useSafeResponseSolve();
 
-  // loadData 负责加载 config（课表配置）和 locateDateResult（定位日期结果）
-  const loadConfigAndDateResult = useCallback(async () => {
-    // const startTime = Date.now(); // 记录开始时间
+  // 初始化通知管理器
+  useEffect(() => {
+    const initNotification = setTimeout(async () => {
+      try {
+        await NotificationManager.register();
+        console.log('NotificationManager registered end.');
+      } catch (error) {
+        console.error('Failed to register NotificationManager:', error);
+      }
+    }, 2000);
 
-    // 这个学期数据（不是课程数据，是学期的开始结束时间等信息）存本地就可以了，本地做个长时间的缓存，这玩意一学期变一次，保守一点缓 7 天把
-    // 即使是研究生，也是用这个接口获取学期数据。
-    const termsData = await fetchWithCache(
-      [COURSE_TERMS_LIST_KEY],
-      () => getApiV1TermsList(),
-      { staleTime: 7 * EXPIRE_ONE_DAY }, // 缓存 7 天
-    );
+    return () => clearTimeout(initNotification);
+  }, []);
 
-    let locateDateRes;
-    try {
-      locateDateRes = await locateDate();
-    } catch (error: any) {
-      console.log(error);
-      handleError(error);
-      toast.error('获取当前周失败，请稍后再试');
-      return;
-    }
-
-    // 获取最新的课表设置
-    const setting = await getCourseSetting();
-    const selectedSemester = setting.selectedSemester || locateDateRes.semester;
-
-    // 定位当前周，如果是历史学期（即和 locateDate 给出的学期不符），则为-1
-    const currentWeek = locateDateRes.semester === selectedSemester ? locateDateRes.week : -1;
-
-    // 获取当前学期信息
-    const currentTerm = termsData?.data.data.terms.find(t => t.term === selectedSemester);
-
-    if (!termsData || !currentTerm) {
-      console.error('Failed to load term data: ', termsData, currentTerm);
-      toast.error('获取学期信息失败，请稍后再试');
-      return;
-    }
-
-    // 获取当前学期的最大周数
-    const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
-
-    setCoursePageContextProps({
-      setting,
-      currentWeek,
-      currentTerm,
-      maxWeek,
-    });
-
-    // 更新选中学期，替换掉默认空值
-    updateCourseSetting({ selectedSemester });
-    // const endTime = Date.now(); // 记录结束时间
-    // const elapsedTime = endTime - startTime; // 计算耗时
-    // console.log(`loadData function took ${elapsedTime}ms to complete.`);
-  }, [handleError]);
-
-  // 当加载的时候会读取 COURSE_SETTINGS，里面有一个字段会存储当前选择的学期（不一定是最新学期）
+  // 监听页面 focus，检测设置变化
   useFocusEffect(
     useCallback(() => {
-      if (cacheInitialized) {
-        loadConfigAndDateResult();
-      }
-    }, [cacheInitialized, loadConfigAndDateResult]),
-  );
+      const checkSettingsChange = async () => {
+        const currentSettings = await getCourseSetting();
+        const currentSettingsStr = JSON.stringify(currentSettings);
 
-  useEffect(() => {
-    // 确保缓存数据在首次加载时被初始化
-    if (!cacheInitialized) {
-      const initializeCache = async () => {
-        await CourseCache.load(); // 加载缓存数据
-        // 将 NotificationManager.register 放到后台运行
-        setTimeout(async () => {
-          try {
-            await NotificationManager.register(); // 初始化通知
-            console.log('NotificationManager registered end.');
-          } catch (error) {
-            console.error('Failed to register NotificationManager:', error);
-          }
-        }, 2000); // 延迟注册
-        setCacheInitialized(true); // 设置缓存已初始化
+        // 首次加载时保存设置
+        if (prevSettingsRef.current === null) {
+          prevSettingsRef.current = currentSettingsStr;
+          return;
+        }
+
+        // 检测设置是否变化
+        if (prevSettingsRef.current !== currentSettingsStr) {
+          console.log('Settings changed, invalidating cache');
+          prevSettingsRef.current = currentSettingsStr;
+
+          // 使 React Query 缓存失效，触发重新加载
+          await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+
+          // 重置组件（触发 Suspense 重新渲染）
+          setResetKey(prev => prev + 1);
+        }
       };
-      initializeCache();
-    }
-  }, [cacheInitialized]);
+
+      checkSettingsChange();
+    }, []),
+  );
 
   const onRefresh = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      // 能下拉页面一定加载好了，所以不可能为空，直接从这里拿
-      let queryTerm = coursePageContextProps!.setting.selectedSemester;
-      // 清空当前上下文旧数据，显示Loading
-      setCoursePageContextProps(null);
-      // 强制刷新课程数据
+      const setting = await getCourseSetting();
+      const queryTerm = setting.selectedSemester;
+
       await forceRefreshCourseData(queryTerm);
-      // 本页面重新初始化配置
-      loadConfigAndDateResult();
-      // toast.success('刷新成功');
+
+      await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+
+      setResetKey(prev => prev + 1);
     } catch (error: any) {
-      console.log(error);
+      console.error('Refresh failed:', error);
       handleError(error);
-      // 刷新失败，显示缓存数据
-      loadConfigAndDateResult();
+      toast.error('刷新失败，请稍后再试');
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, coursePageContextProps, loadConfigAndDateResult, handleError]);
+  }, [isRefreshing, handleError]);
 
-  // 在 AsyncStorage 中，我们按照 COURSE_SETTINGS_KEY__{学期 ID} 的格式存储课表设置
-  // 具体加载课程的逻辑在 CoursePage 组件中
-  return coursePageContextProps ? (
+  return (
     <PageContainer refreshBackground>
       <ScrollView
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         contentContainerClassName="flex-1"
       >
-        <CoursePageContext value={coursePageContextProps}>
-          <CoursePage />
-        </CoursePageContext>
+        <CourseErrorBoundary onReset={() => setResetKey(prev => prev + 1)} handleError={handleError}>
+          <Suspense fallback={<Loading />}>
+            <CoursePage key={resetKey} />
+          </Suspense>
+        </CourseErrorBoundary>
       </ScrollView>
     </PageContainer>
-  ) : (
-    <Loading />
   );
 }

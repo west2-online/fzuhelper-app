@@ -1,10 +1,10 @@
-import { memo, useContext, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { type LayoutRectangle, View } from 'react-native';
 
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
 
-import { CoursePageContext } from '@/context/course-page';
+import { useCoursePageSetting } from '@/context/course-page';
 import {
   COURSE_TYPE,
   COURSE_WITHOUT_ATTENDANCE,
@@ -37,7 +37,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     () => Math.max(SCHEDULE_ITEM_MIN_HEIGHT, Math.floor(flatListLayout.height / 11)),
     [flatListLayout.height],
   );
-  const { setting } = useContext(CoursePageContext);
+  const setting = useCoursePageSetting();
 
   // 根据当前周数和星期几，筛选出当天的课程
   // 并进行整合，生成一个用于渲染的数据结构

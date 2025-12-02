@@ -12,7 +12,7 @@ import android.content.SharedPreferences
 data class ExtendCourse(
 //    val id: Int,                 // 课程唯一ID
     val color: String,           // 课程颜色
-//    val priority: Int,           // 优先级
+    val priority: Int,           // 优先级
     val type: Int,               // 课程类型（0=普通课程，1=考试）
     val name: String,            // 课程名称
 //    val teacher: String,         // 教师姓名
@@ -81,14 +81,14 @@ fun deleteWidgetConfig(context: Context, appWidgetId: Int, key: String) {
 }
 
 fun getCourseBeans(cacheCourseData: CacheCourseData): List<ExtendCourse> = try {
-    (cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run {
+    ((cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run {
         if (cacheCourseData.hiddenCoursesWithoutAttendances == true) {
             filter { it.examType?.contains("免听") == false }
         } else {
             sortedBy { it.examType?.contains("免听") == true }
         }
     } + (cacheCourseData.examData?.values?.flatten() ?: emptyList()) +
-            (cacheCourseData.customData?.values?.flatten() ?: emptyList())
+            (cacheCourseData.customData?.values?.flatten() ?: emptyList())).sortedBy { -(it.priority?: 1) }
 } catch (e: Exception) {
     Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
     emptyList()

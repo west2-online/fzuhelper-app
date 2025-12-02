@@ -24,7 +24,7 @@ const DAYS = ['一', '二', '三', '四', '五', '六', '日'];
 
 // 一周课表
 const CourseWeek: React.FC<CourseWeekProps> = ({ week, startDate, schedulesByDays, flatListLayout }) => {
-  const month = useMemo(() => new Date(startDate).getMonth() + 1, [startDate]);
+  const month = useMemo(() => dayjs(startDate).month() + 1, [startDate]);
   const [currentDate, setCurrentDate] = useState(dayjs().format(DATE_FORMAT_FULL)); // 当前日期
 
   useEffect(() => {
@@ -39,8 +39,6 @@ const CourseWeek: React.FC<CourseWeekProps> = ({ week, startDate, schedulesByDay
 
   // 头部日期
   const headerDays = useMemo(() => {
-    const today = new Date();
-    today.setHours(today.getHours() + 8);
     return Array.from({ length: 7 }, (_, i) => {
       const newDate = dayjs(startDate).add(i, 'day');
       const isToday = newDate.isSame(currentDate, 'day');
