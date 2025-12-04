@@ -1,0 +1,42 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true,
+        "buildConfiguration": "debug"
+      },
+      "env": {
+        "APP_VARIANT": "development"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "866768101",
+        "appleTeamId": "MEWHFZ92DY",
+        "sku": "Robin_002",
+        "language": "zh-Hans",
+        "appName": "福uu",
+        "bundleIdentifier": "FzuHelper.FzuHelper"
+      }
+    }
+  }
+}

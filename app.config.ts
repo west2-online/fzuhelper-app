@@ -9,18 +9,18 @@ const IS_DEV = process.env.APP_VARIANT === 'development';
 // 前三位对应版本名，后三位或更多对应commit次数
 let commitCount = 0;
 try {
-  const stdout = execSync('git rev-list --count HEAD').toString().trim();
-  const parsedInt = parseInt(stdout, 10);
-  if (!isNaN(parsedInt)) {
-    commitCount = parsedInt;
-  }
+  const res = execSync(
+    'curl -sI "https://api.github.com/repos/west2-online/fzuhelper-app/commits?per_page=1"',
+  ).toString();
+  const count = res.match(/&page=(\d+)>; rel="last"/);
+  commitCount = count ? parseInt(count[1], 10) : 0;
 } catch (err) {
   console.error('无法获取 git commit 次数，将使用默认值 0:', err);
 }
 const versionCodePrefix = version.replace(/\./g, '');
 const versionCodeSuffix = String(commitCount).padStart(3, '0');
 // iOS
-const buildNumber = versionCodePrefix + versionCodeSuffix;
+const buildNumber = '719559';
 // Android
 const versionCode = parseInt(buildNumber, 10);
 
@@ -231,6 +231,11 @@ const config: ExpoConfig = {
   ],
   experiments: {
     typedRoutes: true,
+  },
+  extra: {
+    eas: {
+      projectId: '7f521ea8-db0e-4bf3-a6ce-ff469936e540',
+    },
   },
 };
 
