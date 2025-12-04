@@ -1,4 +1,4 @@
-import { Buffer } from 'buffer';
+import { Buffer } from '@craftzdog/react-native-buffer';
 import CryptoJs from 'crypto-js';
 
 import { RejectEnum } from '@/api/enum';
@@ -133,8 +133,7 @@ class SSOLogin {
 
     // 首先请求sso界面获得密钥
     const ssoPage = await this.#get({ url: SSO_LOGIN_URL });
-    let html: string;
-    html = Buffer.from(ssoPage.data).toString('utf-8');
+    let html: string = Buffer.from(ssoPage.data).toString('utf-8');
 
     // 从页面中提取密钥 和 cookie的session
     const matchCroypto = html.match(/"login-croypto">(.*?)</);
