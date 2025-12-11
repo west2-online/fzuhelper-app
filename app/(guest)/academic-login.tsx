@@ -12,7 +12,6 @@ import { Text } from '@/components/ui/text';
 import PageContainer from '@/components/page-container';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { setAegisConfig } from '@/lib/aegis';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
@@ -111,8 +110,6 @@ const LoginPage: React.FC = () => {
       // 登录、获取 token、检查串号等逻辑
       await LocalUser.login(captcha);
       // 登录成功
-      setAegisConfig({ uin: username });
-      console.log('aegis set uin:', username);
       if (Platform.OS === 'android') {
         BuglyModule.setUserId(username);
       }
@@ -127,7 +124,6 @@ const LoginPage: React.FC = () => {
       await refreshCaptcha();
       // 访问令牌获取失败，清除账户信息
       await LocalUser.clear();
-      setAegisConfig({});
       if (Platform.OS === 'android') {
         await BuglyModule.setUserId('');
       }
