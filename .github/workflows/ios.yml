@@ -1,0 +1,56 @@
+name: Build IPA
+
+on:
+  push:
+    branches:
+      - eas
+  workflow_call:
+
+jobs:
+  build_ios:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: 'yarn'
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile --prefer-offline
+
+      - name: EAS Build iOS
+        run: eas build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          GIT_LOG=$(git log -3 --pretty=format:"%s%n%b") || { echo "Failed to get git log"; exit 1; }
+          {
+            echo "CHANGELOG<<BSEOF"
+            echo -e "同步自 GitHub 最近三条提交记录:\n $GIT_LOG"
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: EAS Submit iOS
+        run: eas submit --platform ios --profile production --non-interactive --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}"
