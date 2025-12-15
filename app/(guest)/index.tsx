@@ -23,7 +23,6 @@ import SplashImage from '@/assets/images/splash.png';
 import SplashLogoIcon from '@/assets/images/splash_logo.png';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { initAegis, setAegisConfig } from '@/lib/aegis';
 import {
   DATE_FORMAT_DASH,
   IS_PRIVACY_POLICY_AGREED,
@@ -62,7 +61,6 @@ export default function SplashScreen() {
   const initThirdParty = useCallback(async () => {
     console.log('init ThirdParty Libraries');
     await NotificationManager.init();
-    initAegis();
     if (Platform.OS === 'android') {
       // 崩溃上报
       BuglyModule.initBugly();
@@ -165,12 +163,6 @@ export default function SplashScreen() {
     // 此时我们按照正常逻辑请求服务端，会获得 cookie 过期的错误，再由我们客户端静态登录
     // 整个逻辑自动化地实现在了 api/axios.ts 中
 
-    // 在此处开始加载 AEGIS 符合逻辑，同时不需要额外的再 load 一次
-    console.log('set AEGIS config for', LocalUser.getUser().userid);
-    // Alert.alert('AEGIS', 'set config for ' + LocalUser.getUser().userid);
-    setAegisConfig({
-      uin: LocalUser.getUser().userid,
-    });
     if (Platform.OS === 'android') {
       BuglyModule.setUserId(LocalUser.getUser().userid);
     }
