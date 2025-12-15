@@ -4,7 +4,7 @@ import NativeRequestModule from './src/NativeRequestModule';
 
 interface NativeRequestResponse {
   status: number;
-  data: Uint8Array;
+  data: Uint8Array<ArrayBuffer>;
   headers: Record<string, string>;
 }
 
