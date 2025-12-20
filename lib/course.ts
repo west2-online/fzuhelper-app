@@ -618,6 +618,47 @@ export class CourseCache {
   }
 
   /**
+   * 处理好友课程数据，不更新缓存
+   * @param courses - 原始课程数据
+   * @returns 按天归类的课程数据
+   */
+  public static processFriendCourses(courses: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
+    const schedules = this.parseCourses(courses); // 解析课程数据
+
+    // 为每个课程生成颜色并扩展数据
+    const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
+      const id = this.allocateID(); // 分配一个新的 ID
+      return {
+        ...schedule,
+        color: allocateColorForCourse(schedule.name), // 分配颜色
+        priority: DEFAULT_PRIORITY, // 默认优先级
+        id: id,
+        type: COURSE_TYPE,
+      };
+    });
+
+    // 为调课课程添加标记
+    for (const course of extendedCourses) {
+      if (course.adjust) {
+        course.name = `[调课] ${course.name}`;
+      }
+    }
+
+    // 按天归类课程数据
+    const groupedData = extendedCourses.reduce(
+      (result, current) => {
+        const day = current.weekday - 1;
+        if (!result[day]) result[day] = []; // 确保数组存在
+        result[day].push(current);
+        return result;
+      },
+      Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<number, ExtendCourse[]>,
+    );
+
+    return groupedData;
+  }
+
+  /**
    * 添加自定义课程，每次添加都会保存一次数据
    * @param course - 自定义课程
    */

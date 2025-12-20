@@ -1,41 +1,84 @@
 import { Tabs, useFocusEffect } from 'expo-router';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, View, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+  type LayoutRectangle,
+  type ViewToken,
+} from 'react-native';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
+
+import { JwchCourseListResponse_Course } from '@/api/backend';
+import { getApiV1FriendCourse, getApiV1UserFriendList } from '@/api/generate';
 import { Icon } from '@/components/Icon';
 import { CourseErrorBoundary } from '@/components/course/course-error-boundary';
 import CourseWeek from '@/components/course/course-week';
+import { FriendListModal } from '@/components/course/friend-list-modal';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { queryClient } from '@/components/query-provider';
 import { Text } from '@/components/ui/text';
 import { CoursePageProvider } from '@/context/course-page';
+import useApiRequest from '@/hooks/useApiRequest';
 import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { hasCustomBackground } from '@/lib/appearance';
-import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
+import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
+import { useColorScheme } from '@/lib/useColorScheme';
 
 function CoursePage() {
   const coursePageData = useCoursePageData();
   const { currentWeek, currentTerm, maxWeek } = coursePageData;
+  const { colorScheme } = useColorScheme();
 
   const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
+  const [selectedFriendId, setSelectedFriendId] = useState<string | undefined>(undefined);
+
+  // Friend Course Data
+  const { data: friendCourseData } = useApiRequest(
+    getApiV1FriendCourse,
+    { student_id: selectedFriendId!, term: coursePageData.setting.selectedSemester },
+    {
+      enabled: !!selectedFriendId,
+      queryKey: ['friend_course', selectedFriendId!, coursePageData.setting.selectedSemester],
+    },
+  );
+
+  useEffect(() => {
+    if (selectedFriendId) {
+      if (friendCourseData) {
+        const processed = CourseCache.processFriendCourses(
+          friendCourseData as unknown as JwchCourseListResponse_Course[],
+        );
+        setSchedulesByDays(processed);
+      }
+    } else {
+      // Restore own data
+      setSchedulesByDays(CourseCache.getCachedData(coursePageData.setting.selectedSemester));
+    }
+  }, [selectedFriendId, friendCourseData, coursePageData.setting.selectedSemester]);
 
   useEffect(() => {
     const refreshHandler = () => {
-      setSchedulesByDays(CourseCache.getCachedData(coursePageData.setting.selectedSemester));
+      if (!selectedFriendId) {
+        setSchedulesByDays(CourseCache.getCachedData(coursePageData.setting.selectedSemester));
+      }
     };
     CourseCache.addRefreshListener(refreshHandler);
     return () => {
       CourseCache.removeRefreshListener(refreshHandler);
     };
-  }, [coursePageData.setting.selectedSemester]);
+  }, [coursePageData.setting.selectedSemester, selectedFriendId]);
 
   const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek)); // 选中周数，非当前学期则定位到第一周
   const [showWeekSelector, setShowWeekSelector] = useState(false);
@@ -104,21 +147,48 @@ function CoursePage() {
     return !customBackground ? <View className="flex-1 bg-card" /> : undefined;
   }, [customBackground]);
 
-  const headerLeft = useCallback(
-    () => (
-      <Pressable
+  /** 好友课表相关 **/
+
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const {
+    data: friendList,
+    isError,
+    refetch,
+  } = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
+
+  const headerLeft = useCallback(() => {
+    const title = selectedFriendId
+      ? `${friendList?.find(f => f.stu_id === selectedFriendId)?.name ?? '好友'}的课表`
+      : '我的课表';
+
+    let textSize = 'text-xl';
+    let iconSize = 13;
+    if (title.length > 8) {
+      textSize = 'text-sm';
+      iconSize = 9;
+    } else if (title.length > 5) {
+      textSize = 'text-base';
+      iconSize = 11;
+    }
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.7}
         onPress={() => {
-          if (currentWeek !== -1) {
-            // 如果是当前学期，点击快捷跳转到当前周
-            safeSetSelectedWeek(currentWeek);
-          }
+          // if (currentWeek !== -1) {
+          //   // 如果是当前学期，点击快捷跳转到当前周
+          //   safeSetSelectedWeek(currentWeek);
+          // }
+          setMenuVisible(true);
         }}
+        className="w-32 flex-row items-center"
       >
-        <Text className="ml-4 text-2xl font-medium">课程表</Text>
-      </Pressable>
-    ),
-    [safeSetSelectedWeek, currentWeek],
-  );
+        <Text className={`ml-4 font-medium ${textSize}`}>{title}</Text>
+        <Icon name="chevron-forward" size={iconSize} className="ml-0.5" />
+      </TouchableOpacity>
+    );
+  }, [selectedFriendId, friendList]);
 
   const headerTitle = useCallback(
     () => (
@@ -226,6 +296,14 @@ function CoursePage() {
         value={String(selectedWeek)}
         onClose={onClose}
         onConfirm={onConfirm}
+      />
+
+      <FriendListModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        friendList={friendList}
+        selectedFriendId={selectedFriendId}
+        onSelectFriend={setSelectedFriendId}
       />
     </CoursePageProvider>
   );
