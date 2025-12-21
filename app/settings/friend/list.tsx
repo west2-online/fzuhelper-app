@@ -26,6 +26,7 @@ export default function FriendManagePage() {
 
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,
+    onEmpty: () => setIsManage(false),
   });
 
   const [isManage, setIsManage] = useState(false);
