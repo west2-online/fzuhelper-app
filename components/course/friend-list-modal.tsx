@@ -3,6 +3,7 @@ import { Modal, Pressable, TouchableOpacity, View } from 'react-native';
 import { UserFriendListResponse, UserFriendListResponse_Friend } from '@/api/backend';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/ui/text';
+import { router } from 'expo-router';
 
 interface FriendListModalProps {
   visible: boolean;
@@ -41,8 +42,8 @@ export function FriendListModal({
             className="flex h-14 flex-row items-center justify-between"
             activeOpacity={0.7}
             onPress={() => {
-              onSelectFriend(undefined);
               onClose();
+              onSelectFriend(undefined);
             }}
           >
             <View className="flex flex-row items-center">
@@ -53,24 +54,30 @@ export function FriendListModal({
           {friendList?.map((friend: UserFriendListResponse_Friend) => (
             <TouchableOpacity
               key={friend.stu_id}
-              className="flex h-14 flex-row items-center justify-between"
+              className="flex h-14 flex-row items-center"
               activeOpacity={0.7}
               onPress={() => {
-                onSelectFriend(friend.stu_id);
                 onClose();
+                onSelectFriend(friend.stu_id);
               }}
             >
-              <View>
+              <View className="flex-1">
                 <Text className="line-clamp-1 text-lg">{friend.name}</Text>
                 <Text className="line-clamp-1 text-sm text-text-secondary">
-                  {friend.grade}级{friend.college}
-                  {friend.major}专业
+                  {friend.grade}级{friend.major}专业
                 </Text>
               </View>
               {selectedFriendId === friend.stu_id && <Icon name="checkmark" size={20} color="#007AFF" />}
             </TouchableOpacity>
           ))}
-          <TouchableOpacity className="flex h-14 justify-center" activeOpacity={0.7}>
+          <TouchableOpacity
+            className="flex h-14 justify-center"
+            activeOpacity={0.7}
+            onPress={() => {
+              onClose();
+              router.push('/settings/friend/list');
+            }}
+          >
             <Text className="text-lg">好友管理</Text>
           </TouchableOpacity>
         </View>

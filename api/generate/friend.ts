@@ -139,6 +139,19 @@ export async function getApiV1UserFriendInvite(
   });
 }
 
+/** 取消当前邀请码 用于使当前存在的邀请码失效 POST /api/v1/user/friend/invite/cancel https://apifox.com/web/project/3275694/apis/api-393694136-run */
+export async function postApiV1UserFriendInviteCancel(options?: {
+  [key: string]: unknown;
+}) {
+  return request<{ code: string; message: string }>(
+    '/api/v1/user/friend/invite/cancel',
+    {
+      method: 'POST',
+      ...(options || {}),
+    }
+  );
+}
+
 /** 好友列表 GET /api/v1/user/friend/list https://apifox.com/web/project/3275694/apis/api-383320391-run */
 export async function getApiV1UserFriendList(options?: {
   [key: string]: unknown;

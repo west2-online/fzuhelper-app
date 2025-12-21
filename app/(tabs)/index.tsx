@@ -12,8 +12,6 @@ import {
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
-
 import { JwchCourseListResponse_Course } from '@/api/backend';
 import { getApiV1FriendCourse, getApiV1UserFriendList } from '@/api/generate';
 import { Icon } from '@/components/Icon';
@@ -34,12 +32,10 @@ import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
-import { useColorScheme } from '@/lib/useColorScheme';
 
 function CoursePage() {
   const coursePageData = useCoursePageData();
   const { currentWeek, currentTerm, maxWeek } = coursePageData;
-  const { colorScheme } = useColorScheme();
 
   const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
   const [selectedFriendId, setSelectedFriendId] = useState<string | undefined>(undefined);
@@ -156,6 +152,12 @@ function CoursePage() {
     isError,
     refetch,
   } = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const headerLeft = useCallback(() => {
     const title = selectedFriendId
