@@ -10,6 +10,7 @@ import {
   type getApiV1LaunchScreenScreen,
   type getApiV1TermsInfo,
   type getApiV1TermsList,
+  type getApiV1UserFriendList,
   type getApiV2JwchAcademicCredit,
   type getApiV2VersionAndroid,
 } from '@/api/generate';

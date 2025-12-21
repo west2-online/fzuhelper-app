@@ -1,10 +1,9 @@
-import { useNavigation } from '@react-navigation/native';
 import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, BackHandler, FlatList, Platform, TouchableOpacity, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { UserFriendListResponse } from '@/api/backend';
+import { UserFriendListResponse, UserFriendListResponse_Friend } from '@/api/backend';
 import { getApiV1UserFriendList, postApiV1UserFriendOpenApiDelete } from '@/api/generate';
 import { Icon } from '@/components/Icon';
 import MultiStateView from '@/components/multistateview/multi-state-view';
@@ -15,12 +14,12 @@ import useApiRequest from '@/hooks/useApiRequest';
 import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FRIEND_LIST_KEY } from '@/lib/constants';
+import dayjs from 'dayjs';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FriendManagePage() {
   const { handleError } = useSafeResponseSolve();
-  const navigation = useNavigation();
 
   const apiResult = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
   const { data: friendList, refetch } = apiResult;
@@ -32,26 +31,32 @@ export default function FriendManagePage() {
   const [isManage, setIsManage] = useState(false);
 
   const handleDelete = useCallback(
-    async (student_id: string) => {
-      Alert.alert('提示', '确定要删除该好友吗？', [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await postApiV1UserFriendOpenApiDelete({ student_id });
-              toast.success('删除成功');
-              refetch();
-            } catch (error: any) {
-              const data = handleError(error) as { message: string };
-              if (data) {
-                toast.error(data.message);
+    async (friend: UserFriendListResponse_Friend) => {
+      const diff = dayjs().diff(dayjs(friend.created_at * 1000), 'day');
+      const diffString = diff === 0 ? '今天' : `${diff}天前`;
+      Alert.alert(
+        '提示',
+        `你与${friend.name}在${diffString}成为好友，解除好友关系后，你们将无法再互相查看课表。确定要删除好友吗？`,
+        [
+          { text: '取消', style: 'cancel' },
+          {
+            text: '删除',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await postApiV1UserFriendOpenApiDelete({ student_id: friend.stu_id });
+                toast.success('删除成功');
+                refetch();
+              } catch (error: any) {
+                const data = handleError(error) as { message: string };
+                if (data) {
+                  toast.error(data.message);
+                }
               }
-            }
+            },
           },
-        },
-      ]);
+        ],
+      );
     },
     [handleError, refetch],
   );
@@ -67,7 +72,7 @@ export default function FriendManagePage() {
           </Text>
         </View>
         {isManage && (
-          <TouchableOpacity onPress={() => handleDelete(item.stu_id)} className="p-2">
+          <TouchableOpacity onPress={() => handleDelete(item)} className="p-2">
             <Icon name="trash-outline" size={24} color="#ef4444" />
           </TouchableOpacity>
         )}
