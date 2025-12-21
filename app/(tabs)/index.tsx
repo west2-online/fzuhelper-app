@@ -33,12 +33,17 @@ import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/cou
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
 
-function CoursePage() {
+function CoursePage({
+  selectedFriendId,
+  setSelectedFriendId,
+}: {
+  selectedFriendId: string | undefined;
+  setSelectedFriendId: (id: string | undefined) => void;
+}) {
   const coursePageData = useCoursePageData();
   const { currentWeek, currentTerm, maxWeek } = coursePageData;
 
   const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
-  const [selectedFriendId, setSelectedFriendId] = useState<string | undefined>(undefined);
 
   // Friend Course Data
   const { data: friendCourseData } = useApiRequest(
@@ -147,11 +152,11 @@ function CoursePage() {
 
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const {
-    data: friendList,
-    isError,
-    refetch,
-  } = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
+  const { data: friendList, refetch } = useApiRequest(
+    getApiV1UserFriendList,
+    {},
+    { persist: true, queryKey: [FRIEND_LIST_KEY] },
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -314,6 +319,7 @@ function CoursePage() {
 export default function HomePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [resetKey, setResetKey] = useState(0);
+  const [selectedFriendId, setSelectedFriendId] = useState<string | undefined>(undefined);
   const prevSettingsRef = useRef<string | null>(null);
 
   const { handleError } = useSafeResponseSolve();
@@ -366,13 +372,16 @@ export default function HomePage() {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      const setting = await getCourseSetting();
-      const queryTerm = setting.selectedSemester;
-
-      await forceRefreshCourseData(queryTerm);
-
-      await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
-
+      if (selectedFriendId) {
+        // 刷新好友课表
+        await queryClient.invalidateQueries({ queryKey: ['friend_course', selectedFriendId] });
+      } else {
+        // 刷新自己的课表
+        const setting = await getCourseSetting();
+        const queryTerm = setting.selectedSemester;
+        await forceRefreshCourseData(queryTerm);
+        await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+      }
       setResetKey(prev => prev + 1);
     } catch (error: any) {
       console.error('Refresh failed:', error);
@@ -381,7 +390,7 @@ export default function HomePage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, handleError]);
+  }, [isRefreshing, handleError, selectedFriendId]);
 
   return (
     <PageContainer refreshBackground>
@@ -391,7 +400,7 @@ export default function HomePage() {
       >
         <CourseErrorBoundary onReset={() => setResetKey(prev => prev + 1)} handleError={handleError}>
           <Suspense fallback={<Loading />}>
-            <CoursePage key={resetKey} />
+            <CoursePage key={resetKey} selectedFriendId={selectedFriendId} setSelectedFriendId={setSelectedFriendId} />
           </Suspense>
         </CourseErrorBoundary>
       </ScrollView>
