@@ -16,6 +16,12 @@ export type getApiV1CourseCalendarSubscribeParams = {
   token?: string;
 };
 
+export type getApiV1FriendCourseParams = {
+  /** ID 编号 */
+  student_id: string;
+  term: string;
+};
+
 export type getApiV1JwchClassroomExamParams = {
   /** 学期 202401(研究生2023-2024-2) */
   term?: string;
@@ -61,4 +67,9 @@ export type getApiV1ToolboxConfigParams = {
   student_id?: string;
   /** android,ios */
   platform?: string;
+};
+
+export type getApiV1UserFriendInviteParams = {
+  /** 刷新验证码 */
+  isRefresh?: boolean;
 };
