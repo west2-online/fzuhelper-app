@@ -6,7 +6,7 @@ import ErrorView from '@/components/multistateview/error-view';
 interface CourseErrorBoundaryProps {
   children: ReactNode;
   onReset?: () => void;
-  handleError?: (error: any) => void;
+  handleError?: (error: any) => unknown;
 }
 
 interface CourseErrorBoundaryState {
@@ -24,11 +24,14 @@ export class CourseErrorBoundary extends Component<CourseErrorBoundaryProps, Cou
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    console.error('CourseErrorBoundary caught an error:', error, errorInfo);
+    console.log('CourseErrorBoundary caught an error:', error, errorInfo);
 
     // 调用 handleError 显示 toast 错误提示
     if (this.props.handleError) {
-      this.props.handleError(error);
+      const data = this.props.handleError(error);
+      if (data) {
+        toast.error((data as { message: string }).message || '加载失败，请检查网络连接');
+      }
     } else {
       // 如果没有传入 handleError，显示默认错误提示
       toast.error(error.message || '加载失败，请检查网络连接');
