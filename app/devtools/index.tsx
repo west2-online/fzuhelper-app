@@ -9,7 +9,7 @@ import UserLogin from '@/lib/user-login';
 import { pushToWebViewJWCH } from '@/lib/webview';
 import NativeBrightnessModule from '@/modules/native-brightness';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Link, Stack } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -130,6 +130,11 @@ export default function HomePage() {
             <Link href="/devtools/domitory-repair-api" asChild>
               <Button>
                 <Text>Domitory Repair API</Text>
+              </Button>
+            </Link>
+            <Link href="/devtools/file-cache" asChild>
+              <Button>
+                <Text>FileCache Manager</Text>
               </Button>
             </Link>
 
