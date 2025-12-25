@@ -76,7 +76,7 @@ export default function FileCachePage() {
   const deleteOne = async (uri: string) => {
     setLoading(true);
     try {
-      await FileCache.deleteCachedFile(uri as string);
+      await FileCache.deleteCachedFile(uri);
       toast.success('删除成功');
       await refresh();
     } catch (e) {
@@ -88,11 +88,11 @@ export default function FileCachePage() {
 
   const openOne = async (uri: string) => {
     try {
-      const ok = await FileCache.openFile(uri as string);
+      const ok = await FileCache.openFile(uri);
       if (!ok) {
         // fallback to share
         if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(uri as string);
+          await Sharing.shareAsync(uri);
         } else {
           toast.info('打开/分享功能在此设备不可用');
         }

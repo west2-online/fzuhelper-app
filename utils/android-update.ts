@@ -36,7 +36,7 @@ const downloadAndInstallApk = async (url: string, force: boolean) => {
     downloadStore.setMessage('下载完成，正在安装...');
     setTimeout(async () => {
       // 使用 FileCache.openFile 打开安装界面
-      await FileCache.openFile(cachedUri as string);
+      await FileCache.openFile(cachedUri);
       downloadStore.reset();
     }, 1000);
   } catch (err) {

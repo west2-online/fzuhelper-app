@@ -22,7 +22,7 @@ const LearningCenterMap = memo(() => {
         });
         if (mounted && uri) setLocalMapUri(uri);
       } catch (e) {
-        toast('getCachedFile failed, will use bundled asset' + e);
+        toast.error('地图加载失败，请检查网络连接');
       }
     })();
 
