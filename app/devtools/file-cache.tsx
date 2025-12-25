@@ -2,6 +2,7 @@ import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import * as FileCache from '@/utils/file-cache';
+import { Stack } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -87,10 +88,14 @@ export default function FileCachePage() {
 
   const openOne = async (uri: string) => {
     try {
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri);
-      } else {
-        toast.info('打开/分享功能在此设备不可用');
+      const ok = await FileCache.openFile(uri as string);
+      if (!ok) {
+        // fallback to share
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri as string);
+        } else {
+          toast.info('打开/分享功能在此设备不可用');
+        }
       }
     } catch (e) {
       toast.error('打开文件失败');
@@ -103,6 +108,7 @@ export default function FileCachePage() {
 
   return (
     <PageContainer>
+      <Stack.Screen options={{ title: '文件缓存管理' }} />
       <SafeAreaView edges={['bottom']} style={{ flex: 1 }}>
         <View style={styles.toolbar}>
           <Button onPress={refresh} disabled={loading}>

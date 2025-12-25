@@ -1,4 +1,8 @@
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import { Platform } from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import * as mime from 'react-native-mime-types';
 
 const CACHE_DIR = `${FileSystem.cacheDirectory}file/`;
 const META_EXT = '.meta.json';
@@ -6,6 +10,7 @@ const META_EXT = '.meta.json';
 export type GetCachedFileOptions = {
   filename?: string;
   maxAge?: number; // 毫秒，超过则重新下载
+  onProgress?: (progress: number) => void; // 0..1
 };
 
 export type CachedFile = {
@@ -238,6 +243,7 @@ export async function deleteCachedFile(uri: string) {
     console.warn('file-cache: deleteCachedFile error', e);
   }
 }
+
 export async function getCachedFile(url: string, options: GetCachedFileOptions = {}) {
   if (!url) throw new Error('url is required');
 
@@ -260,7 +266,7 @@ export async function getCachedFile(url: string, options: GetCachedFileOptions =
   }
 
   try {
-    const info = await FileSystem.getInfoAsync(targetPath, { size: false });
+    const info = await FileSystem.getInfoAsync(targetPath);
     if (info.exists) {
       if (options.maxAge && typeof info.modificationTime === 'number') {
         const ageMs = Date.now() - info.modificationTime * 1000;
@@ -287,9 +293,18 @@ export async function getCachedFile(url: string, options: GetCachedFileOptions =
       }
     }
 
+    // use Expo FileSystem resumable download to provide progress
     try {
-      const res = await FileSystem.downloadAsync(url, targetPath);
-      console.log('file-cache: download complete', res.uri);
+      options.onProgress?.(0);
+      const downloadResumable = FileSystem.createDownloadResumable(url, targetPath, {}, progress => {
+        try {
+          const written = progress.totalBytesWritten;
+          const total = progress.totalBytesExpectedToWrite;
+          const p = total && total > 0 ? written / total : 0;
+          options.onProgress?.(Math.max(0, Math.min(1, p)));
+        } catch (e) {}
+      });
+      const res = await downloadResumable.downloadAsync();
       try {
         await writeMetadataFor(res.uri, {
           url,
@@ -297,13 +312,66 @@ export async function getCachedFile(url: string, options: GetCachedFileOptions =
           maxAgeMs: typeof options.maxAge === 'number' ? options.maxAge : null,
         });
       } catch (e) {}
+      options.onProgress?.(1);
       return res.uri;
-    } catch (downloadError) {
-      if (info && info.exists) return info.uri;
-      throw downloadError;
+    } catch (e) {
+      console.warn('file-cache: expo resumable download failed', e);
+      // fallback: attempt downloadAsync as last resort
+      const res = await FileSystem.downloadAsync(url, targetPath);
+      try {
+        await writeMetadataFor(res.uri, {
+          url,
+          cachedAt: Date.now(),
+          maxAgeMs: typeof options.maxAge === 'number' ? options.maxAge : null,
+        });
+      } catch (e) {}
+      options.onProgress?.(1);
+      return res.uri;
     }
   } catch (err) {
     throw err;
+  }
+}
+
+export async function openFile(uri: string) {
+  try {
+    if (!uri) return false;
+    if (Platform.OS === 'android') {
+      // ReactNativeBlobUtil.android.actionViewIntent 需要绝对文件路径（不带 file: 前缀）
+      let path = uri;
+      if (path.startsWith('file://')) {
+        path = path.replace(/^file:\/\//, '');
+      } else if (path.startsWith('file:/')) {
+        path = path.replace(/^file:\//, '/');
+      }
+      // 确保以 / 开头
+      if (!path.startsWith('/')) path = '/' + path;
+      ReactNativeBlobUtil.android.actionViewIntent(path, mime.lookup(uri) || 'application/octet-stream');
+      return true;
+    } else {
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri);
+        return true;
+      }
+      return false;
+    }
+  } catch (e) {
+    console.warn('file-cache: openFile error', e);
+    return false;
+  }
+}
+
+export async function shareFile(uri: string) {
+  try {
+    if (!uri) return false;
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(uri);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.warn('file-cache: shareFile error', e);
+    return false;
   }
 }
 
@@ -315,4 +383,6 @@ export default {
   clearCache,
   listCachedFiles,
   cleanupExpired,
+  openFile,
+  shareFile,
 };
