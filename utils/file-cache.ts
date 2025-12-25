@@ -1,104 +1,67 @@
 import * as FileSystem from 'expo-file-system/legacy';
 
-const CACHE_DIR = `${FileSystem.documentDirectory}file_cache/`;
+const CACHE_DIR = `${FileSystem.cacheDirectory}file/`;
+const META_EXT = '.meta.json';
 
-type GetCachedFileOptions = {
+export type GetCachedFileOptions = {
   filename?: string;
   maxAge?: number; // 毫秒，超过则重新下载
 };
 
-async function ensureCacheDir() {
+export type CachedFile = {
+  name: string;
+  uri: string;
+  size: number;
+  modificationTime?: number | null; // seconds
+};
+
+async function ensureDir(path: string) {
   try {
-    const info = await FileSystem.getInfoAsync(CACHE_DIR);
-    if (!info.exists) {
-      await FileSystem.makeDirectoryAsync(CACHE_DIR, { intermediates: true });
-    }
+    const info = await FileSystem.getInfoAsync(path);
+    if (!info.exists) await FileSystem.makeDirectoryAsync(path, { intermediates: true });
   } catch (e) {
-    console.warn('ensureCacheDir error', e);
+    // best-effort
   }
 }
 
 function sanitizeSegment(seg: string) {
-  // 保留字母数字、-、_、.，其它替换为下划线
   return seg.replace(/[^a-zA-Z0-9-_.]/g, '_').slice(0, 200);
 }
 
 function urlToCachePath(url: string) {
   try {
     const u = new URL(url);
-    // 取 URL 的 pathname，去掉前导 /
     let p = u.pathname.replace(/^\//, '');
     if (!p) return sanitizeSegment(u.hostname);
-    const parts = p.split('/').map(sanitizeSegment);
-    return parts.join('/');
+    return p.split('/').map(sanitizeSegment).join('/');
   } catch (e) {
-    // 非标准 URL，则简单处理
     const safe = url.replace(/^file:\/\//, '').replace(/[:\/\\?&=]/g, '_');
     return sanitizeSegment(safe);
   }
 }
 
-export async function getCachedFile(url: string, options: GetCachedFileOptions = {}) {
-  if (!url) throw new Error('url is required');
+function metaPathFor(fileUri: string) {
+  return `${fileUri}${META_EXT}`;
+}
 
-  await ensureCacheDir();
-
-  // 允许传入带路径的 filename（例如 "learning-center/map.webp"）
-  let relativePath = '';
-  if (options.filename) {
-    // 清理用户传入的 filename
-    relativePath = options.filename.split('/').map(sanitizeSegment).join('/');
-  } else {
-    relativePath = urlToCachePath(url);
-  }
-
-  const targetPath = `${CACHE_DIR}${relativePath}`;
-
-  // 确保目标目录存在
-  const lastSlash = targetPath.lastIndexOf('/');
-  if (lastSlash > 0) {
-    const dir = targetPath.substring(0, lastSlash + 1);
-    try {
-      const dirInfo = await FileSystem.getInfoAsync(dir);
-      if (!dirInfo.exists) {
-        await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
-      }
-    } catch (e) {
-      // 忽略目录创建错误，后续下载会尝试
-    }
-  }
-
+async function readMetadataFor(fileUri: string) {
   try {
-    const info = await FileSystem.getInfoAsync(targetPath, { size: false });
-    if (info.exists) {
-      // 检查是否过期（如果提供了 maxAge 且系统返回了 modificationTime）
-      if (options.maxAge && typeof info.modificationTime === 'number') {
-        const ageMs = Date.now() - info.modificationTime * 1000; // modificationTime 为 seconds
-        if (ageMs <= options.maxAge) {
-          console.log('getCachedFile: cache hit and valid for', url);
-          return info.uri; // 本地文件仍有效
-        }
-      } else if (!options.maxAge) {
-        console.log('getCachedFile: cache hit for', url);
-        return info.uri; // 没有设置过期，直接返回
-      }
-    }
+    const metaPath = metaPathFor(fileUri);
+    const info = await FileSystem.getInfoAsync(metaPath);
+    if (!info.exists) return null;
+    const txt = await FileSystem.readAsStringAsync(metaPath);
+    return JSON.parse(txt);
+  } catch (e) {
+    return null;
+  }
+}
 
-    // 下载到目标路径（覆盖）
-    try {
-      const res = await FileSystem.downloadAsync(url, targetPath);
-      console.log('getCachedFile: downloaded', url);
-      return res.uri;
-    } catch (downloadError) {
-      console.warn('downloadAsync failed', downloadError);
-      // 下载失败但本地存在则返回本地，否则抛出错误
-      if (info && info.exists) return info.uri;
-      console.error('getCachedFile download failed and no local cache', downloadError);
-      throw downloadError;
-    }
-  } catch (err) {
-    console.error('getCachedFile error', err);
-    throw err;
+async function writeMetadataFor(fileUri: string, meta: any) {
+  try {
+    const metaPath = metaPathFor(fileUri);
+    await FileSystem.writeAsStringAsync(metaPath, JSON.stringify(meta));
+  } catch (e) {
+    // ignore
   }
 }
 
@@ -107,13 +70,14 @@ export async function clearCache() {
     const info = await FileSystem.getInfoAsync(CACHE_DIR);
     if (info.exists) {
       await FileSystem.deleteAsync(CACHE_DIR, { idempotent: true });
+      console.log('file-cache: clearCache removed cache directory');
     }
   } catch (e) {
-    console.warn('clearCache error', e);
+    console.warn('file-cache: clearCache error', e);
   }
 }
 
-export async function listCachedFiles() {
+export async function listCachedFiles(includeMeta = false) {
   try {
     const info = await FileSystem.getInfoAsync(CACHE_DIR);
     if (!info.exists) return [];
@@ -123,35 +87,50 @@ export async function listCachedFiles() {
         const entries = await FileSystem.readDirectoryAsync(dir);
         const result: any[] = [];
         for (const entry of entries) {
+          // 跳过 metadata 文件
+          if (entry.endsWith(META_EXT)) continue;
           const fullPath = dir + entry;
           const relPath = prefix ? `${prefix}/${entry}` : entry;
           try {
-            const entryInfo = await FileSystem.getInfoAsync(fullPath, { size: true });
-            // isDirectory may not be present in all runtimes; use exists + readDirectory test
-            if (entryInfo.exists) {
-              // 尝试读取子目录来判断是否为目录
-              try {
-                const subEntries = await FileSystem.readDirectoryAsync(fullPath + '/');
-                // 如果能读取则为目录
-                if (Array.isArray(subEntries)) {
-                  const sub = await walk(fullPath + '/', relPath);
-                  result.push(...sub);
-                  continue;
-                }
-              } catch (e) {
-                // 不是目录
-              }
+            const entryInfo = (await FileSystem.getInfoAsync(fullPath)) as any;
+            if (!entryInfo.exists) continue;
 
-              // 文件
-              result.push({
+            // 判断是否目录（readDirectory 成功则为目录）
+            let isDir = false;
+            try {
+              const sub = await FileSystem.readDirectoryAsync(fullPath + '/');
+              if (Array.isArray(sub)) isDir = true;
+            } catch (e) {
+              isDir = false;
+            }
+
+            if (isDir) {
+              const sub = await walk(fullPath + '/', relPath);
+              result.push(...sub);
+            } else {
+              const fileObj: any = {
                 name: relPath,
                 uri: entryInfo.uri,
                 size: entryInfo.size ?? 0,
-                modificationTime: (entryInfo as any).modificationTime ?? null,
-              });
+                modificationTime: entryInfo.modificationTime ?? null,
+              };
+              if (includeMeta) {
+                try {
+                  const mp = metaPathFor(entryInfo.uri);
+                  const mi = (await FileSystem.getInfoAsync(mp)) as any;
+                  if (mi.exists) {
+                    const txt = await FileSystem.readAsStringAsync(mp);
+                    fileObj.__meta = JSON.parse(txt);
+                  } else {
+                    fileObj.__meta = null;
+                  }
+                } catch (e) {
+                  fileObj.__meta = null;
+                }
+              }
+              result.push(fileObj);
             }
           } catch (e) {
-            // 忽略单个项错误
             continue;
           }
         }
@@ -162,14 +141,178 @@ export async function listCachedFiles() {
     }
 
     const files = await walk(CACHE_DIR, '');
+    console.log('file-cache: listCachedFiles found', files.length, 'files');
     return files;
   } catch (e) {
-    console.warn('listCachedFiles error', e);
+    console.warn('file-cache: listCachedFiles error', e);
     return [];
   }
 }
 
+export async function cleanupExpired(maxAgeMs?: number, concurrency = 3) {
+  try {
+    console.log('file-cache: cleanupExpired start', { maxAgeMs, concurrency });
+    await ensureDir(CACHE_DIR);
+    const files = await listCachedFiles(true);
+    const now = Date.now();
+
+    const deletedFiles: string[] = [];
+
+    // process in chunks to limit concurrent FS operations
+    for (let i = 0; i < files.length; i += concurrency) {
+      const chunk = files.slice(i, i + concurrency);
+      const ops = chunk.map(async (f: any) => {
+        try {
+          const meta = f.__meta ?? null;
+          let fileMaxAge = meta && typeof meta.maxAgeMs === 'number' ? meta.maxAgeMs : null;
+          if (fileMaxAge == null) fileMaxAge = typeof maxAgeMs === 'number' ? maxAgeMs : undefined;
+          if (typeof fileMaxAge !== 'number' || fileMaxAge <= 0) return null;
+
+          // 优先使用 metadata.cachedAt（毫秒），否则使用 modificationTime（秒）
+          const cachedAtMs =
+            meta && typeof meta.cachedAt === 'number'
+              ? meta.cachedAt
+              : f.modificationTime
+                ? f.modificationTime * 1000
+                : null;
+          if (cachedAtMs == null) {
+            // fallback: try to read file info
+            const info = (await FileSystem.getInfoAsync(f.uri)) as any;
+            if (!info.exists) return null;
+            if (typeof info.modificationTime === 'number') {
+              const m = info.modificationTime;
+              const expiresAt = m * 1000 + fileMaxAge;
+              if (now > expiresAt) {
+                console.log('file-cache: cleanupExpired candidate (by info.modificationTime)', f.uri, { expiresAt });
+                return f.uri;
+              }
+              return null;
+            }
+            return null;
+          }
+          const expiresAt = cachedAtMs + fileMaxAge;
+          if (now > expiresAt) {
+            console.log('file-cache: cleanupExpired candidate (by meta.cachedAt)', f.uri, { expiresAt });
+            return f.uri;
+          }
+          return null;
+        } catch (e) {
+          console.warn('file-cache: cleanupExpired item error', e);
+          return null;
+        }
+      });
+
+      const results = await Promise.all(ops);
+      for (const uri of results) {
+        if (!uri) continue;
+        try {
+          await FileSystem.deleteAsync(uri, { idempotent: true });
+          try {
+            await FileSystem.deleteAsync(metaPathFor(uri), { idempotent: true });
+          } catch (e) {}
+          deletedFiles.push(uri);
+        } catch (e) {
+          console.warn('file-cache: cleanupExpired delete failed', uri, e);
+        }
+      }
+    }
+
+    const deleted = deletedFiles.length;
+    if (deleted > 0) console.log('file-cache: cleanupExpired deleted', deleted, 'files');
+    return { deleted, deletedFiles };
+  } catch (e) {
+    console.warn('file-cache: cleanupExpired error', e);
+    return { deleted: 0, deletedFiles: [] };
+  }
+}
+
+export async function deleteCachedFile(uri: string) {
+  try {
+    // delete file or directory
+    await FileSystem.deleteAsync(uri, { idempotent: true });
+    try {
+      await FileSystem.deleteAsync(metaPathFor(uri), { idempotent: true });
+    } catch (e) {}
+    console.log('file-cache: deleteCachedFile done', uri);
+  } catch (e) {
+    console.warn('file-cache: deleteCachedFile error', e);
+  }
+}
+export async function getCachedFile(url: string, options: GetCachedFileOptions = {}) {
+  if (!url) throw new Error('url is required');
+
+  await ensureDir(CACHE_DIR);
+
+  let relativePath = '';
+  if (options.filename) {
+    relativePath = options.filename.split('/').map(sanitizeSegment).join('/');
+  } else {
+    relativePath = urlToCachePath(url);
+  }
+
+  const targetPath = `${CACHE_DIR}${relativePath}`;
+
+  // ensure target directory exists
+  const lastSlash = targetPath.lastIndexOf('/');
+  if (lastSlash > 0) {
+    const dir = targetPath.substring(0, lastSlash + 1);
+    await ensureDir(dir);
+  }
+
+  try {
+    const info = await FileSystem.getInfoAsync(targetPath, { size: false });
+    if (info.exists) {
+      if (options.maxAge && typeof info.modificationTime === 'number') {
+        const ageMs = Date.now() - info.modificationTime * 1000;
+        if (ageMs <= options.maxAge) {
+          console.log('file-cache: cache hit within maxAge', targetPath);
+          try {
+            // 仅在 metadata 不存在或 maxAge 发生变化时写入，减少磁盘写入
+            const existingMeta = await readMetadataFor(info.uri);
+            const existingMax =
+              existingMeta && typeof existingMeta.maxAgeMs === 'number' ? existingMeta.maxAgeMs : null;
+            if (existingMeta == null || existingMax !== options.maxAge) {
+              await writeMetadataFor(info.uri, {
+                url,
+                cachedAt: Date.now(),
+                maxAgeMs: options.maxAge,
+              });
+            }
+          } catch (e) {}
+          return info.uri;
+        }
+      } else if (!options.maxAge) {
+        console.log('file-cache: cache hit (no maxAge)', targetPath);
+        return info.uri;
+      }
+    }
+
+    try {
+      const res = await FileSystem.downloadAsync(url, targetPath);
+      console.log('file-cache: download complete', res.uri);
+      try {
+        await writeMetadataFor(res.uri, {
+          url,
+          cachedAt: Date.now(),
+          maxAgeMs: typeof options.maxAge === 'number' ? options.maxAge : null,
+        });
+      } catch (e) {}
+      return res.uri;
+    } catch (downloadError) {
+      if (info && info.exists) return info.uri;
+      throw downloadError;
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+
+// note: automatic start/stop cleanup removed; use `cleanupExpired()` from layout.
+
 export default {
   getCachedFile,
+  deleteCachedFile,
   clearCache,
+  listCachedFiles,
+  cleanupExpired,
 };

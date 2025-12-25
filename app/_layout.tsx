@@ -16,6 +16,7 @@ import { QueryProvider } from '@/components/query-provider';
 import { LearningCenterContextProvider } from '@/context/learning-center';
 import { getColorScheme } from '@/lib/appearance';
 import { StackNavigatorScreenOptions } from '@/lib/constants';
+import * as FileCache from '@/utils/file-cache';
 import patchTextComponent from '@/utils/patch-text-component';
 
 import '../global.css';
@@ -35,11 +36,26 @@ export default function RootLayout() {
 
   useEffect(() => {
     // https://github.com/facebook/react-native/issues/15114#issuecomment-2422537975
-    try {
-      patchTextComponent();
-    } catch (e) {
-      console.error('Failed to patch text component', e);
-    }
+    (async () => {
+      try {
+        patchTextComponent();
+      } catch (e) {
+        console.error('Failed to patch text component', e);
+      }
+
+      // 应用启动时触发一次过期缓存清理
+      try {
+        FileCache.cleanupExpired()
+          .then(r => {
+            if (r && (r as any).deleted) console.log('Initial cache cleanup deleted', (r as any).deleted, 'files');
+          })
+          .catch(e => {
+            console.warn('Initial cache cleanup failed', e);
+          });
+      } catch (e) {
+        console.warn('Initial cache cleanup schedule failed', e);
+      }
+    })();
   }, []);
 
   return (

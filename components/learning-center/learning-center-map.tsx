@@ -40,12 +40,18 @@ const LearningCenterMap = memo(() => {
           className="w-full flex-row overflow-hidden rounded-xl"
           activeOpacity={0.7}
         >
-          <Image
-            source={{ uri: localMapUri }}
-            className="aspect-[4022/2475] w-full"
-            accessible={true}
-            accessibilityLabel="学习中心地图"
-          />
+          {localMapUri ? (
+            <Image
+              source={{ uri: localMapUri }}
+              className="aspect-[4022/2475] w-full"
+              accessible={true}
+              accessibilityLabel="学习中心地图"
+            />
+          ) : (
+            <View className="aspect-[4022/2475] w-full items-center justify-center bg-transparent">
+              <Text className="text-center text-gray-400">首次使用，正在加载地图，请稍后！</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </Card>
 
@@ -69,16 +75,22 @@ const LearningCenterMap = memo(() => {
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>
 
-          <ImageZoom
-            enableImageZoom={true}
-            enableSwipeDown
-            swipeDownThreshold={50}
-            onSwipeDown={() => setShowFullScreenMap(false)}
-            saveToLocalByLongPress={false} // 防止长按保存菜单
-            style={styles.imageZoom}
-            renderIndicator={() => <></>} // 修改为返回空的 React Fragment
-            imageUrls={[{ url: localMapUri }]}
-          />
+          {localMapUri ? (
+            <ImageZoom
+              enableImageZoom={true}
+              enableSwipeDown
+              swipeDownThreshold={50}
+              onSwipeDown={() => setShowFullScreenMap(false)}
+              saveToLocalByLongPress={false} // 防止长按保存菜单
+              style={styles.imageZoom}
+              renderIndicator={() => <></>} // 修改为返回空的 React Fragment
+              imageUrls={[{ url: localMapUri }]}
+            />
+          ) : (
+            <View className="flex-1 items-center justify-center px-6">
+              <Text className="text-center text-gray-400">首次使用，正在加载地图，请稍后！</Text>
+            </View>
+          )}
 
           {/* 缩放提示 */}
           <View className="absolute bottom-6 left-0 right-0 items-center" style={{ bottom: insets.bottom + 16 }}>

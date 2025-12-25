@@ -132,11 +132,6 @@ export default function HomePage() {
                 <Text>Domitory Repair API</Text>
               </Button>
             </Link>
-            <Link href="/devtools/file-cache" asChild>
-              <Button>
-                <Text>FileCache Manager</Text>
-              </Button>
-            </Link>
 
             {/* Toast 示例 */}
             <Text className="m-3 my-4 text-lg font-bold">Toast</Text>
@@ -210,8 +205,13 @@ export default function HomePage() {
               <Text>Disable High Brightness</Text>
             </Button>
 
-            {/* 缓存清理 */}
-            <Text className="m-3 my-4 text-lg font-bold">Cache clean</Text>
+            {/* 缓存管理 */}
+            <Text className="m-3 my-4 text-lg font-bold">Cache</Text>
+            <Link href="/devtools/file-cache" asChild>
+              <Button>
+                <Text>FileCache Manager</Text>
+              </Button>
+            </Link>
             <Button onPress={cleanAllCache}>
               <Text>Clean All Cache (File System)</Text>
             </Button>
