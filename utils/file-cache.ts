@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import * as mime from 'react-native-mime-types';
 
-const CACHE_DIR = `${FileSystem.cacheDirectory}file/`;
+export const CACHE_DIR = `${FileSystem.cacheDirectory}file/`;
 const META_EXT = '.meta.json';
 
 export type GetCachedFileOptions = {
@@ -24,9 +24,7 @@ async function ensureDir(path: string) {
   try {
     const info = await FileSystem.getInfoAsync(path);
     if (!info.exists) await FileSystem.makeDirectoryAsync(path, { intermediates: true });
-  } catch (e) {
-    // best-effort
-  }
+  } catch (e) {}
 }
 
 function sanitizeSegment(seg: string) {
@@ -67,18 +65,6 @@ async function writeMetadataFor(fileUri: string, meta: any) {
     await FileSystem.writeAsStringAsync(metaPath, JSON.stringify(meta));
   } catch (e) {
     // ignore
-  }
-}
-
-export async function clearCache() {
-  try {
-    const info = await FileSystem.getInfoAsync(CACHE_DIR);
-    if (info.exists) {
-      await FileSystem.deleteAsync(CACHE_DIR, { idempotent: true });
-      console.log('file-cache: clearCache removed cache directory');
-    }
-  } catch (e) {
-    console.warn('file-cache: clearCache error', e);
   }
 }
 
@@ -211,10 +197,7 @@ export async function cleanupExpired(maxAgeMs?: number, concurrency = 3) {
       for (const uri of results) {
         if (!uri) continue;
         try {
-          await FileSystem.deleteAsync(uri, { idempotent: true });
-          try {
-            await FileSystem.deleteAsync(metaPathFor(uri), { idempotent: true });
-          } catch (e) {}
+          await deleteCachedFile(uri);
           deletedFiles.push(uri);
         } catch (e) {
           console.warn('file-cache: cleanupExpired delete failed', uri, e);
@@ -313,21 +296,9 @@ export async function getCachedFile(url: string, options: GetCachedFileOptions =
         });
       } catch (e) {}
       options.onProgress?.(1);
+      console.log('file-cache: downloaded and cached', url, 'to', res.uri);
       return res.uri;
-    } catch (e) {
-      console.warn('file-cache: expo resumable download failed', e);
-      // fallback: attempt downloadAsync as last resort
-      const res = await FileSystem.downloadAsync(url, targetPath);
-      try {
-        await writeMetadataFor(res.uri, {
-          url,
-          cachedAt: Date.now(),
-          maxAgeMs: typeof options.maxAge === 'number' ? options.maxAge : null,
-        });
-      } catch (e) {}
-      options.onProgress?.(1);
-      return res.uri;
-    }
+    } catch (e) {}
   } catch (err) {
     throw err;
   }
@@ -349,11 +320,7 @@ export async function openFile(uri: string) {
       ReactNativeBlobUtil.android.actionViewIntent(path, mime.lookup(uri) || 'application/octet-stream');
       return true;
     } else {
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri);
-        return true;
-      }
-      return false;
+      await shareFile(uri);
     }
   } catch (e) {
     console.warn('file-cache: openFile error', e);
@@ -375,12 +342,9 @@ export async function shareFile(uri: string) {
   }
 }
 
-// note: automatic start/stop cleanup removed; use `cleanupExpired()` from layout.
-
 export default {
   getCachedFile,
   deleteCachedFile,
-  clearCache,
   listCachedFiles,
   cleanupExpired,
   openFile,

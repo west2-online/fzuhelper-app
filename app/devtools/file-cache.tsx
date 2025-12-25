@@ -137,7 +137,7 @@ export default function FileCachePage() {
               if (loading) return;
               setLoading(true);
               try {
-                await FileCache.clearCache();
+                await FileCache.deleteCachedFile(FileCache.CACHE_DIR);
                 toast.success('清空全部完成');
                 await refresh();
               } catch (e) {
