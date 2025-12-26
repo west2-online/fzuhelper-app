@@ -1,7 +1,8 @@
 import WheelPicker from '@quidone/react-native-wheel-picker';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, View, useColorScheme } from 'react-native';
-import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
@@ -34,7 +35,7 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
         { duration: DURATION, easing: Easing.inOut(Easing.quad) },
         () => {
           if (callback) {
-            runOnJS(callback)();
+            scheduleOnRN(callback);
           }
         },
       );

@@ -11,7 +11,7 @@ struct ResponseMapper: Record {
   // 响应状态码
   @Field var status: Int = -1 // 默认为 -1
   // 数据内容
-  @Field var data: Data? = nil // 默认为空，需要 SDK50+ 支持
+  @Field var data: Data = Data() // 默认内容为空，需要 SDK50+ 支持
   // 响应头
   @Field var headers: [AnyHashable: Any] = [:]
   // 错误信息
@@ -39,11 +39,11 @@ public class NativeRequestModule: Module {
       configuration.timeoutIntervalForResource = 10 // 设置资源超时为 10 秒
       let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
 
-      var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
+      var resp = ResponseMapper(status: -1, data: Data(), headers: [:], error: nil)
       do {
         let response = await session.request(url, headers: HTTPHeaders(headers.data)).serializingData().response
         resp.status = response.response?.statusCode ?? -1
-        resp.data = response.data
+        resp.data = response.data ?? Data()
         resp.headers = response.response?.allHeaderFields ?? [:] // Headers
         return resp
       } catch {
@@ -60,11 +60,11 @@ public class NativeRequestModule: Module {
       configuration.timeoutIntervalForRequest = 10 // 设置请求超时为 10 秒
       configuration.timeoutIntervalForResource = 10 // 设置资源超时为 10 秒
       let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
-      var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
+      var resp = ResponseMapper(status: -1, data: Data(), headers: [:], error: nil)
       do{
         let response = await session.request(url, method: .post, parameters: formData.data, encoder: URLEncodedFormParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
         resp.status = response.response?.statusCode ?? -1
-        resp.data = response.data
+        resp.data = response.data ?? Data()
         resp.headers = response.response?.allHeaderFields ?? [:]
         return resp
       } catch {
@@ -81,11 +81,11 @@ public class NativeRequestModule: Module {
       configuration.timeoutIntervalForRequest = 10 // 设置请求超时为 10 秒
       configuration.timeoutIntervalForResource = 10 // 设置资源超时为 10 秒
       let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
-      var resp = ResponseMapper(status: -1, data: nil, headers: [:], error: nil)
+      var resp = ResponseMapper(status: -1, data: Data(), headers: [:], error: nil)
       do {
         let response = await session.request(url, method: .post, parameters: formData.data, encoder: JSONParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
         resp.status = response.response?.statusCode ?? -1
-        resp.data = response.data
+        resp.data = response.data ?? Data()
         resp.headers = response.response?.allHeaderFields ?? [:]
         return resp
       } catch {
