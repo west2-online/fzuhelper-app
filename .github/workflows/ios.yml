@@ -8,7 +8,7 @@ on:
 
 jobs:
   build_ios:
-    needs: validate
+    needs: build-mac
     runs-on: macos-latest
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -33,26 +33,24 @@ jobs:
           node-version: 22
           cache: 'yarn'
 
-      - name: Download patched eas-cli artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: artificial
-          path: ./artifacts
-
-      - name: Install patched eas-cli from artifact
-        run: |
-          # Install the patched eas-cli tarball so local `npx eas` uses it
-          if [ -f ./artifacts/artificial.tar.gz ]; then
-            npm install ./artifacts/artificial.tar.gz --no-audit --no-fund || true
-          else
-            echo "Patched artifact not found, proceeding with default EAS CLI"
-          fi
-
       - name: Install Dependencies
         run: yarn install --frozen-lockfile --prefer-offline
 
+      - name: Download patched eas-cli artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eas-cli
+          path: ./artifacts
+
+      - name: Extract patched eas-cli artifact
+        run: |
+          echo "Extracting ./artifacts/eas-cli.tgz to ./artifacts/package"
+          mkdir -p ./artifacts/package
+          tar -xzf ./artifacts/eas-cli.tgz -C ./artifacts/package || true
+
       - name: EAS Build iOS
-        run: npx eas build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
+        run: |
+          node ./artifacts/package/eas/bin/run build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
 
       - name: Generate Changelog
         id: changelog
@@ -65,38 +63,41 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: EAS Submit iOS
-        run: npx eas submit --platform ios --profile production --non-interactive --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}"
+        run: |
+          node ./artifacts/package/eas/bin/run submit --platform ios --profile production --non-interactive --local --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}"
 
-  validate:
-    runs-on: ubuntu-latest
-    env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+  build-mac:
+    name: Build for macOS
+    # Use macOS to get the correct platform specific dependencies
+    runs-on: macos-latest
     steps:
-      - name: Checkout modified eas-cli
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           repository: linrongda/eas-cli
           ref: feat/submit-by-local-machine
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: 'yarn'
 
-      - name: Pack modified eas-cli
+      - run: brew install python-setuptools
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+      - run: yarn install --frozen-lockfile --check-files
+      - run: yarn build
+      - name: Build tarballs
+        working-directory: ${{ github.workspace }}/packages/eas-cli
         run: |
-          npm install --legacy-peer-deps
-          npm run build || true
-          npm pack
-          mv *.tgz eas-cli.tgz
-
-      - name: Package artifact
+          yarn pretarball-ci
+          yarn oclif pack:tarballs --no-xz --targets darwin-arm64
+      - id: arm64
         run: |
-          tar -czf artificial.tar.gz eas-cli.tgz
-
-      - name: Upload artifact
+          filename=$(ls eas-*-arm64.tar.gz)
+          mv $filename ${{ github.workspace }}/packages/eas-cli/dist/eas-cli.tgz
+        working-directory: ${{ github.workspace }}/packages/eas-cli/dist
+      - name: Upload darwin-arm64 tarball
         uses: actions/upload-artifact@v4
         with:
-          name: artificial
-          path: artificial.tar.gz
+          path: packages/eas-cli/dist/eas-cli.tgz
+          name: eas-cli
