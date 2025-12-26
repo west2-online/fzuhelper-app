@@ -8,7 +8,7 @@ on:
 
 jobs:
   build_ios:
-    needs: build-mac
+    needs: build-eas
     runs-on: macos-latest
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -64,9 +64,9 @@ jobs:
 
       - name: EAS Submit iOS
         run: |
-          node ./artifacts/package/eas/bin/run submit --platform ios --profile production --non-interactive --local --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}"
+          node ./artifacts/package/eas/bin/run submit --platform ios --profile production --non-interactive --local --external --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}"
 
-  build-mac:
+  build-eas:
     name: Build for macOS
     # Use macOS to get the correct platform specific dependencies
     runs-on: macos-latest

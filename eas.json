@@ -35,7 +35,8 @@
         "sku": "Robin_002",
         "language": "zh-Hans",
         "appName": "福uu",
-        "bundleIdentifier": "FzuHelper.FzuHelper"
+        "bundleIdentifier": "FzuHelper.FzuHelper",
+        "groups": ["fzuhelper-refactor", "postgraduate"]
       }
     }
   }
