@@ -8,7 +8,10 @@ on:
 
 jobs:
   build_ios:
+    needs: validate
     runs-on: macos-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -30,17 +33,26 @@ jobs:
           node-version: 22
           cache: 'yarn'
 
-      - name: Setup EAS CLI
-        uses: expo/expo-github-action@v8
+      - name: Download patched eas-cli artifact
+        uses: actions/download-artifact@v4
         with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          name: artificial
+          path: ./artifacts
+
+      - name: Install patched eas-cli from artifact
+        run: |
+          # Install the patched eas-cli tarball so local `npx eas` uses it
+          if [ -f ./artifacts/artificial.tar.gz ]; then
+            npm install ./artifacts/artificial.tar.gz --no-audit --no-fund || true
+          else
+            echo "Patched artifact not found, proceeding with default EAS CLI"
+          fi
 
       - name: Install Dependencies
         run: yarn install --frozen-lockfile --prefer-offline
 
       - name: EAS Build iOS
-        run: eas build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
+        run: npx eas build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
 
       - name: Generate Changelog
         id: changelog
@@ -53,4 +65,38 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: EAS Submit iOS
-        run: eas submit --platform ios --profile production --non-interactive --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}"
+        run: npx eas submit --platform ios --profile production --non-interactive --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}"
+
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: Checkout modified eas-cli
+        uses: actions/checkout@v4
+        with:
+          repository: linrongda/eas-cli
+          ref: feat/submit-by-local-machine
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Pack modified eas-cli
+        run: |
+          npm install --legacy-peer-deps
+          npm run build || true
+          npm pack
+          mv *.tgz eas-cli.tgz
+
+      - name: Package artifact
+        run: |
+          tar -czf artificial.tar.gz eas-cli.tgz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artificial
+          path: artificial.tar.gz
