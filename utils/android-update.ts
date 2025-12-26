@@ -1,7 +1,7 @@
 import type { VersionAndroidResponse_Data } from '@/api/backend';
 import { getApiV2VersionAndroid } from '@/api/generate';
 import { ANDROID_RELEASE_CHANNEL_KEY } from '@/lib/constants';
-import * as FileCache from '@/utils/file-cache';
+import fileCache from '@/utils/file-cache';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
@@ -23,7 +23,7 @@ const downloadAndInstallApk = async (url: string, force: boolean) => {
 
   try {
     // 使用 file-cache 下载并缓存 APK，并接收进度回调
-    const cachedUri = await FileCache.getCachedFile(url, {
+    const cachedUri = await fileCache.getCachedFile(url, {
       filename: 'update.apk',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 缓存 7 天
       onProgress: progress => {
@@ -35,8 +35,8 @@ const downloadAndInstallApk = async (url: string, force: boolean) => {
     downloadStore.updateProgress(1);
     downloadStore.setMessage('下载完成，正在安装...');
     setTimeout(async () => {
-      // 使用 FileCache.openFile 打开安装界面
-      await FileCache.openFile(cachedUri);
+      // 使用 fileCache.openFile 打开安装界面
+      await fileCache.openFile(cachedUri);
       downloadStore.reset();
     }, 1000);
   } catch (err) {
@@ -101,10 +101,10 @@ const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: 
     } else {
       try {
         // 删除可能存在的旧 APK 缓存（文件名为 update.apk）
-        const cachedFiles = await FileCache.listCachedFiles();
+        const cachedFiles = await fileCache.listCachedFiles();
         const apk = (cachedFiles || []).find((f: any) => f.name === 'update.apk' || f.name?.endsWith('/update.apk'));
         if (apk && apk.uri) {
-          await FileCache.deleteCachedFile(apk.uri);
+          await fileCache.deleteCachedFile(apk.uri);
           console.log('android-update: removed stale update.apk', apk.uri);
         }
       } catch (e) {

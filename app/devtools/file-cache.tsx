@@ -1,7 +1,7 @@
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import * as FileCache from '@/utils/file-cache';
+import fileCache from '@/utils/file-cache';
 import { Stack } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
@@ -53,7 +53,7 @@ export default function FileCachePage() {
   const refresh = async () => {
     setLoading(true);
     try {
-      const files = await FileCache.listCachedFiles(true);
+      const files = await fileCache.listCachedFiles(true);
       const enriched = (files || []).map((f: any) => {
         const meta = f.__meta ?? null;
         const cachedAt = meta && typeof meta.cachedAt === 'number' ? meta.cachedAt : null;
@@ -76,7 +76,7 @@ export default function FileCachePage() {
   const deleteOne = async (uri: string) => {
     setLoading(true);
     try {
-      await FileCache.deleteCachedFile(uri);
+      await fileCache.deleteCachedFile(uri);
       toast.success('删除成功');
       await refresh();
     } catch (e) {
@@ -88,7 +88,7 @@ export default function FileCachePage() {
 
   const openOne = async (uri: string) => {
     try {
-      const ok = await FileCache.openFile(uri);
+      const ok = await fileCache.openFile(uri);
       if (!ok) {
         // fallback to share
         if (await Sharing.isAvailableAsync()) {
@@ -119,7 +119,7 @@ export default function FileCachePage() {
               if (loading) return;
               setLoading(true);
               try {
-                const r = await FileCache.cleanupExpired();
+                const r = await fileCache.cleanupExpired();
                 toast.success(`清理完成, 删除 ${r.deleted || 0} 个文件`);
                 await refresh();
               } catch (e) {
@@ -137,7 +137,7 @@ export default function FileCachePage() {
               if (loading) return;
               setLoading(true);
               try {
-                await FileCache.deleteCachedFile(FileCache.CACHE_DIR);
+                await fileCache.deleteCachedFile(fileCache.CACHE_DIR);
                 toast.success('清空全部完成');
                 await refresh();
               } catch (e) {
