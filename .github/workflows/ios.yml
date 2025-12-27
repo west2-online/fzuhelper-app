@@ -1,0 +1,104 @@
+name: Build IPA
+
+on:
+  push:
+    branches:
+      - eas
+  workflow_call:
+
+jobs:
+  build_ios:
+    needs: build-eas
+    runs-on: macos-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: 'yarn'
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile --prefer-offline
+
+      - name: Download patched eas-cli artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eas-cli
+          path: ./artifacts
+
+      - name: Extract patched eas-cli artifact
+        run: |
+          echo "Extracting ./artifacts/eas-cli.tgz to ./artifacts/package"
+          mkdir -p ./artifacts/package
+          tar -xzf ./artifacts/eas-cli.tgz -C ./artifacts/package || true
+
+      - name: EAS Build iOS
+        run: |
+          node ./artifacts/package/eas/bin/run build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          GIT_LOG=$(git log -3 --pretty=format:"%s%n%b") || { echo "Failed to get git log"; exit 1; }
+          {
+            echo "CHANGELOG<<BSEOF"
+            echo -e "同步自 GitHub 最近三条提交记录:\n $GIT_LOG"
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: EAS Submit iOS
+        run: |
+          node ./artifacts/package/eas/bin/run submit --platform ios --profile production --non-interactive --local --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}" \
+          --fastlane-args="--distribute_external"
+
+  build-eas:
+    name: Build for macOS
+    # Use macOS to get the correct platform specific dependencies
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: linrongda/eas-cli
+          ref: feat/submit-by-local-machine
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn'
+
+      - run: brew install python-setuptools
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+      - run: yarn install --frozen-lockfile --check-files
+      - run: yarn build
+      - name: Build tarballs
+        working-directory: ${{ github.workspace }}/packages/eas-cli
+        run: |
+          yarn pretarball-ci
+          yarn oclif pack:tarballs --no-xz --targets darwin-arm64
+      - id: arm64
+        run: |
+          filename=$(ls eas-*-arm64.tar.gz)
+          mv $filename ${{ github.workspace }}/packages/eas-cli/dist/eas-cli.tgz
+        working-directory: ${{ github.workspace }}/packages/eas-cli/dist
+      - name: Upload darwin-arm64 tarball
+        uses: actions/upload-artifact@v4
+        with:
+          path: packages/eas-cli/dist/eas-cli.tgz
+          name: eas-cli
