@@ -1,3 +1,5 @@
+import Clipboard from '@react-native-clipboard/clipboard';
+import * as Linking from 'expo-linking';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -20,6 +22,7 @@ export default function FriendAddPage() {
   const { code } = useLocalSearchParams();
 
   useEffect(() => {
+    // 从DeepLink读取邀请码
     if (code && typeof code === 'string') {
       const filteredText = code.replace(/[^a-zA-Z]/g, '').toUpperCase();
       if (filteredText.length === FRIEND_INVITATION_CODE_LEN) {
@@ -27,6 +30,21 @@ export default function FriendAddPage() {
       } else {
         toast.error('邀请码无效');
       }
+    }
+    // 从剪贴板读取邀请码
+    else {
+      Clipboard.getString().then(s => {
+        console.log('Clipboard content:', s);
+        const { scheme, hostname, queryParams } = Linking.parse(s);
+        console.log('Parsed Clipboard URL:', { scheme, hostname, queryParams });
+        if (scheme === 'fzuhelper' && hostname === 'friend_invite' && queryParams?.code) {
+          const codeFromClipboard = (queryParams.code as string).replace(/[^a-zA-Z]/g, '').toUpperCase();
+          if (codeFromClipboard.length === FRIEND_INVITATION_CODE_LEN) {
+            setInvitationCode(codeFromClipboard);
+            toast.info('已从剪贴板读取邀请码');
+          }
+        }
+      });
     }
   }, [code]);
 
