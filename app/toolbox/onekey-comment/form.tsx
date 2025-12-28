@@ -2,7 +2,16 @@ import { fromByteArray } from 'base64-js';
 import { Stack } from 'expo-router';
 import { RotateCwIcon } from 'lucide-react-native';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { FlatList, Image, RefreshControl, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import {
+  FlatList,
+  Image,
+  Platform,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -89,6 +98,7 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
           placeholderTextColor="#60a5fa"
           maxLength={3}
           className="h-14 w-28 rounded-xl bg-text-primary/10 text-center text-lg text-text-primary"
+          style={styles.textInput}
         />
       </View>
       <Divider />
@@ -256,7 +266,14 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
             <TextInput
               value={recaptchaInput}
               onChangeText={setCaptchaInput}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="off"
+              importantForAutofill="no"
+              spellCheck={false}
+              autoFocus
               className="mt-1 rounded-xl bg-text-primary/10 px-4 py-2 text-center text-lg text-text-primary"
+              style={styles.textInput}
             />
           </FloatModal>
         </>
@@ -337,3 +354,8 @@ export default function OnekeyCommentFormPage() {
     </>
   );
 }
+const styles = StyleSheet.create({
+  // iOS 文本垂直居中问题修复
+  // https://github.com/facebook/react-native/issues/39145#issuecomment-3153012157
+  textInput: Platform.OS === 'ios' ? { lineHeight: 0 } : {},
+});
