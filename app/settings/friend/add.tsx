@@ -1,5 +1,5 @@
-import { router, Stack } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -16,6 +16,19 @@ export default function FriendAddPage() {
 
   const [invitationCode, setInvitationCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { code } = useLocalSearchParams();
+
+  useEffect(() => {
+    if (code && typeof code === 'string') {
+      const filteredText = code.replace(/[^a-zA-Z]/g, '').toUpperCase();
+      if (filteredText.length === FRIEND_INVITATION_CODE_LEN) {
+        setInvitationCode(filteredText);
+      } else {
+        toast.error('邀请码无效');
+      }
+    }
+  }, [code]);
 
   const handleAddFriend = useCallback(async () => {
     setIsSubmitting(true);
