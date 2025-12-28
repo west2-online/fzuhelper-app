@@ -266,6 +266,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
             <TextInput
               value={recaptchaInput}
               onChangeText={setCaptchaInput}
+              keyboardType={Platform.OS === 'ios' ? 'ascii-capable' : 'visible-password'}
               autoCapitalize="none"
               autoCorrect={false}
               autoComplete="off"
