@@ -66,7 +66,7 @@ export default function InviteFriendPage() {
       try {
         await Share.share({
           title: '邀请你成为我的福uu好友',
-          message: `使用邀请码 ${inviteInfo.invitation_code} 成为我的福uu好友，查看我的课表！ ${shareUrl}`,
+          message: `使用邀请码 ${inviteInfo.invitation_code} 成为我的福uu好友，共享我们的课表！ ${shareUrl}`,
         });
       } catch (e: any) {
         handleError(e);
@@ -86,7 +86,7 @@ export default function InviteFriendPage() {
             <View className="mt-6 flex-1 px-6">
               <View className="items-center">
                 <Text className="mb-10 text-center text-base text-text-secondary">
-                  将此邀请码分享给好友，好友输入后即可查看你的课表
+                  将此邀请码分享给好友，好友输入后双方即可共享课表
                 </Text>
 
                 <CodeInput value={inviteInfo?.invitation_code} editable={false} />
