@@ -75,6 +75,7 @@ export default function SplashScreen() {
     // 延迟使得系统栏恢复显示
     setTimeout(() => {
       if (target && typeof target === 'string') {
+        // targetPath如果无效，有not-found兜底，此处无需处理
         const targetPath = decodeURIComponent(target) as RelativePathString;
         if (cold_launch === 'true') {
           // 冷启动下先进入主页再跳转相应页面，保证返回栈

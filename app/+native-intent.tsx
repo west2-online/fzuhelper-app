@@ -11,7 +11,6 @@ export function redirectSystemPath({ path, initial }: { path: string; initial: b
     if (hostname === 'friend_invite') {
       // fzuhelper://friend_invite?code=ABCDEF
       const code = queryParams?.code;
-      // router.push({ pathname: '/settings/friend/add', params: { code } });
       const target = encodeURIComponent(`/settings/friend/add?code=${code}`);
       // 在闪屏页做账户初始化相关工作并跳转
       return `/(guest)?target=${target}&cold_launch=${initial}`;
@@ -21,7 +20,6 @@ export function redirectSystemPath({ path, initial }: { path: string; initial: b
     } else {
       // expo router的默认行为允许导航到app内任意页面，为了安全考虑，非白名单页面直接重定向到not-found
       console.log('非法deeplink:', path);
-      // router.replace('/');
       return '/+not-found';
     }
   } catch (error) {
