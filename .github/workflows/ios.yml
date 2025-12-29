@@ -68,7 +68,7 @@ jobs:
           --fastlane-args="--distribute_external"
 
   build-eas:
-    name: Build for macOS
+    name: Build EAS by macOS
     # Use macOS to get the correct platform specific dependencies
     runs-on: macos-latest
     steps:
