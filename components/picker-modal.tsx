@@ -1,6 +1,6 @@
 import WheelPicker from '@quidone/react-native-wheel-picker';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, View, useColorScheme } from 'react-native';
+import { Modal, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -19,6 +19,7 @@ interface PickerModalProps<T> {
 
 export default function PickerModal<T>({ visible, title, data, value, onClose, onConfirm }: PickerModalProps<T>) {
   const [tempValue, setTempValue] = useState(value);
+  const [pickerKey, setPickerKey] = useState(0);
   const colorScheme = useColorScheme();
   const itemTextStyle = useMemo(() => ({ color: colorScheme === 'dark' ? 'white' : 'black' }), [colorScheme]);
 
@@ -44,12 +45,12 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
   );
 
   useEffect(() => {
-    // newArch下，关闭时重置选中值，打开时重新渲染，否则高度偏移有问题
-    setTempValue(visible ? value : (undefined as T));
     if (visible) {
+      setTempValue(value);
+      setPickerKey(prev => prev + 1); // 强制重新渲染解决偏移问题
       handleAnimation(true);
     }
-  }, [visible, value, slideAnim, fadeAnim, handleAnimation]);
+  }, [handleAnimation, value, visible]);
 
   const handleClose = useCallback(() => {
     handleAnimation(false, onClose);
@@ -90,6 +91,8 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
             </Pressable>
           </View>
           <WheelPicker
+            key={pickerKey}
+            style={styles.wheelpicker}
             data={data}
             value={tempValue}
             onValueChanged={onValueChanged}
@@ -101,3 +104,6 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
     </Modal>
   );
 }
+
+// 解决滚动到高处时按钮无法点击（iOS）
+const styles = StyleSheet.create({ wheelpicker: { overflow: 'hidden' } });
