@@ -7,7 +7,7 @@ on:
   workflow_call:
 
 jobs:
-  build_ios:
+  build_ipa:
     needs: build-eas
     runs-on: macos-latest
     env:
@@ -68,35 +68,43 @@ jobs:
           --fastlane-args="--distribute_external"
 
   build-eas:
-    name: Build EAS by macOS
     # Use macOS to get the correct platform specific dependencies
     runs-on: macos-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
           repository: linrongda/eas-cli
           ref: feat/submit-by-local-machine
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'yarn'
 
-      - run: brew install python-setuptools
+      - name: Install Dependencies
+        run: |
+          brew install python-setuptools
+          yarn install --frozen-lockfile --check-files
         env:
           HOMEBREW_NO_AUTO_UPDATE: 1
-      - run: yarn install --frozen-lockfile --check-files
-      - run: yarn build
+
+      - name: Build EAS CLI
+        run: yarn build
+
       - name: Build tarballs
         working-directory: ${{ github.workspace }}/packages/eas-cli
         run: |
           yarn pretarball-ci
           yarn oclif pack:tarballs --no-xz --targets darwin-arm64
-      - id: arm64
+
+      - name: Move darwin-arm64 tarball to artifact folder
         run: |
           filename=$(ls eas-*-arm64.tar.gz)
           mv $filename ${{ github.workspace }}/packages/eas-cli/dist/eas-cli.tgz
         working-directory: ${{ github.workspace }}/packages/eas-cli/dist
+
       - name: Upload darwin-arm64 tarball
         uses: actions/upload-artifact@v4
         with:
