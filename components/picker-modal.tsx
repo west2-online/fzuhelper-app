@@ -72,9 +72,6 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
     transform: [{ translateY: slideAnim.value }],
   }));
 
-  // 解决滚动到高处时按钮无法点击（iOS）
-  const styles = StyleSheet.create({ wheelpicker: { overflow: 'hidden' } });
-
   return (
     <Modal visible={visible} transparent navigationBarTranslucent statusBarTranslucent onRequestClose={handleClose}>
       <View className="flex flex-1 justify-end">
@@ -107,3 +104,6 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
     </Modal>
   );
 }
+
+// 解决滚动到高处时按钮无法点击（iOS）
+const styles = StyleSheet.create({ wheelpicker: { overflow: 'hidden' } });
