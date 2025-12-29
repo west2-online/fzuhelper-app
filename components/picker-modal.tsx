@@ -50,7 +50,7 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
       setPickerKey(prev => prev + 1); // 强制重新渲染解决偏移问题
       handleAnimation(true);
     }
-  }, [visible, value, slideAnim, fadeAnim, handleAnimation]);
+  }, [handleAnimation, value, visible]);
 
   const handleClose = useCallback(() => {
     handleAnimation(false, onClose);
