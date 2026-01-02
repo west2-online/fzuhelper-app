@@ -287,8 +287,16 @@ export async function deleteCachedFile(uri: string): Promise<void> {
       FileSystem.getInfoAsync(uri),
       FileSystem.getInfoAsync(metaPathFor(uri)),
     ])) as [FileInfo, FileInfo];
-    // 如果两者都不存在，视为已删除，直接返回
+
     if (!file.exists && !meta.exists) return;
+    else if (file.exists !== meta.exists) {
+      await Promise.all([
+        file.exists ? FileSystem.deleteAsync(uri) : Promise.resolve(),
+        meta.exists ? FileSystem.deleteAsync(metaPathFor(uri)) : Promise.resolve(),
+      ]);
+      console.log('file-cache: deleteCachedFile inconsistent state, deleted existing parts', uri);
+      return;
+    }
 
     // 同时删除，任何失败都作为异常抛出
     await Promise.all([FileSystem.deleteAsync(uri), FileSystem.deleteAsync(metaPathFor(uri))]);
