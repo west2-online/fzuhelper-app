@@ -9,7 +9,7 @@ import UserLogin from '@/lib/user-login';
 import { pushToWebViewJWCH } from '@/lib/webview';
 import NativeBrightnessModule from '@/modules/native-brightness';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Link, Stack } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -205,8 +205,13 @@ export default function HomePage() {
               <Text>Disable High Brightness</Text>
             </Button>
 
-            {/* 缓存清理 */}
-            <Text className="m-3 my-4 text-lg font-bold">Cache clean</Text>
+            {/* 缓存管理 */}
+            <Text className="m-3 my-4 text-lg font-bold">Cache</Text>
+            <Link href="/devtools/file-cache" asChild>
+              <Button>
+                <Text>FileCache Manager</Text>
+              </Button>
+            </Link>
             <Button onPress={cleanAllCache}>
               <Text>Clean All Cache (File System)</Text>
             </Button>
