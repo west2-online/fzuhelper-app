@@ -1,3 +1,4 @@
+import type { FileInfo } from 'expo-file-system/legacy';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
@@ -20,174 +21,230 @@ export type CachedFile = {
   modificationTime?: number | null; // seconds
 };
 
-type CachedFileWithMeta = CachedFile & { __meta?: any | null };
+export type FileMeta = {
+  url: string;
+  cachedAt: number;
+  maxAgeMs: number | null;
+};
 
+type CachedFileWithMeta = CachedFile & { __meta?: FileMeta | null };
+
+// 确保目录存在；如果不存在则尝试创建
 async function ensureDir(path: string): Promise<void> {
   try {
     const info = await FileSystem.getInfoAsync(path);
     if (!info.exists) await FileSystem.makeDirectoryAsync(path, { intermediates: true });
   } catch (err) {
-    console.warn('file-cache: ensureDir error', err);
+    console.log('file-cache: ensureDir error', err);
   }
 }
 
+/**
+ * 将路径片段净化为文件系统安全的名称：
+ * - 仅保留字母、数字、短横线/下划线/点
+ * - 其余字符替换为下划线
+ * - 限制长度以避免过长路径
+ */
 function sanitizeSegment(seg: string): string {
   return seg.replace(/[^a-zA-Z0-9-_.]/g, '_').slice(0, 200);
 }
 
+/**
+ * 将 URL 转换为相对缓存路径：
+ * - 优先尝试通过 URL 解析出路径片段并逐段 sanitize，作为目录结构存储。
+ * - 如果不是标准 URL（例如 file:// 或其他字符串），则回退到替换非法字符的安全字符串。
+ */
 function urlToCachePath(url: string): string {
   try {
-    const u = new URL(url);
-    const p = u.pathname.replace(/^\//, '');
-    if (!p) return sanitizeSegment(u.hostname);
-    return p.split('/').map(sanitizeSegment).join('/');
-  } catch (err) {
-    const safe = url.replace(/^file:\/\//, '').replace(/[:\/\\?&=]/g, '_');
+    const parsed = new URL(url);
+    const pathname = parsed.pathname.replace(/^\//, '');
+    if (!pathname) return sanitizeSegment(parsed.hostname);
+    return pathname.split('/').map(sanitizeSegment).join('/');
+  } catch {
+    const safe = url.replace(/^file:\/\//, '').replace(/[:/\\?&=]/g, '_');
     return sanitizeSegment(safe);
   }
 }
 
+// 获取文件对应的 metadata 文件路径
 function metaPathFor(fileUri: string): string {
   return `${fileUri}${META_EXT}`;
 }
 
-async function readMetadataFor(fileUri: string): Promise<any | null> {
+// 读取文件的 metadata
+async function readMetadataFor(fileUri: string): Promise<FileMeta | null> {
   try {
     const metaPath = metaPathFor(fileUri);
-    const info = await FileSystem.getInfoAsync(metaPath);
-    if (!info.exists) return null;
     const txt = await FileSystem.readAsStringAsync(metaPath);
-    return JSON.parse(txt);
-  } catch (err) {
+    const parsed = JSON.parse(txt) as FileMeta;
+    return parsed;
+  } catch {
     return null;
   }
 }
 
-async function writeMetadataFor(fileUri: string, meta: any): Promise<void> {
+// 写入文件的 metadata
+async function writeMetadataFor(fileUri: string, meta: FileMeta): Promise<void> {
   try {
     const metaPath = metaPathFor(fileUri);
     await FileSystem.writeAsStringAsync(metaPath, JSON.stringify(meta));
   } catch (err) {
-    console.warn('file-cache: writeMetadataFor error', err);
+    console.log('file-cache: writeMetadataFor error', err);
   }
 }
 
-async function isDirectory(path: string): Promise<boolean> {
-  try {
-    const list = await FileSystem.readDirectoryAsync(path.endsWith('/') ? path : `${path}/`);
-    return Array.isArray(list);
-  } catch {
-    return false;
-  }
-}
-
+// 列出缓存目录下的所有文件（递归）。
+// includeMeta 为 true 时会尝试读取每个文件对应的 metadata（可能较慢）。
 export async function listCachedFiles(includeMeta = false): Promise<CachedFileWithMeta[]> {
   try {
     const rootInfo = await FileSystem.getInfoAsync(CACHE_DIR);
     if (!rootInfo.exists) return [];
-
-    async function walk(dir: string, prefix = ''): Promise<CachedFileWithMeta[]> {
+    // 递归遍历缓存目录，构建文件列表。
+    const walk = async (dir: string, prefix = ''): Promise<CachedFileWithMeta[]> => {
       try {
-        const entries = await FileSystem.readDirectoryAsync(dir);
+        const entries = (await FileSystem.readDirectoryAsync(dir)).filter(e => !e.endsWith(META_EXT));
         const result: CachedFileWithMeta[] = [];
-        for (const entry of entries) {
-          if (entry.endsWith(META_EXT)) continue;
-          const fullPath = dir + entry;
-          const relPath = prefix ? `${prefix}/${entry}` : entry;
-          try {
-            const entryInfo: any = await FileSystem.getInfoAsync(fullPath);
-            if (!entryInfo.exists) continue;
 
-            if (await isDirectory(fullPath)) {
-              const sub = await walk(fullPath + '/', relPath);
-              result.push(...sub);
-            } else {
-              const fileObj: CachedFileWithMeta = {
-                name: relPath,
-                uri: entryInfo.uri,
-                size: entryInfo.size ?? 0,
-                modificationTime: entryInfo.modificationTime ?? null,
-              };
-              if (includeMeta) {
-                try {
-                  const mp = metaPathFor(entryInfo.uri);
-                  const mi: any = await FileSystem.getInfoAsync(mp);
-                  if (mi.exists) {
-                    const txt = await FileSystem.readAsStringAsync(mp);
-                    fileObj.__meta = JSON.parse(txt);
-                  } else {
-                    fileObj.__meta = null;
-                  }
-                } catch {
-                  fileObj.__meta = null;
-                }
-              }
-              result.push(fileObj);
-            }
-          } catch (err) {
-            // ignore this entry
+        // 并行获取 entry 的 FileInfo（容错单个失败），以减少多次同步调用开销
+        const fullEntries = entries.map(entry => ({
+          entry,
+          fullPath: dir + entry,
+          relPath: prefix ? `${prefix}/${entry}` : entry,
+        }));
+        const infoResults = await Promise.allSettled(fullEntries.map(e => FileSystem.getInfoAsync(e.fullPath)));
+
+        for (let idx = 0; idx < fullEntries.length; idx++) {
+          const { fullPath, relPath } = fullEntries[idx];
+          const infoResult = infoResults[idx];
+          if (infoResult.status !== 'fulfilled') continue;
+          const entryInfo = infoResult.value as FileInfo;
+          if (!entryInfo.exists) continue;
+
+          const entryIsDirectory = entryInfo.isDirectory === true;
+          if (entryIsDirectory) {
+            const sub = await walk(fullPath + '/', relPath);
+            result.push(...sub);
             continue;
           }
+
+          const fileObj: CachedFileWithMeta = {
+            name: relPath,
+            uri: entryInfo.uri,
+            size: entryInfo.size ?? 0,
+            modificationTime: entryInfo.modificationTime ?? null,
+          };
+
+          // 强制要求 meta 与文件配对存在；缺少 meta 的文件视为不一致并跳过
+          const meta = await readMetadataFor(entryInfo.uri);
+          if (!meta) continue;
+
+          if (includeMeta) {
+            fileObj.__meta = meta;
+          }
+
+          result.push(fileObj);
         }
+
         return result;
-      } catch (err) {
+      } catch {
         return [];
       }
-    }
+    };
 
     const files = await walk(CACHE_DIR, '');
-    console.log('file-cache: listCachedFiles found', files.length, 'files');
     return files;
   } catch (err) {
-    console.warn('file-cache: listCachedFiles error', err);
+    console.log('file-cache: listCachedFiles error', err);
     return [];
   }
 }
 
-export async function cleanupExpired(maxAgeMs?: number, concurrency = 3): Promise<{ deleted: number; deletedFiles: string[] }> {
+// 清理过期缓存文件，返回删除的文件数量与列表
+export async function cleanupExpired(
+  maxAgeMs?: number,
+  concurrency = 3,
+): Promise<{ deleted: number; deletedFiles: string[] }> {
   try {
-    console.log('file-cache: cleanupExpired start', { maxAgeMs, concurrency });
     await ensureDir(CACHE_DIR);
+    const deletedFiles: string[] = [];
+
+    // 首先查找并删除孤立文件（文件存在但没有对应的 meta）以恢复一致性
+    const walkAndRemoveOrphans = async (dir: string) => {
+      try {
+        const entries = (await FileSystem.readDirectoryAsync(dir)).filter(e => !e.endsWith(META_EXT));
+        for (const entry of entries) {
+          const full = dir + entry;
+          try {
+            const info = await FileSystem.getInfoAsync(full);
+            if (!info.exists) continue;
+            if (info.isDirectory) {
+              await walkAndRemoveOrphans(full + '/');
+              continue;
+            }
+            const meta = await readMetadataFor(info.uri);
+            if (!meta) {
+              try {
+                await FileSystem.deleteAsync(info.uri, { idempotent: true });
+                deletedFiles.push(info.uri);
+              } catch (err) {
+                console.log('file-cache: cleanupExpired remove orphan failed', info.uri, err);
+              }
+            }
+          } catch (err) {
+            console.log('file-cache: walkAndRemoveOrphans entry error', err);
+          }
+        }
+      } catch (err) {
+        console.log('file-cache: walkAndRemoveOrphans error', err);
+      }
+    };
+
+    await walkAndRemoveOrphans(CACHE_DIR);
+
+    // 只加载有 meta 的文件用于过期计算
     const files = await listCachedFiles(true);
     const now = Date.now();
-    const deletedFiles: string[] = [];
 
     for (let i = 0; i < files.length; i += concurrency) {
       const chunk = files.slice(i, i + concurrency);
-      const ops = chunk.map(async (f) => {
-        try {
-          const meta = f.__meta ?? null;
-          let fileMaxAge: number | undefined | null = meta && typeof meta.maxAgeMs === 'number' ? meta.maxAgeMs : null;
-          if (fileMaxAge == null) fileMaxAge = typeof maxAgeMs === 'number' ? maxAgeMs : undefined;
-          if (typeof fileMaxAge !== 'number' || fileMaxAge <= 0) return null;
 
-          const cachedAtMs = meta && typeof meta.cachedAt === 'number' ? meta.cachedAt : f.modificationTime ? f.modificationTime * 1000 : null;
-          if (cachedAtMs == null) {
-            const info: any = await FileSystem.getInfoAsync(f.uri);
-            if (!info.exists) return null;
-            if (typeof info.modificationTime === 'number') {
-              const expiresAt = info.modificationTime * 1000 + fileMaxAge;
-              if (now > expiresAt) return f.uri;
-            }
-            return null;
+      // 并行获取文件 info
+      const infoResults = await Promise.allSettled(chunk.map(f => FileSystem.getInfoAsync(f.uri)));
+
+      const ops = chunk.map(async (fileItem, idx) => {
+        const meta = fileItem.__meta ?? null;
+        let fileMaxAge: number | undefined | null = meta && typeof meta.maxAgeMs === 'number' ? meta.maxAgeMs : null;
+        if (fileMaxAge == null) fileMaxAge = typeof maxAgeMs === 'number' ? maxAgeMs : undefined;
+        if (typeof fileMaxAge !== 'number' || fileMaxAge <= 0) return null;
+
+        const cachedAtMs = meta && typeof meta.cachedAt === 'number' ? meta.cachedAt : null;
+
+        if (cachedAtMs == null) {
+          const infoResult = infoResults[idx];
+          if (infoResult.status !== 'fulfilled') return null;
+          const info = infoResult.value as FileInfo;
+          if (!info.exists) return null;
+          if (typeof info.modificationTime === 'number') {
+            const expiresAt = info.modificationTime * 1000 + (fileMaxAge as number);
+            if (now > expiresAt) return fileItem.uri;
           }
-          const expiresAt = cachedAtMs + fileMaxAge;
-          if (now > expiresAt) return f.uri;
-          return null;
-        } catch (err) {
-          console.warn('file-cache: cleanupExpired item error', err);
           return null;
         }
+
+        const expiresAt = cachedAtMs + (fileMaxAge as number);
+        if (now > expiresAt) return fileItem.uri;
+        return null;
       });
 
       const results = await Promise.all(ops);
       for (const uri of results) {
         if (!uri) continue;
         try {
+          // 使用严格删除，若不一致会抛错并被捕获
           await deleteCachedFile(uri);
           deletedFiles.push(uri);
         } catch (err) {
-          console.warn('file-cache: cleanupExpired delete failed', uri, err);
+          console.log('file-cache: cleanupExpired delete failed', uri, err);
         }
       }
     }
@@ -195,89 +252,105 @@ export async function cleanupExpired(maxAgeMs?: number, concurrency = 3): Promis
     if (deletedFiles.length > 0) console.log('file-cache: cleanupExpired deleted', deletedFiles.length, 'files');
     return { deleted: deletedFiles.length, deletedFiles };
   } catch (err) {
-    console.warn('file-cache: cleanupExpired error', err);
+    console.log('file-cache: cleanupExpired error', err);
     return { deleted: 0, deletedFiles: [] };
   }
 }
 
+// 删除缓存文件及其 metadata
 export async function deleteCachedFile(uri: string): Promise<void> {
   try {
-    await FileSystem.deleteAsync(uri, { idempotent: true });
-    try {
-      await FileSystem.deleteAsync(metaPathFor(uri), { idempotent: true });
-    } catch {
-      // ignore meta deletion error
+    const fileInfo = await FileSystem.getInfoAsync(uri);
+    const meta = await readMetadataFor(uri);
+
+    // 如果两者都不存在，视为已删除，直接返回
+    if (!fileInfo.exists && !meta) return;
+
+    // 不允许只存在一端：若出现不一致则抛出错误
+    if (fileInfo.exists !== Boolean(meta)) {
+      throw new Error(`file-cache: inconsistent cache state for ${uri} — file and meta must exist together`);
     }
+
+    // 同时删除，任何失败都作为异常抛出
+    await FileSystem.deleteAsync(uri, { idempotent: false });
+    await FileSystem.deleteAsync(metaPathFor(uri), { idempotent: false });
     console.log('file-cache: deleteCachedFile done', uri);
   } catch (err) {
-    console.warn('file-cache: deleteCachedFile error', err);
+    console.log('file-cache: deleteCachedFile error', err);
+    throw err;
   }
 }
 
+/**
+ * 获取缓存文件的本地 URI：
+ * - 如果缓存存在且未过期（根据 maxAge 或 metadata），直接返回本地 URI。
+ * - 否则下载文件并缓存，返回新的本地 URI。
+ */
 export async function getCachedFile(url: string, options: GetCachedFileOptions = {}): Promise<string> {
   if (!url) throw new Error('url is required');
 
   await ensureDir(CACHE_DIR);
 
-  const relativePath = options.filename ? options.filename.split('/').map(sanitizeSegment).join('/') : urlToCachePath(url);
+  const relativePath = options.filename
+    ? options.filename.split('/').map(sanitizeSegment).join('/')
+    : urlToCachePath(url);
   const targetPath = `${CACHE_DIR}${relativePath}`;
 
-  // ensure parent directory exists
+  // 确保目标文件所在目录存在
   const lastSlash = targetPath.lastIndexOf('/');
   if (lastSlash > 0) await ensureDir(targetPath.substring(0, lastSlash + 1));
 
   try {
-    const info: any = await FileSystem.getInfoAsync(targetPath);
+    const info: FileInfo = await FileSystem.getInfoAsync(targetPath);
     if (info.exists) {
-      if (typeof options.maxAge === 'number' && typeof info.modificationTime === 'number') {
-        const ageMs = Date.now() - info.modificationTime * 1000;
-        if (ageMs <= options.maxAge) {
-          console.log('file-cache: cache hit within maxAge', targetPath);
-          try {
-            const existingMeta = await readMetadataFor(info.uri);
-            const existingMax = existingMeta && typeof existingMeta.maxAgeMs === 'number' ? existingMeta.maxAgeMs : null;
-            if (existingMeta == null || existingMax !== options.maxAge) {
-              await writeMetadataFor(info.uri, { url, cachedAt: Date.now(), maxAgeMs: options.maxAge });
-            }
-          } catch {
-            // ignore metadata write errors
+      const meta = await readMetadataFor(info.uri);
+      // 如果缺少 meta，则视为缓存不一致，强制重新下载
+      if (meta) {
+        if (typeof options.maxAge === 'number' && typeof info.modificationTime === 'number') {
+          const ageMs = Date.now() - info.modificationTime * 1000;
+          if (ageMs <= options.maxAge) {
+            console.log('file-cache: cache hit within maxAge', targetPath);
+            // 尝试异步写入 metadata（更新 cachedAt/maxAge）
+            writeMetadataFor(info.uri, { url, cachedAt: Date.now(), maxAgeMs: options.maxAge });
+            return info.uri;
           }
+        } else if (options.maxAge == null) {
+          console.log('file-cache: cache hit (no maxAge)', targetPath);
           return info.uri;
         }
-      } else if (options.maxAge == null) {
-        console.log('file-cache: cache hit (no maxAge)', targetPath);
-        return info.uri;
       }
     }
 
-    // download with progress
+    // 下载文件并回调进度
     options.onProgress?.(0);
-    const downloadResumable = FileSystem.createDownloadResumable(url, targetPath, {}, (progress) => {
-      try {
-        const written = progress.totalBytesWritten ?? 0;
-        const total = progress.totalBytesExpectedToWrite ?? 0;
-        const p = total > 0 ? written / total : 0;
-        options.onProgress?.(Math.max(0, Math.min(1, p)));
-      } catch {
-        // ignore progress errors
-      }
+    const downloadResumable = FileSystem.createDownloadResumable(url, targetPath, {}, progress => {
+      const written = progress.totalBytesWritten ?? 0;
+      const total = progress.totalBytesExpectedToWrite ?? 0;
+      const p = total > 0 ? written / total : 0;
+      options.onProgress?.(Math.max(0, Math.min(1, p)));
     });
 
     const res = await downloadResumable.downloadAsync();
-    try {
-      await writeMetadataFor(res.uri, { url, cachedAt: Date.now(), maxAgeMs: typeof options.maxAge === 'number' ? options.maxAge : null });
-    } catch {
-      // ignore
+    if (!res || !res.uri) {
+      throw new Error('file-cache: download failed or returned no uri');
     }
+    const downloadedUri = res.uri;
+    // 下载成功后写入 metadata
+    await writeMetadataFor(downloadedUri, {
+      url,
+      cachedAt: Date.now(),
+      maxAgeMs: typeof options.maxAge === 'number' ? options.maxAge : null,
+    });
     options.onProgress?.(1);
-    console.log('file-cache: downloaded and cached', url, 'to', res.uri);
-    return res.uri;
+    console.log('file-cache: downloaded and cached', url, 'to', downloadedUri);
+    return downloadedUri;
   } catch (err) {
-    console.warn('file-cache: getCachedFile error', err);
+    console.log('file-cache: getCachedFile error', err);
     throw err;
   }
 }
 
+// 打开文件：Android 使用原生 intent，其他平台使用 share 作为通用 fallback
 export async function openFile(uri: string): Promise<boolean> {
   try {
     if (!uri) return false;
@@ -291,11 +364,12 @@ export async function openFile(uri: string): Promise<boolean> {
     }
     return await shareFile(uri);
   } catch (err) {
-    console.warn('file-cache: openFile error', err);
+    console.log('file-cache: openFile error', err);
     return false;
   }
 }
 
+// 通过 expo-sharing 分享文件
 export async function shareFile(uri: string): Promise<boolean> {
   try {
     if (!uri) return false;
@@ -305,7 +379,7 @@ export async function shareFile(uri: string): Promise<boolean> {
     }
     return false;
   } catch (err) {
-    console.warn('file-cache: shareFile error', err);
+    console.log('file-cache: shareFile error', err);
     return false;
   }
 }
