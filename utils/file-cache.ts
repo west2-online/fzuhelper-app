@@ -210,6 +210,7 @@ export async function listCachedFiles(includeMeta = false): Promise<CachedFileWi
     };
 
     const files = await walk(CACHE_DIR, '');
+    console.log('file-cache: listCachedFiles found', files.length, 'files');
     return files;
   } catch (err) {
     console.log('file-cache: listCachedFiles error', err);
@@ -272,7 +273,7 @@ export async function cleanupExpired(
       }
     }
 
-    if (deletedFiles.length > 0) console.log('file-cache: cleanupExpired deleted', deletedFiles.length, 'files');
+    console.log('file-cache: cleanupExpired deleted', deletedFiles.length, 'files');
     return { deleted: deletedFiles.length, deletedFiles };
   } catch (err) {
     console.log('file-cache: cleanupExpired error', err);
