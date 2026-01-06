@@ -38,18 +38,27 @@ public class NativeRequestModule: Module {
       configuration.timeoutIntervalForRequest = 10 // 设置请求超时为 10 秒
       configuration.timeoutIntervalForResource = 10 // 设置资源超时为 10 秒
       let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
-
       var resp = ResponseMapper(status: -1, data: Data(), headers: [:], error: nil)
-      do {
-        let response = await session.request(url, headers: HTTPHeaders(headers.data)).serializingData().response
-        resp.status = response.response?.statusCode ?? -1
-        resp.data = response.data ?? Data()
-        resp.headers = response.response?.allHeaderFields ?? [:] // Headers
+      guard let url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        resp.error = "无效的 URL\(url)"
         return resp
-      } catch {
+      }
+      let result = await session.request(url, headers: HTTPHeaders(headers.data))
+        .serializingData().response
+      let response = result.response
+      let error = result.error
+      if let error = error {
         resp.error = "请求失败: \(error)"
         return resp
       }
+      guard let response = result.response else {
+          resp.error = "请求成功但响应不完整"
+          return resp
+      }
+      resp.status = response.statusCode
+      resp.data = result.data ?? Data()
+      resp.headers = response.allHeaderFields
+      return resp
     }
 
     // 以表单形式传递数据的 post 方法
@@ -61,16 +70,26 @@ public class NativeRequestModule: Module {
       configuration.timeoutIntervalForResource = 10 // 设置资源超时为 10 秒
       let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
       var resp = ResponseMapper(status: -1, data: Data(), headers: [:], error: nil)
-      do{
-        let response = await session.request(url, method: .post, parameters: formData.data, encoder: URLEncodedFormParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
-        resp.status = response.response?.statusCode ?? -1
-        resp.data = response.data ?? Data()
-        resp.headers = response.response?.allHeaderFields ?? [:]
+      guard let url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        resp.error = "无效的 URL\(url)"
         return resp
-      } catch {
+      }
+      let result = await session.request(url, method: .post, parameters: formData.data, encoder: URLEncodedFormParameterEncoder.default, headers: HTTPHeaders(headers.data))
+        .serializingData().response
+      let response = result.response
+      let error = result.error
+      if let error = error {
         resp.error = "请求失败: \(error)"
         return resp
       }
+      guard let response = result.response else {
+          resp.error = "请求成功但响应不完整"
+          return resp
+      }
+      resp.status = response.statusCode
+      resp.data = result.data ?? Data()
+      resp.headers = response.allHeaderFields
+      return resp
     }
 
     // 以 JSON 形式传递数据的 post 方法
@@ -82,22 +101,32 @@ public class NativeRequestModule: Module {
       configuration.timeoutIntervalForResource = 10 // 设置资源超时为 10 秒
       let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
       var resp = ResponseMapper(status: -1, data: Data(), headers: [:], error: nil)
-      do {
-        let response = await session.request(url, method: .post, parameters: formData.data, encoder: JSONParameterEncoder.default, headers: HTTPHeaders(headers.data)).serializingData().response
-        resp.status = response.response?.statusCode ?? -1
-        resp.data = response.data ?? Data()
-        resp.headers = response.response?.allHeaderFields ?? [:]
+      guard let url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        resp.error = "无效的 URL\(url)"
         return resp
-      } catch {
+      }
+      let result = await session.request(url, method: .post, parameters: formData.data, encoder: JSONParameterEncoder.default, headers: HTTPHeaders(headers.data))
+        .serializingData().response
+      let response = result.response
+      let error = result.error
+      if let error = error {
         resp.error = "请求失败: \(error)"
         return resp
       }
+      guard let response = result.response else {
+          resp.error = "请求成功但响应不完整"
+          return resp
+      }
+      resp.status = response.statusCode
+      resp.data = result.data ?? Data()
+      resp.headers = response.allHeaderFields
+      return resp
     }
   }
 }
 
 // 自定义 RedirectHandler 来避免自动重定向
-class NoRedirectHandler: RedirectHandler {
+final class NoRedirectHandler: RedirectHandler {
     func task(_ task: URLSessionTask, willBeRedirectedTo request: URLRequest, for response: HTTPURLResponse, completion: @escaping (URLRequest?) -> Void) {
         // 如果状态码为 302，则阻止重定向
         if response.statusCode == 302 {
