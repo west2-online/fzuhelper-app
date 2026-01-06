@@ -40,7 +40,7 @@ public class NativeRequestModule: Module {
       let session = Alamofire.Session(configuration: configuration, redirectHandler: NoRedirectHandler())
       var resp = ResponseMapper(status: -1, data: Data(), headers: [:], error: nil)
       guard let url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-        resp.error = "无效的 URL\(url)"
+        resp.error = "无效的 URL: \(url)"
         return resp
       }
       let result = await session.request(url, headers: HTTPHeaders(headers.data))
