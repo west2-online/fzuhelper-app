@@ -48,7 +48,7 @@ const commonScript: StringScript = `
     // 滚动到顶部
     setTimeout(() => {
       window.scrollTo(0, 0);
-    }, 100);
+    }, 200);
   })();
 `;
 
