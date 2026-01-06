@@ -160,6 +160,13 @@ const termXuankeDetailScript: StringScript = `
 })();
 `;
 
+const commentGuideScript: StringScript = `
+  (function() {
+    // 提示可以使用一键评议
+    alert('需要先进行评议才能使用本功能，推荐您使用工具箱->一键评议进行评议');
+  })();
+`;
+
 // url 与脚本常量对应 map
 const urlToScriptMap: Record<string, Script[]> = {
   // 教学大纲
@@ -176,6 +183,8 @@ const urlToScriptMap: Record<string, Script[]> = {
   'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_kclist.aspx': [ratioScript, termXuankeDetailScript],
   // 其他选课页面
   'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/': [ratioScript],
+  // 评议列表页
+  'https://jwcjwxt2.fzu.edu.cn:81/student/jscp/TeaList.aspx': [commentGuideScript],
 };
 
 export const getScriptByURL = (url: string, colorScheme: ColorSchemeName) => {
