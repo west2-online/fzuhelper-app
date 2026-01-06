@@ -122,6 +122,9 @@ const pyjhDarkModeScript: GeneratedScript = colorScheme => `
       element.removeAttribute("bgcolor");
       element.style.backgroundColor = "${colors[colorScheme].backgroundHighlightColor}";
     });
+    document.querySelectorAll("table[bordercolor]").forEach((table) => {
+      table.removeAttribute("bordercolor");
+    });
   })();
 `;
 
