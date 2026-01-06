@@ -125,6 +125,41 @@ const pyjhDarkModeScript: GeneratedScript = colorScheme => `
   })();
 `;
 
+const ratioScript: StringScript = `
+(function() {
+    if ('zoom' in document.body.style) {
+        document.body.style.zoom = 1.5;
+    } 
+})();
+`;
+
+const termXuankeDetailScript: StringScript = `
+(function() {
+    // 找到第一个style包含width:1000px;的table并去除该style中的width属性
+    const tables = document.querySelectorAll('table');
+    for (let i = 0; i < tables.length; i++) {
+        const table = tables[i];
+        const style = table.getAttribute('style');
+        if (style && style.includes('width:1000px;')) {
+            const newStyle = style.replace(/width:\\s*1000px;?/i, '');
+            table.setAttribute('style', newStyle);
+            break;
+        }
+    }
+    // 找到所有含style="width:180px;"的select并修改
+    const selects = document.querySelectorAll('select');
+    selects.forEach((select) => {
+        const style = select.getAttribute('style');
+        if (style && style.includes('width:180px;')) {
+            const newStyle = style.replace(/width:\\s*180px;?/i, 'width:80px;');
+            select.setAttribute('style', newStyle);
+        }
+    });
+    // 教材购买方式，连续两个<br>代表空教材，可以直接删除
+    document.body.innerHTML = document.body.innerHTML.replace(/(<br>\\s*){2,}/g, '');
+})();
+`;
+
 // url 与脚本常量对应 map
 const urlToScriptMap: Record<string, Script[]> = {
   // 教学大纲
@@ -137,6 +172,10 @@ const urlToScriptMap: Record<string, Script[]> = {
   'https://jwcjwxt2.fzu.edu.cn:81/pyfa/skjh/TeachingPlan_view.aspx': [commonScript, darkModeScript],
   // 培养计划
   'https://jwcjwxt2.fzu.edu.cn:81/pyfa/pyjh/pyfa_bzy.aspx': [commonScript, darkModeScript, pyjhDarkModeScript],
+  // 学期选课详情页
+  'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_kclist.aspx': [ratioScript, termXuankeDetailScript],
+  // 其他选课页面
+  'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/': [ratioScript],
 };
 
 export const getScriptByURL = (url: string, colorScheme: ColorSchemeName) => {
