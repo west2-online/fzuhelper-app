@@ -8,7 +8,6 @@ on:
 
 jobs:
   build_ipa:
-    needs: build-eas
     runs-on: macos-latest
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -36,21 +35,19 @@ jobs:
       - name: Install Dependencies
         run: yarn install --frozen-lockfile --prefer-offline
 
-      - name: Download patched eas-cli artifact
-        uses: actions/download-artifact@v4
+      - name: Download EAS CLI
+        uses: robinraju/release-downloader@v1
         with:
-          name: eas-cli
-          path: ./artifacts
-
-      - name: Extract patched eas-cli artifact
-        run: |
-          echo "Extracting ./artifacts/eas-cli.tgz to ./artifacts/package"
-          mkdir -p ./artifacts/package
-          tar -xzf ./artifacts/eas-cli.tgz -C ./artifacts/package || true
+          repository: linrongda/eas-cli
+          latest: true
+          tag: local-submit-v1
+          fileName: eas-cli.tar.gz
+          out-file-path: eas-cli
+          extract: true
 
       - name: EAS Build iOS
         run: |
-          node ./artifacts/package/eas/bin/run build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
+          node ./eas-cli/eas/bin/run build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
 
       - name: Generate Changelog
         id: changelog
@@ -64,49 +61,5 @@ jobs:
 
       - name: EAS Submit iOS
         run: |
-          node ./artifacts/package/eas/bin/run submit --platform ios --profile production --non-interactive --local --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}" \
+          node ./eas-cli/eas/bin/run submit --platform ios --profile production --non-interactive --local --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}" \
           --fastlane-args="--distribute_external"
-
-  build-eas:
-    # Use macOS to get the correct platform specific dependencies
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: linrongda/eas-cli
-          ref: feat/submit-by-local-machine
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: 'yarn'
-
-      - name: Install Dependencies
-        run: |
-          brew install python-setuptools
-          yarn install --frozen-lockfile --check-files
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: 1
-
-      - name: Build EAS CLI
-        run: yarn build
-
-      - name: Build tarballs
-        working-directory: ${{ github.workspace }}/packages/eas-cli
-        run: |
-          yarn pretarball-ci
-          yarn oclif pack:tarballs --no-xz --targets darwin-arm64
-
-      - name: Move darwin-arm64 tarball to artifact folder
-        run: |
-          filename=$(ls eas-*-arm64.tar.gz)
-          mv $filename ${{ github.workspace }}/packages/eas-cli/dist/eas-cli.tgz
-        working-directory: ${{ github.workspace }}/packages/eas-cli/dist
-
-      - name: Upload darwin-arm64 tarball
-        uses: actions/upload-artifact@v4
-        with:
-          path: packages/eas-cli/dist/eas-cli.tgz
-          name: eas-cli
