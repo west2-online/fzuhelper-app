@@ -1,9 +1,6 @@
 name: Build IPA
 
 on:
-  push:
-    branches:
-      - eas
   workflow_call:
 
 jobs:

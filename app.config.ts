@@ -20,7 +20,7 @@ try {
 const versionCodePrefix = version.replace(/\./g, '');
 const versionCodeSuffix = String(commitCount).padStart(3, '0');
 // iOS
-const buildNumber = '721005';
+const buildNumber = versionCodePrefix + versionCodeSuffix;
 // Android
 const versionCode = parseInt(buildNumber, 10);
 
