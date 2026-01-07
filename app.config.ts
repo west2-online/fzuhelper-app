@@ -20,7 +20,7 @@ try {
 const versionCodePrefix = version.replace(/\./g, '');
 const versionCodeSuffix = String(commitCount).padStart(3, '0');
 // iOS
-const buildNumber = versionCodePrefix + versionCodeSuffix;
+const buildNumber = '721005';
 // Android
 const versionCode = parseInt(buildNumber, 10);
 
@@ -231,6 +231,11 @@ const config: ExpoConfig = {
   ],
   experiments: {
     typedRoutes: true,
+  },
+  extra: {
+    eas: {
+      projectId: '7f521ea8-db0e-4bf3-a6ce-ff469936e540',
+    },
   },
 };
 

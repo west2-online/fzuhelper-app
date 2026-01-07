@@ -13,6 +13,11 @@ jobs:
     uses: ./.github/workflows/build.yml
     secrets: inherit
 
+  ios:
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/ios.yml
+    secrets: inherit
+
   alpha:
     if: github.ref == 'refs/heads/master'
     needs: build
