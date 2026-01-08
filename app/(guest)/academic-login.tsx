@@ -12,10 +12,8 @@ import { Text } from '@/components/ui/text';
 import PageContainer from '@/components/page-container';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { setAegisConfig } from '@/lib/aegis';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
-import UserLogin from '@/lib/user-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 import BuglyModule from '@/modules/bugly';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
@@ -24,12 +22,8 @@ const URL_RESET_PASSWORD_UNDERGRADUATE = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSe
 const URL_RESET_PASSWORD_POSTGRADUATE = 'https://yjsglxt.fzu.edu.cn/ResetPassword.aspx';
 
 const LoginPage: React.FC = () => {
-  const loginRef = useRef<UserLogin | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const redirect = useRedirectWithoutHistory();
-  if (!loginRef.current) {
-    loginRef.current = new UserLogin();
-  }
 
   const [captchaImage, setCaptchaImage] = useState('');
   const [username, setUsername] = useState('');
@@ -74,7 +68,7 @@ const LoginPage: React.FC = () => {
   // 刷新验证码
   const refreshCaptcha = useCallback(async () => {
     try {
-      const res = await loginRef.current!.getCaptcha();
+      const res = await LocalUser.getCaptcha();
       setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`);
       setCaptcha(''); // 清空验证码输入框
     } catch (error) {
@@ -114,10 +108,8 @@ const LoginPage: React.FC = () => {
       // 存储登录所需的信息
       await LocalUser.setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
       // 登录、获取 token、检查串号等逻辑
-      await LocalUser.login();
+      await LocalUser.login(captcha);
       // 登录成功
-      setAegisConfig({ uin: username });
-      console.log('aegis set uin:', username);
       if (Platform.OS === 'android') {
         BuglyModule.setUserId(username);
       }
@@ -132,7 +124,6 @@ const LoginPage: React.FC = () => {
       await refreshCaptcha();
       // 访问令牌获取失败，清除账户信息
       await LocalUser.clear();
-      setAegisConfig({});
       if (Platform.OS === 'android') {
         await BuglyModule.setUserId('');
       }

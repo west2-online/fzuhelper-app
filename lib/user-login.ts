@@ -39,17 +39,6 @@ const DEFAULT_HEADERS_GRADUATE: Record<string, string> = {
   'Upgrade-Insecure-Requests': '1',
 };
 
-const ERROR_MESSAGES: Record<string, string> = {
-  // 本科生教务系统错误信息
-  用户名或密码错误: '用户名或密码错误',
-  验证码验证失败: '验证码验证失败',
-  处理URL失败: '处理URL失败',
-  重新登录: '重新登录',
-
-  // 研究生教务系统错误信息
-  '请输入正确的用户名或密码！': '请输入正确的用户名或密码！',
-};
-
 // (本科生教务系统) 自动验证码识别服务地址
 const URL_AUTO_VALIDATE = 'https://fzuhelper.west2.online/api/v1/user/validate-code';
 // (研究生教务系统) 自动填充 ID 前缀，因为用不到，服务端默认 5 个前导 0，避免问题直接设置为 10个 0
@@ -97,11 +86,12 @@ class UserLogin {
     return Buffer.from(response).toString('utf-8').replace(/\s+/g, '');
   }
 
-  #checkErrors(data: string): string | null {
-    for (const [key, message] of Object.entries(ERROR_MESSAGES)) {
-      if (data.includes(key)) {
-        return message;
-      }
+  // 解析错误 alert
+  #parseErrors(data: string): string | null {
+    const alertRegex = /<script[^>]*>\s*alert\(['"](.+?)['"]\);[^>]*\s*<\/script>/;
+    const match = data.match(alertRegex);
+    if (match) {
+      return match[1];
     }
     return null;
   }
@@ -149,19 +139,22 @@ class UserLogin {
       Verifycode: captcha,
     };
 
-    const { data: _data } = await this.#post(JWCH_URLS.LOGIN_CHECK, headers, formData);
+    const { data: _data, headers: resHeaders } = await this.#post(JWCH_URLS.LOGIN_CHECK, headers, formData);
     if (!_data) {
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
         data: '接收到数据为空',
       });
     }
+
     const data = this.#responseToString(_data);
-    const result = this.#checkErrors(data);
-    if (result) {
+    // 如果验证出错，这里不会 302 跳转，而是返回一个带有 alert 的页面
+    if (!resHeaders.Location) {
+      const result = this.#parseErrors(data);
+      // 本科教务系统如果输错账号（比如输成身份证），没有 302 也没有 alert
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
-        data: result,
+        data: result ?? '请确认账号是否为正确的学号',
       });
     }
 
@@ -271,26 +264,14 @@ class UserLogin {
       });
     }
 
-    const data = this.#responseToString(_data);
-    const result = this.#checkErrors(data);
-    if (result) {
-      return rejectWith({
-        type: RejectEnum.NativeLoginFailed,
-        data: result,
-      });
-    }
-
     // 下面是判断登录成功的确认，登录成功时会是一个 302，所以直接判断是否有 Location 头即可
     if (!resHeaders.Location) {
-      // 登录失败的话会有一个 alert，大致格式如下，可以尝试进行提取
-      // <script language='javascript' defer>alert('请输入正确的用户名或密码！');</script></form>
-      // 原因有很多，比如短时间内密码试错太多次等，除了这个外，还需要判断是否是密码过于简单的
-      const alertRegex = /<script[^>]*>\s*alert\(['"](.+?)['"]\);[^>]*\s*<\/script>/;
-      const match = data.match(alertRegex);
+      const data = this.#responseToString(_data);
+      const result = this.#parseErrors(data);
       this.#clearCookies(); // 清空 cookie
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
-        data: match ? match[1] : '研究生教务系统登录失败',
+        data: result ?? '研究生教务系统登录失败',
       });
     }
 

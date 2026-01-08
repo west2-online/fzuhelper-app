@@ -81,3 +81,17 @@ export async function getApiV1JwchAcademicUnifiedExam(options?: {
     ...(options || {}),
   });
 }
+
+/** 学分统计V2 返回学生的主修与辅修学分情况 GET /api/v2/jwch/academic/credit https://apifox.com/web/project/3275694/apis/api-356737870-run */
+export async function getApiV2JwchAcademicCredit(options?: {
+  [key: string]: unknown;
+}) {
+  return request<{
+    code: string;
+    message: string;
+    data: { type: string; data: { key: string; value: string }[] }[];
+  }>('/api/v2/jwch/academic/credit', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}

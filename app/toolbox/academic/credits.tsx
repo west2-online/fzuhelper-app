@@ -1,54 +1,84 @@
+import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
-import { useMemo } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DescriptionList } from '@/components/DescriptionList';
 import { CreditCard } from '@/components/academic/CreditCard';
-import PageContainer from '@/components/page-container';
-
-import { getApiV1JwchAcademicCredit } from '@/api/generate';
 import LastUpdateTime from '@/components/last-update-time';
+import EmptyView from '@/components/multistateview/empty-view';
 import MultiStateView from '@/components/multistateview/multi-state-view';
+import PageContainer from '@/components/page-container';
+import { TabFlatList } from '@/components/tab-flatlist';
+
+import { JwchAcademicCreditV2Response_Type } from '@/api/backend';
+import { getApiV2JwchAcademicCredit } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
 import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 
-export default function CreditsPage() {
-  const apiResult = useApiRequest(getApiV1JwchAcademicCredit);
-  const { data: creditData, dataUpdatedAt, isFetching, refetch } = apiResult;
-  const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]); // 数据最后更新时间
+interface TabContentProps {
+  group: JwchAcademicCreditV2Response_Type;
+  dataUpdatedAt: number;
+  onRefresh?: () => void;
+}
 
+const TabContent = React.memo<TabContentProps>(({ group, dataUpdatedAt, onRefresh }) => {
+  const { width: screenWidth } = useWindowDimensions();
+  const { bottom } = useSafeAreaInsets();
+
+  return (
+    <FlatList
+      data={group.data}
+      keyExtractor={(item, index) => `${item.key}-${index}`}
+      renderItem={({ item }) => <CreditCard label={item.key} value={item.value} />}
+      contentContainerClassName="mt-3 mx-4 gap-6"
+      contentContainerStyle={{ paddingBottom: bottom }}
+      initialNumToRender={20}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+      ListEmptyComponent={<EmptyView className="-h-screen-safe-offset-12" />}
+      ListFooterComponent={
+        group.data && group.data.length > 0 ? <LastUpdateTime lastUpdated={dayjs(dataUpdatedAt).toDate()} /> : null
+      }
+      style={{ width: screenWidth }}
+    />
+  );
+});
+
+TabContent.displayName = 'TabContent';
+
+export default function CreditsPage() {
+  const apiResult = useApiRequest(getApiV2JwchAcademicCredit);
+  const { data: creditData, dataUpdatedAt, refetch } = apiResult;
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,
   });
+
+  const tabList = useMemo(() => (creditData ?? []).map(g => g.type), [creditData]);
+
+  const [currentTab, setCurrentTab] = useState('主修专业');
+
+  const renderContent = useCallback(
+    (tab: string) => {
+      const group = (creditData ?? []).find(g => g.type === tab);
+      if (!group) return null;
+      return <TabContent group={group} dataUpdatedAt={dataUpdatedAt} onRefresh={refetch} />;
+    },
+    [creditData, dataUpdatedAt, refetch],
+  );
+
+  const content = useMemo(() => {
+    // 只有一个 Tab （主修专业）就不显示 Tab 栏
+    if ((creditData ?? []).length === 1) {
+      return <TabContent group={(creditData ?? [])[0]} dataUpdatedAt={dataUpdatedAt} onRefresh={refetch} />;
+    }
+    return <TabFlatList data={tabList} value={currentTab} onChange={setCurrentTab} renderContent={renderContent} />;
+  }, [creditData, tabList, currentTab, renderContent, dataUpdatedAt, refetch]);
 
   return (
     <>
       <Stack.Screen options={{ headerTitle: '学分统计' }} />
       <PageContainer>
-        <MultiStateView
-          state={state}
-          className="flex-1"
-          content={
-            <ScrollView
-              className="flex-1"
-              contentContainerClassName="px-4 pt-4"
-              refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
-            >
-              <SafeAreaView className="flex-1" edges={['bottom']}>
-                <DescriptionList className="gap-6">
-                  {creditData?.map((credit, index) => (
-                    <CreditCard key={index} type={credit.type} gain={credit.gain} total={credit.total} />
-                  ))}
-                </DescriptionList>
-
-                {/* 显示最后更新时间 */}
-                <LastUpdateTime lastUpdated={lastUpdated} />
-              </SafeAreaView>
-            </ScrollView>
-          }
-          refresh={refetch}
-        />
+        <MultiStateView state={state} content={content} refresh={refetch} />
       </PageContainer>
     </>
   );

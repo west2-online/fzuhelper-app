@@ -1,7 +1,6 @@
-import { Link, useRouter, type Href } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Platform, Pressable, useWindowDimensions, View } from 'react-native';
-import type { SvgProps } from 'react-native-svg';
+import { FlatList, Image, Platform, Pressable, useWindowDimensions, View } from 'react-native';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
@@ -27,20 +26,22 @@ import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
-import Banner, { BannerType, type BannerContent } from '@/components/banner';
+import Banner, { type BannerContent, BannerType } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { showIgnorableAlert } from '@/lib/common-settings';
 
 import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
-import { cn } from '@/lib/utils';
-import { getWebViewHref, pushToWebViewSSO } from '@/lib/webview';
-import { toolOnPress, ToolType, UserType, type Tool } from '@/utils/tools';
+import { pushToWebViewSSO } from '@/lib/webview';
+import { isToolboxTool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/utils/tools';
 
 import { LaunchScreenScreenResponse } from '@/api/backend';
-import { getApiV1LaunchScreenScreen } from '@/api/generate';
+import { getApiV1LaunchScreenScreen, getApiV1ToolboxConfig } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
+import { TOOLBOX_CONFIG_KEY } from '@/lib/constants';
+import DeviceInfo from 'react-native-device-info';
+import { toast } from 'sonner-native';
 
 // 工具类型的枚举
 
@@ -51,14 +52,18 @@ const DEFAULT_BANNERS: BannerContent[] = [
   { image: BannerImage3, text: '', type: BannerType.NULL },
 ];
 
-const DEFAULT_TOOLS: Tool[] = [
+// 工具id手写而不采用数组下标，是为了避免版本迭代功能增删后特定功能的下标发生改变导致配置不对应
+// 后续新增功能时，id不得使用已存在或曾经存在的功能id
+const DEFAULT_TOOLS: ToolboxTool[] = [
   {
+    id: 10,
     name: '学业状况',
     icon: GradeIcon,
     type: ToolType.LINK,
     href: '/toolbox/academic',
   },
   {
+    id: 20,
     name: '教务通知',
     icon: NotificationIcon,
     type: ToolType.LINK,
@@ -66,30 +71,35 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 30,
     name: '历年卷',
     icon: FileIcon,
     type: ToolType.LINK,
     href: '/toolbox/paper',
   },
   {
+    id: 40,
     name: '空教室',
     icon: RoomIcon,
     type: ToolType.LINK,
     href: '/toolbox/empty-room',
   },
   {
+    id: 50,
     name: '考场查询',
     icon: ExamRoomIcon,
     type: ToolType.LINK,
     href: '/toolbox/exam-room',
   },
   {
+    id: 60,
     name: '一键评议',
     icon: OneKeyIcon,
     type: ToolType.LINK,
     href: '/toolbox/onekey-comment',
   },
   {
+    id: 70,
     name: '选课',
     icon: XuankeIcon,
     type: ToolType.LINK,
@@ -97,6 +107,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 80,
     name: '各类申请',
     icon: ApplicationIcon,
     type: ToolType.LINK,
@@ -104,6 +115,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 90,
     name: '学生证',
     icon: IDCardIcon,
     type: ToolType.LINK,
@@ -111,6 +123,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 100,
     name: '毕业设计',
     icon: GraduationIcon,
     type: ToolType.LINK,
@@ -118,6 +131,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 110,
     name: '嘉锡讲坛',
     icon: JiaXiIcon,
     type: ToolType.WEBVIEW,
@@ -129,6 +143,7 @@ const DEFAULT_TOOLS: Tool[] = [
     userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
+    id: 120,
     name: '智慧餐厅',
     icon: ZHCTIcon,
     type: ToolType.WEBVIEW,
@@ -138,6 +153,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 130,
     name: '校园指南',
     icon: WikiIcon,
     type: ToolType.WEBVIEW,
@@ -147,6 +163,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 140,
     name: '飞跃手册',
     icon: FZURunIcon,
     type: ToolType.WEBVIEW,
@@ -156,12 +173,14 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 150,
     name: '学习中心',
     icon: StudyCenterIcon,
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
   },
   {
+    id: 160,
     name: '公寓报修',
     icon: ApartmentIcon,
     type: ToolType.FUNCTION,
@@ -191,6 +210,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 170,
     name: '电动车',
     icon: ElectroCarIcon,
     type: ToolType.FUNCTION,
@@ -220,6 +240,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 180,
     name: '校本化',
     icon: XiaoBenIcon,
     type: ToolType.FUNCTION,
@@ -249,6 +270,7 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 190,
     name: '失物招领',
     icon: LostFoundIcon,
     type: ToolType.WEBVIEW,
@@ -259,25 +281,28 @@ const DEFAULT_TOOLS: Tool[] = [
     },
   },
   {
+    id: 200,
     name: '水电缴费',
     icon: UtilityPaymentIcon,
     type: ToolType.LINK,
     href: '/toolbox/utility-payment',
   },
   {
+    id: 9999,
     name: '更多',
     icon: MoreIcon,
     type: ToolType.LINK,
     href: '/toolbox/more',
   },
-];
+] as const;
 
 // 工具函数：处理工具数据，按列数填充占位符
-const processTools = (tools: Tool[], columns: number): Tool[] => {
+const processTools = (tools: ToolboxTool[], columns: number): ToolboxTool[] => {
   const remainder = tools.length % columns;
   if (remainder === 0) return tools; // 不需要填充
 
   const placeholders = Array(columns - remainder).fill({
+    id: -1,
     name: '',
     icon: null,
     type: ToolType.NULL,
@@ -319,6 +344,36 @@ function processBannerData(bannerData: LaunchScreenScreenResponse): BannerConten
   return banners;
 }
 
+function applyTypeAndExtra(tool: Partial<ToolboxTool>, item: any): Partial<ToolboxTool> | null {
+  const { type, extra } = item;
+  if (!type) return tool;
+
+  switch (type) {
+    case ToolType.LINK:
+      return { ...tool, type: ToolType.LINK, href: extra as Href };
+    case ToolType.WEBVIEW:
+      try {
+        const params = JSON.parse(extra);
+        if (params && typeof params === 'object' && typeof params.url === 'string') {
+          return { ...tool, type: ToolType.WEBVIEW, params };
+        } else {
+          console.error('webview params无效：', extra);
+        }
+      } catch (e) {
+        console.error('webview params parse失败：', extra, e);
+      }
+      break;
+    case ToolType.NULL:
+      // 没有extra
+      return { ...tool, type: ToolType.NULL };
+    case ToolType.FUNCTION: // 不支持动态修改为FUNCTION
+    default:
+      console.error('配置中工具类型不支持：', item);
+      break;
+  }
+  return null;
+}
+
 // 自定义 Hook：管理横幅和工具数据
 const useToolsPageData = (columns: number) => {
   const { data: bannerData } = useApiRequest(getApiV1LaunchScreenScreen, {
@@ -326,18 +381,83 @@ const useToolsPageData = (columns: number) => {
     student_id: LocalUser.getUser().userid || '',
     device: Platform.OS,
   });
+  const { data: configData } = useApiRequest(
+    getApiV1ToolboxConfig,
+    {
+      version: parseInt(DeviceInfo.getBuildNumber(), 10),
+      student_id: LocalUser.getUser().userid || '',
+      platform: Platform.OS,
+    },
+    { persist: true, queryKey: [TOOLBOX_CONFIG_KEY] },
+  );
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
-  const [toolList, setToolList] = useState<Tool[]>([]);
-
   const userType = useMemo(() => LocalUser.getUser().type as UserType, []);
 
-  const filteredTools = useMemo(() => {
-    return DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(userType));
-  }, [userType]);
+  const baseTools = useMemo(
+    () =>
+      DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(userType)).map(tool => ({
+        ...tool,
+      })),
+    [userType],
+  );
+
+  const [toolList, setToolList] = useState<ToolboxTool[]>(baseTools);
+
+  useEffect(() => {
+    if (configData) {
+      const toolMap = new Map<number, ToolboxTool>(baseTools.map(tool => [tool.id, { ...tool }]));
+
+      configData.forEach(item => {
+        if (item.visible === false) {
+          if (toolMap.has(item.tool_id)) {
+            toolMap.delete(item.tool_id);
+          }
+          return;
+        }
+
+        const existingTool = toolMap.get(item.tool_id);
+
+        if (existingTool) {
+          // 修改已存在的工具
+          const baseTool = { ...existingTool };
+          if (item.name) baseTool.name = item.name;
+          if (item.icon) baseTool.icon = item.icon;
+          if (item.message) baseTool.message = item.message;
+
+          const updatedTool = applyTypeAndExtra(baseTool, item);
+
+          if (updatedTool && isToolboxTool(updatedTool)) {
+            toolMap.set(item.tool_id, updatedTool as ToolboxTool);
+          } else {
+            console.error('修改工具非法：', updatedTool);
+          }
+        } else {
+          // 添加新工具
+          const baseTool = {
+            id: item.tool_id,
+            name: item.name || '',
+            icon: item.icon || null,
+            message: item.message,
+          };
+
+          const newTool = applyTypeAndExtra(baseTool, item);
+
+          if (newTool && isToolboxTool(newTool)) {
+            toolMap.set(item.tool_id, newTool as ToolboxTool);
+          }
+        }
+      });
+      // 按照id升序排序
+      setToolList(Array.from(toolMap.values()).sort((a, b) => a.id - b.id));
+    } else {
+      // 本地的已经有序
+      setToolList(baseTools);
+    }
+  }, [configData, baseTools]);
 
   const processedTools = useMemo(() => {
-    return processTools(filteredTools, columns);
-  }, [filteredTools, columns]);
+    return processTools(toolList, columns);
+  }, [toolList, columns]);
 
   const processedBanners = useMemo(() => {
     if (bannerData) {
@@ -351,61 +471,55 @@ const useToolsPageData = (columns: number) => {
     setBannerList(processedBanners);
   }, [processedBanners]);
 
-  useEffect(() => {
-    setToolList(processedTools);
-  }, [processedTools]);
-
-  return { bannerList, toolList };
+  return { bannerList, toolList: processedTools };
 };
 
 type ToolButtonProps = Omit<ButtonProps, 'size'> & {
-  name: string;
-  icon?: React.FC<SvgProps>;
+  tool: ToolboxTool;
   textWidth: number;
   fontSize: number;
 };
 
 const ToolButton = memo(
-  forwardRef<React.ComponentRef<typeof Pressable>, ToolButtonProps>(
-    ({ className, icon: Icon, name, onPress, textWidth, fontSize }, ref) => {
-      return (
-        <Button
-          className={cn('mx-0 mb-3 h-auto w-auto items-center justify-start bg-transparent', className)}
-          size="icon"
-          onPress={onPress}
-          ref={ref}
+  forwardRef<React.ComponentRef<typeof Pressable>, ToolButtonProps>(({ tool, textWidth, fontSize }, ref) => {
+    const router = useRouter();
+
+    return (
+      <Button
+        className="mx-0 mb-3 h-auto w-auto items-center justify-start bg-transparent"
+        size="icon"
+        ref={ref}
+        onPress={() => {
+          if (tool.message) {
+            toast.info(tool.message);
+          }
+          toolOnPress(tool, router);
+        }}
+      >
+        {tool.icon ? (
+          typeof tool.icon === 'string' ? (
+            <Image source={{ uri: tool.icon }} className="h-[42px] w-[42px]" />
+          ) : (
+            <tool.icon width="42px" height="42px" />
+          )
+        ) : null}
+        <Text
+          className="mt-0.5 text-center align-middle text-text-secondary"
+          style={{
+            width: textWidth,
+            fontSize: fontSize,
+          }}
+          numberOfLines={2} // 最大行数
+          ellipsizeMode="tail"
         >
-          {Icon ? <Icon width="42px" height="42px" /> : null}
-          <Text
-            className="mt-0.5 text-center align-middle text-text-secondary"
-            style={{
-              width: textWidth,
-              fontSize: fontSize,
-            }}
-            numberOfLines={2} // 最大行数
-            ellipsizeMode="tail"
-          >
-            {name}
-          </Text>
-        </Button>
-      );
-    },
-  ),
+          {tool.name}
+        </Text>
+      </Button>
+    );
+  }),
 );
 
 ToolButton.displayName = 'ToolButton';
-
-type ToolButtonLinkProps = Omit<ToolButtonProps, 'onPress'> & {
-  href: Href;
-};
-
-const ToolButtonLink = memo<ToolButtonLinkProps>(({ href, ...props }) => (
-  <Link href={href} asChild>
-    <ToolButton {...props} />
-  </Link>
-));
-
-ToolButtonLink.displayName = 'ToolButtonLink';
 
 export default function ToolsPage() {
   const { width: screenWidth } = useWindowDimensions();
@@ -425,51 +539,17 @@ export default function ToolsPage() {
   }, [screenWidth]);
 
   const { bannerList, toolList } = useToolsPageData(columns);
-  const router = useRouter();
 
   // 工具按钮的渲染函数
   const renderToolButton = useCallback(
-    ({ item }: { item: Tool }) => {
-      switch (item.type) {
-        case ToolType.LINK:
-          return (
-            <ToolButtonLink
-              name={item.name}
-              href={item.href}
-              icon={item.icon}
-              textWidth={scaledTextWidth}
-              fontSize={scaledFontSize}
-            />
-          );
-
-        case ToolType.WEBVIEW:
-          return (
-            <ToolButtonLink
-              name={item.name}
-              href={getWebViewHref(item.params)}
-              icon={item.icon}
-              textWidth={scaledTextWidth}
-              fontSize={scaledFontSize}
-            />
-          );
-
-        default:
-          return (
-            <ToolButton
-              name={item.name}
-              icon={item.icon}
-              onPress={() => toolOnPress(item, router)}
-              textWidth={scaledTextWidth}
-              fontSize={scaledFontSize}
-            />
-          );
-      }
+    ({ item }: { item: ToolboxTool }) => {
+      return <ToolButton tool={item} textWidth={scaledTextWidth} fontSize={scaledFontSize} />;
     },
-    [router, scaledTextWidth, scaledFontSize],
+    [scaledTextWidth, scaledFontSize],
   );
 
   // FlatList 的 keyExtractor
-  const keyExtractor = useCallback((item: Tool, index: number) => {
+  const keyExtractor = useCallback((item: ToolboxTool, index: number) => {
     return item.name ? `${item.name}-${index}` : `placeholder-${index}`;
   }, []);
 

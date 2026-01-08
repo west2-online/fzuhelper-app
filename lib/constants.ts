@@ -42,6 +42,8 @@ export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 
 // SSO 登录
 export const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';
+export const SSO_LOGIN_SMS_URL = 'https://sso.fzu.edu.cn/api/protected/sms/publicNoToken/sendSmsCode';
+export const SSO_LOGIN_VERIFY_SMS_CODE_URL = 'https://sso.fzu.edu.cn/api/protected/sms/checkToken';
 export const SSO_LOGIN_USER_KEY = 'sso_login_user';
 export const SSO_LOGIN_COOKIE_KEY = 'sso_login_cookie';
 export const SSO_LOGIN_COOKIE_DOMAIN = 'https://sso.fzu.edu.cn';
@@ -67,6 +69,7 @@ export const COURSE_SETTINGS_KEY = 'course_settings';
 export const COURSE_DATA_KEY = 'course_data';
 export const COURSE_LOCAL_CALENDAR_ID_KEY = 'course_local_calendar_id';
 export const COURSE_TERMS_LIST_KEY = 'course_terms_list';
+export const COURSE_PAGE_ALL_DATA_KEY = 'course_page_all_data';
 export const CLASS_SCHEDULES = [
   ['08:20', '09:05'],
   ['09:15', '10:00'],
@@ -95,6 +98,9 @@ export const CLASS_SCHEDULES_MINUTES = [
 ];
 export const CLASS_BREAK_NOON = [720, 840]; // 12:00 - 14:00
 export const CLASS_BREAK_EVENING = [1050, 1140]; // 17:30 - 19:00
+
+// 工具箱
+export const TOOLBOX_CONFIG_KEY = 'toolbox_config';
 
 // 考场
 export const EXAM_ROOM_KEY = 'exam_room';
@@ -159,6 +165,7 @@ export const IOS_APP_GROUP = 'group.FzuHelper.NextCourse'; // iOS App Group，�
 // 日期时间格式化
 export const DATE_FORMAT = 'YYYY/M/D';
 export const DATE_FORMAT_FULL = 'YYYY/MM/DD';
+export const DATE_FORMAT_DASH = 'YYYY-MM-DD';
 export const TIME_FORMAT = 'HH:mm';
 export const TIME_SECOND_FORMAT = `${TIME_FORMAT}:ss`;
 export const DATETIME_FORMAT = `${DATE_FORMAT} ${TIME_FORMAT}`;

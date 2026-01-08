@@ -42,6 +42,28 @@ export async function getApiV1CommonContributor(options?: {
   });
 }
 
+/** 获取教务处通知 教务处教学通知查询接口 GET /api/v1/common/notice https://apifox.com/web/project/3275694/apis/api-109631164-run */
+export async function getApiV1CommonNotice(
+  // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
+  params: API.getApiV1CommonNoticeParams,
+  options?: { [key: string]: unknown }
+) {
+  return request<{
+    code: string;
+    message: string;
+    data: {
+      notices: { title: string; url: string; date: string }[];
+      total: number;
+    };
+  }>('/api/v1/common/notice', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** 学期信息 GET /api/v1/terms/info https://apifox.com/web/project/3275694/apis/api-227251089-run */
 export async function getApiV1TermsInfo(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
@@ -112,33 +134,6 @@ export async function getApiV2VersionAndroid(options?: {
     };
   }>('/api/v2/version/android', {
     method: 'GET',
-    ...(options || {}),
-  });
-}
-
-/** 获取教务处通知列表 GET /api/v1/common/notice */
-export async function fetchNoticeList(
-  params: {
-    pageNum: number;
-  },
-  options?: { [key: string]: unknown }
-) {
-  return request<{
-    code: string;
-    message: string;
-    data: {
-      notices: {
-        title: string;
-        url: string;
-        date: string;
-      }[];
-      total: number;
-    };
-  }>('/api/v1/common/notice', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
     ...(options || {}),
   });
 }
