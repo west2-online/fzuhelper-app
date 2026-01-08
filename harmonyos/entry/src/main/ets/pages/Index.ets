@@ -109,4 +109,16 @@ struct Index {
     .height('100%')
     .width('100%')
   }
+
+  onBackPress(): boolean | void {
+    try {
+      if (this.controller.webviewController.accessBackward()) {
+        this.controller.webviewController.backward();
+        return true;
+      }
+    } catch (error) {
+      // TODO: Implement error handling.
+    }
+    return false;
+  }
 }

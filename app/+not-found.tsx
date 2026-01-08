@@ -8,7 +8,7 @@ import { Text } from '@/components/ui/text';
 export default function NotFoundScreen() {
   return (
     <>
-      <Stack.Screen name="哎呀，页面不见啦！" />
+      <Stack.Screen options={{ title: '哎呀，页面不见啦！' }} />
 
       {/* 页面内容 */}
       <PageContainer className="items-center justify-center p-5">
