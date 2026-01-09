@@ -29,6 +29,21 @@ import OnekeyComment, { CourseInfo } from '@/lib/onekey-comment';
 import { LocalUser } from '@/lib/user';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+import { cssInterop } from 'nativewind';
+
+// react-native-gesture-handler 的 TextInput 在web默认不支持
+cssInterop(TextInput, {
+  className: {
+    target: 'style',
+  },
+  placeholderClassName: {
+    target: false,
+    nativeStyleToProp: {
+      color: 'placeholderTextColor',
+    },
+  },
+});
+
 interface CourseCardProps {
   courseName: string;
   teacherName: string;
