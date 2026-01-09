@@ -2,20 +2,6 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { TextInput } from 'react-native-gesture-handler';
 import { TextInputProps } from 'react-native';
-import { cssInterop } from 'nativewind';
-
-// react-native-gesture-handler 的 TextInput 在web默认不支持
-cssInterop(TextInput, {
-  className: {
-    target: 'style',
-  },
-  placeholderClassName: {
-    target: false,
-    nativeStyleToProp: {
-      color: 'placeholderTextColor',
-    },
-  },
-});
 
 const Input = React.forwardRef<React.ComponentRef<typeof TextInput>, TextInputProps>(
   ({ className, placeholderClassName, ...props }, ref) => {
