@@ -75,11 +75,14 @@ export class NativeRequestModule {
         },
       }
 
-      // const sessionConfig: rcp.SessionConfiguration ={
-      //   cacheControl:
-      // }
+      const sessionConfig: rcp.SessionConfiguration = {
+        cacheControl: {
+          noCache: true,
+          noStore: true,
+        }
+      }
 
-      const session = rcp.createSession();
+      const session = rcp.createSession(sessionConfig);
 
       const response: rcp.Response = await session.fetch(request);
       const headersCanonical = processHeaders(response.headers);
@@ -135,11 +138,14 @@ export class NativeRequestModule {
         },
       }
 
-      // const sessionConfig: rcp.SessionConfiguration ={
-      //   cacheControl:
-      // }
+      const sessionConfig: rcp.SessionConfiguration = {
+        cacheControl: {
+          noCache: true,
+          noStore: true,
+        }
+      }
 
-      const session = rcp.createSession();
+      const session = rcp.createSession(sessionConfig);
 
       const response: rcp.Response = await session.fetch(request);
       const headersCanonical = processHeaders(response.headers);
