@@ -79,7 +79,7 @@ function CoursePage() {
   );
 
   // 通过 viewability 回调获取当前周
-  const handleViewableItemsChanged = useCallback(
+  const handleViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken<(typeof weekArray)[0]>[] }) => {
       if (viewableItems.length > 0) {
         const firstViewableWeek = viewableItems[0].item.week;
@@ -88,8 +88,7 @@ function CoursePage() {
         }
       }
     },
-    [safeSetSelectedWeek, selectedWeek],
-  );
+  ).current;
 
   const weekPickerData = useMemo(
     () =>
@@ -166,9 +165,13 @@ function CoursePage() {
     [schedulesByDays, flatListLayout],
   );
 
-  const onLayout = useCallback(({ nativeEvent }: { nativeEvent: { layout: LayoutRectangle } }) => {
-    setFlatListLayout(nativeEvent.layout);
-  }, []);
+  const onLayout = useCallback(
+    ({ nativeEvent }: { nativeEvent: { layout: LayoutRectangle } }) => {
+      console.log('FlatList layout changed:', nativeEvent.layout);
+      if (flatListLayout.height === 0) setFlatListLayout(nativeEvent.layout);
+    },
+    [flatListLayout.height],
+  );
 
   const onClose = useCallback(() => {
     setShowWeekSelector(false);
