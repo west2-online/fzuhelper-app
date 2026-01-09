@@ -37,7 +37,7 @@ struct Index {
   build() {
     RelativeContainer() {
       Web({
-        src: this.PREFIX + 'index.html',
+        src: this.PREFIX,
         controller: this.controller.webviewController
       })
         .width('100%')
@@ -56,6 +56,17 @@ struct Index {
           // 解决跨域，router.replace等问题
           const url = event.request.getRequestUrl()
           console.log("WEBVIEW INTERCEPT: " + url)
+          if (url === this.PREFIX) {
+            let response = new WebResourceResponse();
+            response.setResponseData($rawfile('bundle/index.html'));
+            response.setResponseEncoding('utf-8');
+            response.setResponseMimeType('text/html');
+            response.setResponseCode(200);
+            response.setReasonMessage('OK');
+            response.setResponseIsReady(true);
+            console.log('returning homepage...')
+            return response;
+          }
           if (url.startsWith(this.PREFIX)) {
             let rawfileName: string = 'bundle/' + url.substring(this.PREFIX.length)
             console.log(rawfileName)
