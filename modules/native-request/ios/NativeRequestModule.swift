@@ -41,24 +41,34 @@ func url_encode(url: String) -> URL? {
 }
 
 func build_resp(data_response: DataResponse<Data, AFError>) -> ResponseMapper {
-  var resp = ResponseMapper(status: -1, data: Data(), headers: [:], error: nil)
-  if let error = data_response.error {
-    resp.error = "请求失败: \(error)"
-    return resp
-  }
-  // error 和 response 同时为 nil 的情况未知，此处防御性编程
-  guard let response: HTTPURLResponse = data_response.response else {
-    if let url = data_response.request?.url {
-      resp.error = "请求失败: Alamofire 未报错但服务器无响应，无法连接到 \(url.absoluteString)"
-    } else {
-      resp.error = "请求失败: Alamofire 未报错但服务器无响应"
+    var resp = ResponseMapper(status: -1, data: Data(), headers: [:], error: nil)
+    if let error = data_response.error {
+        // 检查是否是空响应体错误
+        if let afError = error.asAFError,
+            case .responseSerializationFailed(let reason) = afError,
+            case .inputDataNilOrZeroLength = reason
+        {
+            // 情况1：是空响应体错误 → 忽略，继续执行后续代码
+        } else {
+            // 情况2：其他所有错误 → 处理错误
+            resp.error = "请求失败: \(error)"
+            return resp
+        }
+        // 情况3：没有错误或错误已被忽略 → 继续向下执行
     }
+    // error 和 response 同时为 nil 的情况未知，此处防御性编程
+    guard let response: HTTPURLResponse = data_response.response else {
+        if let url = data_response.request?.url {
+            resp.error = "请求失败: Alamofire 未报错但服务器无响应，无法连接到 \(url.absoluteString)"
+        } else {
+            resp.error = "请求失败: Alamofire 未报错但服务器无响应"
+        }
+        return resp
+    }
+    resp.status = response.statusCode
+    resp.data = data_response.data ?? Data()  // 响应体为空时用空数组代替
+    resp.headers = response.allHeaderFields
     return resp
-  }
-  resp.status = response.statusCode
-  resp.data = data_response.data ?? Data()  // 响应体为空时用空数组代替
-  resp.headers = response.allHeaderFields
-  return resp
 }
 
 // NativeRequest，负责发起网络请求，使用 Alamofire 库
