@@ -42,6 +42,11 @@ jobs:
           out-file-path: eas-cli
           extract: true
 
+      - name: Compute and Inject buildNumber
+        run: |
+          chmod +x scripts/inject-buildnumber.sh
+          ./scripts/inject-buildnumber.sh
+
       - name: EAS Build iOS
         run: |
           node ./eas-cli/eas/bin/run build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
