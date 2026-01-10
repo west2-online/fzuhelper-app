@@ -1,9 +1,6 @@
 name: Build IPA
 
 on:
-  push:
-    branches:
-      - fix/ios-submit
   workflow_call:
 
 jobs:
