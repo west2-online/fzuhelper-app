@@ -1708,6 +1708,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@ncdai/react-wheel-picker@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@ncdai/react-wheel-picker/-/react-wheel-picker-1.1.0.tgz#66a46aab40fb4694a016f8b9cbe4715aa918136b"
+  integrity sha512-c6zFfO0lVlJCnmBufBbmpq7GFYFrLi1wpt11wZDP5EukWMLKd3lrBNQ1Mofv8fsxEsM0PqksMCvxwJg3NrOBgQ==
+
 "@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1":
   version "5.1.1-v1"
   resolved "https://registry.yarnpkg.com/@nicolo-ribaudo/eslint-scope-5-internals/-/eslint-scope-5-internals-5.1.1-v1.tgz#dbf733a965ca47b1973177dc0bb6c889edcfb129"

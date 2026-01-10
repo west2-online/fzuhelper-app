@@ -1,27 +1,25 @@
-import WheelPicker from '@quidone/react-native-wheel-picker';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Modal, Pressable, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import { Text } from '@/components/ui/text';
+import { WheelPicker, WheelPickerWrapper } from '@ncdai/react-wheel-picker';
+import '@ncdai/react-wheel-picker/style.css';
 
-interface PickerModalProps<T> {
+interface PickerModalProps {
   visible: boolean;
   title: string;
-  data: { value: T; label: string }[];
-  value: T;
+  data: { value: string; label: string }[];
+  value: string;
   onClose: () => void;
-  onConfirm: (value: T) => void;
+  onConfirm: (value: string) => void;
 }
 
-export default function PickerModal<T>({ visible, title, data, value, onClose, onConfirm }: PickerModalProps<T>) {
+export default function PickerModal({ visible, title, data, value, onClose, onConfirm }: PickerModalProps) {
   const [tempValue, setTempValue] = useState(value);
-  const [pickerKey, setPickerKey] = useState(0);
-  const colorScheme = useColorScheme();
-  const itemTextStyle = useMemo(() => ({ color: colorScheme === 'dark' ? 'white' : 'black' }), [colorScheme]);
 
   const HEIGHT = 310; // 预估总高度
   const DURATION = 250; // 动画时长
@@ -47,7 +45,6 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
   useEffect(() => {
     if (visible) {
       setTempValue(value);
-      setPickerKey(prev => prev + 1); // 强制重新渲染解决偏移问题
       handleAnimation(true);
     }
   }, [handleAnimation, value, visible]);
@@ -60,8 +57,8 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
     handleAnimation(false, () => onConfirm(tempValue));
   }, [onConfirm, tempValue, handleAnimation]);
 
-  const onValueChanged = useCallback(({ item }: { item: { value: T } }) => {
-    setTempValue(item.value);
+  const onValueChanged = useCallback((newValue: string) => {
+    setTempValue(newValue);
   }, []);
 
   const backgroundStyle = useAnimatedStyle(() => ({
@@ -90,20 +87,20 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
               <IcConfirm className="m-1 h-6 w-6" />
             </Pressable>
           </View>
-          <WheelPicker
-            key={pickerKey}
-            style={styles.wheelpicker}
-            data={data}
-            value={tempValue}
-            onValueChanged={onValueChanged}
-            itemTextStyle={itemTextStyle}
-            enableScrollByTapOnItem
-          />
+          <WheelPickerWrapper>
+            <WheelPicker
+              options={data}
+              value={tempValue}
+              onValueChange={onValueChanged}
+              optionItemHeight={45}
+              visibleCount={16}
+              classNames={{
+                highlightItem: 'text-lg bg-gray-100 dark:bg-gray-900 rounded-md',
+              }}
+            />
+          </WheelPickerWrapper>
         </Animated.View>
       </View>
     </Modal>
   );
 }
-
-// 解决滚动到高处时按钮无法点击（iOS）
-const styles = StyleSheet.create({ wheelpicker: { overflow: 'hidden' } });

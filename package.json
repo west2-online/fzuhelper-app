@@ -26,6 +26,7 @@
     "@bacons/apple-targets": "^0.2.1",
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@expo/vector-icons": "^15.0.3",
+    "@ncdai/react-wheel-picker": "^1.1.0",
     "@quidone/react-native-wheel-picker": "^1.6.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-clipboard/clipboard": "^1.16.1",
