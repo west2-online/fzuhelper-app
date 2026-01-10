@@ -50,6 +50,7 @@ export const SSO_LOGIN_COOKIE_DOMAIN = 'https://sso.fzu.edu.cn';
 
 // 学习空间预约
 export const LEARNING_CENTER_TOKEN_KEY = 'learning_center_token';
+export const REMOTE_MAP_URL = 'https://download.w2fzu.com/statistic/map.webp';
 
 // 隐私政策允许情况
 export const IS_PRIVACY_POLICY_AGREED = 'is_privacy_policy_agreed';
