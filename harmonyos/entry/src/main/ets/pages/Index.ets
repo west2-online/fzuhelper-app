@@ -2,6 +2,7 @@ import { webview } from '@kit.ArkWeb';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { WebViewControllerProxy } from '@hzw/ohos-dsbridge'
 import { NativeRequestModule } from '../bridge/NativeRequestModule';
+import { DEBUG } from 'BuildProfile';
 
 @Entry
 @Component
@@ -25,11 +26,13 @@ struct Index {
   ])
 
   aboutToAppear(): void {
-    try {
-      // 配置Web开启无线调试模式，指定TCP Socket的端口。
-      webview.WebviewController.setWebDebuggingAccess(true);
-    } catch (error) {
-      console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
+    if (DEBUG) {
+      try {
+        // 配置Web开启无线调试模式，指定TCP Socket的端口。
+        webview.WebviewController.setWebDebuggingAccess(true);
+      } catch (error) {
+        console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
+      }
     }
     this.controller.addJavascriptObject(new NativeRequestModule(), 'NativeRequest')
   }
@@ -49,6 +52,7 @@ struct Index {
         .geolocationAccess(true)
         .horizontalScrollBarAccess(false)
         .mixedMode(MixedMode.All)
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
         .onInterceptRequest((event) => {
           if (!event) {
             return null
