@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { useColorScheme } from 'nativewind';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1CommonContributor } from '@/api/generate';
@@ -13,7 +13,7 @@ import useApiRequest from '@/hooks/useApiRequest';
 
 export default function Contributors() {
   const { data } = useApiRequest(getApiV1CommonContributor, {});
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
 
   return (
     <>

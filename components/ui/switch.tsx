@@ -88,7 +88,7 @@ const SwitchNative = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives
 SwitchNative.displayName = 'SwitchNative';
 
 const Switch = Platform.select({
-  web: SwitchWeb,
+  // web: SwitchWeb,
   default: SwitchNative,
 });
 

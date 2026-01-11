@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Href, router } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
-import { View, useColorScheme } from 'react-native';
+import { View } from 'react-native';
 import { BorderlessButton } from 'react-native-gesture-handler';
 
 interface IconProps {
@@ -14,7 +15,7 @@ interface IconProps {
 }
 
 export const Icon: React.FC<IconProps> = ({ name, size = 24, color, className, href, onPress }) => {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
 
   // 根据系统主题动态设置默认颜色
   const adaptiveColor = color || (colorScheme === 'dark' ? 'white' : 'black');

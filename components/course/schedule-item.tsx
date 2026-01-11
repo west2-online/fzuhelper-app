@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from 'react';
-import { Pressable, useColorScheme, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 
@@ -7,6 +7,7 @@ import OverlapIcon from '@/assets/images/course/overlap.svg';
 import { SCHEDULE_ITEM_MARGIN, type CourseInfo } from '@/lib/course';
 import { getCourseColor, getTextColor } from '@/utils/random-color';
 
+import { useColorScheme } from 'nativewind';
 import ScheduleDetailsDialog from './schedule-detail-dialog';
 
 interface ScheduleItemProps {
@@ -19,7 +20,7 @@ interface ScheduleItemProps {
 // ScheduleItem 组件，用于显示课程表中的一节课
 const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color }) => {
   const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const isDarkMode = useMemo(() => colorScheme === 'dark', [colorScheme]);
 
   return (

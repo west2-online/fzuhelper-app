@@ -3,7 +3,7 @@ import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { Appearance, Platform } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -27,13 +27,35 @@ export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
+    let listener: { remove: () => void } | null = null;
     (async () => {
       const storedTheme = await getColorScheme();
       // 此处配置 NativeWind 的颜色方案
       // console.log('storedTheme', storedTheme);
-      setColorScheme(storedTheme);
+
+      if (storedTheme === 'system') {
+        // 手动处理系统跟随，解决 WebView 中 NativeWind 可能无法自动感知初始状态的问题
+        const systemScheme = Appearance.getColorScheme();
+        setColorScheme(systemScheme ?? 'light');
+
+        listener = Appearance.addChangeListener(({ colorScheme }) => {
+          setColorScheme(colorScheme ?? 'light');
+        });
+      } else {
+        setColorScheme(storedTheme);
+      }
     })();
+
+    return () => {
+      if (listener) {
+        listener.remove();
+      }
+    };
   }, [setColorScheme]);
+
+  useEffect(() => {
+    console.log('Current color scheme:', colorScheme);
+  }, [colorScheme]);
 
   useEffect(() => {
     // https://github.com/facebook/react-native/issues/15114#issuecomment-2422537975

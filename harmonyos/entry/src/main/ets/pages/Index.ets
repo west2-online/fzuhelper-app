@@ -52,6 +52,7 @@ struct Index {
         .geolocationAccess(true)
         .horizontalScrollBarAccess(false)
         .mixedMode(MixedMode.All)
+        .darkMode(WebDarkMode.Auto)
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
         .onInterceptRequest((event) => {
           if (!event) {

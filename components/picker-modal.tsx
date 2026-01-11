@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -6,19 +6,26 @@ import { scheduleOnRN } from 'react-native-worklets';
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import { Text } from '@/components/ui/text';
-import { WheelPicker, WheelPickerWrapper } from '@ncdai/react-wheel-picker';
+import { WheelPicker, WheelPickerValue, WheelPickerWrapper } from '@ncdai/react-wheel-picker';
 import '@ncdai/react-wheel-picker/style.css';
 
-interface PickerModalProps {
+interface PickerModalProps<T> {
   visible: boolean;
   title: string;
-  data: { value: string; label: string }[];
-  value: string;
+  data: { value: T; label: string }[];
+  value: T;
   onClose: () => void;
-  onConfirm: (value: string) => void;
+  onConfirm: (value: T) => void;
 }
 
-export default function PickerModal({ visible, title, data, value, onClose, onConfirm }: PickerModalProps) {
+export default function PickerModal<T extends WheelPickerValue>({
+  visible,
+  title,
+  data,
+  value,
+  onClose,
+  onConfirm,
+}: PickerModalProps<T>) {
   const [tempValue, setTempValue] = useState(value);
 
   const HEIGHT = 310; // 预估总高度
@@ -57,9 +64,16 @@ export default function PickerModal({ visible, title, data, value, onClose, onCo
     handleAnimation(false, () => onConfirm(tempValue));
   }, [onConfirm, tempValue, handleAnimation]);
 
-  const onValueChanged = useCallback((newValue: string) => {
+  const onValueChanged = useCallback((newValue: T) => {
     setTempValue(newValue);
   }, []);
+
+  const options = useMemo(() => {
+    return data.map(item => ({
+      value: item.value,
+      label: <Text className="w-full text-center text-lg text-black dark:text-white">{item.label}</Text>,
+    }));
+  }, [data]);
 
   const backgroundStyle = useAnimatedStyle(() => ({
     opacity: fadeAnim.value,
@@ -89,13 +103,13 @@ export default function PickerModal({ visible, title, data, value, onClose, onCo
           </View>
           <WheelPickerWrapper>
             <WheelPicker
-              options={data}
+              options={options}
               value={tempValue}
               onValueChange={onValueChanged}
               optionItemHeight={45}
               visibleCount={16}
               classNames={{
-                highlightItem: 'text-lg bg-gray-100 dark:bg-gray-900 rounded-md',
+                highlightItem: 'bg-black/5 rounded-md',
               }}
             />
           </WheelPickerWrapper>

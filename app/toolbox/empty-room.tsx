@@ -16,8 +16,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { TouchableOpacity, View, useColorScheme } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
 import DateTimePicker, { useDefaultClassNames } from 'react-native-ui-datepicker';
 
@@ -37,7 +38,7 @@ interface DateNavigatorProps {
 }
 
 function DateNavigator({ date, onPress }: DateNavigatorProps) {
-  const currentColorScheme = useColorScheme();
+  const { colorScheme: currentColorScheme } = useColorScheme();
   const iconColor = useMemo(() => (currentColorScheme === 'dark' ? 'white' : 'black'), [currentColorScheme]);
 
   return (

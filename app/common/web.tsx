@@ -6,7 +6,7 @@ import Geolocation, { GeolocationOptions } from '@react-native-community/geoloca
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform, Share, View, useColorScheme } from 'react-native';
+import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
@@ -26,6 +26,7 @@ import {
 import SSOLogin from '@/lib/sso-login';
 import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
+import { useColorScheme } from 'nativewind';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
 export interface WebParams {
@@ -47,7 +48,7 @@ export default function Web() {
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
   const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const headerHeight = useHeaderHeight();
 
   const setCookies = useCallback(async () => {
