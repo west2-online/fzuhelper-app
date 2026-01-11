@@ -54,6 +54,9 @@ struct Index {
         .mixedMode(MixedMode.All)
         .darkMode(WebDarkMode.Auto)
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+        .onDragStart((event) => {
+          event.setData(null)
+        })
         .onInterceptRequest((event) => {
           if (!event) {
             return null

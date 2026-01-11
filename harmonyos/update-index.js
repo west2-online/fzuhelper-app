@@ -22,6 +22,8 @@ if (viewportRegex.test(html)) {
 const styleContent = `
   <style>
       body {
+          -webkit-user-select: none;
+          user-select: none;
           background-color: #fff;
       }
       @media (prefers-color-scheme: dark) {
