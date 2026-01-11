@@ -31,6 +31,9 @@ if (Platform.OS === 'web') {
     className: {
       target: 'style',
     },
+    contentContainerClassName: {
+      target: 'contentContainerStyle',
+    },
   });
   cssInterop(Animated.View, {
     className: {
