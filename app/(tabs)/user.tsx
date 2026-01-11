@@ -1,6 +1,7 @@
+import { Image } from 'expo-image';
 import { Href, router, Tabs } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Image, ImageSourcePropType, View } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import LabelIconEntry from '@/components/label-icon-entry';

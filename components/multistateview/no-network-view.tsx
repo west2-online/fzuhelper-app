@@ -1,7 +1,8 @@
 import NoNetImage from '@/assets/images/multistateview/no_network.png';
 import { cn } from '@/lib/utils';
+import { Image } from 'expo-image';
 import { memo } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import StateViewProps from './state-view-props';
 
 const NoNetworkView = ({ className, style, refresh }: StateViewProps & { refresh?: () => void }) => {

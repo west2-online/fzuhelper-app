@@ -1,10 +1,10 @@
 import { fromByteArray } from 'base64-js';
+import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { RotateCwIcon } from 'lucide-react-native';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   FlatList,
-  Image,
   Platform,
   RefreshControl,
   StyleSheet,

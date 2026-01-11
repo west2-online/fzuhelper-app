@@ -1,4 +1,5 @@
-import { ImageBackground, View, type ViewProps } from 'react-native';
+import { ImageBackground } from 'expo-image';
+import { View, type ViewProps } from 'react-native';
 
 import { cn } from '@/lib/utils';
 

@@ -1,5 +1,6 @@
+import { Image } from 'expo-image';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Image, Pressable, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 
 import {
   DescriptionList,

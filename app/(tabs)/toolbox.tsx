@@ -1,6 +1,7 @@
+import { Image } from 'expo-image';
 import { type Href, useRouter } from 'expo-router';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Image, Platform, Pressable, useWindowDimensions, View } from 'react-native';
+import { FlatList, Platform, Pressable, useWindowDimensions, View } from 'react-native';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';

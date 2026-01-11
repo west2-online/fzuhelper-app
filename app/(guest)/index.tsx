@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
+import { Image } from 'expo-image';
 import { Stack, useFocusEffect } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, AppState, BackHandler, Image, Linking, Platform, TouchableOpacity, View } from 'react-native';
+import { Alert, AppState, BackHandler, Linking, Platform, TouchableOpacity, View } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 
 import {
@@ -251,7 +252,7 @@ export default function SplashScreen() {
             {/* Splash内容 */}
             <View className="relative mb-10 flex-1">
               {/* Image 占据全部空间 */}
-              <Image className="h-full w-full" src={splashImage} resizeMode="cover" />
+              <Image className="h-full w-full" source={splashImage} resizeMode="cover" />
               {/* TouchableOpacity 放置在 Image 的下方 */}
               {splashType !== 1 && (
                 <View className="absolute bottom-10 left-0 right-0 flex items-center">

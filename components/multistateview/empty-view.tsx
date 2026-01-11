@@ -1,7 +1,8 @@
 import EmptyImage from '@/assets/images/multistateview/empty.png';
 import { cn } from '@/lib/utils';
+import { Image } from 'expo-image';
 import { memo } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import StateViewProps from './state-view-props';
 
 const EmptyView = ({ className, style, refresh }: StateViewProps & { refresh?: () => void }) => {
