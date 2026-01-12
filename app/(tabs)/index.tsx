@@ -17,7 +17,7 @@ import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { hasCustomBackground } from '@/lib/appearance';
 import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
-import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
+import { CourseCache, getCourseSetting } from '@/lib/course';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
 
@@ -233,7 +233,6 @@ function CoursePage() {
 
 export default function HomePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [resetKey, setResetKey] = useState(0);
   const prevSettingsRef = useRef<string | null>(null);
 
   const { handleError } = useSafeResponseSolve();
@@ -267,33 +266,33 @@ export default function HomePage() {
 
         // 检测设置是否变化
         if (prevSettingsRef.current !== currentSettingsStr) {
-          console.log('Settings changed, invalidating cache');
+          console.log('Settings changed, refreshing course data');
           prevSettingsRef.current = currentSettingsStr;
 
-          // 使 React Query 缓存失效，触发重新加载
-          await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
-
-          // 重置组件（触发 Suspense 重新渲染）
-          setResetKey(prev => prev + 1);
+          // 显示刷新图标并刷新数据
+          if (isRefreshing) return;
+          setIsRefreshing(true);
+          try {
+            await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+          } catch (error: any) {
+            console.error('Settings refresh failed:', error);
+            handleError(error);
+            toast.error('刷新失败，请稍后再试');
+          } finally {
+            setIsRefreshing(false);
+          }
         }
       };
 
       checkSettingsChange();
-    }, []),
+    }, [isRefreshing, handleError]),
   );
 
   const onRefresh = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      const setting = await getCourseSetting();
-      const queryTerm = setting.selectedSemester;
-
-      await forceRefreshCourseData(queryTerm);
-
       await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
-
-      setResetKey(prev => prev + 1);
     } catch (error: any) {
       console.error('Refresh failed:', error);
       handleError(error);
@@ -309,9 +308,9 @@ export default function HomePage() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         contentContainerClassName="flex-1"
       >
-        <CourseErrorBoundary onReset={() => setResetKey(prev => prev + 1)} handleError={handleError}>
+        <CourseErrorBoundary handleError={handleError}>
           <Suspense fallback={<Loading />}>
-            <CoursePage key={resetKey} />
+            <CoursePage />
           </Suspense>
         </CourseErrorBoundary>
       </ScrollView>
