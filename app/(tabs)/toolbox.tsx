@@ -39,7 +39,7 @@ import { isToolboxTool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/u
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen, getApiV1ToolboxConfig } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
-import { TOOLBOX_CONFIG_KEY } from '@/lib/constants';
+import { EXPIRE_ONE_DAY, TOOLBOX_BANNER_KEY, TOOLBOX_CONFIG_KEY } from '@/lib/constants';
 import DeviceInfo from 'react-native-device-info';
 import { toast } from 'sonner-native';
 
@@ -376,11 +376,15 @@ function applyTypeAndExtra(tool: Partial<ToolboxTool>, item: any): Partial<Toolb
 
 // 自定义 Hook：管理横幅和工具数据
 const useToolsPageData = (columns: number) => {
-  const { data: bannerData } = useApiRequest(getApiV1LaunchScreenScreen, {
-    type: 2, // 1为开屏页，2为轮播图
-    student_id: LocalUser.getUser().userid || '',
-    device: Platform.OS,
-  });
+  const { data: bannerData } = useApiRequest(
+    getApiV1LaunchScreenScreen,
+    {
+      type: 2, // 1为开屏页，2为轮播图
+      student_id: LocalUser.getUser().userid || '',
+      device: Platform.OS,
+    },
+    { persist: true, queryKey: [TOOLBOX_BANNER_KEY], staleTime: EXPIRE_ONE_DAY },
+  );
   const { data: configData } = useApiRequest(
     getApiV1ToolboxConfig,
     {
@@ -388,7 +392,7 @@ const useToolsPageData = (columns: number) => {
       student_id: LocalUser.getUser().userid || '',
       platform: Platform.OS,
     },
-    { persist: true, queryKey: [TOOLBOX_CONFIG_KEY] },
+    { persist: true, queryKey: [TOOLBOX_CONFIG_KEY], staleTime: EXPIRE_ONE_DAY },
   );
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
   const userType = useMemo(() => LocalUser.getUser().type as UserType, []);

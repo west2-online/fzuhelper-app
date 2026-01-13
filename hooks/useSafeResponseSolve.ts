@@ -73,6 +73,16 @@ export const useSafeResponseSolve = () => {
 
         case RejectEnum.BizFailed:
           // 返回业务数据（如果需要在调用处处理），这里直接返回感觉怪怪的，可以协助修改一下
+          const bizData = error.data as { code?: string; message?: string } | unknown;
+          if (bizData && typeof bizData === 'object' && 'message' in bizData) {
+            if ((bizData as { message?: string }).message === '没有可用图片') {
+              // 静默处理该错误
+              console.log('静默处理无可用图片的业务异常');
+              break;
+            } else {
+              console.error('业务异常:', bizData);
+            }
+          }
           return error.data;
 
         case RejectEnum.InternalFailed:

@@ -22,6 +22,7 @@ import { getApiV1LaunchScreenImagePointTime, getApiV1LaunchScreenScreen } from '
 import SplashImage from '@/assets/images/splash.png';
 import SplashLogoIcon from '@/assets/images/splash_logo.png';
 
+import { queryClient } from '@/components/query-provider';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import {
   DATE_FORMAT_DASH,
@@ -29,6 +30,7 @@ import {
   SPLASH_DATE,
   SPLASH_DISPLAY_COUNT,
   SPLASH_ID,
+  SPLASH_KEY,
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
@@ -80,21 +82,42 @@ export default function SplashScreen() {
     }, 1);
   }, [redirect]);
 
-  // 拉取Splash并展示
-  const getSplash = useCallback(async () => {
-    console.log('getSplash');
+  // 异步更新 Splash
+  async function updateSplash() {
+    console.log('updateSplash');
     try {
       const result = await getApiV1LaunchScreenScreen({
         type: 1,
         student_id: LocalUser.getUser().userid || '',
         device: Platform.OS,
       });
-      if (result.data.data.length === 0) {
-        // 理论上不会触发
+
+      if (!result || !result.data.data) {
+        console.log('no new splash');
+        return;
+      }
+      queryClient.setQueryData([SPLASH_KEY], result);
+      console.log('splash updated successfully');
+    } catch (error: any) {
+      queryClient.setQueryData([SPLASH_KEY], error.data);
+      console.log('splash update error:', error);
+    }
+  }
+
+  // 拉取Splash并展示
+  const getSplash = useCallback(async () => {
+    console.log('getSplash');
+    try {
+      let result = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1LaunchScreenScreen>>>([SPLASH_KEY]);
+      updateSplash();
+
+      if (!result || !result.data.data) {
         navigateToHome();
+        console.log('no cached splash');
         return;
       }
       const splash = result.data.data[0];
+      console.log('splash fetched:', splash);
       if (splash.id?.toString() !== (await AsyncStorage.getItem(SPLASH_ID))) {
         // ID与上次不同，重置计数
         await AsyncStorage.multiSet([
@@ -112,6 +135,7 @@ export default function SplashScreen() {
       }
       if ((splash.frequency || 10) < displayCount) {
         navigateToHome();
+        console.log('splash reach frequency limit');
         return;
       }
       // 未达到频次，展示
@@ -129,6 +153,7 @@ export default function SplashScreen() {
     } catch {
       // 不使用 handleError，静默处理
       navigateToHome();
+      console.log('splash fetch error');
     }
   }, [navigateToHome]);
 
