@@ -17,7 +17,7 @@ import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { hasCustomBackground } from '@/lib/appearance';
 import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
-import { CourseCache, getCourseSetting } from '@/lib/course';
+import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
 
@@ -292,6 +292,10 @@ export default function HomePage() {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
+      const setting = await getCourseSetting();
+      const queryTerm = setting.selectedSemester;
+
+      await forceRefreshCourseData(queryTerm);
       await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
     } catch (error: any) {
       console.error('Refresh failed:', error);
