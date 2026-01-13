@@ -138,8 +138,6 @@ export function useCoursePageData() {
               // 触发 CoursePage 的刷新监听器，确保 UI 更新
               CourseCache.refresh();
               toast.success('课程数据已更新');
-            } else {
-              toast.info('课程数据无更新');
             }
           })
           .catch(error => {
