@@ -1,0 +1,57 @@
+diff --git a/node_modules/react-native-safe-area-context/lib/commonjs/SafeAreaView.web.js b/node_modules/react-native-safe-area-context/lib/commonjs/SafeAreaView.web.js
+index 903425e..f178203 100644
+--- a/node_modules/react-native-safe-area-context/lib/commonjs/SafeAreaView.web.js
++++ b/node_modules/react-native-safe-area-context/lib/commonjs/SafeAreaView.web.js
+@@ -17,13 +17,13 @@ const defaultEdges = {
+ };
+ function getEdgeValue(inset, current, mode) {
+   switch (mode) {
+-    case 'off':
+-      return current;
+     case 'maximum':
+       return Math.max(current, inset);
+     case 'additive':
+-    default:
+       return current + inset;
++    case 'off':
++    default:
++      return current;
+   }
+ }
+ const SafeAreaView = exports.SafeAreaView = /*#__PURE__*/React.forwardRef(({
+diff --git a/node_modules/react-native-safe-area-context/lib/module/SafeAreaView.web.js b/node_modules/react-native-safe-area-context/lib/module/SafeAreaView.web.js
+index 99856ad..3ae89bd 100644
+--- a/node_modules/react-native-safe-area-context/lib/module/SafeAreaView.web.js
++++ b/node_modules/react-native-safe-area-context/lib/module/SafeAreaView.web.js
+@@ -15,8 +15,9 @@ function getEdgeValue(inset, current, mode) {
+     case 'maximum':
+       return Math.max(current, inset);
+     case 'additive':
+-    default:
+       return current + inset;
++    default:
++      return current;
+   }
+ }
+ export const SafeAreaView = /*#__PURE__*/React.forwardRef(({
+diff --git a/node_modules/react-native-safe-area-context/src/SafeAreaView.web.tsx b/node_modules/react-native-safe-area-context/src/SafeAreaView.web.tsx
+index 59f4939..431f0aa 100644
+--- a/node_modules/react-native-safe-area-context/src/SafeAreaView.web.tsx
++++ b/node_modules/react-native-safe-area-context/src/SafeAreaView.web.tsx
+@@ -22,13 +22,13 @@ function getEdgeValue(
+   mode: EdgeMode | undefined,
+ ) {
+   switch (mode) {
+-    case 'off':
+-      return current;
+     case 'maximum':
+       return Math.max(current, inset);
+     case 'additive':
+-    default:
+       return current + inset;
++    case 'off':
++    default:
++      return current;
+   }
+ }
+ 

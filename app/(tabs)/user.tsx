@@ -137,7 +137,7 @@ export default function UserPage() {
             </View>
 
             {/* 菜单列表 */}
-            <View className="mt-4 space-y-4">
+            <View className="mt-4">
               {menuItems.map((item, index) => (
                 <LabelIconEntry
                   key={index}

@@ -7,12 +7,13 @@ let html = fs.readFileSync(filePath, 'utf8');
 const newViewport =
   '<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover, user-scalable=no"/>';
 const colorSchemeMeta = '<meta name="color-scheme" content="light dark"/>';
+const noFavIcon = '<link rel="icon" href="data:,"/>';
 
 // 移除已存在的 viewport meta 标签
 const viewportRegex = /<meta\s+name="viewport"[\s\S]*?>/i;
 
 if (viewportRegex.test(html)) {
-  html = html.replace(viewportRegex, newViewport + '\n' + colorSchemeMeta);
+  html = html.replace(viewportRegex, newViewport + '\n' + colorSchemeMeta + '\n' + noFavIcon);
 } else {
   console.error('Viewport meta tag not found in index.html');
   process.exit(1);

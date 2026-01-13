@@ -74,7 +74,7 @@ export default function AcademicPage() {
       <Stack.Screen options={{ title: '学业状况' }} />
       <PageContainer className="p-4">
         {/* 菜单列表 */}
-        <View className="mx-4 space-y-4">
+        <View className="mx-4">
           {MENU_ITEMS.filter(
             item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType),
           ).map((item, index) => (

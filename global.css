@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 14px; /* Web端默认每 1rem = 14px，使整体视觉（间距、文字）比原生更紧凑，解决 Web 端偏大的问题 */
+  }
+
   :root {
     /* 兼容已有组件 */
     --foreground: 240 10% 3.9%;
