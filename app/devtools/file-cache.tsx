@@ -9,16 +9,17 @@ import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
+// 工具函数：格式化文件大小和时间
 const formatSize = (bytes?: number) => {
   if (!bytes) return '0 KB';
   return `${(bytes / 1024).toFixed(1)} KB`;
 };
-
 const formatDateTime = (ms?: number | null) => {
   if (!ms) return '无';
   return new Date(ms).toLocaleString();
 };
 
+// 单行文件项组件
 const SimpleRow = ({
   item,
   onDelete,
@@ -49,7 +50,7 @@ const SimpleRow = ({
 export default function FileCachePage() {
   const [cachedFiles, setCachedFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-
+  // 刷新缓存列表
   const refresh = async () => {
     setLoading(true);
     try {
@@ -63,7 +64,7 @@ export default function FileCachePage() {
       });
       setCachedFiles(enriched);
     } catch (e) {
-      toast.error('刷新缓存失败');
+      toast.error('刷新缓存失败' + e);
     } finally {
       setLoading(false);
     }
@@ -73,6 +74,7 @@ export default function FileCachePage() {
     refresh();
   }, []);
 
+  // 删除单个缓存文件
   const deleteOne = async (uri: string) => {
     setLoading(true);
     try {
@@ -80,19 +82,20 @@ export default function FileCachePage() {
       toast.success('删除成功');
       await refresh();
     } catch (e) {
-      toast.error('删除失败');
+      toast.error('删除失败' + e);
     } finally {
       setLoading(false);
     }
   };
 
+  // 打开单个缓存文件
   const openOne = async (uri: string) => {
     try {
       if (!(await fileCache.openFile(uri))) {
         await Sharing.shareAsync(uri);
       }
     } catch (e) {
-      toast.error('打开文件失败');
+      toast.error('打开文件失败' + e);
     }
   };
 
@@ -103,7 +106,7 @@ export default function FileCachePage() {
   return (
     <PageContainer>
       <Stack.Screen options={{ title: '文件缓存管理' }} />
-      <SafeAreaView edges={['bottom']} style={{ flex: 1 }}>
+      <SafeAreaView edges={['bottom']} style={styles.container}>
         <View style={styles.toolbar}>
           <Button onPress={refresh} disabled={loading}>
             <Text>刷新</Text>
@@ -117,7 +120,7 @@ export default function FileCachePage() {
                 toast.success(`清理完成, 删除 ${r.deleted || 0} 个文件`);
                 await refresh();
               } catch (e) {
-                toast.error('清理失败');
+                toast.error('清理失败' + e);
               } finally {
                 setLoading(false);
               }
@@ -135,7 +138,7 @@ export default function FileCachePage() {
                 toast.success('清空全部完成');
                 await refresh();
               } catch (e) {
-                toast.error('清空全部失败');
+                toast.error('清空全部失败' + e);
               } finally {
                 setLoading(false);
               }
@@ -159,6 +162,9 @@ export default function FileCachePage() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   toolbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',

@@ -29,7 +29,9 @@ const downloadAndInstallApk = async (url: string, force: boolean) => {
       onProgress: progress => {
         try {
           downloadStore.updateProgress(progress);
-        } catch (e) {}
+        } catch (e) {
+          console.log('获取下载进度回调失败' + e);
+        }
       },
     });
     downloadStore.updateProgress(1);
@@ -108,7 +110,7 @@ const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: 
           console.log('android-update: removed stale update.apk', apk.uri);
         }
       } catch (e) {
-        console.warn('android-update: failed to delete stale apk', e);
+        console.log('android-update: failed to delete stale apk', e);
       }
       callbacks?.onNoUpdate?.();
     }

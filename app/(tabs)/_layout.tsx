@@ -87,18 +87,14 @@ export default function TabLayout() {
 
   // 应用启动时触发一次过期缓存清理
   useEffect(() => {
-    try {
-      fileCache
-        .cleanupExpired()
-        .then(r => {
-          if (r && (r as any).deleted) console.log('Initial cache cleanup deleted', (r as any).deleted, 'files');
-        })
-        .catch(e => {
-          console.warn('Initial cache cleanup failed', e);
-        });
-    } catch (e) {
-      console.warn('Initial cache cleanup schedule failed', e);
-    }
+    fileCache
+      .cleanupExpired()
+      .then(r => {
+        if (r && (r as any).deleted) console.log('Initial cache cleanup deleted', (r as any).deleted, 'files');
+      })
+      .catch(e => {
+        console.log('Initial cache cleanup failed', e);
+      });
   }, []);
   // 以下代码用于监听 Universal Link，但是注意到 Expo 已经帮忙处理了，目前暂时不启用
   // 但是 Expo-Router 的跳转只能处理已有 URL，我们如果需要更丰富的跳转逻辑，仍然需要借助下面的代码，因此暂时保留

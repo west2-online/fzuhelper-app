@@ -22,10 +22,9 @@ const LearningCenterMap = memo(() => {
         });
         if (mounted && uri) setLocalMapUri(uri);
       } catch (e) {
-        toast.error('地图加载失败，请检查网络连接');
+        toast.error('地图加载失败，请检查网络连接' + e);
       }
     })();
-
     return () => {
       mounted = false;
     };

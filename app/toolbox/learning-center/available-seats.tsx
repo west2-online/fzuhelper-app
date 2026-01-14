@@ -66,7 +66,7 @@ export default function AvailableSeatsPage() {
 
   const isMountedRef = useRef(true);
 
-  // 计算内容宽度（在组件顶层调用 hook，避免在 JSX 中条件调用）
+  // 计算地图显示宽度
   const { width: windowWidth } = useWindowDimensions();
   const contentWidth = Math.min(windowWidth - 42, 550);
 
@@ -332,10 +332,7 @@ export default function AvailableSeatsPage() {
           <Loading />
         ) : (
           <>
-            <View
-              className="mx-2 my-3 overflow-hidden rounded-2xl"
-              style={{ width: contentWidth, alignSelf: 'center' }}
-            >
+            <View className="mx-2 my-3 self-center overflow-hidden rounded-2xl" style={{ width: contentWidth }}>
               <LearningCenterMap />
               {/* <LabelSwitch
                 label="仅显示可用座位"
