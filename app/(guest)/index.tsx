@@ -243,7 +243,7 @@ export default function SplashScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View>
+      <View className="flex-1">
         {!showSplashImage ? (
           // 默认开屏
           <Image className="h-full w-full bg-background" source={SplashImage} fadeDuration={0} resizeMode="cover" />
