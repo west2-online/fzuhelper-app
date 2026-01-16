@@ -22,7 +22,6 @@ import { getApiV1LaunchScreenImagePointTime, getApiV1LaunchScreenScreen } from '
 import SplashImage from '@/assets/images/splash.png';
 import SplashLogoIcon from '@/assets/images/splash_logo.png';
 
-import { queryClient } from '@/components/query-provider';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import {
   DATE_FORMAT_DASH,
@@ -30,7 +29,6 @@ import {
   SPLASH_DATE,
   SPLASH_DISPLAY_COUNT,
   SPLASH_ID,
-  SPLASH_KEY,
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
@@ -82,38 +80,38 @@ export default function SplashScreen() {
     }, 1);
   }, [redirect]);
 
-  // 异步更新 Splash
-  async function updateSplash() {
-    console.log('updateSplash');
-    try {
-      const result = await getApiV1LaunchScreenScreen({
-        type: 1,
-        student_id: LocalUser.getUser().userid || '',
-        device: Platform.OS,
-      });
+  // 获取开屏页，500ms 超时
+  const fetchSplashWithTimeout = useCallback(async () => {
+    const timeout = new Promise<null>((_, reject) => setTimeout(reject, 500, new Error('timeout')));
 
-      if (!result || !result.data.data) {
-        console.log('no new splash');
-        return;
-      }
-      queryClient.setQueryData([SPLASH_KEY], result);
-      console.log('splash updated successfully');
+    try {
+      return await Promise.race([
+        getApiV1LaunchScreenScreen({
+          type: 1,
+          student_id: LocalUser.getUser().userid || '',
+          device: Platform.OS,
+        }),
+        timeout,
+      ]);
     } catch (error: any) {
-      queryClient.setQueryData([SPLASH_KEY], error.data);
-      console.log('splash update error:', error);
+      console.log(error);
+      // 超时或无图片均返回 null
+      if (error.message === 'timeout' || error?.data?.code === '40001') {
+        return null;
+      }
+      throw error;
     }
-  }
+  }, []);
 
   // 拉取Splash并展示
   const getSplash = useCallback(async () => {
     console.log('getSplash');
     try {
-      let result = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1LaunchScreenScreen>>>([SPLASH_KEY]);
-      updateSplash();
+      const result = await fetchSplashWithTimeout();
 
-      if (!result || !result.data.data) {
+      if (!result || !result.data.data || result.data.data.length === 0) {
         navigateToHome();
-        console.log('no cached splash');
+        console.log('no splash to display');
         return;
       }
       const splash = result.data.data[0];
@@ -150,12 +148,12 @@ export default function SplashScreen() {
         [SPLASH_DISPLAY_COUNT, (displayCount + 1).toString()],
         [SPLASH_DATE, dayjs().format(DATE_FORMAT_DASH)],
       ]);
-    } catch {
+    } catch (error) {
       // 不使用 handleError，静默处理
       navigateToHome();
-      console.log('splash fetch error');
+      console.log('splash fetch error:', error);
     }
-  }, [navigateToHome]);
+  }, [navigateToHome, fetchSplashWithTimeout]);
 
   // 处理开屏页点击事件
   const handleSplashClick = useCallback(async () => {
