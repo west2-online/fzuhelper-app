@@ -102,6 +102,7 @@ export const CLASS_BREAK_EVENING = [1050, 1140]; // 17:30 - 19:00
 
 // 工具箱
 export const TOOLBOX_CONFIG_KEY = 'toolbox_config';
+export const TOOLBOX_BANNER_KEY = 'toolbox_banner';
 
 // 考场
 export const EXAM_ROOM_KEY = 'exam_room';
