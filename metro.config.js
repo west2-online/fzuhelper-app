@@ -9,7 +9,7 @@ let config = getDefaultConfig(__dirname);
   // 配置 transformer 和 resolver
   config.transformer = {
     ...transformer,
-    babelTransformerPath: require.resolve('react-native-svg-transformer/expo'),
+    babelTransformerPath: require.resolve('./svg-transformer'),
   };
   config.resolver = {
     ...resolver,

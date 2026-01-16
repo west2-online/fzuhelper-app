@@ -1,0 +1,28 @@
+{
+  "svgo": true,
+  "svgoConfig": {
+    "plugins": [
+      {
+        "name": "preset-default",
+        "params": {
+          "overrides": {
+            "inlineStyles": {
+              "onlyMatchedOnce": false
+            },
+            "removeViewBox": false,
+            "removeUnknownsAndDefaults": false,
+            "convertColors": false,
+            "cleanupIds": false
+          }
+        }
+      },
+      {
+        "name": "prefixIds",
+        "params": {
+          "prefixIds": true,
+          "prefixClassNames": true
+        }
+      }
+    ]
+  }
+}
