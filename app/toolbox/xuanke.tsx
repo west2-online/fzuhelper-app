@@ -29,7 +29,7 @@ export default function AcademicPage() {
         <ScrollView>
           <SafeAreaView edges={['bottom']}>
             {/* 菜单列表 */}
-            <View className="space-y-4">
+            <View>
               {menuItems.map(item => (
                 <Link key={item.name} href={getWebViewHrefJWCH(item.url, item.name)} asChild>
                   <LabelEntry leftText={item.name} />
