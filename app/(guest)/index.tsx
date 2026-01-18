@@ -36,6 +36,7 @@ import { NotificationManager } from '@/lib/notification';
 import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 import BuglyModule from '@/modules/bugly';
+import fileCache from '@/utils/file-cache';
 import { isAccountExist } from '@/utils/is-account-exist';
 
 ExpoSplashScreen.preventAutoHideAsync();
@@ -138,7 +139,11 @@ export default function SplashScreen() {
       }
       // 未达到频次，展示
       setSplashId(splash.id || -1);
-      setSplashImage(splash.url || '');
+      setSplashImage(
+        (await fileCache.getCachedFile(splash.url as string, {
+          maxAge: (splash.end_at || 0) * 1000 - Date.now(),
+        })) || '',
+      );
       setSplashTarget(splash.href || '');
       setCountdown(splash.duration || 3);
       setSplashText(splash.text || '点击查看详情');
