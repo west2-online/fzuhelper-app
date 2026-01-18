@@ -112,7 +112,8 @@ async function writeMetadataFor(fileUri: string, meta: FileMeta): Promise<void> 
 export async function getCachedFile(url: string, options: GetCachedFileOptions = {}): Promise<string> {
   if (!url) throw new Error('url is required');
   if (options.maxAge !== undefined && options.maxAge !== null && options.maxAge <= 0) {
-    throw new Error('maxAge must be a positive number or undefined/null');
+    console.log('file-cache: getCachedFile invalid maxAge', options.maxAge);
+    throw new Error('maxAge must be a positive number or undefined');
   }
   await ensureDir(CACHE_DIR);
 
