@@ -28,6 +28,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
+import { formatExamData } from './exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from './locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
 
@@ -853,9 +854,19 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
 
   // 考场信息
   if ((await getCourseSetting()).exportExamToCourseTable) {
-    await fetchWithCache([EXAM_ROOM_KEY, queryTerm], () => getApiV1JwchClassroomExam({ term: queryTerm }), {
-      staleTime: 0,
-    });
+    const examData = await fetchWithCache(
+      [EXAM_ROOM_KEY, queryTerm],
+      () => getApiV1JwchClassroomExam({ term: queryTerm }),
+      {
+        staleTime: 0,
+      },
+    );
+
+    const formattedExamData = formatExamData(examData.data.data);
+    const termsList = (await queryClient.getQueryData([COURSE_TERMS_LIST_KEY])) as any;
+    const currentTerm = termsList.data.data.terms.find((termData: any) => termData.term === queryTerm);
+    CourseCache.mergeExamCourses(formattedExamData, currentTerm.start_date, currentTerm.end_date);
   }
+
   CourseCache.save(); // 强制保存一次
 };
