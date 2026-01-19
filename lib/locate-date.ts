@@ -41,12 +41,30 @@ export default async function locateDate(noCache = false): Promise<LocateDateRes
 
       if (cachedData) {
         const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
-
-        // 如果缓存日期是同一周的，直接返回缓存数据
+        const semester = `${year}${term.toString().padStart(2, '0')}`;
+        // 如果缓存日期是同一周的，直接返回缓存数据；否则先返回计算值，再异步更新
         if (currentDate.isSame(cachedDate, 'isoWeek')) {
-          const semester = `${year}${term.toString().padStart(2, '0')}`;
           console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
           return { date: formattedCurrentDate, week, day: currentDay, semester };
+        } else {
+          const computedWeek = week + currentDate.diff(dayjs(cachedDate), 'week'); // 跨周了，需要计算当前是第几周
+          console.log('Cached locate date is outdated, computed data:', {
+            date: formattedCurrentDate,
+            week: computedWeek,
+            day: currentDay,
+            semester,
+          });
+          // 异步更新缓存
+          console.log('Updating locate date cache asynchronously...');
+          fetchJwchLocateDate().then(({ week: newWeek, year: newYear, term: newTerm }) => {
+            AsyncStorage.setItem(
+              JWCH_LOCATE_DATE_CACHE_KEY,
+              JSON.stringify({ date: formattedCurrentDate, week: newWeek, year: newYear, term: newTerm }),
+            ).catch(error => {
+              console.warn('Failed to update cache asynchronously:', error);
+            });
+          });
+          return { date: formattedCurrentDate, week: computedWeek, day: currentDay, semester };
         }
       }
     } catch (error) {

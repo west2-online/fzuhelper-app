@@ -80,7 +80,7 @@ export const useSafeResponseSolve = () => {
             error.data.message === '没有可用图片'
           ) {
             console.log('静默处理无可用图片的业务异常');
-            break;
+            return error.data.message;
           }
           console.error('业务异常:', error.data);
           return error.data;
