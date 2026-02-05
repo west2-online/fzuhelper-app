@@ -34,10 +34,10 @@ export default function FriendManagePage() {
   const handleDelete = useCallback(
     async (friend: UserFriendListResponse_Friend) => {
       const diff = dayjs().diff(dayjs(friend.created_at * 1000), 'day');
-      const diffString = diff === 0 ? '今天' : `${diff}天前`;
+      const diffString = diff === 0 ? '今天' : ` ${diff} 天前`;
       Alert.alert(
         '提示',
-        `你与${friend.name}在${diffString}成为好友，解除好友关系后，你们将无法再互相查看课表。确定要删除好友吗？`,
+        `你与 ${friend.name} 在${diffString}成为好友，解除好友关系后，你们将无法再互相查看课表。确定要删除好友吗？`,
         [
           { text: '取消', style: 'cancel' },
           {
@@ -68,8 +68,7 @@ export default function FriendManagePage() {
         <View className="flex-1 gap-1">
           <Text className="text-lg font-medium">{item.name}</Text>
           <Text className="text-sm text-text-secondary">
-            {item.grade}级{item.college}
-            {item.major}专业
+            {item.grade}级 {item.college} {item.major}专业
           </Text>
         </View>
         {isManage && (
