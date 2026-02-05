@@ -584,19 +584,13 @@ export class CourseCache {
       const id = this.allocateID(); // 分配一个新的 ID
       return {
         ...schedule,
+        name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
         color: allocateColorForCourse(schedule.name), // 分配颜色
         priority: DEFAULT_PRIORITY, // 默认优先级
         id: id,
         type: COURSE_TYPE,
       };
     });
-
-    // 为调课课程添加标记
-    for (const course of extendedCourses) {
-      if (course.adjust) {
-        course.name = `[调课] ${course.name}`;
-      }
-    }
 
     // 按天归类课程数据
     const groupedData = extendedCourses.reduce(
@@ -630,19 +624,13 @@ export class CourseCache {
       const id = this.allocateID(); // 分配一个新的 ID
       return {
         ...schedule,
+        name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
         color: allocateColorForCourse(schedule.name), // 分配颜色
         priority: DEFAULT_PRIORITY, // 默认优先级
         id: id,
         type: COURSE_TYPE,
       };
     });
-
-    // 为调课课程添加标记
-    for (const course of extendedCourses) {
-      if (course.adjust) {
-        course.name = `[调课] ${course.name}`;
-      }
-    }
 
     // 按天归类课程数据
     const groupedData = extendedCourses.reduce(
