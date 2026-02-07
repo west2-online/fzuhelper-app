@@ -1,5 +1,14 @@
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
-import { ScrollView, SectionList, TouchableOpacity, useWindowDimensions, View, type ViewToken } from 'react-native';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import {
+  LayoutChangeEvent,
+  ScrollView,
+  SectionList,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+  type SectionListProps,
+  type ViewToken,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/text';
@@ -29,10 +38,137 @@ interface LearningCenterSeatsListProps {
 
 const NUM_COLUMNS = 4;
 const RIGHT_SIDEBAR_WIDTH = 70; // 右侧边栏宽度
+const SIDEBAR_ITEM_HEIGHT = 40;
+const SIDEBAR_ITEM_GAP = 16; // matches mb-4
+
+interface SectionListViewProps {
+  chunkedGroupedData: Section[];
+  insetsBottom: number;
+  sectionListRef: RefObject<SectionList<SeatData[], Section>>;
+  keyExtractor: (item: SeatData[], index: number) => string;
+  renderItem: ({ item }: { item: SeatData[] }) => React.ReactElement;
+  renderSectionHeader: ({ section }: { section: Section }) => React.ReactElement;
+  onViewableItemsChanged: ({
+    viewableItems,
+    changed,
+  }: {
+    viewableItems: ViewToken<SeatData[]>[];
+    changed: ViewToken<SeatData[]>[];
+  }) => void;
+  onScrollEndDrag: () => void;
+  onScrollAnimationEnd: () => void;
+  getItemLayout: SectionListProps<SeatData[], Section>['getItemLayout'];
+  viewabilityConfig: NonNullable<SectionListProps<SeatData[], Section>['viewabilityConfig']>;
+}
+
+const SectionListView = memo(
+  ({
+    chunkedGroupedData,
+    insetsBottom,
+    sectionListRef,
+    keyExtractor,
+    renderItem,
+    renderSectionHeader,
+    onViewableItemsChanged,
+    onScrollEndDrag,
+    onScrollAnimationEnd,
+    getItemLayout,
+    viewabilityConfig,
+  }: SectionListViewProps) => (
+    <SectionList
+      ref={sectionListRef}
+      sections={chunkedGroupedData}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
+      renderSectionHeader={renderSectionHeader}
+      className="rounded-tr-4xl bg-card"
+      style={{ marginRight: RIGHT_SIDEBAR_WIDTH }}
+      stickySectionHeadersEnabled
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: insetsBottom }}
+      onViewableItemsChanged={onViewableItemsChanged}
+      onScrollEndDrag={onScrollEndDrag}
+      onScrollAnimationEnd={onScrollAnimationEnd}
+      initialNumToRender={16}
+      maxToRenderPerBatch={20}
+      updateCellsBatchingPeriod={30}
+      windowSize={11}
+      removeClippedSubviews={false}
+      getItemLayout={getItemLayout}
+      viewabilityConfig={viewabilityConfig}
+      overScrollMode="never"
+    />
+  ),
+);
+
+SectionListView.displayName = 'SectionListView';
+
+interface SidebarNavProps {
+  sections: Section[];
+  currentArea: string;
+  insetsBottom: number;
+  onPress: (index: number, title: string) => void;
+}
+
+const SidebarItem = memo(({ title, isActive, onPress }: { title: string; isActive: boolean; onPress: () => void }) => (
+  <TouchableOpacity onPress={onPress} className="mb-4" activeOpacity={0.7}>
+    <View className={cn('rounded-br-xl rounded-tr-xl px-4 py-2', isActive ? 'bg-primary' : 'bg-gray-300')}>
+      <Text className="text-center text-base font-bold text-white">{title}</Text>
+    </View>
+  </TouchableOpacity>
+));
+
+SidebarItem.displayName = 'SidebarItem';
+
+const SidebarNav = memo(({ sections, currentArea, insetsBottom, onPress }: SidebarNavProps) => {
+  const scrollRef = useRef<ScrollView>(null);
+  const [containerHeight, setContainerHeight] = useState(0);
+
+  const currentIndex = useMemo(
+    () => sections.findIndex(section => section.title === currentArea),
+    [sections, currentArea],
+  );
+
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    setContainerHeight(event.nativeEvent.layout.height);
+  }, []);
+
+  useEffect(() => {
+    if (currentIndex < 0 || containerHeight === 0) return;
+    const itemFullHeight = SIDEBAR_ITEM_HEIGHT + SIDEBAR_ITEM_GAP;
+    const targetY = currentIndex * itemFullHeight - (containerHeight / 2 - SIDEBAR_ITEM_HEIGHT / 2);
+    scrollRef.current?.scrollTo({ y: Math.max(0, targetY), animated: true });
+  }, [currentIndex, containerHeight]);
+
+  return (
+    <View className="absolute bottom-0 right-0 top-12 pr-2" style={{ width: RIGHT_SIDEBAR_WIDTH }}>
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: insetsBottom }}
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
+        onLayout={handleLayout}
+      >
+        {sections.map((section, index) => (
+          <SidebarItem
+            key={section.title}
+            title={section.title}
+            isActive={section.title === currentArea}
+            onPress={() => onPress(index, section.title)}
+          />
+        ))}
+      </ScrollView>
+    </View>
+  );
+});
+
+SidebarNav.displayName = 'SidebarNav';
 
 const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data: fullData, onSeatPress }) => {
   const sectionListRef = useRef<SectionList<SeatData[], Section>>(null);
   const [currentArea, setCurrentArea] = useState('');
+  const currentAreaRef = useRef('');
   const isAutoScrolling = useRef(false);
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
@@ -47,7 +183,6 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data:
     [fullData],
   );
 
-  const sortedKeys = useMemo(() => groupedData.map(item => item.title), [groupedData]);
   const chunkedGroupedData = useMemo(
     () =>
       groupedData.map(section => {
@@ -63,18 +198,18 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data:
   const handleViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken<SeatData[]>[]; changed: ViewToken<SeatData[]>[] }) => {
       if (isAutoScrolling.current) return;
-      const sectionIndexList = viewableItems
-        .filter(item => item.section !== null)
-        .map(item => item.section as Section)
-        .map(section => sortedKeys.indexOf(section.title));
-      const currentSectionIndex = Math.min(...sectionIndexList);
-      setCurrentArea(groupedData[currentSectionIndex]?.title);
+      const nextArea = viewableItems.find(item => item.section)?.section?.title || '';
+      if (nextArea && nextArea !== currentAreaRef.current) {
+        currentAreaRef.current = nextArea;
+        setCurrentArea(nextArea);
+      }
     },
-    [groupedData, sortedKeys],
+    [],
   );
 
   const handlePress = useCallback((sectionIndex: number, sectionTitle: string) => {
     isAutoScrolling.current = true;
+    currentAreaRef.current = sectionTitle;
     setCurrentArea(sectionTitle);
     sectionListRef.current?.scrollToLocation({
       sectionIndex,
@@ -109,6 +244,8 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data:
     [],
   );
 
+  const keyExtractor = useCallback((item: SeatData[], index: number) => item[0]?.spaceName || `index_${index}`, []);
+
   const getItemLayout = useMemo(() => {
     return rnSectionListGetItemLayout({
       getItemHeight: () => SEAT_ITEM_HEIGHT,
@@ -116,61 +253,37 @@ const LearningCenterSeatsList: React.FC<LearningCenterSeatsListProps> = ({ data:
     });
   }, []);
 
+  const viewabilityConfig = useMemo(() => ({ viewAreaCoveragePercentThreshold: 0 }), []);
+
+  const handleScrollEndDrag = useCallback(() => {
+    isAutoScrolling.current = false;
+  }, []);
+
+  const handleScrollAnimationEnd = useCallback(() => {
+    isAutoScrolling.current = false;
+  }, []);
+
   return (
     <View className="flex-1">
-      <SectionList
-        ref={sectionListRef}
-        sections={chunkedGroupedData}
-        keyExtractor={(item, index) => item[0]?.spaceName || `index_${index}`}
+      <SectionListView
+        chunkedGroupedData={chunkedGroupedData}
+        insetsBottom={insets.bottom}
+        sectionListRef={sectionListRef as RefObject<SectionList<SeatData[], Section>>}
+        keyExtractor={keyExtractor}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
-        className="rounded-tr-4xl bg-card"
-        style={{ marginRight: RIGHT_SIDEBAR_WIDTH }}
-        stickySectionHeadersEnabled
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom }}
         onViewableItemsChanged={handleViewableItemsChanged}
-        onScrollEndDrag={() => {
-          isAutoScrolling.current = false;
-        }}
-        onScrollAnimationEnd={() => {
-          isAutoScrolling.current = false;
-        }}
-        initialNumToRender={10} // 首屏渲染行数
-        // maxToRenderPerBatch={10} // 每批渲染的最大行数
-        // windowSize={11}
-        // updateCellsBatchingPeriod={30}
+        onScrollEndDrag={handleScrollEndDrag}
+        onScrollAnimationEnd={handleScrollAnimationEnd}
         getItemLayout={getItemLayout}
-        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 0 }}
-        overScrollMode="never"
+        viewabilityConfig={viewabilityConfig}
       />
-
-      <View className="absolute bottom-0 right-0 top-12 pr-2" style={{ width: RIGHT_SIDEBAR_WIDTH }}>
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ paddingBottom: insets.bottom }}
-          showsVerticalScrollIndicator={false}
-          overScrollMode="never"
-        >
-          {groupedData.map((section, index) => (
-            <TouchableOpacity
-              key={section.title}
-              onPress={() => handlePress(index, section.title)}
-              className="mb-4"
-              activeOpacity={0.7}
-            >
-              <View
-                className={cn(
-                  'rounded-br-xl rounded-tr-xl px-4 py-2',
-                  section.title === currentArea ? 'bg-primary' : 'bg-gray-300',
-                )}
-              >
-                <Text className="text-center text-base font-bold text-white">{section.title}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      <SidebarNav
+        sections={chunkedGroupedData}
+        currentArea={currentArea}
+        insetsBottom={insets.bottom}
+        onPress={handlePress}
+      />
     </View>
   );
 };
