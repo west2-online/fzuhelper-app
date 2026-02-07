@@ -10,7 +10,6 @@ import {
   type ViewToken,
 } from 'react-native';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
-import { toast } from 'sonner-native';
 
 import { JwchCourseListResponse_Course } from '@/api/backend';
 import { getApiV1FriendCourse, getApiV1UserFriendList } from '@/api/generate';
@@ -19,6 +18,7 @@ import { CourseErrorBoundary } from '@/components/course/course-error-boundary';
 import CourseWeek from '@/components/course/course-week';
 import { FriendListModal } from '@/components/course/friend-list-modal';
 import Loading from '@/components/loading';
+import ErrorView from '@/components/multistateview/error-view';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { queryClient } from '@/components/query-provider';
@@ -54,8 +54,8 @@ const CourseGrid = forwardRef(
     // 好友课表数据
     const {
       data: friendCourseData,
-      isError,
-      error,
+      isError: isFriendError,
+      refetch: refetchFriend,
     } = useApiRequest(
       getApiV1FriendCourse,
       { student_id: selectedFriendId!, term: coursePageData.setting.selectedSemester },
@@ -64,11 +64,6 @@ const CourseGrid = forwardRef(
         queryKey: ['friend_course', selectedFriendId!, coursePageData.setting.selectedSemester],
       },
     );
-
-    // 获取好友课表错误，交由 CourseErrorBoundary 处理
-    if (isError && error) {
-      throw error;
-    }
 
     // 监听课表数据源变化（本人/好友/缓存刷新）
     useEffect(() => {
@@ -164,6 +159,11 @@ const CourseGrid = forwardRef(
       setFlatListLayout(nativeEvent.layout);
     }, []);
 
+    // 好友课表加载失败时，在组件内展示错误视图，保持 header 可交互
+    if (selectedFriendId && isFriendError) {
+      return <ErrorView refresh={() => refetchFriend()} />;
+    }
+
     return (
       <FlatList
         className="flex-1"
@@ -192,13 +192,9 @@ CourseGrid.displayName = 'CourseGrid';
 function HomePageContent({
   selectedFriendId,
   setSelectedFriendId,
-  resetKey,
-  setResetKey,
 }: {
   selectedFriendId: string | undefined;
   setSelectedFriendId: (id: string | undefined) => void;
-  resetKey: number;
-  setResetKey: (key: number | ((prev: number) => number)) => void;
 }) {
   const coursePageData = useCoursePageData();
   const { currentWeek, maxWeek } = coursePageData;
@@ -209,7 +205,6 @@ function HomePageContent({
   const [customBackground, setCustomBackground] = useState(false);
 
   const courseGridRef = useRef<{ scrollToWeek: (week: number) => void }>(null);
-  const { handleError } = useSafeResponseSolve();
 
   useEffect(() => {
     const checkBackground = async () => {
@@ -302,19 +297,13 @@ function HomePageContent({
         }}
       />
 
-      <CourseErrorBoundary
-        key={`${resetKey}-${selectedFriendId}`}
-        onReset={() => setResetKey(prev => prev + 1)}
-        handleError={handleError}
-      >
-        <CourseGrid
-          ref={courseGridRef}
-          selectedFriendId={selectedFriendId}
-          coursePageData={coursePageData}
-          selectedWeek={selectedWeek}
-          onWeekChange={setSelectedWeek}
-        />
-      </CourseErrorBoundary>
+      <CourseGrid
+        ref={courseGridRef}
+        selectedFriendId={selectedFriendId}
+        coursePageData={coursePageData}
+        selectedWeek={selectedWeek}
+        onWeekChange={setSelectedWeek}
+      />
 
       <PickerModal
         visible={showWeekSelector}
@@ -401,19 +390,17 @@ export default function HomePage() {
       } else {
         // 刷新自己的课表
         const setting = await getCourseSetting();
-        const queryTerm = setting.selectedSemester;
-        await forceRefreshCourseData(queryTerm);
+        await forceRefreshCourseData(setting.selectedSemester);
         await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
       }
       setResetKey(prev => prev + 1);
     } catch (error: any) {
       console.error('Refresh failed:', error);
       handleError(error);
-      toast.error('刷新失败，请稍后再试');
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, handleError, selectedFriendId]);
+  }, [isRefreshing, selectedFriendId, handleError]);
 
   return (
     <PageContainer refreshBackground>
@@ -421,14 +408,17 @@ export default function HomePage() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         contentContainerClassName="flex-1"
       >
-        <Suspense fallback={<Loading />}>
-          <HomePageContent
-            resetKey={resetKey}
-            setResetKey={setResetKey}
-            selectedFriendId={selectedFriendId}
-            setSelectedFriendId={setSelectedFriendId}
-          />
-        </Suspense>
+        <CourseErrorBoundary
+          key={resetKey}
+          onReset={() => {
+            queryClient.resetQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+            setResetKey(prev => prev + 1);
+          }}
+        >
+          <Suspense fallback={<Loading />}>
+            <HomePageContent selectedFriendId={selectedFriendId} setSelectedFriendId={setSelectedFriendId} />
+          </Suspense>
+        </CourseErrorBoundary>
       </ScrollView>
     </PageContainer>
   );
