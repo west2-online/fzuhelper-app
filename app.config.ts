@@ -95,6 +95,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
+    'expo-system-ui',
     [
       'react-native-permissions',
       {
