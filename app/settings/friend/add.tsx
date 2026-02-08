@@ -13,6 +13,12 @@ import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FRIEND_INVITATION_CODE_LEN } from '@/lib/constants';
 
+// 连续位数的大小写字母（实际应该是全大写，这里放宽）
+function extractInvitationCode(text: string) {
+  const matches = text.match(/[a-zA-Z]+/g);
+  return matches?.find(c => c.length === FRIEND_INVITATION_CODE_LEN)?.toUpperCase();
+}
+
 export default function FriendAddPage() {
   const { handleError } = useSafeResponseSolve();
 
@@ -24,9 +30,9 @@ export default function FriendAddPage() {
   useEffect(() => {
     // 从DeepLink读取邀请码
     if (code && typeof code === 'string') {
-      const filteredText = code.replace(/[^a-zA-Z]/g, '').toUpperCase();
-      if (filteredText.length === FRIEND_INVITATION_CODE_LEN) {
-        setInvitationCode(filteredText);
+      const validCode = extractInvitationCode(code);
+      if (validCode) {
+        setInvitationCode(validCode);
       } else {
         toast.error('邀请码无效');
       }
@@ -38,9 +44,17 @@ export default function FriendAddPage() {
         const { scheme, hostname, queryParams } = Linking.parse(s);
         console.log('Parsed Clipboard URL:', { scheme, hostname, queryParams });
         if (scheme === 'fzuhelper' && hostname === 'friend_invite' && queryParams?.code) {
-          const codeFromClipboard = (queryParams.code as string).replace(/[^a-zA-Z]/g, '').toUpperCase();
-          if (codeFromClipboard.length === FRIEND_INVITATION_CODE_LEN) {
-            setInvitationCode(codeFromClipboard);
+          // 精确匹配
+          const validCode = extractInvitationCode(queryParams.code as string);
+          if (validCode) {
+            setInvitationCode(validCode);
+            toast.info('已从剪贴板读取邀请码');
+          }
+        } else {
+          // 尝试从剪贴板文本中提取邀请码
+          const validCode = extractInvitationCode(s);
+          if (validCode) {
+            setInvitationCode(validCode);
             toast.info('已从剪贴板读取邀请码');
           }
         }
