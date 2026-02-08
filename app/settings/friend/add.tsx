@@ -2,7 +2,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import * as Linking from 'expo-linking';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { AppState, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { postApiV1UserFriendBind } from '@/api/generate';
@@ -24,8 +24,30 @@ export default function FriendAddPage() {
 
   const [invitationCode, setInvitationCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [appState, setAppState] = useState(AppState.currentState);
 
   const { code } = useLocalSearchParams();
+
+  const handleClipboard = useCallback(() => {
+    Clipboard.getString().then(s => {
+      console.log('Clipboard content:', s);
+      const { scheme, hostname, queryParams } = Linking.parse(s);
+      console.log('Parsed Clipboard URL:', { scheme, hostname, queryParams });
+      let text = '';
+      if (scheme === 'fzuhelper' && hostname === 'friend_invite' && queryParams?.code) {
+        // 精确匹配
+        text = queryParams.code as string;
+      } else {
+        // 尝试从剪贴板文本中提取邀请码
+        text = s;
+      }
+      const validCode = extractInvitationCode(text);
+      if (validCode) {
+        setInvitationCode(validCode);
+        toast.info('已从剪贴板读取邀请码');
+      }
+    });
+  }, []);
 
   useEffect(() => {
     // 从DeepLink读取邀请码
@@ -39,28 +61,9 @@ export default function FriendAddPage() {
     }
     // 从剪贴板读取邀请码
     else {
-      Clipboard.getString().then(s => {
-        console.log('Clipboard content:', s);
-        const { scheme, hostname, queryParams } = Linking.parse(s);
-        console.log('Parsed Clipboard URL:', { scheme, hostname, queryParams });
-        if (scheme === 'fzuhelper' && hostname === 'friend_invite' && queryParams?.code) {
-          // 精确匹配
-          const validCode = extractInvitationCode(queryParams.code as string);
-          if (validCode) {
-            setInvitationCode(validCode);
-            toast.info('已从剪贴板读取邀请码');
-          }
-        } else {
-          // 尝试从剪贴板文本中提取邀请码
-          const validCode = extractInvitationCode(s);
-          if (validCode) {
-            setInvitationCode(validCode);
-            toast.info('已从剪贴板读取邀请码');
-          }
-        }
-      });
+      handleClipboard();
     }
-  }, [code]);
+  }, [code, handleClipboard]);
 
   const handleAddFriend = useCallback(async () => {
     setIsSubmitting(true);
@@ -78,6 +81,17 @@ export default function FriendAddPage() {
       setIsSubmitting(false);
     }
   }, [handleError, invitationCode]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        handleClipboard();
+      }
+      setAppState(nextAppState);
+    });
+
+    return () => subscription?.remove();
+  }, [appState, handleClipboard]);
 
   return (
     <>
