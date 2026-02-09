@@ -25,7 +25,7 @@ export default function WidgetPage() {
           <LabelEntry
             leftText="下节课上什么"
             onPress={async () => {
-              const success = requestPinAppWidget(72201);
+              const success = await requestPinAppWidget(72201);
               if (success) {
                 toast.success('添加小部件成功，请回到桌面查看');
               } else {
@@ -38,7 +38,7 @@ export default function WidgetPage() {
             <LabelEntry
               leftText="课程表"
               onPress={async () => {
-                const success = requestPinAppWidget(72202);
+                const success = await requestPinAppWidget(72202);
                 if (success) {
                   toast.success('添加小部件成功，请回到桌面查看');
                 } else {

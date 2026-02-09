@@ -9,6 +9,8 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.helper.west2ol.fzuhelper.ACTION_PIN_APP_WIDGET_SUCCESS
@@ -28,23 +30,46 @@ class NativeWidgetModule : Module() {
 
     private var widgetPromise: Promise? = null
     private var widgetReceiver: BroadcastReceiver? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private var timeoutRunnable: Runnable? = null
 
-    val cleanupAndResolveFalse = {
-        if (widgetReceiver != null) {
+    companion object {
+        var failureCallback: (() -> Unit)? = null
+        var startTimeoutCallback: (() -> Unit)? = null
+    }
+
+    private fun cleanupAndResolve(success: Boolean) {
+        timeoutRunnable?.let { handler.removeCallbacks(it) }
+        timeoutRunnable = null
+
+        widgetReceiver?.let {
             try {
-                context.unregisterReceiver(widgetReceiver)
-            } catch (e: Exception) { /* Ignore */ }
+                context.unregisterReceiver(it)
+            } catch (_: Exception) {
+            }
         }
-        widgetPromise?.resolve(false)
+
+        widgetPromise?.resolve(success)
+
         widgetReceiver = null
         widgetPromise = null
+        failureCallback = null
+        startTimeoutCallback = null
+    }
+
+    private fun startWidgetPinTimeout() {
+        timeoutRunnable = Runnable {
+            // Toast.makeText(context, "添加小部件超时", Toast.LENGTH_SHORT).show()
+            cleanupAndResolve(false)
+        }
+        handler.postDelayed(timeoutRunnable!!, 3000)
     }
 
     override fun definition() = ModuleDefinition {
         Name("NativeWidget")
 
         OnDestroy {
-            cleanupAndResolveFalse()
+            cleanupAndResolve(false)
         }
 
         Function("setWidgetData") { json: String, packageName: String ->
@@ -70,67 +95,61 @@ class NativeWidgetModule : Module() {
             }
         }
 
-        // Returns a promise that resolves to true if the widget is successfully added, false otherwise.
         AsyncFunction("requestPinAppWidget") { requestCode: Int, promise: Promise ->
-            // Cancel any pending request to avoid multiple receivers and dangling promises.
-            widgetPromise?.resolve(false)
-            if (widgetReceiver != null) {
-                try {
-                    context.unregisterReceiver(widgetReceiver)
-                } catch (e: Exception) { /* Ignore if already unregistered */ }
-            }
+            cleanupAndResolve(false) // 清理残留
 
             widgetPromise = promise
+
+            failureCallback = { cleanupAndResolve(false) }
+            startTimeoutCallback = { startWidgetPinTimeout() }
+
             widgetReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    widgetPromise?.resolve(true)
-                    // Clean up after success
-                    try {
-                        context.unregisterReceiver(this)
-                    } catch (e: Exception) { /* Ignore */ }
-                    widgetReceiver = null
-                    widgetPromise = null
+                    // Toast.makeText(context, "添加小部件成功", Toast.LENGTH_SHORT).show()
+                    cleanupAndResolve(true)
                 }
             }
 
             val intentFilter = IntentFilter(ACTION_PIN_APP_WIDGET_SUCCESS)
             ContextCompat.registerReceiver(
                 context,
-                widgetReceiver,
+                widgetReceiver!!,
                 intentFilter,
                 ContextCompat.RECEIVER_EXPORTED
             )
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                cleanupAndResolveFalse()
+                cleanupAndResolve(false)
                 return@AsyncFunction
             }
 
             if ((DeviceOs.isHyperOs() || DeviceOs.isMiui()) && !checkMiShortcutPermission(context)) {
+                // 小米设备专属权限
                 CoroutineScope(Dispatchers.Main).launch {
                     AlertDialog.Builder(context)
                         .setTitle("授权提醒")
                         .setMessage("创建桌面小部件需要您授予\"桌面快捷方式\"权限。\n\n请您在接下来的应用详情界面进入\"权限管理\"，找到该权限并修改为允许。")
                         .setPositiveButton("继续") { _, _ ->
-                            (context as? androidx.appcompat.app.AppCompatActivity)?.supportFragmentManager?.beginTransaction()
-                                ?.add(MiPermissionFragment.newInstance(requestCode), "permission_fragment")
-                                ?.commit()
+                            (context as androidx.appcompat.app.AppCompatActivity).supportFragmentManager.beginTransaction()
+                                .add(
+                                    MiPermissionFragment.newInstance(requestCode),
+                                    "permission_fragment"
+                                )
+                                .commit()
                         }
-                        .setNegativeButton("取消") { _, _ ->
-                            cleanupAndResolveFalse()
-                        }
-                        .setOnCancelListener {
-                            cleanupAndResolveFalse()
-                        }
+                        .setNegativeButton("取消") { _, _ -> cleanupAndResolve(false) }
+                        .setOnCancelListener { cleanupAndResolve(false) }
                         .show()
                 }
             } else if (DeviceOs.isOriginOs()) {
-                cleanupAndResolveFalse()
+                // vivo设备请求加桌能力需原子组件适配 https://dev.vivo.com.cn/documentCenter/doc/845#s-p6v4qah3
+                cleanupAndResolve(false)
             } else {
-                if (!addAppWidget(context, requestCode)) {
-                    cleanupAndResolveFalse()
+                if (addAppWidget(context, requestCode)) {
+                    startWidgetPinTimeout()
+                } else {
+                    cleanupAndResolve(false)
                 }
-                // if addAppWidget returns true, we wait for the broadcast to resolve the promise.
             }
         }
     }
@@ -141,5 +160,4 @@ class NativeWidgetModule : Module() {
     private fun getPreferences(packageName: String): SharedPreferences {
         return context.getSharedPreferences(packageName + ".widgetdata", Context.MODE_PRIVATE)
     }
-
 }

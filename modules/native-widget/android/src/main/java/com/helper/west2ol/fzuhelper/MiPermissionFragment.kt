@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import com.west2online.nativewidget.NativeWidgetModule
 
 class MiPermissionFragment : Fragment() {
 
@@ -22,10 +23,18 @@ class MiPermissionFragment : Fragment() {
 
             if (checkMiShortcutPermission(activity)) {
                 if (requestCode in arrayOf(REQUEST_NEXT_CLASS, REQUEST_COURSE_TABLE)) {
-                    addAppWidget(activity, requestCode)
+                    if (addAppWidget(activity, requestCode)) {
+                        NativeWidgetModule.startTimeoutCallback?.invoke()
+                    } else {
+                        NativeWidgetModule.failureCallback?.invoke()
+                    }
                 }
+            } else {
+                // Toast.makeText(context, "权限未授予", Toast.LENGTH_SHORT).show()
+                NativeWidgetModule.failureCallback?.invoke()
             }
 
+            // 完成任务，销毁
             parentFragmentManager.beginTransaction().remove(this).commit()
         }
 
@@ -62,7 +71,7 @@ class MiPermissionFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // 透明fragment
+        // 透明 fragment
         return null
     }
 }
