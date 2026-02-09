@@ -38,7 +38,12 @@ class NativeWidgetModule : Module() {
         var startTimeoutCallback: (() -> Unit)? = null
     }
 
-    private fun cleanupAndResolve(success: Boolean) {
+    private val RESULT_FAIL = 0
+    private val RESULT_SUCCESS = 1
+    private val RESULT_MANUAL = 2
+    private val RESULT_UNSUPPORTED = 3
+
+    private fun cleanupAndResolve(result: Int) {
         timeoutRunnable?.let { handler.removeCallbacks(it) }
         timeoutRunnable = null
 
@@ -49,7 +54,7 @@ class NativeWidgetModule : Module() {
             }
         }
 
-        widgetPromise?.resolve(success)
+        widgetPromise?.resolve(result)
 
         widgetReceiver = null
         widgetPromise = null
@@ -60,7 +65,7 @@ class NativeWidgetModule : Module() {
     private fun startWidgetPinTimeout() {
         timeoutRunnable = Runnable {
             // Toast.makeText(context, "添加小部件超时", Toast.LENGTH_SHORT).show()
-            cleanupAndResolve(false)
+            cleanupAndResolve(RESULT_FAIL)
         }
         handler.postDelayed(timeoutRunnable!!, 3000)
     }
@@ -69,7 +74,7 @@ class NativeWidgetModule : Module() {
         Name("NativeWidget")
 
         OnDestroy {
-            cleanupAndResolve(false)
+            cleanupAndResolve(RESULT_FAIL)
         }
 
         Function("setWidgetData") { json: String, packageName: String ->
@@ -96,17 +101,17 @@ class NativeWidgetModule : Module() {
         }
 
         AsyncFunction("requestPinAppWidget") { requestCode: Int, promise: Promise ->
-            cleanupAndResolve(false) // 清理残留
+            cleanupAndResolve(RESULT_FAIL) // 清理残留
 
             widgetPromise = promise
 
-            failureCallback = { cleanupAndResolve(false) }
+            failureCallback = { cleanupAndResolve(RESULT_FAIL) }
             startTimeoutCallback = { startWidgetPinTimeout() }
 
             widgetReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
                     // Toast.makeText(context, "添加小部件成功", Toast.LENGTH_SHORT).show()
-                    cleanupAndResolve(true)
+                    cleanupAndResolve(RESULT_SUCCESS)
                 }
             }
 
@@ -119,7 +124,7 @@ class NativeWidgetModule : Module() {
             )
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                cleanupAndResolve(false)
+                cleanupAndResolve(RESULT_MANUAL)
                 return@AsyncFunction
             }
 
@@ -137,18 +142,24 @@ class NativeWidgetModule : Module() {
                                 )
                                 .commit()
                         }
-                        .setNegativeButton("取消") { _, _ -> cleanupAndResolve(false) }
-                        .setOnCancelListener { cleanupAndResolve(false) }
+                        .setNegativeButton("取消") { _, _ -> cleanupAndResolve(RESULT_FAIL) }
+                        .setOnCancelListener { cleanupAndResolve(RESULT_FAIL) }
                         .show()
                 }
             } else if (DeviceOs.isOriginOs()) {
                 // vivo设备请求加桌能力需原子组件适配 https://dev.vivo.com.cn/documentCenter/doc/845#s-p6v4qah3
-                cleanupAndResolve(false)
+                cleanupAndResolve(RESULT_MANUAL)
+            } else if (DeviceOs.isColorOs() && DeviceOs.getOsBigVersionCode() >= 16) {
+                // ColorOS 16起一键加桌需要白名单
+                cleanupAndResolve(RESULT_MANUAL)
+            } else if (DeviceOs.isHarmonyOsNextAndroidCompatible()) {
+                // 卓易通/出境易不支持小组件功能
+                cleanupAndResolve(RESULT_UNSUPPORTED)
             } else {
                 if (addAppWidget(context, requestCode)) {
                     startWidgetPinTimeout()
                 } else {
-                    cleanupAndResolve(false)
+                    cleanupAndResolve(RESULT_MANUAL)
                 }
             }
         }
