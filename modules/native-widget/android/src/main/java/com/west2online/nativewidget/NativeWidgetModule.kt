@@ -149,11 +149,11 @@ class NativeWidgetModule : Module() {
             } else if (DeviceOs.isOriginOs()) {
                 // vivo设备请求加桌能力需原子组件适配 https://dev.vivo.com.cn/documentCenter/doc/845#s-p6v4qah3
                 cleanupAndResolve(RESULT_MANUAL)
-            } else if (DeviceOs.isColorOs() && DeviceOs.getOsBigVersionCode() >= 16) {
-                // ColorOS 16起一键加桌需要白名单
+            } else if (DeviceOs.isColorOs() && DeviceOs.getOsBigVersionCode() >= 15) {
+                // ColorOS 15起一键加桌存在白名单但不开放申请 https://open.oppomobile.com/new/messageDetails?id=96&type=1
                 cleanupAndResolve(RESULT_MANUAL)
             } else if (DeviceOs.isHarmonyOsNextAndroidCompatible()) {
-                // 卓易通/出境易不支持小组件功能
+                // 卓易通/出境易不支持小部件功能
                 cleanupAndResolve(RESULT_UNSUPPORTED)
             } else {
                 if (addAppWidget(context, requestCode)) {
