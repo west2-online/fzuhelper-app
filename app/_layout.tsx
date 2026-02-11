@@ -13,6 +13,7 @@ import { Toaster } from 'sonner-native';
 import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
 
+import { AlertProvider } from '@/context/alert';
 import { LearningCenterContextProvider } from '@/context/learning-center';
 import { getColorScheme } from '@/lib/appearance';
 import { StackNavigatorScreenOptions } from '@/lib/constants';
@@ -68,25 +69,27 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <QueryProvider>
-        {/* 此处配置 Expo Router 封装的 React Navigation 系列组件的浅色/深色主题 */}
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <KeyboardProvider>
-            <GestureHandlerRootView>
-              <LearningCenterContextProvider>
-                <Stack screenOptions={StackNavigatorScreenOptions}>
-                  <Stack.Screen name="+not-found" />
-                </Stack>
+      <AlertProvider>
+        <QueryProvider>
+          {/* 此处配置 Expo Router 封装的 React Navigation 系列组件的浅色/深色主题 */}
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <KeyboardProvider>
+              <GestureHandlerRootView>
+                <LearningCenterContextProvider>
+                  <Stack screenOptions={StackNavigatorScreenOptions}>
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
 
-                <Toaster position="top-center" duration={2500} offset={100} style={toastStyle} />
-                <PortalHost />
-                <SystemBars style="auto" />
-                <DownloadProgress />
-              </LearningCenterContextProvider>
-            </GestureHandlerRootView>
-          </KeyboardProvider>
-        </ThemeProvider>
-      </QueryProvider>
+                  <Toaster position="top-center" duration={2500} offset={100} style={toastStyle} />
+                  <PortalHost />
+                  <SystemBars style="auto" />
+                  <DownloadProgress />
+                </LearningCenterContextProvider>
+              </GestureHandlerRootView>
+            </KeyboardProvider>
+          </ThemeProvider>
+        </QueryProvider>
+      </AlertProvider>
     </SafeAreaProvider>
   );
 }
