@@ -81,21 +81,42 @@ export default function SplashScreen() {
     }, 1);
   }, [redirect]);
 
+  // 获取开屏页，500ms 超时
+  const fetchSplashWithTimeout = useCallback(async () => {
+    const timeout = new Promise<null>((_, reject) => setTimeout(reject, 500, new Error('timeout')));
+
+    try {
+      return await Promise.race([
+        getApiV1LaunchScreenScreen({
+          type: 1,
+          student_id: LocalUser.getUser().userid || '',
+          device: Platform.OS,
+        }),
+        timeout,
+      ]);
+    } catch (error: any) {
+      console.log(error);
+      // 超时或无图片均返回 null
+      if (error.message === 'timeout' || error?.data?.code === '40001') {
+        return null;
+      }
+      throw error;
+    }
+  }, []);
+
   // 拉取Splash并展示
   const getSplash = useCallback(async () => {
     console.log('getSplash');
     try {
-      const result = await getApiV1LaunchScreenScreen({
-        type: 1,
-        student_id: LocalUser.getUser().userid || '',
-        device: Platform.OS,
-      });
-      if (result.data.data.length === 0) {
-        // 理论上不会触发
+      const result = await fetchSplashWithTimeout();
+
+      if (!result || !result.data.data || result.data.data.length === 0) {
         navigateToHome();
+        console.log('no splash to display');
         return;
       }
       const splash = result.data.data[0];
+      console.log('splash fetched:', splash);
       if (splash.id?.toString() !== (await AsyncStorage.getItem(SPLASH_ID))) {
         // ID与上次不同，重置计数
         await AsyncStorage.multiSet([
@@ -113,6 +134,7 @@ export default function SplashScreen() {
       }
       if ((splash.frequency || 10) < displayCount) {
         navigateToHome();
+        console.log('splash reach frequency limit');
         return;
       }
       // 未达到频次，展示
@@ -127,11 +149,12 @@ export default function SplashScreen() {
         [SPLASH_DISPLAY_COUNT, (displayCount + 1).toString()],
         [SPLASH_DATE, dayjs().format(DATE_FORMAT_DASH)],
       ]);
-    } catch {
+    } catch (error) {
       // 不使用 handleError，静默处理
       navigateToHome();
+      console.log('splash fetch error:', error);
     }
-  }, [navigateToHome]);
+  }, [navigateToHome, fetchSplashWithTimeout]);
 
   // 处理开屏页点击事件
   const handleSplashClick = useCallback(async () => {
