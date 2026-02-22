@@ -1,9 +1,9 @@
 import type { VersionAndroidResponse_Data } from '@/api/backend';
 import { getApiV2VersionAndroid } from '@/api/generate';
 import { ANDROID_RELEASE_CHANNEL_KEY } from '@/lib/constants';
+import fileCache from '@/utils/file-cache';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
 import { useDownloadStore } from './download-manager';
 
@@ -13,7 +13,7 @@ interface UpdateCallbacks {
   onError?: (error: string) => void;
 }
 
-const downloadAndInstallApk = (url: string, force: boolean) => {
+const downloadAndInstallApk = async (url: string, force: boolean) => {
   const downloadStore = useDownloadStore.getState();
 
   // 显示下载进度对话框
@@ -21,33 +21,31 @@ const downloadAndInstallApk = (url: string, force: boolean) => {
   downloadStore.setMessage('正在下载更新');
   downloadStore.updateProgress(0);
 
-  ReactNativeBlobUtil.config({
-    fileCache: true,
-    path: ReactNativeBlobUtil.fs.dirs.CacheDir + '/update.apk',
-  })
-    .fetch('GET', url)
-    .progress({ interval: 10 }, (received, total) => {
-      const progress = received / total;
-      downloadStore.updateProgress(progress);
-    })
-    .then(
-      value => {
-        downloadStore.updateProgress(1);
-        downloadStore.setMessage('下载完成，正在安装...');
-        setTimeout(() => {
-          if (!force) {
-            // 短暂延迟后关闭下载对话框，以便用户看到下载完成信息
-            downloadStore.reset();
-          }
-          ReactNativeBlobUtil.android.actionViewIntent(value.path(), 'application/vnd.android.package-archive');
-        }, 1000);
+  try {
+    // 使用 file-cache 下载并缓存 APK，并接收进度回调
+    const cachedUri = await fileCache.getCachedFile(url, {
+      filename: 'update.apk',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 缓存 7 天
+      onProgress: progress => {
+        try {
+          downloadStore.updateProgress(progress);
+        } catch (e) {
+          console.log('获取下载进度回调失败' + e);
+        }
       },
-      reason => {
-        downloadStore.reset();
-        Alert.alert('下载失败', '无法下载更新，请稍后重试。');
-        throw reason;
-      },
-    );
+    });
+    downloadStore.updateProgress(1);
+    downloadStore.setMessage('下载完成，正在安装...');
+    setTimeout(async () => {
+      // 使用 fileCache.openFile 打开安装界面
+      await fileCache.openFile(cachedUri);
+      downloadStore.reset();
+    }, 1000);
+  } catch (err) {
+    downloadStore.reset();
+    Alert.alert('下载失败', '无法下载更新，请稍后重试。');
+    throw err;
+  }
 };
 
 const showAndroidUpdateDialog = (data: VersionAndroidResponse_Data) => {
@@ -103,6 +101,17 @@ const checkAndroidUpdate = async (handleError: (error: any) => any, callbacks?: 
     if (parseInt(config.version_code, 10) > parseInt(DeviceInfo.getBuildNumber(), 10)) {
       callbacks?.onUpdate?.(config);
     } else {
+      try {
+        // 删除可能存在的旧 APK 缓存（文件名为 update.apk）
+        const cachedFiles = await fileCache.listCachedFiles();
+        const apk = (cachedFiles || []).find((f: any) => f.name === 'update.apk' || f.name?.endsWith('/update.apk'));
+        if (apk && apk.uri) {
+          await fileCache.deleteCachedFile(apk.uri);
+          console.log('android-update: removed stale update.apk', apk.uri);
+        }
+      } catch (e) {
+        console.log('android-update: failed to delete stale apk', e);
+      }
       callbacks?.onNoUpdate?.();
     }
   } catch (error: any) {

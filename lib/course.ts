@@ -1,5 +1,5 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
-import { getApiV1JwchCourseList } from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { queryClient } from '@/components/query-provider';
 import {
@@ -11,6 +11,7 @@ import {
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
   DATETIME_SECOND_FORMAT,
+  EXAM_ROOM_KEY,
   IOS_APP_GROUP,
 } from '@/lib/constants';
 import { setWidgetData } from '@/modules/native-widget';
@@ -878,5 +879,12 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
   await locateDate(true); // 强制更新缓存
 
   CourseCache.setCourses(data.data.data, true); // 设置课程数据,跳过digest检查
+
+  // 考场信息
+  if ((await getCourseSetting()).exportExamToCourseTable) {
+    await fetchWithCache([EXAM_ROOM_KEY, queryTerm], () => getApiV1JwchClassroomExam({ term: queryTerm }), {
+      staleTime: 0,
+    });
+  }
   CourseCache.save(); // 强制保存一次
 };

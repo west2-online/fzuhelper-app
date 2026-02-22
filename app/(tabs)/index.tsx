@@ -365,19 +365,26 @@ export default function HomePage() {
 
         // 检测设置是否变化
         if (prevSettingsRef.current !== currentSettingsStr) {
-          console.log('Settings changed, invalidating cache');
+          console.log('Settings changed, refreshing course data');
           prevSettingsRef.current = currentSettingsStr;
 
-          // 使 React Query 缓存失效，触发重新加载
-          await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
-
-          // 重置组件（触发 Suspense 重新渲染）
-          setResetKey(prev => prev + 1);
+          // 显示刷新图标并刷新数据
+          if (isRefreshing) return;
+          setIsRefreshing(true);
+          try {
+            await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+          } catch (error: any) {
+            console.error('Settings refresh failed:', error);
+            handleError(error);
+            toast.error('刷新失败，请稍后再试');
+          } finally {
+            setIsRefreshing(false);
+          }
         }
       };
 
       checkSettingsChange();
-    }, []),
+    }, [isRefreshing, handleError]),
   );
 
   const onRefresh = useCallback(async () => {

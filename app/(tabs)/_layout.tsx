@@ -10,6 +10,7 @@ import { TabBarIcon } from '@/components/TabBarIcon';
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
+import fileCache from '@/utils/file-cache';
 
 const NAVIGATION_TITLE = '首页';
 
@@ -82,6 +83,18 @@ export default function TabLayout() {
         icon: 'qrcode',
       },
     ]);
+  }, []);
+
+  // 应用启动时触发一次过期缓存清理
+  useEffect(() => {
+    fileCache
+      .cleanupExpired()
+      .then(r => {
+        if (r && (r as any).deleted) console.log('Initial cache cleanup deleted', (r as any).deleted, 'files');
+      })
+      .catch(e => {
+        console.log('Initial cache cleanup failed', e);
+      });
   }, []);
 
   return (

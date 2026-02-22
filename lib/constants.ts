@@ -50,6 +50,7 @@ export const SSO_LOGIN_COOKIE_DOMAIN = 'https://sso.fzu.edu.cn';
 
 // 学习空间预约
 export const LEARNING_CENTER_TOKEN_KEY = 'learning_center_token';
+export const REMOTE_MAP_URL = 'https://download.w2fzu.com/statistic/map.webp';
 
 // 隐私政策允许情况
 export const IS_PRIVACY_POLICY_AGREED = 'is_privacy_policy_agreed';
@@ -101,6 +102,7 @@ export const CLASS_BREAK_EVENING = [1050, 1140]; // 17:30 - 19:00
 
 // 工具箱
 export const TOOLBOX_CONFIG_KEY = 'toolbox_config';
+export const TOOLBOX_BANNER_KEY = 'toolbox_banner';
 
 // 考场
 export const EXAM_ROOM_KEY = 'exam_room';

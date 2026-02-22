@@ -40,7 +40,9 @@ const AcademicContent = React.memo<CourseContentProps>(({ term }) => {
   const keyExtractor = useCallback((item: any, index: number) => `${item.name}-${index}`, []);
 
   const renderItem = useCallback(({ item }: { item: TermsInfoResponse_Event }) => {
-    return <LabelEntry leftText={item.name} description={`${item.start_date} - ${item.end_date}`} disabled noIcon />;
+    const description = item.start_date === item.end_date ? item.start_date : `${item.start_date} - ${item.end_date}`;
+
+    return <LabelEntry leftText={item.name} description={description} disabled noIcon />;
   }, []);
 
   const contentContainerStyle = useMemo(() => ({ paddingBottom: bottom }), [bottom]);
