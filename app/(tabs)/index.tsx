@@ -1,204 +1,170 @@
 import { Tabs, useFocusEffect } from 'expo-router';
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, View, useWindowDimensions, type LayoutRectangle, type ViewToken } from 'react-native';
+import { forwardRef, Suspense, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import {
+  FlatList,
+  Pressable,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+  type LayoutRectangle,
+  type ViewToken,
+} from 'react-native';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
-import { toast } from 'sonner-native';
 
+import { JwchCourseListResponse_Course } from '@/api/backend';
+import { getApiV1FriendCourse, getApiV1UserFriendList } from '@/api/generate';
 import { Icon } from '@/components/Icon';
 import { CourseErrorBoundary } from '@/components/course/course-error-boundary';
 import CourseWeek from '@/components/course/course-week';
+import { FriendListModal } from '@/components/course/friend-list-modal';
 import Loading from '@/components/loading';
+import ErrorView from '@/components/multistateview/error-view';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { queryClient } from '@/components/query-provider';
 import { Text } from '@/components/ui/text';
 import { CoursePageProvider } from '@/context/course-page';
+import useApiRequest from '@/hooks/useApiRequest';
 import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { hasCustomBackground } from '@/lib/appearance';
-import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
+import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
 
-function CoursePage() {
-  const coursePageData = useCoursePageData();
-  const { currentWeek, currentTerm, maxWeek } = coursePageData;
-
-  const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
-
-  useEffect(() => {
-    const refreshHandler = () => {
-      setSchedulesByDays(CourseCache.getCachedData(coursePageData.setting.selectedSemester));
-    };
-    CourseCache.addRefreshListener(refreshHandler);
-    return () => {
-      CourseCache.removeRefreshListener(refreshHandler);
-    };
-  }, [coursePageData.setting.selectedSemester]);
-
-  const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek)); // 选中周数，非当前学期则定位到第一周
-  const [showWeekSelector, setShowWeekSelector] = useState(false);
-  const { width } = useWindowDimensions();
-  const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });
-  const [customBackground, setCustomBackground] = useState(false);
-
-  useEffect(() => {
-    const checkBackground = async () => {
-      const result = await hasCustomBackground();
-      setCustomBackground(result);
-    };
-    checkBackground();
-  }, []);
-
-  const flatListRef = useRef<FlatList>(null);
-
-  // 周数切换，注意改变选中周必须使用该函数，以避免 FlatList 滚动越界导致崩溃
-  const safeSetSelectedWeek = useCallback(
-    (week: number, scrollTo: boolean = true) => {
-      const targetWeek = Math.max(1, Math.min(week, maxWeek));
-      setSelectedWeek(targetWeek);
-      if (scrollTo && flatListRef.current) {
-        flatListRef.current.scrollToIndex({
-          index: targetWeek - 1,
-          animated: false,
-        });
-      }
+const CourseGrid = forwardRef(
+  (
+    {
+      selectedFriendId,
+      coursePageData,
+      selectedWeek,
+      onWeekChange,
+    }: {
+      selectedFriendId: string | undefined;
+      coursePageData: any;
+      selectedWeek: number;
+      onWeekChange: (week: number) => void;
     },
-    [maxWeek],
-  );
+    ref,
+  ) => {
+    const { currentTerm, maxWeek } = coursePageData;
+    const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
 
-  // 生成周数据
-  const weekArray = useMemo(
-    () =>
-      Array.from({ length: maxWeek }, (_, i) => ({
-        week: i + 1,
-        firstDate: getFirstDateByWeek(currentTerm.start_date, i + 1),
-      })),
-    [maxWeek, currentTerm],
-  );
+    // 好友课表数据
+    const {
+      data: friendCourseData,
+      isError: isFriendError,
+      refetch: refetchFriend,
+    } = useApiRequest(
+      getApiV1FriendCourse,
+      { student_id: selectedFriendId!, term: coursePageData.setting.selectedSemester },
+      {
+        enabled: !!selectedFriendId,
+        queryKey: ['friend_course', selectedFriendId!, coursePageData.setting.selectedSemester],
+      },
+    );
 
-  // 通过 viewability 回调获取当前周
-  const handleViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<(typeof weekArray)[0]>[] }) => {
-      if (viewableItems.length > 0) {
-        const firstViewableWeek = viewableItems[0].item.week;
-        if (firstViewableWeek !== selectedWeek) {
-          safeSetSelectedWeek(firstViewableWeek, false);
+    // 监听课表数据源变化（本人/好友/缓存刷新）
+    useEffect(() => {
+      if (selectedFriendId) {
+        // 情况 A：查看好友课表，仅在数据成功返回时更新
+        if (friendCourseData) {
+          setSchedulesByDays(CourseCache.processFriendCourses(friendCourseData as JwchCourseListResponse_Course[]));
         }
+      } else {
+        // 情况 B：查看本人课表，立即同步并监听缓存刷新
+        const syncOwnData = () =>
+          setSchedulesByDays(CourseCache.getCachedData(coursePageData.setting.selectedSemester));
+
+        syncOwnData();
+
+        CourseCache.addRefreshListener(syncOwnData);
+        return () => CourseCache.removeRefreshListener(syncOwnData);
       }
-    },
-    [safeSetSelectedWeek, selectedWeek],
-  );
+    }, [selectedFriendId, friendCourseData, coursePageData.setting.selectedSemester]);
 
-  const weekPickerData = useMemo(
-    () =>
-      Array.from({ length: maxWeek }, (_, i) => ({
-        value: String(i + 1),
-        label: `第 ${i + 1} 周`,
-      })),
-    [maxWeek],
-  );
+    const { width } = useWindowDimensions();
+    const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });
 
-  const headerBackground = useCallback(() => {
-    return !customBackground ? <View className="flex-1 bg-card" /> : undefined;
-  }, [customBackground]);
+    const flatListRef = useRef<FlatList>(null);
 
-  const headerLeft = useCallback(
-    () => (
-      <Pressable
-        onPress={() => {
-          if (currentWeek !== -1) {
-            // 如果是当前学期，点击快捷跳转到当前周
-            safeSetSelectedWeek(currentWeek);
+    // 周数切换
+    const safeSetSelectedWeek = useCallback(
+      (week: number, scrollTo: boolean = true) => {
+        const targetWeek = Math.max(1, Math.min(week, maxWeek));
+        onWeekChange(targetWeek);
+        if (scrollTo && flatListRef.current) {
+          flatListRef.current.scrollToIndex({
+            index: targetWeek - 1,
+            animated: false,
+          });
+        }
+      },
+      [maxWeek, onWeekChange],
+    );
+
+    useImperativeHandle(ref, () => ({
+      scrollToWeek: (week: number) => safeSetSelectedWeek(week),
+    }));
+
+    // 生成周数据
+    const weekArray = useMemo(
+      () =>
+        Array.from({ length: maxWeek }, (_, i) => ({
+          week: i + 1,
+          firstDate: getFirstDateByWeek(currentTerm.start_date, i + 1),
+        })),
+      [maxWeek, currentTerm],
+    );
+
+    // 通过 viewability 回调获取当前周
+    const handleViewableItemsChanged = useCallback(
+      ({ viewableItems }: { viewableItems: ViewToken<(typeof weekArray)[0]>[] }) => {
+        if (viewableItems.length > 0) {
+          const firstViewableWeek = viewableItems[0].item.week;
+          if (firstViewableWeek !== selectedWeek) {
+            onWeekChange(firstViewableWeek);
           }
-        }}
-      >
-        <Text className="ml-4 text-2xl font-medium">课程表</Text>
-      </Pressable>
-    ),
-    [safeSetSelectedWeek, currentWeek],
-  );
+        }
+      },
+      [onWeekChange, selectedWeek],
+    );
 
-  const headerTitle = useCallback(
-    () => (
-      <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
-        <Text className="mr-1 text-lg">
-          第 {selectedWeek} 周 {selectedWeek === currentWeek ? '(本周)' : ''}
-        </Text>
-        <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
-      </Pressable>
-    ),
-    [selectedWeek, currentWeek, showWeekSelector],
-  );
+    // 提供固定的布局信息，有助于性能优化
+    const getItemLayout = useCallback(
+      (_: any, index: number) => ({
+        length: width,
+        offset: width * index,
+        index,
+      }),
+      [width],
+    );
 
-  const headerRight = useCallback(
-    () => (
-      <>
-        <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
-        <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
-      </>
-    ),
-    [],
-  );
+    // 渲染列表项（此处一项为一屏的内容）
+    const renderItem = useCallback(
+      ({ item }: { item: { week: number; firstDate: string } }) => (
+        <CourseWeek
+          key={item.week}
+          week={item.week}
+          startDate={item.firstDate}
+          schedulesByDays={schedulesByDays}
+          flatListLayout={flatListLayout}
+        />
+      ),
+      [schedulesByDays, flatListLayout],
+    );
 
-  // 提供固定的布局信息，有助于性能优化
-  const getItemLayout = useCallback(
-    (_: any, index: number) => ({
-      length: width,
-      offset: width * index,
-      index,
-    }),
-    [width],
-  );
+    const onLayout = useCallback(({ nativeEvent }: { nativeEvent: { layout: LayoutRectangle } }) => {
+      setFlatListLayout(nativeEvent.layout);
+    }, []);
 
-  // 渲染列表项（此处一项为一屏的内容）
-  const renderItem = useCallback(
-    ({ item }: { item: { week: number; firstDate: string } }) => (
-      <CourseWeek
-        key={item.week}
-        week={item.week}
-        startDate={item.firstDate}
-        schedulesByDays={schedulesByDays}
-        flatListLayout={flatListLayout}
-      />
-    ),
-    [schedulesByDays, flatListLayout],
-  );
+    // 好友课表加载失败时，在组件内展示错误视图，保持 header 可交互
+    if (selectedFriendId && isFriendError) {
+      return <ErrorView refresh={() => refetchFriend()} />;
+    }
 
-  const onLayout = useCallback(({ nativeEvent }: { nativeEvent: { layout: LayoutRectangle } }) => {
-    setFlatListLayout(nativeEvent.layout);
-  }, []);
-
-  const onClose = useCallback(() => {
-    setShowWeekSelector(false);
-  }, []);
-
-  const onConfirm = useCallback(
-    (selectedValue: string) => {
-      setShowWeekSelector(false);
-      safeSetSelectedWeek(parseInt(selectedValue, 10));
-    },
-    [safeSetSelectedWeek],
-  );
-
-  return (
-    <CoursePageProvider
-      value={{
-        setting: coursePageData.setting,
-      }}
-    >
-      {/* 顶部 Tab 导航栏 */}
-      <Tabs.Screen
-        options={{
-          headerBackground,
-          headerLeft,
-          headerTitle,
-          headerRight,
-        }}
-      />
-
-      {/* 课程表详情 */}
+    return (
       <FlatList
         className="flex-1"
         ref={flatListRef}
@@ -217,15 +183,146 @@ function CoursePage() {
         }}
         showsHorizontalScrollIndicator={false}
       />
+    );
+  },
+);
 
-      {/* 周数选择器 */}
+CourseGrid.displayName = 'CourseGrid';
+
+function HomePageContent({
+  selectedFriendId,
+  setSelectedFriendId,
+}: {
+  selectedFriendId: string | undefined;
+  setSelectedFriendId: (id: string | undefined) => void;
+}) {
+  const coursePageData = useCoursePageData();
+  const { currentWeek, maxWeek } = coursePageData;
+
+  const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek));
+  const [showWeekSelector, setShowWeekSelector] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [customBackground, setCustomBackground] = useState(false);
+
+  const courseGridRef = useRef<{ scrollToWeek: (week: number) => void }>(null);
+
+  useEffect(() => {
+    const checkBackground = async () => {
+      const result = await hasCustomBackground();
+      setCustomBackground(result);
+    };
+    checkBackground();
+  }, []);
+
+  const { data: friendList, refetch } = useApiRequest(
+    getApiV1UserFriendList,
+    {},
+    { persist: true, queryKey: [FRIEND_LIST_KEY] },
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
+
+  const headerBackground = useCallback(() => {
+    return !customBackground ? <View className="flex-1 bg-card" /> : undefined;
+  }, [customBackground]);
+
+  const headerLeft = useCallback(() => {
+    const title = selectedFriendId
+      ? `${friendList?.find(f => f.stu_id === selectedFriendId)?.name ?? '好友'}的课表`
+      : '我的课表';
+
+    let textSize = 'text-xl';
+    let iconSize = 13;
+    if (title.length > 8) {
+      textSize = 'text-sm';
+      iconSize = 9;
+    } else if (title.length > 5) {
+      textSize = 'text-base';
+      iconSize = 11;
+    }
+
+    return (
+      <TouchableOpacity activeOpacity={0.7} onPress={() => setMenuVisible(true)} className="w-32 flex-row items-center">
+        <Text className={`ml-4 font-medium ${textSize}`}>{title}</Text>
+        <Icon name="chevron-forward" size={iconSize} className="ml-0.5" />
+      </TouchableOpacity>
+    );
+  }, [selectedFriendId, friendList]);
+
+  const headerTitle = useCallback(
+    () => (
+      <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
+        <Text className="mr-1 text-lg">
+          第 {selectedWeek} 周 {selectedWeek === currentWeek ? '(本周)' : ''}
+        </Text>
+        <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+      </Pressable>
+    ),
+    [selectedWeek, currentWeek, showWeekSelector],
+  );
+
+  const headerRight = useCallback(
+    () => (
+      <>
+        {selectedFriendId === undefined && (
+          <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
+        )}
+        <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
+      </>
+    ),
+    [selectedFriendId],
+  );
+
+  const weekPickerData = useMemo(
+    () =>
+      Array.from({ length: maxWeek }, (_, i) => ({
+        value: String(i + 1),
+        label: `第 ${i + 1} 周`,
+      })),
+    [maxWeek],
+  );
+
+  return (
+    <CoursePageProvider value={{ setting: coursePageData.setting }}>
+      <Tabs.Screen
+        options={{
+          headerBackground,
+          headerLeft,
+          headerTitle,
+          headerRight,
+        }}
+      />
+
+      <CourseGrid
+        ref={courseGridRef}
+        selectedFriendId={selectedFriendId}
+        coursePageData={coursePageData}
+        selectedWeek={selectedWeek}
+        onWeekChange={setSelectedWeek}
+      />
+
       <PickerModal
         visible={showWeekSelector}
         title="选择周数"
         data={weekPickerData}
         value={String(selectedWeek)}
-        onClose={onClose}
-        onConfirm={onConfirm}
+        onClose={() => setShowWeekSelector(false)}
+        onConfirm={val => {
+          setShowWeekSelector(false);
+          courseGridRef.current?.scrollToWeek(parseInt(val, 10));
+        }}
+      />
+
+      <FriendListModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        friendList={friendList}
+        selectedFriendId={selectedFriendId}
+        onSelectFriend={setSelectedFriendId}
       />
     </CoursePageProvider>
   );
@@ -233,6 +330,8 @@ function CoursePage() {
 
 export default function HomePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+  const [selectedFriendId, setSelectedFriendId] = useState<string | undefined>(undefined);
   const prevSettingsRef = useRef<string | null>(null);
 
   const { handleError } = useSafeResponseSolve();
@@ -292,19 +391,23 @@ export default function HomePage() {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      const setting = await getCourseSetting();
-      const queryTerm = setting.selectedSemester;
-
-      await forceRefreshCourseData(queryTerm);
-      await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+      if (selectedFriendId) {
+        // 刷新好友课表
+        await queryClient.invalidateQueries({ queryKey: ['friend_course', selectedFriendId] });
+      } else {
+        // 刷新自己的课表
+        const setting = await getCourseSetting();
+        await forceRefreshCourseData(setting.selectedSemester);
+        await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+      }
+      setResetKey(prev => prev + 1);
     } catch (error: any) {
       console.error('Refresh failed:', error);
       handleError(error);
-      toast.error('刷新失败，请稍后再试');
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, handleError]);
+  }, [isRefreshing, selectedFriendId, handleError]);
 
   return (
     <PageContainer refreshBackground>
@@ -312,9 +415,15 @@ export default function HomePage() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         contentContainerClassName="flex-1"
       >
-        <CourseErrorBoundary handleError={handleError}>
+        <CourseErrorBoundary
+          key={resetKey}
+          onReset={() => {
+            queryClient.resetQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+            setResetKey(prev => prev + 1);
+          }}
+        >
           <Suspense fallback={<Loading />}>
-            <CoursePage />
+            <HomePageContent selectedFriendId={selectedFriendId} setSelectedFriendId={setSelectedFriendId} />
           </Suspense>
         </CourseErrorBoundary>
       </ScrollView>

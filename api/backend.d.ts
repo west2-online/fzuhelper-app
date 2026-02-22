@@ -10,6 +10,7 @@ import {
   type getApiV1LaunchScreenScreen,
   type getApiV1TermsInfo,
   type getApiV1TermsList,
+  type getApiV1UserFriendList,
   type getApiV2JwchAcademicCredit,
   type getApiV2VersionAndroid,
 } from '@/api/generate';
@@ -93,3 +94,8 @@ export type VersionAndroidResponse_Data = VersionAndroidResponse['release'];
 // getApiV1LaunchScreenScreen
 export type LaunchScreenScreenResponse = AsyncReturnType<typeof getApiV1LaunchScreenScreen>['data']['data'];
 export type LaunchScreenScreenResponse_Screen = LaunchScreenScreenResponse[0];
+
+// === 好友 ===
+// getApiV1UserFriendList
+export type UserFriendListResponse = AsyncReturnType<typeof getApiV1UserFriendList>['data']['data'];
+export type UserFriendListResponse_Friend = UserFriendListResponse[0];

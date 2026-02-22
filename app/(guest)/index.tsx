@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
-import { Stack, useFocusEffect } from 'expo-router';
+import { RelativePathString, router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, BackHandler, Image, Linking, Platform, TouchableOpacity, View } from 'react-native';
@@ -43,6 +43,8 @@ ExpoSplashScreen.preventAutoHideAsync();
 export default function SplashScreen() {
   const redirect = useRedirectWithoutHistory();
 
+  const { target, cold_launch } = useLocalSearchParams();
+
   const [shouldShowPrivacyAgree, setShouldShowPrivacyAgree] = useState(true);
   const [privacyDialogVisible, setPrivacyDialogVisible] = useState(false);
   const [isFocus, setIsFocus] = useState(true);
@@ -67,22 +69,31 @@ export default function SplashScreen() {
     }
   }, []);
 
-  const navigateToHome = useCallback(() => {
+  // 跳转DeepLink目标页或主页面
+  const navigateToTarget = useCallback(() => {
     setHideSystemBars(false);
     // 延迟使得系统栏恢复显示
     setTimeout(() => {
-      // 我们判断传入的参数，如果含 qrcode 则跳转到 qrcode 页面
-      // 目前暂时不使用这套方案，但是暂时留置，和 _layout.tsx 中的监听代码留置一样。
-      // if (method === 'qrcode') {
-      //   redirect('/(tabs)/qrcode');
-      // }
-      redirect('/(tabs)');
+      if (target && typeof target === 'string') {
+        // targetPath如果无效，有not-found兜底，此处无需处理
+        const targetPath = decodeURIComponent(target) as RelativePathString;
+        if (cold_launch === 'true') {
+          // 冷启动下先进入主页再跳转相应页面，保证返回栈
+          redirect('/(tabs)');
+          router.push(targetPath);
+        } else {
+          router.replace(targetPath);
+        }
+      } else {
+        // 无参冷启动
+        redirect('/(tabs)');
+      }
     }, 1);
-  }, [redirect]);
+  }, [cold_launch, redirect, target]);
 
-  // 获取开屏页，500ms 超时
+  // 获取开屏页，1s 超时
   const fetchSplashWithTimeout = useCallback(async () => {
-    const timeout = new Promise<null>((_, reject) => setTimeout(reject, 500, new Error('timeout')));
+    const timeout = new Promise<null>((_, reject) => setTimeout(reject, 1000, new Error('timeout')));
 
     try {
       return await Promise.race([
@@ -110,7 +121,7 @@ export default function SplashScreen() {
       const result = await fetchSplashWithTimeout();
 
       if (!result || !result.data.data || result.data.data.length === 0) {
-        navigateToHome();
+        navigateToTarget();
         console.log('no splash to display');
         return;
       }
@@ -132,8 +143,7 @@ export default function SplashScreen() {
         displayCount = Number(await AsyncStorage.getItem(SPLASH_DISPLAY_COUNT));
       }
       if ((splash.frequency || 10) < displayCount) {
-        navigateToHome();
-        console.log('splash reach frequency limit');
+        navigateToTarget();
         return;
       }
       // 未达到频次，展示
@@ -150,10 +160,9 @@ export default function SplashScreen() {
       ]);
     } catch (error) {
       // 不使用 handleError，静默处理
-      navigateToHome();
-      console.log('splash fetch error:', error);
+      navigateToTarget();
     }
-  }, [navigateToHome, fetchSplashWithTimeout]);
+  }, [navigateToTarget]);
 
   // 处理开屏页点击事件
   const handleSplashClick = useCallback(async () => {
@@ -169,8 +178,8 @@ export default function SplashScreen() {
       console.error(error);
     }
     // 跳过倒计时
-    navigateToHome();
-  }, [navigateToHome, splashId, splashTarget]);
+    navigateToTarget();
+  }, [navigateToTarget, splashId, splashTarget]);
 
   // 检查登录状态，如果账户存在则会检查和服务器的连接状态
   const checkLoginStatus = useCallback(async () => {
@@ -214,6 +223,7 @@ export default function SplashScreen() {
   useEffect(() => {
     ExpoSplashScreen.hideAsync();
     const handleAppStateChange = (nextAppState: string) => {
+      console.log('Splash AppState changed to', nextAppState);
       if (nextAppState === 'active') {
         if (!shouldShowPrivacyAgree) {
           console.log('shouldShowPrivacyAgree false, remove listener');
@@ -225,7 +235,11 @@ export default function SplashScreen() {
       }
     };
 
-    checkAndShowPrivacyAgree();
+    // 这个参数是DeepLink带过来的，如果直接桌面启动则为 undefined
+    // 下面条件代表桌面冷启动或从DeepLink冷启动，需要手动触发一次，DeepLink热启动会在handleAppStateChange触发
+    if (cold_launch !== 'false') {
+      checkAndShowPrivacyAgree();
+    }
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
 
@@ -242,7 +256,7 @@ export default function SplashScreen() {
         setCountdown(prev => {
           if (prev === 1) {
             clearInterval(timer);
-            navigateToHome();
+            navigateToTarget();
           }
           return prev - 1;
         });
@@ -250,7 +264,7 @@ export default function SplashScreen() {
 
       return () => clearInterval(timer);
     }
-  }, [showSplashImage, navigateToHome]);
+  }, [showSplashImage, navigateToTarget]);
 
   useFocusEffect(
     useCallback(() => {
@@ -298,7 +312,7 @@ export default function SplashScreen() {
 
               {/* 跳过按钮靠右 */}
               <View className="absolute bottom-11 right-8 w-20 rounded-full border-gray-400 bg-card py-2">
-                <TouchableOpacity onPress={navigateToHome} activeOpacity={0.7}>
+                <TouchableOpacity onPress={navigateToTarget} activeOpacity={0.7}>
                   <Text className="mx-auto">跳过 {countdown}</Text>
                 </TouchableOpacity>
               </View>

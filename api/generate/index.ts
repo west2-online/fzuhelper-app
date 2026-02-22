@@ -10,3 +10,4 @@ export * from './launchScreen';
 export * from './paper';
 export * from './common';
 export * from './toolbox';
+export * from './friend';
