@@ -62,7 +62,7 @@ export default function InviteFriendPage() {
 
   const handleShare = useCallback(async () => {
     if (inviteInfo?.invitation_code) {
-      const shareUrl = `https://fzuhelper.com/friend/invite?code=${inviteInfo.invitation_code}`;
+      const shareUrl = `https://fzuhelperapp.west2.online/friend/invite?code=${inviteInfo.invitation_code}`;
       try {
         await Share.share({
           title: '邀请你成为我的福uu好友',
