@@ -114,6 +114,10 @@ export const GRADE_CACHE_KEY = 'grade_cache';
 // 历年卷
 export const PAPER_SEARCH_HISTORY_KEY = 'paper_search_history';
 
+// 好友
+export const FRIEND_LIST_KEY = 'friend_list';
+export const FRIEND_INVITATION_CODE_LEN = 6;
+
 // 成绩颜色对照
 export const GRADE_COLOR_EXCELLENT = '#9310FF'; // >90 优秀
 export const GRADE_COLOR_GOOD = '#1089FF'; // 80-89 良好

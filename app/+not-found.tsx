@@ -8,7 +8,7 @@ import { Text } from '@/components/ui/text';
 export default function NotFoundScreen() {
   return (
     <>
-      <Stack.Screen name="哎呀，页面不见啦！" />
+      <Stack.Screen options={{ title: '哎呀，页面不见啦！' }} />
 
       {/* 页面内容 */}
       <PageContainer className="items-center justify-center p-5">
@@ -17,7 +17,7 @@ export default function NotFoundScreen() {
 
         {/* 提示文字 */}
         <Text className="mt-6 text-center text-xl font-semibold">哎呀，这个页面被小猫叼走啦！</Text>
-        <Text className="mt-2 text-center text-base text-text-secondary">不用担心，你可以回到首页重新找路~</Text>
+        <Text className="mt-2 text-center text-base text-text-secondary">请到应用商店将App更新至最新版本再试试~</Text>
 
         {/* 返回首页按钮 */}
         <Link href="/" asChild replace>
