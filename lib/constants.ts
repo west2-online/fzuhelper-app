@@ -41,7 +41,8 @@ export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
 export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 
 // SSO 登录
-export const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';
+export const SSO_LOGIN_URL =
+  'https://sso.fzu.edu.cn/login?service=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-auth%2Fcas%2Flogin%2FruiJie%3FtargetUrl%3Dhttps%253A%252F%252Fxcx.fzu.edu.cn%252Fberserker-base%252Fredirect%253FappId%253D16%2526nodeId%253D15%2526type%253Dapp';
 export const SSO_LOGIN_SMS_URL = 'https://sso.fzu.edu.cn/api/protected/sms/publicNoToken/sendSmsCode';
 export const SSO_LOGIN_VERIFY_SMS_CODE_URL = 'https://sso.fzu.edu.cn/api/protected/sms/checkToken';
 export const SSO_LOGIN_USER_KEY = 'sso_login_user';

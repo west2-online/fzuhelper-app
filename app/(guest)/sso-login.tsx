@@ -13,17 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import {
-  SSO_LOGIN_COOKIE_KEY,
-  SSO_LOGIN_USER_KEY,
-  URL_PRIVACY_POLICY,
-  URL_USER_AGREEMENT,
-  YMT_ACCESS_TOKEN_KEY,
-  YMT_USERNAME_KEY,
-} from '@/lib/constants';
+import { SSO_LOGIN_COOKIE_KEY, SSO_LOGIN_USER_KEY, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import SSOLogin, { TwoFactorAuthCallback } from '@/lib/sso-login';
 import { pushToWebViewNormal } from '@/lib/webview';
-import YMTLogin from '@/lib/ymt-login';
 
 interface SSOUser {
   account: string;
@@ -43,15 +35,11 @@ const UnifiedLoginPage: React.FC = () => {
   const [smsTip, setSmsTip] = useState('');
   const [smsSendFunction, setSmsSendFunction] = useState<(() => Promise<void>) | null>(null);
   const { handleError } = useSafeResponseSolve();
-  const ymtLogin = useRef<YMTLogin | null>(null);
   const ssoLogin = useRef<SSOLogin | null>(null);
   const isStoredSSOUser = useRef(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const smsCodeResolve = useRef<((code: string) => void) | null>(null);
 
-  if (!ymtLogin.current) {
-    ymtLogin.current = new YMTLogin();
-  }
   if (!ssoLogin.current) {
     ssoLogin.current = new SSOLogin();
   }
@@ -105,37 +93,18 @@ const UnifiedLoginPage: React.FC = () => {
     };
 
     try {
-      const cookies = await ssoLogin.current!.login(account, accountPassword, twoFactorCallback);
+      const loginResult = await ssoLogin.current!.login(account, accountPassword, twoFactorCallback);
       // 如果返回空字符串，说明用户取消了验证码输入
-      if (!cookies) {
+      if (!loginResult) {
         console.log('用户取消了SSO登录');
         return false;
       }
-      await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookies);
+      await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, loginResult.cookies);
       await AsyncStorage.setItem(SSO_LOGIN_USER_KEY, JSON.stringify({ account: account, password: accountPassword }));
-      console.log('登录SSO成功:', cookies);
+      console.log('登录SSO成功:', loginResult);
       return true;
     } catch (error: any) {
       // 这个 code 和 msg 是 SSO 提供的,不是我们自己定义的
-      const data = handleError(error) as { code: string; msg: string };
-      if (data) {
-        Alert.alert('请求失败', data.code + ': ' + data.msg);
-      }
-    }
-    return false;
-  }, [account, accountPassword, handleError]);
-
-  // 处理一码通登录逻辑
-  const handleYMTLogin = useCallback(async () => {
-    try {
-      const { name, accessToken } = await ymtLogin.current!.login(account, accountPassword);
-      console.log('登录一码通成功:', name, accessToken);
-      await AsyncStorage.multiSet([
-        [YMT_ACCESS_TOKEN_KEY, accessToken],
-        [YMT_USERNAME_KEY, name],
-      ]);
-      return true;
-    } catch (error: any) {
       const data = handleError(error) as { code: string; msg: string };
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.msg);
@@ -194,29 +163,19 @@ const UnifiedLoginPage: React.FC = () => {
     }
 
     setIsLoggingIn(true); // 禁用按钮
-    // 由于一码通和SSO使用同一套账号密码 所以这里同时进行一码通和SSO登录
-    // 以下两个登录函数中调用了handleError执行错误处理（弹窗），不需要再作弹窗
-    const isYMTLoginSuccess = await handleYMTLogin();
-    if (!isYMTLoginSuccess) {
-      // 一码通登录失败，大概率账号密码错误，结束登录流程
-      setIsLoggingIn(false);
-      return;
-    }
 
     const isSSOLoginSuccess = await handleSSOLogin();
 
-    // 如果一码通登录成功但是SSO登录失败，则证明账号密码正确但是SSO登录有问题，引导前往备用登录方式
-    if (isYMTLoginSuccess && !isSSOLoginSuccess) {
+    // SSO登录失败，则证明账号密码正确但是SSO登录有问题，引导前往备用登录方式
+    if (!isSSOLoginSuccess) {
       setIsBackUpEnabled(true); // 启用备用登录方式
-      toast.warning('一码通登录成功，但统一身份认证登录失败，请尝试使用备用方式以登录统一身份认证');
-    }
-
-    if (isSSOLoginSuccess && isYMTLoginSuccess) {
+      toast.warning('统一身份认证登录失败，请尝试使用备用方式登录');
+    } else {
       router.back();
     }
 
     setIsLoggingIn(false);
-  }, [isAgree, account, accountPassword, handleSSOLogin, handleYMTLogin]);
+  }, [isAgree, account, accountPassword, handleSSOLogin]);
 
   return (
     <>
