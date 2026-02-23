@@ -56,14 +56,16 @@ export default async function locateDate(noCache = false): Promise<LocateDateRes
           });
           // 异步更新缓存
           console.log('Updating locate date cache asynchronously...');
-          fetchJwchLocateDate().then(({ week: newWeek, year: newYear, term: newTerm }) => {
-            AsyncStorage.setItem(
-              JWCH_LOCATE_DATE_CACHE_KEY,
-              JSON.stringify({ date: formattedCurrentDate, week: newWeek, year: newYear, term: newTerm }),
-            ).catch(error => {
+          fetchJwchLocateDate()
+            .then(({ week: newWeek, year: newYear, term: newTerm }) => {
+              AsyncStorage.setItem(
+                JWCH_LOCATE_DATE_CACHE_KEY,
+                JSON.stringify({ date: formattedCurrentDate, week: newWeek, year: newYear, term: newTerm }),
+              );
+            })
+            .catch(error => {
               console.warn('Failed to update cache asynchronously:', error);
             });
-          });
           return { date: formattedCurrentDate, week: computedWeek, day: currentDay, semester };
         }
       }
