@@ -115,7 +115,7 @@ class SSOLogin {
     }
   }
 
-  // 登录, 返回并保存 cookie
+  // 登录, 保存 cookie，返回cookie和ticket
   async login(account: string, password: string, twoFactorCallback?: TwoFactorAuthCallback) {
     /**
      * @param account 学号
@@ -263,7 +263,9 @@ class SSOLogin {
 
     const cookies = `SOURCEID_TGC=${SOURCEID_TGC}`;
 
-    return cookies;
+    const ticket = new URL(loginResp.headers.Location).searchParams.get('ticket');
+
+    return { cookies, ticket };
   }
 
   // 获取学习空间的token

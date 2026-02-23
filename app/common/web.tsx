@@ -116,14 +116,14 @@ export default function Web() {
           return;
         }
         const { account, password } = JSON.parse(userData);
-        const cookieLogin = await ssoLogin.login(account, password).catch(error => {
+        const loginResult = await ssoLogin.login(account, password).catch(error => {
           console.error('SSO登录获取cookie失败:', error);
           return null;
         });
         // toast.info('登录过期，正在重新登录');
-        if (cookieLogin) {
-          cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
-          await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookieLogin);
+        if (loginResult) {
+          loginResult.cookies.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+          await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, loginResult.cookies);
         } else {
           // 重登失败，跳转到登录页面
           toast.error('自动重登失败');
