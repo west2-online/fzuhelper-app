@@ -38,7 +38,7 @@ export default function SettingPage() {
           await AsyncStorage.clear(); // 清空 AsyncStorage
           queryClient.clear(); // 清除网络请求缓存
           await LocalUser.clear(); // 清除本地用户
-          await FileSystem.deleteAsync(FileSystem.cacheDirectory as string); // 清除系统缓存
+          await FileSystem.deleteAsync(FileSystem.cacheDirectory as string, { idempotent: true }); // 清除系统缓存
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
             redirect('/(guest)');

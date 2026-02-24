@@ -74,7 +74,7 @@ export default function HomePage() {
     const cacheDir = FileSystem.cacheDirectory;
     if (cacheDir === null) return;
     try {
-      await FileSystem.deleteAsync(cacheDir);
+      await FileSystem.deleteAsync(cacheDir, { idempotent: true });
       toast.success('清理缓存目录成功');
     } catch (error) {
       toast.error(`清理缓存目录失败：${error}`);
@@ -85,7 +85,7 @@ export default function HomePage() {
     const cacheDir = FileSystem.cacheDirectory;
     if (cacheDir === null) return;
     try {
-      await FileSystem.deleteAsync(cacheDir + 'paper/');
+      await FileSystem.deleteAsync(cacheDir + 'paper/', { idempotent: true });
       toast.success('清理历年卷缓存目录成功');
     } catch (error) {
       toast.error(`清理历年卷缓存目录失败：${error}`);
