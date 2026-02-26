@@ -56,9 +56,7 @@ const config: ExpoConfig = {
       NSCalendarsFullAccessUsageDescription: '我们需要申请日历权限以导出课表、考场安排等内容到日历',
       NSCameraUsageDescription: '我们需要申请相机权限以提供拍照上传头像、学习中心扫码签到等功能',
       NSPhotoLibraryUsageDescription: '我们需要申请相册权限以提供上传头像等功能',
-      // 下面这三个定位权限申请缺一不可
       NSLocationWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
-      NSLocationAlwaysAndWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       LSApplicationQueriesSchemes: ['itms-apps'],
       CFBundleAllowMixedLocalizations: true,
       CFBundleURLName: 'MEWHFZ92DY.FzuHelper.FzuHelper', // URL Scheme，用于跳转到 App，CFBundleURLSchemes Expo 已经帮忙配置好了
@@ -89,6 +87,7 @@ const config: ExpoConfig = {
       'android.permission.REQUEST_INSTALL_PACKAGES',
       'android.permission.CAMERA',
       'android.permission.READ_CALENDAR',
+      'android.permission.WRITE_CALENDAR',
       'android.permission.ACCESS_COARSE_LOCATION',
       'android.permission.ACCESS_FINE_LOCATION',
     ],
@@ -107,25 +106,11 @@ const config: ExpoConfig = {
       {
         android: {
           useLegacyPackaging: true,
-          enableProguardInReleaseBuilds: true,
+          enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
           usesCleartextTraffic: true,
           extraMavenRepos: ['https://developer.huawei.com/repo/'],
         },
-      },
-    ],
-    [
-      'expo-calendar',
-      {
-        calendarPermission: '我们需要访问日历以提供导出课表到日历功能', // iOS only
-        remindersPermission: '我们需要访问提醒事项以提供导出课表到提醒事项功能', // iOS only
-      },
-    ],
-    [
-      'expo-camera',
-      {
-        cameraPermission: '我们需要申请相机权限以提供拍照上传头像、学习中心扫码签到等功能',
-        recordAudioAndroid: true,
       },
     ],
     './plugins/inject-android-config',
@@ -188,15 +173,9 @@ const config: ExpoConfig = {
     [
       'expo-quick-actions',
       {
-        iosActions: [
-          {
-            id: '1',
-            title: '一码通',
-            subtitle: '一键跳转一码通',
-            icon: 'symbol:qrcode',
-            params: { href: '/qrcode' },
-          },
-        ],
+        iosIcons: {
+          qrcode: 'symbol:qrcode',
+        },
         androidIcons: {
           qrcode: {
             foregroundImage: './assets/images/qr_action.png',

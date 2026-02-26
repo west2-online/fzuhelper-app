@@ -79,8 +79,9 @@ export default function TabLayout() {
       {
         id: '1',
         title: '一码通',
-        params: { href: '/qrcode' },
+        subtitle: '一键跳转一码通',
         icon: 'qrcode',
+        params: { href: '/qrcode' },
       },
     ]);
   }, []);
