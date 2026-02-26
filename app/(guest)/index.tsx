@@ -163,11 +163,11 @@ export default function SplashScreen() {
         [SPLASH_DISPLAY_COUNT, (displayCount + 1).toString()],
         [SPLASH_DATE, dayjs().format(DATE_FORMAT_DASH)],
       ]);
-    } catch (error) {
+    } catch {
       // 不使用 handleError，静默处理
       navigateToTarget();
     }
-  }, [navigateToTarget]);
+  }, [fetchSplashWithTimeout, navigateToTarget]);
 
   // 处理开屏页点击事件
   const handleSplashClick = useCallback(async () => {
