@@ -105,6 +105,7 @@ const config: ExpoConfig = {
       'expo-build-properties',
       {
         android: {
+          buildArchs: ['arm64-v8a'],
           useLegacyPackaging: true,
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,

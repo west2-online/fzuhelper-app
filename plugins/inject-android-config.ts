@@ -1,7 +1,7 @@
 // https://github.com/expo/expo/issues/36591#issuecomment-2849092926
 import configPlugins from '@expo/config-plugins';
 import { type ExpoConfig } from 'expo/config';
-const { withAppBuildGradle, withGradleProperties, withSettingsGradle } = configPlugins;
+const { withAppBuildGradle, withGradleProperties } = configPlugins;
 
 function insertAfter(s: string, searchString: string, content: string): string {
   const index = s.indexOf(searchString);
@@ -76,45 +76,42 @@ function withAppBuildGradleConfig(config: ExpoConfig): ExpoConfig {
 
 function withGradlePropertiesConfig(config: ExpoConfig): ExpoConfig {
   return withGradleProperties(config, gradlePropertiesConfig => {
-    // abi配置
-    let arch = gradlePropertiesConfig.modResults.find(
-      item => item.type === 'property' && item.key === 'reactNativeArchitectures',
-    );
-    if (arch && arch.type === 'property') {
-      arch.value = 'arm64-v8a';
-    }
+    // 启用按需配置
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'org.gradle.configureondemand',
+      value: 'true',
+    });
+    // 启用构建缓存
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'org.gradle.caching',
+      value: 'true',
+    });
+    // 启用配置缓存
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'org.gradle.configuration-cache',
+      value: 'true',
+    });
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'org.gradle.configuration-cache.problems',
+      value: 'warn',
+    });
+    // 启用优化型资源缩减
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'android.r8.optimizedResourceShrinking',
+      value: 'true',
+    });
     return gradlePropertiesConfig;
-  });
-}
-
-function withSettingsGradleConfig(config: ExpoConfig): ExpoConfig {
-  return withSettingsGradle(config, settingsConfig => {
-    let contents = settingsConfig.modResults.contents;
-    contents = insertAfter(
-      contents,
-      'plugins {',
-      `
-  id("com.gradle.enterprise") version("3.16.2")`,
-    );
-    contents = `${contents.trimEnd()}\n
-gradleEnterprise {
-  if (System.getenv("CI") != null) {
-    buildScan {
-      publishAlways()
-      termsOfServiceUrl = "https://gradle.com/terms-of-service"
-      termsOfServiceAgree = "yes"
-    }
-  }
-}\n`;
-    settingsConfig.modResults.contents = contents;
-    return settingsConfig;
   });
 }
 
 function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
   config = withAppBuildGradleConfig(config);
   config = withGradlePropertiesConfig(config);
-  config = withSettingsGradleConfig(config);
   return config;
 }
 
