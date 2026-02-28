@@ -174,9 +174,6 @@ const config: ExpoConfig = {
     [
       'expo-quick-actions',
       {
-        iosIcons: {
-          qrcode: 'symbol:qrcode',
-        },
         androidIcons: {
           qrcode: {
             foregroundImage: './assets/images/qr_action.png',

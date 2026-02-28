@@ -80,7 +80,7 @@ export default function TabLayout() {
         id: '1',
         title: '一码通',
         subtitle: '一键跳转一码通',
-        icon: 'qrcode',
+        icon: Platform.OS === 'ios' ? 'symbol:qrcode' : 'qrcode',
         params: { href: '/qrcode' },
       },
     ]);
