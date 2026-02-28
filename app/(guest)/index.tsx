@@ -2,9 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { RelativePathString, router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, BackHandler, Image, Linking, Platform, TouchableOpacity, View } from 'react-native';
-import { SystemBars } from 'react-native-edge-to-edge';
 
 import {
   AlertDialog,
@@ -285,6 +285,7 @@ export default function SplashScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View>
+        <StatusBar hidden={hideSystemBars} />
         {!showSplashImage ? (
           // 默认开屏
           <Image className="h-full w-full bg-background" source={SplashImage} fadeDuration={0} resizeMode="cover" />
@@ -322,8 +323,6 @@ export default function SplashScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-
-            <SystemBars hidden={hideSystemBars} />
           </View>
         )}
       </View>

@@ -32,7 +32,6 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'fzuhelper',
-  userInterfaceStyle: 'automatic',
   ios: {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
@@ -77,7 +76,6 @@ const config: ExpoConfig = {
   android: {
     package: IS_DEV ? 'com.helper.west2ol.fzuhelper.dev' : 'com.helper.west2ol.fzuhelper',
     versionCode,
-    edgeToEdgeEnabled: true,
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
       monochromeImage: './assets/images/ic_launcher_foreground.png',
@@ -94,11 +92,10 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
-    'expo-system-ui',
     [
       'react-native-permissions',
       {
-        iosPermissions: ['Camera', 'Calendars', 'Notifications', 'LocationWhenInUse'],
+        iosPermissions: ['Camera', 'Calendars', 'Notifications', 'LocationWhenInUse', 'AppTrackingTransparency'],
       },
     ],
     [
@@ -142,22 +139,6 @@ const config: ExpoConfig = {
         NSPushNotificationUsageDescription:
           '我们会使用推送通知来推送成绩信息、教务处最新通知，通知发送受福州大学监管，不会泄露您的个人信息',
         NSUserTrackingUsageDescription: '我们会使用设备号来分析软件使用情况，以便提供更好的服务以及修复漏洞',
-      },
-    ],
-    [
-      'expo-tracking-transparency',
-      {
-        userTrackingPermission:
-          '请允许我们搜集可以用于追踪您或您的设备的应用相关数据，这将会用于投放个性化内容，如教务处通知推送、成绩更新推送等内容.',
-      },
-    ],
-    [
-      'react-native-edge-to-edge',
-      {
-        android: {
-          parentTheme: 'Default',
-          enforceNavigationBarContrast: false,
-        },
       },
     ],
     [
