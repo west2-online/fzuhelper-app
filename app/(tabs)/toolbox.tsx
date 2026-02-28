@@ -26,6 +26,7 @@ import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
+import FreeFriendsIcon from '@/assets/images/toolbox/ic_free_friends.svg';
 import Banner, { type BannerContent, BannerType } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
@@ -286,6 +287,13 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     icon: UtilityPaymentIcon,
     type: ToolType.LINK,
     href: '/toolbox/utility-payment',
+  },
+  {
+    id: 210,
+    name: '约',
+    icon: FreeFriendsIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/free-friends',
   },
   {
     id: 9999,
