@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 41 41" xmlns="http://www.w3.org/2000/svg">
+  <!-- Calendar base -->
+  <rect x="4" y="8" width="24" height="22" rx="3" fill="#768AED"/>
+  <!-- Calendar header -->
+  <rect x="4" y="8" width="24" height="8" rx="3" fill="#5E6EBE"/>
+  <rect x="4" y="12" width="24" height="4" fill="#5E6EBE"/>
+  <!-- Calendar grid -->
+  <rect x="8" y="19" width="4" height="3" rx="1" fill="white" opacity="0.7"/>
+  <rect x="14" y="19" width="4" height="3" rx="1" fill="white" opacity="0.7"/>
+  <rect x="20" y="19" width="4" height="3" rx="1" fill="white" opacity="0.7"/>
+  <rect x="8" y="24" width="4" height="3" rx="1" fill="white" opacity="0.7"/>
+  <rect x="14" y="24" width="4" height="3" rx="1" fill="white" opacity="0.7"/>
+  <rect x="20" y="24" width="4" height="3" rx="1" fill="white" opacity="0.7"/>
+  <!-- Friend person 1 (head + body) -->
+  <circle cx="32" cy="22" r="4" fill="#F1C40F"/>
+  <path d="M25 34 Q32 28 39 34" fill="#F1C40F"/>
+  <!-- Check mark overlay -->
+  <polyline points="10,23 13,26 18,20" stroke="#48C78E" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
