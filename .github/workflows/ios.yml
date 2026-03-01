@@ -50,6 +50,8 @@ jobs:
       - name: EAS Build iOS
         run: |
           node ./eas-cli/eas/bin/run build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
+        env:
+          EAS_SKIP_AUTO_FINGERPRINT: 1
 
       - name: Generate Changelog
         id: changelog

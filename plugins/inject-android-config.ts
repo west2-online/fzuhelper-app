@@ -69,6 +69,11 @@ function withAppBuildGradleConfig(config: ExpoConfig): ExpoConfig {
         'New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force',
       );
     }
+    // 将编译器作为单独的进程运行
+    contents = `${contents.trimEnd()}\n
+tasks.withType(JavaCompile).configureEach {
+    options.fork = true
+}`;
     appBuildGradleConfig.modResults.contents = contents;
     return appBuildGradleConfig;
   });
