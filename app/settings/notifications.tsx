@@ -22,9 +22,9 @@ const defaultNotificationsSetting: NotificationsSettings = {
 
 export default function PushSettingsPage() {
   const [settings, setSettings] = useState<NotificationsSettings>(defaultNotificationsSetting);
-  const [loadingTeaching, setLoadingTeaching] = useState(false);
-  const [loadingGrade, setLoadingGrade] = useState(false);
-  const [loadingExam, setLoadingExam] = useState(false);
+  const [disableTeaching, setDisableTeaching] = useState(false);
+  const [disableGrade, setDisableGrade] = useState(false);
+  const [disableExam, setDisableExam] = useState(false);
 
   const saveSettingsToStorage = async (newSettings: NotificationsSettings) => {
     await AsyncStorage.setItem(ALLOW_PUSH_EVENT_KEYS, JSON.stringify(newSettings));
@@ -43,7 +43,7 @@ export default function PushSettingsPage() {
           .then(() => NotificationManager.register())
           .then(() => resolve())
           .catch((error: any) => {
-            toast.error('设置失败，请稍后重试：' + (error.data || error.message || '未知错误'));
+            toast.error('设置失败，请稍后重试：' + (error.data.message || error.message || '未知错误'));
             // 回滚 UI 和本地存储
             setSettings(prevSettings);
             saveSettingsToStorage(prevSettings);
@@ -72,35 +72,35 @@ export default function PushSettingsPage() {
   };
 
   const handleTeachingNotice = async () => {
-    setLoadingTeaching(true);
+    setDisableTeaching(true);
     try {
       checkPermission();
       const newValue = !settings.allowJWCHTeachingNotice;
       await updateSetting('allowJWCHTeachingNotice', newValue);
     } finally {
-      setLoadingTeaching(false);
+      setDisableTeaching(false);
     }
   };
 
   const handleMarkNotice = async () => {
-    setLoadingGrade(true);
+    setDisableGrade(true);
     try {
       checkPermission();
       const newValue = !settings.allowGradeUpdateNotice;
       await updateSetting('allowGradeUpdateNotice', newValue);
     } finally {
-      setLoadingGrade(false);
+      setDisableGrade(false);
     }
   };
 
   const handleExamNotice = async () => {
-    setLoadingExam(true);
+    setDisableExam(true);
     try {
       checkPermission();
       const newValue = !settings.allowExamNotice;
       await updateSetting('allowExamNotice', newValue);
     } finally {
-      setLoadingExam(false);
+      setDisableExam(false);
     }
   };
 
@@ -118,7 +118,7 @@ export default function PushSettingsPage() {
               value={settings.allowJWCHTeachingNotice}
               onValueChange={handleTeachingNotice}
               description="由教务处发布，含调停课、教学安排、竞赛通知等"
-              loading={loadingTeaching}
+              disabled={disableTeaching}
             />
 
             <Text className="my-2 text-sm text-text-secondary">学业</Text>
@@ -128,7 +128,7 @@ export default function PushSettingsPage() {
               value={settings.allowGradeUpdateNotice}
               onValueChange={handleMarkNotice}
               description="课程成绩有更新时通知（通常在成绩发布后24小时内推送）"
-              loading={loadingGrade}
+              disabled={disableGrade}
             />
 
             <LabelSwitch
@@ -136,7 +136,7 @@ export default function PushSettingsPage() {
               value={settings.allowExamNotice}
               onValueChange={handleExamNotice}
               description="教师发布考试安排时通知（通常在考场更新后24小时内推送）"
-              loading={loadingExam}
+              disabled={disableExam}
             />
           </SafeAreaView>
         </ScrollView>

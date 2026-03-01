@@ -342,9 +342,8 @@ export default function HomePage() {
       try {
         await NotificationManager.register();
         console.log('NotificationManager registered end.');
-      } catch (error: any) {
+      } catch (error) {
         console.error('Failed to register NotificationManager:', error);
-        toast.error('获取通知失败: ' + (error.data || error.message || '未知错误'));
       }
     }, 2000);
 
