@@ -178,7 +178,7 @@ export default function CourseSettingPage() {
             <LabelEntry
               leftText="桌面小部件"
               onPress={() => {
-                pushToWebViewNormal('https://west2-online.feishu.cn/wiki/SitbwKuLriaL5bk7Wbicxdf7nYb');
+                router.push('/settings/widget');
               }}
             />
 
