@@ -1,10 +1,10 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-import { SystemBars } from 'react-native-edge-to-edge';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -56,7 +56,7 @@ export default function RootLayout() {
 
                 <Toaster position="top-center" duration={2500} offset={100} style={toastStyle} />
                 <PortalHost />
-                <SystemBars style="auto" />
+                <StatusBar />
                 <DownloadProgress />
               </LearningCenterContextProvider>
             </GestureHandlerRootView>

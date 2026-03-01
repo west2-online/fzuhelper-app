@@ -32,10 +32,15 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+          build-scan-terms-of-use-agree: 'yes'
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile --prefer-offline
@@ -47,8 +52,8 @@ jobs:
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease --build-cache --parallel --configure-on-demand --max-workers=$(nproc) \
-            -D org.gradle.jvmargs="-Xmx4g -Xms1g -XX:MetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
+          ./gradlew app:packageRelease \
+          -D org.gradle.jvmargs="-Xmx12g -XX:MetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseParallelGC"
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}

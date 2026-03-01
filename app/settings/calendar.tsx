@@ -19,7 +19,7 @@ import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 export default function PersonalInfoListPage() {
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
-  const [switchDisabled, setSwitchDisabled] = useState(false);
+  const [switchLoading, setSwitchLoading] = useState(false);
 
   const readSettingsFromStorage = useCallback(async () => {
     console.log('读取课程设置');
@@ -32,7 +32,7 @@ export default function PersonalInfoListPage() {
   }, [readSettingsFromStorage]);
 
   const handleSubscribeChange = useCallback(async () => {
-    setSwitchDisabled(true);
+    setSwitchLoading(true);
     try {
       if (!settings.calendarExportEnabled) {
         // 如果用户开启了日历订阅，调用接口获取订阅地址，本地缓存 30 天。
@@ -69,7 +69,7 @@ export default function PersonalInfoListPage() {
     } catch (error) {
       console.error('订阅地址获取失败:', error);
     } finally {
-      setSwitchDisabled(false);
+      setSwitchLoading(false);
     }
   }, [settings.calendarExportEnabled]);
 
@@ -97,7 +97,7 @@ export default function PersonalInfoListPage() {
               label="启用日历订阅"
               value={settings.calendarExportEnabled}
               onValueChange={handleSubscribeChange}
-              disabled={switchDisabled}
+              loading={switchLoading}
             />
             {settings.calendarExportEnabled && (
               <View>

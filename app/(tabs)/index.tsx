@@ -10,6 +10,7 @@ import {
   type ViewToken,
 } from 'react-native';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
+import { toast } from 'sonner-native';
 
 import { JwchCourseListResponse_Course } from '@/api/backend';
 import { getApiV1FriendCourse, getApiV1UserFriendList } from '@/api/generate';
@@ -330,7 +331,6 @@ function HomePageContent({
 
 export default function HomePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [resetKey, setResetKey] = useState(0);
   const [selectedFriendId, setSelectedFriendId] = useState<string | undefined>(undefined);
   const prevSettingsRef = useRef<string | null>(null);
 
@@ -342,8 +342,9 @@ export default function HomePage() {
       try {
         await NotificationManager.register();
         console.log('NotificationManager registered end.');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to register NotificationManager:', error);
+        toast.error('获取通知失败: ' + (error.data || error.message || '未知错误'));
       }
     }, 2000);
 
@@ -400,7 +401,6 @@ export default function HomePage() {
         await forceRefreshCourseData(setting.selectedSemester);
         await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
       }
-      setResetKey(prev => prev + 1);
     } catch (error: any) {
       console.error('Refresh failed:', error);
       handleError(error);
@@ -415,13 +415,7 @@ export default function HomePage() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         contentContainerClassName="flex-1"
       >
-        <CourseErrorBoundary
-          key={resetKey}
-          onReset={() => {
-            queryClient.resetQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
-            setResetKey(prev => prev + 1);
-          }}
-        >
+        <CourseErrorBoundary>
           <Suspense fallback={<Loading />}>
             <HomePageContent selectedFriendId={selectedFriendId} setSelectedFriendId={setSelectedFriendId} />
           </Suspense>

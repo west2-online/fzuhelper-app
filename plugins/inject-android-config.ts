@@ -1,6 +1,5 @@
 // https://github.com/expo/expo/issues/36591#issuecomment-2849092926
 import configPlugins from '@expo/config-plugins';
-import { execSync } from 'child_process';
 import { type ExpoConfig } from 'expo/config';
 const { withAppBuildGradle, withGradleProperties } = configPlugins;
 
@@ -9,10 +8,9 @@ function insertAfter(s: string, searchString: string, content: string): string {
   return s.slice(0, index) + searchString + content + s.slice(index + searchString.length);
 }
 
-function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  config = withAppBuildGradle(config, config => {
-    let contents = config.modResults.contents;
+function withAppBuildGradleConfig(config: ExpoConfig): ExpoConfig {
+  return withAppBuildGradle(config, appBuildGradleConfig => {
+    let contents = appBuildGradleConfig.modResults.contents;
     // 签名配置
     contents = insertAfter(
       contents,
@@ -71,17 +69,49 @@ function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
         'New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force',
       );
     }
-    config.modResults.contents = contents;
-    return config;
+    appBuildGradleConfig.modResults.contents = contents;
+    return appBuildGradleConfig;
   });
-  config = withGradleProperties(config, config => {
-    // abi配置
-    let arch = config.modResults.find(item => item.type === 'property' && item.key === 'reactNativeArchitectures');
-    if (arch && arch.type === 'property') {
-      arch.value = 'arm64-v8a';
-    }
-    return config;
+}
+
+function withGradlePropertiesConfig(config: ExpoConfig): ExpoConfig {
+  return withGradleProperties(config, gradlePropertiesConfig => {
+    // 启用按需配置
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'org.gradle.configureondemand',
+      value: 'true',
+    });
+    // 启用构建缓存
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'org.gradle.caching',
+      value: 'true',
+    });
+    // 启用配置缓存
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'org.gradle.configuration-cache',
+      value: 'true',
+    });
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'org.gradle.configuration-cache.problems',
+      value: 'warn',
+    });
+    // 启用优化型资源缩减
+    gradlePropertiesConfig.modResults.push({
+      type: 'property',
+      key: 'android.r8.optimizedResourceShrinking',
+      value: 'true',
+    });
+    return gradlePropertiesConfig;
   });
+}
+
+function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
+  config = withAppBuildGradleConfig(config);
+  config = withGradlePropertiesConfig(config);
   return config;
 }
 
