@@ -82,12 +82,15 @@ export default function FriendManagePage() {
   );
 
   const headerRight = useCallback(() => {
-    return (
-      <BorderlessButton onPress={() => setIsManage(!isManage)}>
-        <Text>{isManage ? '完成' : '管理'}</Text>
-      </BorderlessButton>
-    );
-  }, [isManage]);
+    if (friendList && friendList.length > 0) {
+      return (
+        <BorderlessButton onPress={() => setIsManage(!isManage)}>
+          <Text>{isManage ? '完成' : '管理'}</Text>
+        </BorderlessButton>
+      );
+    }
+    return null;
+  }, [isManage, friendList]);
 
   useFocusEffect(
     useCallback(() => {
