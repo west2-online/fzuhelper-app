@@ -122,7 +122,7 @@ fun doConfigMigration(context: Context, widgetId: Int) {
 
 val REQUEST_NEXT_CLASS = 72201
 val REQUEST_COURSE_TABLE = 72202
-val ACTION_PIN_APP_WIDGET_SUCCESS = "ACTION_PIN_APP_WIDGET_SUCCESS"
+val ACTION_PIN_APP_WIDGET_SUCCESS = "com.helper.west2ol.fzuhelper.ACTION_PIN_APP_WIDGET_SUCCESS"
 
 fun checkMiShortcutPermission(context: Context): Boolean {
     try {
@@ -155,7 +155,8 @@ fun addAppWidget(context: Context, requestCode: Int): Boolean {
         context,
         0,
         Intent()
-            .setAction(ACTION_PIN_APP_WIDGET_SUCCESS),
+            .setAction(ACTION_PIN_APP_WIDGET_SUCCESS)
+            .setPackage(context.packageName),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
     val supported = AppWidgetManager.getInstance(context).requestPinAppWidget(

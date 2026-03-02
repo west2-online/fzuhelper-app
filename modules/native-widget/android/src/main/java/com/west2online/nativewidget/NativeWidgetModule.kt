@@ -120,7 +120,7 @@ class NativeWidgetModule : Module() {
                 context,
                 widgetReceiver!!,
                 intentFilter,
-                ContextCompat.RECEIVER_EXPORTED
+                ContextCompat.RECEIVER_NOT_EXPORTED
             )
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
