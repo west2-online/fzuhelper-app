@@ -2,9 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { RelativePathString, router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, BackHandler, Image, Linking, Platform, TouchableOpacity, View } from 'react-native';
-import { SystemBars } from 'react-native-edge-to-edge';
 
 import {
   AlertDialog,
@@ -36,6 +36,7 @@ import { NotificationManager } from '@/lib/notification';
 import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 import BuglyModule from '@/modules/bugly';
+import fileCache from '@/utils/file-cache';
 import { isAccountExist } from '@/utils/is-account-exist';
 
 ExpoSplashScreen.preventAutoHideAsync();
@@ -148,7 +149,11 @@ export default function SplashScreen() {
       }
       // 未达到频次，展示
       setSplashId(splash.id || -1);
-      setSplashImage(splash.url || '');
+      setSplashImage(
+        (await fileCache.getCachedFile(splash.url as string, {
+          maxAge: (splash.end_at || 0) * 1000 - Date.now(),
+        })) || '',
+      );
       setSplashTarget(splash.href || '');
       setCountdown(splash.duration || 3);
       setSplashText(splash.text || '点击查看详情');
@@ -158,11 +163,11 @@ export default function SplashScreen() {
         [SPLASH_DISPLAY_COUNT, (displayCount + 1).toString()],
         [SPLASH_DATE, dayjs().format(DATE_FORMAT_DASH)],
       ]);
-    } catch (error) {
+    } catch {
       // 不使用 handleError，静默处理
       navigateToTarget();
     }
-  }, [navigateToTarget]);
+  }, [fetchSplashWithTimeout, navigateToTarget]);
 
   // 处理开屏页点击事件
   const handleSplashClick = useCallback(async () => {
@@ -280,6 +285,7 @@ export default function SplashScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View>
+        <StatusBar hidden={hideSystemBars} />
         {!showSplashImage ? (
           // 默认开屏
           <Image className="h-full w-full bg-background" source={SplashImage} fadeDuration={0} resizeMode="cover" />
@@ -317,8 +323,6 @@ export default function SplashScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-
-            <SystemBars hidden={hideSystemBars} />
           </View>
         )}
       </View>

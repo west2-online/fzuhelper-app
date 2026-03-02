@@ -1,5 +1,5 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
-import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { queryClient } from '@/components/query-provider';
 import {
@@ -28,6 +28,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
+import { formatExamData } from './exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from './locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
 
@@ -241,10 +242,16 @@ export class CourseCache {
       );
 
       // 将数据保存到原生共享存储中，以便在小组件中调用
-      const termsList = (await queryClient.getQueryData([COURSE_TERMS_LIST_KEY])) as any;
+      const termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([
+        COURSE_TERMS_LIST_KEY,
+      ]);
       const courseSettings = await getCourseSetting();
       const term = courseSettings.selectedSemester;
-      const currentTerm = termsList.data.data.terms.find((termData: any) => termData.term === term);
+      const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === term);
+      if (!currentTerm) {
+        console.warn('无法找到当前学期信息，跳过小组件同步');
+        return;
+      }
       const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
       const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
       const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
@@ -882,9 +889,25 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
 
   // 考场信息
   if ((await getCourseSetting()).exportExamToCourseTable) {
-    await fetchWithCache([EXAM_ROOM_KEY, queryTerm], () => getApiV1JwchClassroomExam({ term: queryTerm }), {
+    const examData = await fetchWithCache(
+      [EXAM_ROOM_KEY, queryTerm],
+      () => getApiV1JwchClassroomExam({ term: queryTerm }),
+      {
+        staleTime: 0,
+      },
+    );
+
+    const formattedExamData = formatExamData(examData.data.data);
+    const termsList = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), {
       staleTime: 0,
     });
+    const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === queryTerm);
+    if (currentTerm) {
+      CourseCache.mergeExamCourses(formattedExamData, currentTerm.start_date, currentTerm.end_date);
+    } else {
+      console.warn('无法找到当前学期信息，跳过考试数据合并');
+    }
   }
+
   CourseCache.save(); // 强制保存一次
 };

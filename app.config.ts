@@ -32,7 +32,6 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'fzuhelper',
-  userInterfaceStyle: 'automatic',
   ios: {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
@@ -56,9 +55,7 @@ const config: ExpoConfig = {
       NSCalendarsFullAccessUsageDescription: '我们需要申请日历权限以导出课表、考场安排等内容到日历',
       NSCameraUsageDescription: '我们需要申请相机权限以提供拍照上传头像、学习中心扫码签到等功能',
       NSPhotoLibraryUsageDescription: '我们需要申请相册权限以提供上传头像等功能',
-      // 下面这三个定位权限申请缺一不可
       NSLocationWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
-      NSLocationAlwaysAndWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       LSApplicationQueriesSchemes: ['itms-apps'],
       CFBundleAllowMixedLocalizations: true,
       CFBundleURLName: 'MEWHFZ92DY.FzuHelper.FzuHelper', // URL Scheme，用于跳转到 App，CFBundleURLSchemes Expo 已经帮忙配置好了
@@ -79,7 +76,6 @@ const config: ExpoConfig = {
   android: {
     package: IS_DEV ? 'com.helper.west2ol.fzuhelper.dev' : 'com.helper.west2ol.fzuhelper',
     versionCode,
-    edgeToEdgeEnabled: true,
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
       monochromeImage: './assets/images/ic_launcher_foreground.png',
@@ -89,6 +85,7 @@ const config: ExpoConfig = {
       'android.permission.REQUEST_INSTALL_PACKAGES',
       'android.permission.CAMERA',
       'android.permission.READ_CALENDAR',
+      'android.permission.WRITE_CALENDAR',
       'android.permission.ACCESS_COARSE_LOCATION',
       'android.permission.ACCESS_FINE_LOCATION',
     ],
@@ -98,33 +95,20 @@ const config: ExpoConfig = {
     [
       'react-native-permissions',
       {
-        iosPermissions: ['Camera', 'Calendars', 'Notifications', 'LocationWhenInUse'],
+        iosPermissions: ['Camera', 'Calendars', 'Notifications', 'LocationWhenInUse', 'AppTrackingTransparency'],
       },
     ],
     [
       'expo-build-properties',
       {
         android: {
+          buildArchs: ['arm64-v8a'],
           useLegacyPackaging: true,
-          enableProguardInReleaseBuilds: true,
+          enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
           usesCleartextTraffic: true,
           extraMavenRepos: ['https://developer.huawei.com/repo/'],
         },
-      },
-    ],
-    [
-      'expo-calendar',
-      {
-        calendarPermission: '我们需要访问日历以提供导出课表到日历功能', // iOS only
-        remindersPermission: '我们需要访问提醒事项以提供导出课表到提醒事项功能', // iOS only
-      },
-    ],
-    [
-      'expo-camera',
-      {
-        cameraPermission: '我们需要申请相机权限以提供拍照上传头像、学习中心扫码签到等功能',
-        recordAudioAndroid: true,
       },
     ],
     './plugins/inject-android-config',
@@ -158,22 +142,6 @@ const config: ExpoConfig = {
       },
     ],
     [
-      'expo-tracking-transparency',
-      {
-        userTrackingPermission:
-          '请允许我们搜集可以用于追踪您或您的设备的应用相关数据，这将会用于投放个性化内容，如教务处通知推送、成绩更新推送等内容.',
-      },
-    ],
-    [
-      'react-native-edge-to-edge',
-      {
-        android: {
-          parentTheme: 'Default',
-          enforceNavigationBarContrast: false,
-        },
-      },
-    ],
-    [
       'expo-splash-screen',
       {
         image: './assets/images/ic_launcher_foreground.png',
@@ -187,15 +155,6 @@ const config: ExpoConfig = {
     [
       'expo-quick-actions',
       {
-        iosActions: [
-          {
-            id: '1',
-            title: '一码通',
-            subtitle: '一键跳转一码通',
-            icon: 'symbol:qrcode',
-            params: { href: '/qrcode' },
-          },
-        ],
         androidIcons: {
           qrcode: {
             foregroundImage: './assets/images/qr_action.png',

@@ -26,6 +26,7 @@ class NativeBrightnessModule : Module() {
                         screenBrightness = 1f
                     }
                 }
+                return@AsyncFunction null
             } catch (e: Exception) {
                 Log.e("NativeBrightnessModule", e.stackTraceToString())
                 return@AsyncFunction null
@@ -44,6 +45,7 @@ class NativeBrightnessModule : Module() {
                     screenBrightness = -1f
                 }
             }
+            return@AsyncFunction null
         }.runOnQueue(Queues.MAIN)
     }
 }
