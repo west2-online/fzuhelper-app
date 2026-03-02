@@ -6,17 +6,22 @@ import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
 import { LocalUser } from '@/lib/user';
 import { type RejectError } from '@/types/reject-error';
 import { isApiData, isHeaders, isNativeLoginError } from '@/types/type-guards';
+import { Platform } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 
 const baseURL = 'https://fzuhelper.west2.online/';
 
 const request = axios.create({
   baseURL,
   timeout: 5000,
-  // 禁用本地缓存
   headers: {
+    // 禁用本地缓存
     'Cache-Control': 'no-cache, no-store, must-revalidate',
     Pragma: 'no-cache',
     Expires: '0',
+    // 私有接口请求头
+    'X-App-Version': DeviceInfo.getBuildNumber(),
+    'X-App-Platform': Platform.OS,
   },
 });
 
