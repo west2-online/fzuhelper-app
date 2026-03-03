@@ -4,7 +4,7 @@ import { Alert, BackHandler, FlatList, Platform, TouchableOpacity, View } from '
 import { toast } from 'sonner-native';
 
 import { UserFriendListResponse, UserFriendListResponse_Friend } from '@/api/backend';
-import { getApiV1UserFriendList, postApiV1UserFriendOpenApiDelete } from '@/api/generate';
+import { getApiV1UserFriendList, getApiV1UserFriendMaxNum, postApiV1UserFriendOpenApiDelete } from '@/api/generate';
 import { Icon } from '@/components/Icon';
 import MultiStateView from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
@@ -14,6 +14,7 @@ import useApiRequest from '@/hooks/useApiRequest';
 import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FRIEND_LIST_KEY } from '@/lib/constants';
+import { pushToWebViewNormal } from '@/lib/webview';
 import dayjs from 'dayjs';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +24,8 @@ export default function FriendManagePage() {
 
   const apiResult = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
   const { data: friendList, refetch } = apiResult;
+
+  const { data: maxNumData } = useApiRequest(getApiV1UserFriendMaxNum, {});
 
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,
@@ -82,12 +85,15 @@ export default function FriendManagePage() {
   );
 
   const headerRight = useCallback(() => {
-    return (
-      <BorderlessButton onPress={() => setIsManage(!isManage)}>
-        <Text>{isManage ? '完成' : '管理'}</Text>
-      </BorderlessButton>
-    );
-  }, [isManage]);
+    if (friendList && friendList.length > 0) {
+      return (
+        <BorderlessButton onPress={() => setIsManage(!isManage)}>
+          <Text>{isManage ? '完成' : '管理'}</Text>
+        </BorderlessButton>
+      );
+    }
+    return null;
+  }, [isManage, friendList]);
 
   useFocusEffect(
     useCallback(() => {
@@ -138,6 +144,19 @@ export default function FriendManagePage() {
             />
           }
         />
+        {friendList && maxNumData && (
+          <View className="mb-4 flex-row items-center justify-center gap-3">
+            <Text className="text-sm text-text-secondary">
+              好友数量：{friendList.length} / {maxNumData.max_num}
+            </Text>
+            <Text
+              className="text-sm text-primary"
+              onPress={() => pushToWebViewNormal('https://west2-online.feishu.cn/docx/WyKmdkR5foZHWJxwne2cOJGbnXd')}
+            >
+              提升上限
+            </Text>
+          </View>
+        )}
         <SafeAreaView edges={['bottom']} className="mb-2 flex-row gap-4 px-6">
           <Button variant="outline" className="flex-1" onPress={() => router.push('/settings/friend/invite')}>
             <Text>我的邀请码</Text>
