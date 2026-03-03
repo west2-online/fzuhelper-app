@@ -583,7 +583,8 @@ export class CourseCache {
 
     /* 到此处我们认为数据是不一致的，开始重新处理课程 */
     this.startID = DEFAULT_STARTID; // 初始化 id
-    clearColorMapping(); // 清空颜色映射，重新分配颜色
+    const currentUserId = LocalUser.getUser().userid;
+    clearColorMapping(currentUserId); // 清空颜色映射，重新分配颜色
 
     const schedules = this.parseCourses(tempData); // 解析课程数据
 
@@ -593,7 +594,7 @@ export class CourseCache {
       return {
         ...schedule,
         name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
-        color: allocateColorForCourse(schedule.name), // 分配颜色
+        color: allocateColorForCourse(schedule.name, currentUserId), // 分配颜色
         priority: DEFAULT_PRIORITY, // 默认优先级
         id: id,
         type: COURSE_TYPE,
@@ -624,7 +625,12 @@ export class CourseCache {
    * @param courses - 原始课程数据
    * @returns 按天归类的课程数据
    */
-  public static processFriendCourses(courses: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
+  public static processFriendCourses(
+    courses: JwchCourseListResponse_Course[],
+    friendId?: string,
+  ): Record<number, ExtendCourse[]> {
+    const studentId = friendId ?? 'friend'; // 使用好友学号作为颜色映射的 key
+    clearColorMapping(studentId); // 清空好友的颜色映射，重新分配颜色
     const schedules = this.parseCourses(courses); // 解析课程数据
 
     // 为每个课程生成颜色并扩展数据
@@ -633,7 +639,7 @@ export class CourseCache {
       return {
         ...schedule,
         name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
-        color: allocateColorForCourse(schedule.name), // 分配颜色
+        color: allocateColorForCourse(schedule.name, studentId), // 分配颜色
         priority: DEFAULT_PRIORITY, // 默认优先级
         id: id,
         type: COURSE_TYPE,
