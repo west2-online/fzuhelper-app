@@ -66,7 +66,7 @@ export function FriendListModal({
                 <View className="flex-1">
                   <Text className="line-clamp-1 text-lg">{friend.name}</Text>
                   <Text className="line-clamp-1 text-sm text-text-secondary">
-                    {friend.grade}级{friend.major}专业
+                    {friend.grade}级 {friend.major}
                   </Text>
                 </View>
                 {selectedFriendId === friend.stu_id && <Icon name="checkmark" size={20} color="#007AFF" />}
