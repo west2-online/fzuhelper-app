@@ -4,7 +4,7 @@ import isoWeekPlugin from 'dayjs/plugin/isoWeek';
 
 import { getApiV1CourseDate } from '@/api/generate';
 import type { LocateDateResult } from '@/api/interface';
-import { DATE_FORMAT_FULL, JWCH_LOCATE_DATE_CACHE_KEY } from '@/lib/constants';
+import { DATE_FORMAT_DASH, DATE_FORMAT_FULL, JWCH_LOCATE_DATE_CACHE_KEY } from '@/lib/constants';
 import { JWCHLocateDateResult } from '@/types/data';
 
 dayjs.extend(isoWeekPlugin);
@@ -19,11 +19,15 @@ export async function fetchJwchLocateDate(): Promise<JWCHLocateDateResult> {
   };
 }
 
-// 基于教务处的数据定位今天是第几周，以及今天的日期
-// 返回一个对象，包含 date（当前日期）、week（当前周数）、day（当前星期几）、semester（当前学期，格式样例：202401）
-// e.g. { date: '2024/06/01', week: 23, day: 3, semester: '202401' }
-// 这个函数应当只会在课表业务中涉及
-// 使用了本地缓存，但是缓存逻辑和 PersistentQuery 不同，我们只在跨周时重新获取数据
+/**
+ * 基于教务处的数据定位今天是第几周，以及今天的日期
+ * 返回一个对象，包含 date（当前日期）、week（当前周数）、day（当前星期几）、semester（当前学期，格式样例：202401）
+ * e.g. { date: '2024/06/01', week: 23, day: 3, semester: '202401' }
+ * 这个函数应当只会在课表业务中涉及
+ * 使用了本地缓存，但是缓存逻辑和 PersistentQuery 不同，我们只在跨周时重新获取数据
+ * 调用接口取数据，需要用 handleError 做 catch
+ * @param noCache 是否使用缓存，默认使用
+ */
 export default async function locateDate(noCache = false): Promise<LocateDateResult> {
   // 获取当前日期
   const currentDate = dayjs();
@@ -37,12 +41,32 @@ export default async function locateDate(noCache = false): Promise<LocateDateRes
 
       if (cachedData) {
         const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
-
-        // 如果缓存日期是同一周的，直接返回缓存数据
+        const semester = `${year}${term.toString().padStart(2, '0')}`;
+        // 如果缓存日期是同一周的，直接返回缓存数据；否则先返回计算值，再异步更新
         if (currentDate.isSame(cachedDate, 'isoWeek')) {
-          const semester = `${year}${term.toString().padStart(2, '0')}`;
           console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
           return { date: formattedCurrentDate, week, day: currentDay, semester };
+        } else {
+          const computedWeek = week + currentDate.diff(dayjs(cachedDate), 'week'); // 跨周了，需要计算当前是第几周
+          console.log('Cached locate date is outdated, computed data:', {
+            date: formattedCurrentDate,
+            week: computedWeek,
+            day: currentDay,
+            semester,
+          });
+          // 异步更新缓存
+          console.log('Updating locate date cache asynchronously...');
+          fetchJwchLocateDate()
+            .then(({ week: newWeek, year: newYear, term: newTerm }) => {
+              AsyncStorage.setItem(
+                JWCH_LOCATE_DATE_CACHE_KEY,
+                JSON.stringify({ date: formattedCurrentDate, week: newWeek, year: newYear, term: newTerm }),
+              );
+            })
+            .catch(error => {
+              console.warn('Failed to update cache asynchronously:', error);
+            });
+          return { date: formattedCurrentDate, week: computedWeek, day: currentDay, semester };
         }
       }
     } catch (error) {
@@ -72,37 +96,30 @@ export default async function locateDate(noCache = false): Promise<LocateDateRes
 
 // 根据学期开始日期和当前周数获取当前周的第一天日期
 export function getFirstDateByWeek(semesterStart: string, currentWeek: number): string {
-  const startDate = new Date(semesterStart);
-  const startDayOfWeek = (startDate.getDay() + 6) % 7; // 将星期日（0）转换为 6，其他天数减 1 对应星期一到星期六
-  const adjustedStartDate = new Date(startDate);
+  const startDate = dayjs(semesterStart);
+  const startDayOfWeek = (startDate.day() + 6) % 7; // 将星期日（0）转换为 6，其他天数减 1 对应星期一到星期六
+  const adjustedStartDate = startDate.subtract(startDayOfWeek, 'day');
 
   // 如果学期开始日期不是星期一，则调整到最近的星期一
-  adjustedStartDate.setDate(startDate.getDate() - startDayOfWeek);
+  const firstDayOfWeek = adjustedStartDate.add((currentWeek - 1) * 7, 'day');
 
-  const firstDayOfWeek = new Date(adjustedStartDate);
-  firstDayOfWeek.setDate(firstDayOfWeek.getDate() + (currentWeek - 1) * 7);
-
-  return firstDayOfWeek.toISOString().split('T')[0]; // 返回日期字符串格式 YYYY-MM-DD
+  return firstDayOfWeek.format(DATE_FORMAT_DASH); // 返回日期字符串格式 YYYY-MM-DD
 }
 
 // 根据学期开始日期和当前周数获取当前周的日期（会返回一个完整的一周）
 export function getDatesByWeek(semesterStart: string, currentWeek: number): string[] {
-  const firstDayOfWeek = new Date(getFirstDateByWeek(semesterStart, currentWeek));
-  firstDayOfWeek.setDate(firstDayOfWeek.getDate() + (currentWeek - 1) * 7);
+  const firstDayOfWeek = dayjs(getFirstDateByWeek(semesterStart, currentWeek));
 
   return Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(firstDayOfWeek);
-    date.setDate(firstDayOfWeek.getDate() + i);
-    return date.toISOString().split('T')[0]; // 返回日期字符串格式 YYYY-MM-DD
+    return firstDayOfWeek.add(i, 'day').format(DATE_FORMAT_DASH); // 返回日期字符串格式 YYYY-MM-DD
   });
 }
 
 // 根据学期开始日期和结束日期计算一学期一共有多少周
 export function getWeeksBySemester(semesterStart: string, semesterEnd: string): number {
-  const startDate = new Date(semesterStart);
-  const endDate = new Date(semesterEnd);
-  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const startDate = dayjs(semesterStart);
+  const endDate = dayjs(semesterEnd);
+  const diffDays = endDate.diff(startDate, 'day');
 
   return Math.ceil(diffDays / 7);
 }

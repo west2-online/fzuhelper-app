@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 export class Appointment {
   constructor(
     public readonly id: string,
@@ -26,35 +28,14 @@ export class Appointment {
   get canSignIn(): boolean {
     if (this.auditStatus !== 2 || this.sign) return false;
 
-    const now = new Date();
-    const dateParts = this.date.split('-');
-    const beginTimeParts = this.beginTime.split(':');
-    const endTimeParts = this.endTime.split(':');
-
-    if (dateParts.length !== 3 || beginTimeParts.length !== 2 || endTimeParts.length !== 2) {
-      return false;
-    }
+    const now = dayjs();
 
     try {
-      const appointmentDate = new Date(
-        parseInt(dateParts[0], 10),
-        parseInt(dateParts[1], 10) - 1,
-        parseInt(dateParts[2], 10),
-        parseInt(beginTimeParts[0], 10),
-        parseInt(beginTimeParts[1], 10),
-      );
+      const appointmentDate = dayjs(`${this.date} ${this.beginTime}`);
+      const appointmentEndDate = dayjs(`${this.date} ${this.endTime}`);
+      const checkInTime = appointmentDate.subtract(15, 'minute');
 
-      const appointmentEndDate = new Date(
-        parseInt(dateParts[0], 10),
-        parseInt(dateParts[1], 10) - 1,
-        parseInt(dateParts[2], 10),
-        parseInt(endTimeParts[0], 10),
-        parseInt(endTimeParts[1], 10),
-      );
-
-      const checkInTime = new Date(appointmentDate.getTime() - 15 * 60000);
-
-      return now > checkInTime && now < appointmentEndDate;
+      return now.isAfter(checkInTime) && now.isBefore(appointmentEndDate);
     } catch {
       return false;
     }
@@ -63,26 +44,13 @@ export class Appointment {
   get isUpcoming(): boolean {
     if (this.auditStatus !== 2) return false;
 
-    const now = new Date();
-    const dateParts = this.date.split('-');
-    const beginTimeParts = this.beginTime.split(':');
-
-    if (dateParts.length !== 3 || beginTimeParts.length !== 2) {
-      return false;
-    }
+    const now = dayjs();
 
     try {
-      const appointmentDate = new Date(
-        parseInt(dateParts[0], 10),
-        parseInt(dateParts[1], 10) - 1,
-        parseInt(dateParts[2], 10),
-        parseInt(beginTimeParts[0], 10),
-        parseInt(beginTimeParts[1], 10),
-      );
+      const appointmentDate = dayjs(`${this.date} ${this.beginTime}`);
+      const checkInTime = appointmentDate.subtract(15, 'minute');
 
-      const checkInTime = new Date(appointmentDate.getTime() - 15 * 60000);
-
-      return now < checkInTime;
+      return now.isBefore(checkInTime);
     } catch {
       return false;
     }
@@ -91,24 +59,12 @@ export class Appointment {
   get isExpired(): boolean {
     if (this.auditStatus !== 2 || this.sign) return false;
 
-    const now = new Date();
-    const dateParts = this.date.split('-');
-    const endTimeParts = this.endTime.split(':');
-
-    if (dateParts.length !== 3 || endTimeParts.length !== 2) {
-      return false;
-    }
+    const now = dayjs();
 
     try {
-      const appointmentEndDate = new Date(
-        parseInt(dateParts[0], 10),
-        parseInt(dateParts[1], 10) - 1,
-        parseInt(dateParts[2], 10),
-        parseInt(endTimeParts[0], 10),
-        parseInt(endTimeParts[1], 10),
-      );
+      const appointmentEndDate = dayjs(`${this.date} ${this.endTime}`);
 
-      return now > appointmentEndDate;
+      return now.isAfter(appointmentEndDate);
     } catch {
       return false;
     }

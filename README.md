@@ -84,7 +84,7 @@ After you have installed the required software, you can start developing the app
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/renbaoshuo/fzuhelper-app.git
+git clone https://github.com/west2-online/fzuhelper-app.git
 cd fzuhelper-app
 yarn install
 ```

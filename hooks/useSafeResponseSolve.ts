@@ -72,7 +72,7 @@ export const useSafeResponseSolve = () => {
           break;
 
         case RejectEnum.BizFailed:
-          // 返回业务数据（如果需要在调用处处理），这里直接返回感觉怪怪的，可以协助修改一下
+          console.error('业务异常:', error.data);
           return error.data;
 
         case RejectEnum.InternalFailed:

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 import { useLearningCenterApi } from '@/context/learning-center';
+import { DATE_FORMAT_DASH, TIME_FORMAT } from '@/lib/constants';
 import { TimeDiamond } from '@/utils/learning-center/api-service';
 import dayjs from 'dayjs';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -60,9 +61,9 @@ export default function SeatTimeStatusPage() {
         setIsSeatUnusual(allFree && isOccupied === '1');
 
         // 如果是当天，则将当前时间之前的时间段标记为已占用
-        const isToday = dayjs().format('YYYY-MM-DD') === date;
+        const isToday = dayjs().format(DATE_FORMAT_DASH) === date;
         if (isToday) {
-          const currentTime = dayjs().format('HH:mm');
+          const currentTime = dayjs().format(TIME_FORMAT);
           timeList = timeList.map(item => {
             if (item.timeText < currentTime) {
               return { ...item, occupy: 1 };
@@ -256,9 +257,8 @@ export default function SeatTimeStatusPage() {
                   {/* 时间块网格 */}
                   <View className="mb-1 w-full flex-row flex-wrap justify-start">
                     {timeDiamondList.map(item => (
-                      <View className="box-border w-1/4 p-1">
+                      <View className="box-border w-1/4 p-1" key={item.index}>
                         <TouchableOpacity
-                          key={item.index}
                           className={getTimeBlockStyle(item)}
                           disabled={item.occupy === 1}
                           activeOpacity={0.7}

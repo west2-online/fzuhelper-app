@@ -3,14 +3,11 @@ import PageContainer from '@/components/page-container';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { FAQ_MAP } from '@/lib/FAQ';
-import { RELEASE_CHANNEL_KEY } from '@/lib/constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getReleaseChannel, ReleaseChannelType } from '@/utils/android-update';
 import { Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-type ReleaseChannelType = 'release' | 'beta';
 
 export default function HelpPage() {
   const insets = useSafeAreaInsets();
@@ -18,15 +15,7 @@ export default function HelpPage() {
 
   useFocusEffect(
     useCallback(() => {
-      const getReleaseChannel = async () => {
-        let storedReleaseChannel = (await AsyncStorage.getItem(RELEASE_CHANNEL_KEY)) as ReleaseChannelType | null;
-        if (!storedReleaseChannel) {
-          storedReleaseChannel = 'release';
-          await AsyncStorage.setItem(RELEASE_CHANNEL_KEY, storedReleaseChannel);
-        }
-        setReleaseChannel(storedReleaseChannel);
-      };
-      getReleaseChannel();
+      getReleaseChannel().then(setReleaseChannel);
     }, []),
   );
 

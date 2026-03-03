@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
@@ -33,13 +34,15 @@ const AcademicContent = React.memo<CourseContentProps>(({ term }) => {
   });
 
   const termData = useMemo(() => data?.events || [], [data]);
-  const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
+  const lastUpdated = useMemo(() => dayjs(dataUpdatedAt).toDate(), [dataUpdatedAt]);
   const { bottom } = useSafeAreaInsets();
 
   const keyExtractor = useCallback((item: any, index: number) => `${item.name}-${index}`, []);
 
   const renderItem = useCallback(({ item }: { item: TermsInfoResponse_Event }) => {
-    return <LabelEntry leftText={item.name} description={`${item.start_date} - ${item.end_date}`} disabled noIcon />;
+    const description = item.start_date === item.end_date ? item.start_date : `${item.start_date} - ${item.end_date}`;
+
+    return <LabelEntry leftText={item.name} description={description} disabled noIcon />;
   }, []);
 
   const contentContainerStyle = useMemo(() => ({ paddingBottom: bottom }), [bottom]);

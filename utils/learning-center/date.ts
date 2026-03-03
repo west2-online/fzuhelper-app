@@ -1,21 +1,18 @@
 import dayjs from 'dayjs';
 
+import { DATE_FORMAT_DASH } from '@/lib/constants';
+
 // 判断时间是否已过
 export const isTimePast = (date: Date, timeStr: string): boolean => {
-  const isToday = formatDate(date, 'YYYY-MM-DD') === formatDate(new Date(), 'YYYY-MM-DD');
+  const isToday = formatDate(date, DATE_FORMAT_DASH) === dayjs().format(DATE_FORMAT_DASH);
 
   if (!isToday) return false;
 
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-
+  const now = dayjs();
   const [hour, minute] = timeStr.split(':').map(Number);
+  const targetTime = dayjs().hour(hour).minute(minute);
 
-  if (currentHour > hour) return true;
-  if (currentHour === hour && currentMinute >= minute) return true;
-
-  return false;
+  return now.isAfter(targetTime) || now.isSame(targetTime);
 };
 
 // 格式化日期
@@ -47,5 +44,5 @@ export const calculateHoursDifference = (startTime: string, endTime: string): nu
 
 // 添加指定小时到当前日期
 export const addHours = (date: Date, hours: number): Date => {
-  return new Date(date.getTime() + hours * 60 * 60 * 1000);
+  return dayjs(date).add(hours, 'hour').toDate();
 };

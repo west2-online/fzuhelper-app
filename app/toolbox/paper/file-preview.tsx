@@ -1,7 +1,7 @@
 import PageContainer from '@/components/page-container';
 import { getFileIcon, guessFileType } from '@/lib/filetype';
 import Clipboard from '@react-native-clipboard/clipboard';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Stack, UnknownOutputParams, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';

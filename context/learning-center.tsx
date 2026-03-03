@@ -1,7 +1,7 @@
 import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import ApiService from '@/utils/learning-center/api-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 interface LearningCenter {
   token: string;
@@ -27,11 +27,11 @@ export const LearningCenterContextProvider: React.FC<React.PropsWithChildren> = 
     AsyncStorage.getItem(LEARNING_CENTER_TOKEN_KEY).then(token => token && _setToken(token));
   }, []);
 
-  return (
-    <LearningCenterContext.Provider value={{ token, api: new ApiService(token), setToken }}>
-      {children}
-    </LearningCenterContext.Provider>
-  );
+  const api = useMemo(() => new ApiService(token), [token]);
+
+  const value = useMemo(() => ({ token, api, setToken }), [token, api, setToken]);
+
+  return <LearningCenterContext.Provider value={value}>{children}</LearningCenterContext.Provider>;
 };
 
 export const useLearningCenterApi = () => {

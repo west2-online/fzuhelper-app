@@ -63,7 +63,6 @@ export default function useApiRequest<TParam, TReturn>(
           toast.error('请求失败，将展示缓存数据。CacheKey: ' + queryKey);
           return cachedData;
         }
-
         // 如果没有任何缓存，抛出错误
         throw { type: err.type, data: errorData };
       }

@@ -1,4 +1,4 @@
-import { fetchNoticeList } from '@/api/generate/common';
+import { getApiV1CommonNotice } from '@/api/generate/common';
 import FAQModal from '@/components/faq-modal';
 import { Icon } from '@/components/Icon';
 import Loading from '@/components/loading';
@@ -28,7 +28,7 @@ export default function OfficeNoticePage() {
   const [isEnd, setIsEnd] = useState(false);
   const { bottom } = useSafeAreaInsets();
 
-  const { data, isFetching, isError, error, refetch } = useApiRequest(fetchNoticeList, { pageNum });
+  const { data, isFetching, isError, error, refetch } = useApiRequest(getApiV1CommonNotice, { pageNum });
 
   useEffect(() => {
     if (data) {
@@ -67,8 +67,8 @@ export default function OfficeNoticePage() {
     if (isFetching && !isLoadingMore && pageNum === 1) {
       setState(STATE.LOADING);
     } else if (isError) {
-      if (error && error.message) {
-        toast.error(error.message);
+      if (error?.data?.message) {
+        toast.error(error.data.message);
       }
       setIsLoadingMore(false);
       if (pageNum === 1) {

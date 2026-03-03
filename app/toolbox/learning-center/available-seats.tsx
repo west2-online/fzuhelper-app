@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import ConfirmReservationModal from '@/components/learning-center/confirm-reservation-modal';
@@ -61,11 +61,14 @@ export default function AvailableSeatsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [allSeatsUnavailable, setAllSeatsUnavailable] = useState(false);
   const router = useRouter();
-  const [, setRetryCount] = useState(0);
   // 添加中止控制器引用，用于退出时取消重复尝试的请求
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const isMountedRef = useRef(true);
+
+  // 计算地图显示宽度
+  const { width: windowWidth } = useWindowDimensions();
+  const contentWidth = Math.min(windowWidth - 42, 550);
 
   // 确认预约弹层状态
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -83,7 +86,6 @@ export default function AvailableSeatsPage() {
       const signal = abortControllerRef.current.signal;
 
       setIsRefreshing(true);
-      setRetryCount(0);
 
       const floors = ['4', '5'];
       let results: SeatData[] = [];
@@ -94,7 +96,6 @@ export default function AvailableSeatsPage() {
         // 尝试查询座位状态，每个楼层最多重试5次
         while (failedFloors.length > 0 && currentRetry < 5 && !signal.aborted) {
           if (currentRetry > 0) {
-            setRetryCount(currentRetry);
             // 使用toast通知显示重试信息
             if (isMountedRef.current) {
               toast.warning(`学习中心状态异常，正在第 ${currentRetry} 次重试`);
@@ -225,7 +226,6 @@ export default function AvailableSeatsPage() {
       } finally {
         if (isMountedRef.current) {
           setIsRefreshing(false);
-          setRetryCount(0);
         }
       }
     },
@@ -301,6 +301,7 @@ export default function AvailableSeatsPage() {
   );
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchSeatStatus(date, beginTime, endTime);
 
     return () => {
@@ -331,7 +332,7 @@ export default function AvailableSeatsPage() {
           <Loading />
         ) : (
           <>
-            <View className="mx-2 my-3 overflow-hidden rounded-2xl">
+            <View className="mx-2 my-3 self-center overflow-hidden rounded-2xl" style={{ width: contentWidth }}>
               <LearningCenterMap />
               {/* <LabelSwitch
                 label="仅显示可用座位"

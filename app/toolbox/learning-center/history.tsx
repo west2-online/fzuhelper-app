@@ -14,6 +14,21 @@ import { fetchAppointmentsData } from '@/utils/learning-center/api-service';
 
 const PAGE_SIZE = 30; // 每次请求返回的数据量
 
+/**
+ * spaceName 预处理
+ *
+ * 存在下面两个特殊座位逻辑
+ * - 座位 797，现场标识 797，智汇福大编号（spaceName） 796-1，（spaceId）1247
+ * - 座位 800，现场标识 800，智汇福大编号（spaceName） 799-1，（spaceId）1248
+ *
+ * 因此将 spaceName 进行预处理，对齐学习中心现场标识
+ */
+function normalizeSpaceName(spaceName: string) {
+  if (spaceName === '796-1') return '797';
+  if (spaceName === '799-1') return '800';
+  return spaceName;
+}
+
 export default function HistoryPage() {
   const [page, setPage] = useState(1); // 当前页数
   const [data, setData] = useState<fetchAppointmentsData[]>([]); // 预约记录数据
@@ -24,11 +39,11 @@ export default function HistoryPage() {
 
   // 请求数据
   const fetchData = useCallback(
-    async (page: number, replace = false) => {
+    async (pageNumber: number, replace = false) => {
       try {
         // 请求数据
         const appointmentData = await api.fetchAppointments({
-          currentPage: page,
+          currentPage: pageNumber,
           pageSize: PAGE_SIZE,
           auditStatus: '',
         });
@@ -39,9 +54,9 @@ export default function HistoryPage() {
         }
 
         // 更新数据
-        setPage(page);
+        setPage(pageNumber);
         setData(prevData => (replace ? appointmentData : [...prevData, ...appointmentData]));
-        console.log(`拉取了第 ${page} 页`);
+        console.log(`拉取了第 ${pageNumber} 页`);
       } catch (error: any) {
         toast.error(`加载数据失败: ${error.message}`);
       } finally {
@@ -65,6 +80,31 @@ export default function HistoryPage() {
     fetchData(1);
   }, [fetchData]);
 
+  const renderItem = useCallback(
+    ({ item }: { item: fetchAppointmentsData }) => {
+      // spaceName 预处理
+      const spaceNameProcessed = normalizeSpaceName(item.spaceName);
+
+      return (
+        <HistoryAppointmentCard
+          key={item.id}
+          id={item.id}
+          spaceName={spaceNameProcessed}
+          floor={item.floor}
+          date={item.date}
+          beginTime={item.beginTime}
+          endTime={item.endTime}
+          regionName={item.regionName}
+          seatCode={item.seatCode}
+          auditStatus={item.auditStatus}
+          sign={item.sign}
+          onRefresh={refresh}
+        />
+      );
+    },
+    [refresh],
+  );
+
   return (
     <>
       <Stack.Screen options={{ title: '我的预约' }} />
@@ -74,22 +114,7 @@ export default function HistoryPage() {
         ) : (
           <FlatList
             data={data}
-            renderItem={({ item }) => (
-              <HistoryAppointmentCard
-                key={item.id}
-                id={item.id}
-                spaceName={item.spaceName}
-                floor={item.floor}
-                date={item.date}
-                beginTime={item.beginTime}
-                endTime={item.endTime}
-                regionName={item.regionName}
-                seatCode={item.seatCode}
-                auditStatus={item.auditStatus}
-                sign={item.sign}
-                onRefresh={refresh}
-              />
-            )}
+            renderItem={renderItem}
             refreshControl={
               // 下拉刷新
               <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />

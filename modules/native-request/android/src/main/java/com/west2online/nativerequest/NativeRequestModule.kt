@@ -62,7 +62,7 @@ class NativeRequestModule : Module() {
             var status: Int = -1
 
             @Field
-            var data: ByteArray? = null
+            var data: ByteArray = ByteArray(0)
 
             @Field
             var headers: Map<String, String> = emptyMap()
@@ -101,7 +101,7 @@ class NativeRequestModule : Module() {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
                 resp.headers = response.headers.toMergedMapCaseSensitive()
-                resp.data = response.body?.bytes()
+                resp.data = response.body?.bytes() ?: ByteArray(0)
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
@@ -131,7 +131,7 @@ class NativeRequestModule : Module() {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
                 resp.headers = response.headers.toMergedMapCaseSensitive()
-                resp.data = response.body?.bytes()
+                resp.data = response.body?.bytes() ?: ByteArray(0)
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }
@@ -160,7 +160,7 @@ class NativeRequestModule : Module() {
                 val response = client.newCall(request).execute()
                 resp.status = response.code
                 resp.headers = response.headers.toMergedMapCaseSensitive()
-                resp.data = response.body?.bytes()
+                resp.data = response.body?.bytes() ?: ByteArray(0)
             } catch (e: Exception) {
                 resp.error = "请求失败: ${e.message}"
             }

@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, useWindowDimensions } from 'react-native';
@@ -37,7 +38,7 @@ const TermContent = React.memo<TermContentProps>(({ term }) => {
   const termData = useMemo(
     () =>
       formatExamData(data || []).sort((a, b) => {
-        const now = new Date(); // 当前日期
+        const now = dayjs(); // 当前日期
         // 排序优先级 最近的考试 > 稍近的考试 > 过期的考试 > 没有日期的考试
 
         // 如果只有一个有 date，优先排序有 date 的
@@ -48,23 +49,23 @@ const TermContent = React.memo<TermContentProps>(({ term }) => {
         if (!a.date && !b.date) return 0;
 
         // 两者都有 date，确保 date 是有效的
-        const dateA = new Date(a.date!); // 使用非空断言（!）告诉 TypeScript 这里一定有值
-        const dateB = new Date(b.date!);
+        const dateA = dayjs(a.date); // 使用 dayjs 解析日期
+        const dateB = dayjs(b.date);
 
         // 如果一个未完成一个已完成，未完成优先
         if (a.isFinished && !b.isFinished) return 1; // a 已完成，b 未完成，b 优先
         if (!a.isFinished && b.isFinished) return -1; // a 未完成，b 已完成，a 优先
 
         // 计算与当前日期的时间差
-        const diffA = Math.abs(dateA.getTime() - now.getTime());
-        const diffB = Math.abs(dateB.getTime() - now.getTime());
+        const diffA = Math.abs(dateA.diff(now, 'millisecond'));
+        const diffB = Math.abs(dateB.diff(now, 'millisecond'));
 
         // 时间差小的优先
         return diffA - diffB;
       }),
     [data],
   );
-  const lastUpdated = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
+  const lastUpdated = useMemo(() => dayjs(dataUpdatedAt).toDate(), [dataUpdatedAt]);
   const { bottom } = useSafeAreaInsets();
   const contentContainerStyle = useMemo(() => ({ paddingBottom: bottom }), [bottom]);
   const flatListStyle = useMemo(() => ({ width: screenWidth }), [screenWidth]);

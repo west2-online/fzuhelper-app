@@ -8,8 +8,18 @@ export type getApiV1CommonClassroomEmptyParams = {
   endTime?: string;
 };
 
+export type getApiV1CommonNoticeParams = {
+  pageNum?: number;
+};
+
 export type getApiV1CourseCalendarSubscribeParams = {
   token?: string;
+};
+
+export type getApiV1FriendCourseParams = {
+  /** ID 编号 */
+  student_id: string;
+  term: string;
 };
 
 export type getApiV1JwchClassroomExamParams = {
@@ -48,4 +58,18 @@ export type getApiV1PaperListParams = {
 
 export type getApiV1TermsInfoParams = {
   term?: string;
+};
+
+export type getApiV1ToolboxConfigParams = {
+  /** 内部版本号 */
+  version?: number;
+  /** 学号 */
+  student_id?: string;
+  /** android,ios */
+  platform?: string;
+};
+
+export type getApiV1UserFriendInviteParams = {
+  /** 刷新验证码 */
+  isRefresh?: boolean;
 };

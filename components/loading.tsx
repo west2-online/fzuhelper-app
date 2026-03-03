@@ -27,7 +27,11 @@ const LoadingDialog: React.FC<LoadingDialogProps> = ({ open, message }) => (
   <AlertDialog open={open}>
     <AlertDialogContent className={cn('m-2 flex-row items-center', message ? 'w-[80vw]' : '')}>
       <Loading className="flex-none" size={60} />
-      {message && <Text className="ml-2 text-center">{message}</Text>}
+      {message && (
+        <Text className="ml-2 flex-1" ellipsizeMode="tail" numberOfLines={3}>
+          {message}
+        </Text>
+      )}
     </AlertDialogContent>
   </AlertDialog>
 );

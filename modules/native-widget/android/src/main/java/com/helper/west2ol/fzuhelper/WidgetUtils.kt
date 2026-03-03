@@ -1,9 +1,16 @@
 package com.helper.west2ol.fzuhelper
 
+import android.app.AppOpsManager
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Build
 import android.util.Log
 import androidx.annotation.Keep
-import android.content.Context
-import android.content.SharedPreferences
+import androidx.annotation.RequiresApi
 
 /**
  * 课程扩展类，包含课程基本信息和额外属性
@@ -12,7 +19,7 @@ import android.content.SharedPreferences
 data class ExtendCourse(
 //    val id: Int,                 // 课程唯一ID
     val color: String,           // 课程颜色
-//    val priority: Int,           // 优先级
+    val priority: Int,           // 优先级
     val type: Int,               // 课程类型（0=普通课程，1=考试）
     val name: String,            // 课程名称
 //    val teacher: String,         // 教师姓名
@@ -81,14 +88,16 @@ fun deleteWidgetConfig(context: Context, appWidgetId: Int, key: String) {
 }
 
 fun getCourseBeans(cacheCourseData: CacheCourseData): List<ExtendCourse> = try {
-    (cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run {
+    ((cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run {
         if (cacheCourseData.hiddenCoursesWithoutAttendances == true) {
             filter { it.examType?.contains("免听") == false }
         } else {
             sortedBy { it.examType?.contains("免听") == true }
         }
     } + (cacheCourseData.examData?.values?.flatten() ?: emptyList()) +
-            (cacheCourseData.customData?.values?.flatten() ?: emptyList())
+            (cacheCourseData.customData?.values?.flatten() ?: emptyList())).sortedBy {
+        -(it.priority ?: 1)
+    }
 } catch (e: Exception) {
     Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
     emptyList()
@@ -109,4 +118,50 @@ fun doConfigMigration(context: Context, widgetId: Int) {
         } catch (_: Exception) {
         }
     }
+}
+
+val REQUEST_NEXT_CLASS = 72201
+val REQUEST_COURSE_TABLE = 72202
+val ACTION_PIN_APP_WIDGET_SUCCESS = "com.helper.west2ol.fzuhelper.ACTION_PIN_APP_WIDGET_SUCCESS"
+
+fun checkMiShortcutPermission(context: Context): Boolean {
+    try {
+        val mAppOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager?
+        val pkgName = context.applicationContext.packageName
+        val uid = context.applicationInfo.uid
+        val appOpsClass = Class.forName(AppOpsManager::class.java.getName())
+        val checkOpNoThrowMethod = appOpsClass.getDeclaredMethod(
+            "checkOpNoThrow",
+            Integer.TYPE,
+            Integer.TYPE,
+            String::class.java
+        )
+        //INSTALL_SHORTCUT is 10017
+        val result = checkOpNoThrowMethod.invoke(mAppOps, 10017, uid, pkgName) as Int
+        return result == 0
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return false
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun addAppWidget(context: Context, requestCode: Int): Boolean {
+    val provider = when (requestCode) {
+        REQUEST_NEXT_CLASS -> ComponentName(context, NextClassWidgetProvider::class.java)
+        else -> ComponentName(context, CourseScheduleWidgetProvider::class.java)
+    }
+    val successBroadcast = PendingIntent.getBroadcast(
+        context,
+        0,
+        Intent()
+            .setAction(ACTION_PIN_APP_WIDGET_SUCCESS)
+            .setPackage(context.packageName),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    val supported = AppWidgetManager.getInstance(context).requestPinAppWidget(
+        provider,
+        null, successBroadcast
+    )
+    return supported
 }

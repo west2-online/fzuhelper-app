@@ -1,8 +1,28 @@
+import { execSync } from 'child_process';
 import { type ExpoConfig } from 'expo/config';
-import 'ts-node/register'; // Add this to import TypeScript files
+import 'ts-node/register';
 import { version } from './package.json';
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
+
+// 内部版本号根据commit次数设置
+// 前三位对应版本名，后三位或更多对应commit次数
+let commitCount = 0;
+try {
+  const stdout = execSync('git rev-list --count HEAD').toString().trim();
+  const parsedInt = parseInt(stdout, 10);
+  if (!isNaN(parsedInt)) {
+    commitCount = parsedInt;
+  }
+} catch (err) {
+  console.error('无法获取 git commit 次数，将使用默认值 0:', err);
+}
+const versionCodePrefix = version.replace(/\./g, '');
+const versionCodeSuffix = String(commitCount).padStart(3, '0');
+// iOS
+const buildNumber = versionCodePrefix + versionCodeSuffix;
+// Android
+const versionCode = parseInt(buildNumber, 10);
 
 const config: ExpoConfig = {
   name: 'fzuhelper',
@@ -12,12 +32,11 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'fzuhelper',
-  userInterfaceStyle: 'automatic',
   ios: {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
     bundleIdentifier: IS_DEV ? 'FzuHelper.FzuHelper.dev' : 'FzuHelper.FzuHelper',
-    buildNumber: version,
+    buildNumber,
     bitcode: true,
     supportsTablet: true,
     associatedDomains: ['applinks:fzuhelperapp.west2.online'], // 支持 Apple Universal Link 功能
@@ -34,9 +53,10 @@ const config: ExpoConfig = {
       ITSAppUsesNonExemptEncryption: false,
       ITSEncryptionExportComplianceCode: '',
       NSCalendarsFullAccessUsageDescription: '我们需要申请日历权限以导出课表、考场安排等内容到日历',
+      NSCalendarsUsageDescription: '我们需要申请日历权限以导出课表、考场安排等内容到日历',
       NSCameraUsageDescription: '我们需要申请相机权限以提供拍照上传头像、学习中心扫码签到等功能',
       NSPhotoLibraryUsageDescription: '我们需要申请相册权限以提供上传头像等功能',
-      // 下面这三个定位权限申请缺一不可
+      // 下面这两个定位权限申请缺一不可
       NSLocationWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       NSLocationAlwaysAndWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       LSApplicationQueriesSchemes: ['itms-apps'],
@@ -58,8 +78,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: IS_DEV ? 'com.helper.west2ol.fzuhelper.dev' : 'com.helper.west2ol.fzuhelper',
-    versionCode: 700001, // 此处不需要修改，将在inject-android-config中自增
-    edgeToEdgeEnabled: true,
+    versionCode,
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
       monochromeImage: './assets/images/ic_launcher_foreground.png',
@@ -69,6 +88,7 @@ const config: ExpoConfig = {
       'android.permission.REQUEST_INSTALL_PACKAGES',
       'android.permission.CAMERA',
       'android.permission.READ_CALENDAR',
+      'android.permission.WRITE_CALENDAR',
       'android.permission.ACCESS_COARSE_LOCATION',
       'android.permission.ACCESS_FINE_LOCATION',
     ],
@@ -78,32 +98,20 @@ const config: ExpoConfig = {
     [
       'react-native-permissions',
       {
-        iosPermissions: ['Camera', 'Calendars', 'Notifications', 'LocationWhenInUse'],
+        iosPermissions: ['Camera', 'Calendars', 'Notifications', 'LocationWhenInUse', 'AppTrackingTransparency'],
       },
     ],
     [
       'expo-build-properties',
       {
         android: {
+          buildArchs: ['arm64-v8a'],
           useLegacyPackaging: true,
-          enableProguardInReleaseBuilds: true,
+          enableMinifyInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
           usesCleartextTraffic: true,
           extraMavenRepos: ['https://developer.huawei.com/repo/'],
         },
-      },
-    ],
-    [
-      'expo-calendar',
-      {
-        calendarPermission: '我们需要访问日历以提供导出课表到日历功能', // iOS only
-        remindersPermission: '我们需要访问提醒事项以提供导出课表到提醒事项功能', // iOS only
-      },
-    ],
-    [
-      'expo-camera',
-      {
-        cameraPermission: '我们需要申请相机权限以提供拍照上传头像、学习中心扫码签到等功能',
-        recordAudioAndroid: true,
       },
     ],
     './plugins/inject-android-config',
@@ -137,22 +145,6 @@ const config: ExpoConfig = {
       },
     ],
     [
-      'expo-tracking-transparency',
-      {
-        userTrackingPermission:
-          '请允许我们搜集可以用于追踪您或您的设备的应用相关数据，这将会用于投放个性化内容，如教务处通知推送、成绩更新推送等内容.',
-      },
-    ],
-    [
-      'react-native-edge-to-edge',
-      {
-        android: {
-          parentTheme: 'Default',
-          enforceNavigationBarContrast: false,
-        },
-      },
-    ],
-    [
       'expo-splash-screen',
       {
         image: './assets/images/ic_launcher_foreground.png',
@@ -166,15 +158,6 @@ const config: ExpoConfig = {
     [
       'expo-quick-actions',
       {
-        iosActions: [
-          {
-            id: '1',
-            title: '一码通',
-            subtitle: '一键跳转一码通',
-            icon: 'symbol:qrcode',
-            params: { href: '/qrcode' },
-          },
-        ],
         androidIcons: {
           qrcode: {
             foregroundImage: './assets/images/qr_action.png',
@@ -210,6 +193,11 @@ const config: ExpoConfig = {
   ],
   experiments: {
     typedRoutes: true,
+  },
+  extra: {
+    eas: {
+      projectId: '7f521ea8-db0e-4bf3-a6ce-ff469936e540',
+    },
   },
 };
 

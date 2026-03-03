@@ -1,5 +1,5 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
-import { getApiV1JwchCourseList } from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { queryClient } from '@/components/query-provider';
 import {
@@ -10,6 +10,8 @@ import {
   COURSE_DATA_KEY,
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
+  DATETIME_SECOND_FORMAT,
+  EXAM_ROOM_KEY,
   IOS_APP_GROUP,
 } from '@/lib/constants';
 import { setWidgetData } from '@/modules/native-widget';
@@ -17,7 +19,7 @@ import { MergedExamData } from '@/types/academic';
 import type { PartiallyOptional } from '@/types/utils';
 import { randomUUID } from '@/utils/crypto';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
-import { allocateColorForCourse, clearColorMapping, courseColors, getExamColor } from '@/utils/random-color';
+import { allocateColorForCourse, clearColorMapping, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
@@ -26,6 +28,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
+import { formatExamData } from './exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from './locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
 
@@ -55,6 +58,7 @@ export type CustomCourse = ExtendCourseBase & {
   type: 2;
   storageKey: string; // 预留给后端的存储 key
   lastUpdateTime: string; // 最后更新时间
+  semester: string; // 学期
 };
 
 export type CourseInfo = ExtendCourse | CustomCourse;
@@ -143,14 +147,29 @@ export class CourseCache {
   }
 
   /**
+   * 从包含所有学期自定义课程的cachedCustomData获取本学期自定义课程
+   */
+  public static getCustomCoursesForSemester(selectedSemester: string): Record<number, CustomCourse[]> {
+    if (!this.cachedCustomData) return {};
+
+    const filteredData: Record<number, CustomCourse[]> = {};
+    for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+      const dayIndex = Number(day);
+      // course.semester 如果为空，则为旧版所添加，不做过滤，在所有学期展示，由用户自己决定去删除或者编辑
+      filteredData[dayIndex] = courses.filter(course => !course.semester || course.semester === selectedSemester);
+    }
+    return filteredData;
+  }
+
+  /**
    * 获取缓存数据
    */
-  public static getCachedData(): Record<number, CourseInfo[]> | null {
-    const mergedData: Record<number, CourseInfo[]> = {};
-
-    if (!this.cachedData && !this.cachedExamData) {
-      return null;
+  public static getCachedData(selectedSemester: string): Record<number, CourseInfo[]> {
+    if (!this.cachedData && !this.cachedExamData && !this.cachedCustomData) {
+      return {};
     }
+
+    const mergedData: Record<number, CourseInfo[]> = {};
 
     // 合并课程数据
     if (this.cachedData) {
@@ -171,12 +190,11 @@ export class CourseCache {
     }
 
     // 合并自定义课程数据
-    if (this.cachedCustomData) {
-      for (const [day, customs] of Object.entries(this.cachedCustomData)) {
-        const dayIndex = Number(day);
-        if (!mergedData[dayIndex]) mergedData[dayIndex] = [];
-        mergedData[dayIndex].push(...customs);
-      }
+    const customCourses = this.getCustomCoursesForSemester(selectedSemester);
+    for (const [day, customs] of Object.entries(customCourses)) {
+      const dayIndex = Number(day);
+      if (!mergedData[dayIndex]) mergedData[dayIndex] = [];
+      mergedData[dayIndex].push(...customs);
     }
 
     return mergedData;
@@ -224,13 +242,20 @@ export class CourseCache {
       );
 
       // 将数据保存到原生共享存储中，以便在小组件中调用
-      const termsList = (await queryClient.getQueryData([COURSE_TERMS_LIST_KEY])) as any;
+      const termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([
+        COURSE_TERMS_LIST_KEY,
+      ]);
       const courseSettings = await getCourseSetting();
       const term = courseSettings.selectedSemester;
-      const currentTerm = termsList.data.data.terms.find((termData: any) => termData.term === term);
+      const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === term);
+      if (!currentTerm) {
+        console.warn('无法找到当前学期信息，跳过小组件同步');
+        return;
+      }
       const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
       const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
       const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
+      const customCourses = this.getCustomCoursesForSemester(term);
       if (Platform.OS === 'ios') {
         // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
         // 只能在常量中定义这个 identifier
@@ -240,7 +265,7 @@ export class CourseCache {
           JSON.stringify({
             courseData: this.cachedData,
             examData: this.cachedExamData,
-            customData: this.cachedCustomData,
+            customData: customCourses,
             lastCourseUpdateTime: this.lastCourseUpdateTime,
             lastExamUpdateTime: this.lastExamUpdateTime,
             startDate: currentTerm.start_date,
@@ -253,7 +278,7 @@ export class CourseCache {
           JSON.stringify({
             courseData: this.cachedData,
             examData: this.cachedExamData,
-            customData: this.cachedCustomData,
+            customData: customCourses,
             startDate: currentTerm.start_date,
             maxWeek: maxWeek,
             showNonCurrentWeekCourses: showNonCurrentWeekCourses,
@@ -387,8 +412,9 @@ export class CourseCache {
 
     switch (course.type) {
       case COURSE_TYPE:
-        const updatedData = Object.values(this.cachedData).map(day =>
-          day.map(c => {
+        const updatedData: Record<number, ExtendCourse[]> = {};
+        for (const [day, courses] of Object.entries(this.cachedData)) {
+          updatedData[+day] = courses.map(c => {
             if (c.id === course.id) {
               console.log(`Set priority for course ${course.name} to ${this.priorityCounter}`);
               this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
@@ -398,8 +424,8 @@ export class CourseCache {
               };
             }
             return c;
-          }),
-        );
+          });
+        }
 
         this.cachedData = updatedData;
         break;
@@ -408,8 +434,9 @@ export class CourseCache {
           console.log("cachedCustomData is null, this shouldn't happen");
           return;
         }
-        const updatedCustomData = Object.values(this.cachedCustomData).map(day =>
-          day.map(c => {
+        const updatedCustomData: Record<number, CustomCourse[]> = {};
+        for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+          updatedCustomData[+day] = courses.map(c => {
             if (this.isCustomCourse(course) && c.storageKey === course.storageKey) {
               console.log(`Set priority for custom course ${course.name} to ${this.priorityCounter}`);
               this.priorityCounter = (this.priorityCounter + 1) % MAX_PRIORITY;
@@ -419,8 +446,8 @@ export class CourseCache {
               };
             }
             return c;
-          }),
-        );
+          });
+        }
 
         this.cachedCustomData = updatedCustomData;
         break;
@@ -440,7 +467,7 @@ export class CourseCache {
    */
   public static mergeExamCourses(exam: MergedExamData[], semesterStart: string, semesterEnd: string) {
     // 更新时间戳
-    this.lastExamUpdateTime = new Date().toLocaleString();
+    this.lastExamUpdateTime = dayjs().format(DATETIME_SECOND_FORMAT);
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(exam);
     // 如果当前 digest 和上一次的 digest 一致，则不再进行后续处理
@@ -545,7 +572,7 @@ export class CourseCache {
     /* 缓存校对处理，如果缓存和传入的数据一致，不做任何改动 */
 
     // 更新时间戳
-    this.lastCourseUpdateTime = new Date().toLocaleString();
+    this.lastCourseUpdateTime = dayjs().format(DATETIME_SECOND_FORMAT);
     // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(tempData);
 
@@ -556,29 +583,23 @@ export class CourseCache {
 
     /* 到此处我们认为数据是不一致的，开始重新处理课程 */
     this.startID = DEFAULT_STARTID; // 初始化 id
-    clearColorMapping(); // 清空颜色映射，重新分配颜色
+    const currentUserId = LocalUser.getUser().userid;
+    clearColorMapping(currentUserId); // 清空颜色映射，重新分配颜色
 
     const schedules = this.parseCourses(tempData); // 解析课程数据
 
     // 为每个课程生成颜色并扩展数据
     const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
       const id = this.allocateID(); // 分配一个新的 ID
-      console.log('为课程' + schedule.name + '分配颜色: ' + courseColors[id % courseColors.length]);
       return {
         ...schedule,
-        color: allocateColorForCourse(schedule.name), // 分配颜色
+        name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
+        color: allocateColorForCourse(schedule.name, currentUserId), // 分配颜色
         priority: DEFAULT_PRIORITY, // 默认优先级
         id: id,
         type: COURSE_TYPE,
       };
     });
-
-    // 为调课课程添加标记
-    for (const course of extendedCourses) {
-      if (course.adjust) {
-        course.name = `[调课] ${course.name}`;
-      }
-    }
 
     // 按天归类课程数据
     const groupedData = extendedCourses.reduce(
@@ -600,6 +621,46 @@ export class CourseCache {
   }
 
   /**
+   * 处理好友课程数据，不更新缓存
+   * @param courses - 原始课程数据
+   * @returns 按天归类的课程数据
+   */
+  public static processFriendCourses(
+    courses: JwchCourseListResponse_Course[],
+    friendId?: string,
+  ): Record<number, ExtendCourse[]> {
+    const studentId = friendId ?? 'friend'; // 使用好友学号作为颜色映射的 key
+    clearColorMapping(studentId); // 清空好友的颜色映射，重新分配颜色
+    const schedules = this.parseCourses(courses); // 解析课程数据
+
+    // 为每个课程生成颜色并扩展数据
+    const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
+      const id = this.allocateID(); // 分配一个新的 ID
+      return {
+        ...schedule,
+        name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
+        color: allocateColorForCourse(schedule.name, studentId), // 分配颜色
+        priority: DEFAULT_PRIORITY, // 默认优先级
+        id: id,
+        type: COURSE_TYPE,
+      };
+    });
+
+    // 按天归类课程数据
+    const groupedData = extendedCourses.reduce(
+      (result, current) => {
+        const day = current.weekday - 1;
+        if (!result[day]) result[day] = []; // 确保数组存在
+        result[day].push(current);
+        return result;
+      },
+      Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<number, ExtendCourse[]>,
+    );
+
+    return groupedData;
+  }
+
+  /**
    * 添加自定义课程，每次添加都会保存一次数据
    * @param course - 自定义课程
    */
@@ -616,7 +677,7 @@ export class CourseCache {
       ...course,
       id: this.allocateID(),
       storageKey: randomUUID(),
-      lastUpdateTime: new Date().toISOString(),
+      lastUpdateTime: dayjs().toISOString(),
     };
 
     this.cachedCustomData[newIndex].push(newCourse);
@@ -659,7 +720,7 @@ export class CourseCache {
 
     const updatedCourse: CustomCourse = {
       ...course,
-      lastUpdateTime: new Date().toISOString(),
+      lastUpdateTime: dayjs().toISOString(),
     };
 
     // 先删除再添加
@@ -831,5 +892,28 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
   await locateDate(true); // 强制更新缓存
 
   CourseCache.setCourses(data.data.data, true); // 设置课程数据,跳过digest检查
+
+  // 考场信息
+  if ((await getCourseSetting()).exportExamToCourseTable) {
+    const examData = await fetchWithCache(
+      [EXAM_ROOM_KEY, queryTerm],
+      () => getApiV1JwchClassroomExam({ term: queryTerm }),
+      {
+        staleTime: 0,
+      },
+    );
+
+    const formattedExamData = formatExamData(examData.data.data);
+    const termsList = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), {
+      staleTime: 0,
+    });
+    const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === queryTerm);
+    if (currentTerm) {
+      CourseCache.mergeExamCourses(formattedExamData, currentTerm.start_date, currentTerm.end_date);
+    } else {
+      console.warn('无法找到当前学期信息，跳过考试数据合并');
+    }
+  }
+
   CourseCache.save(); // 强制保存一次
 };

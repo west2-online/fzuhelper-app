@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useFocusEffect } from 'expo-router';
+import dayjs from 'dayjs';
+import { RelativePathString, router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, BackHandler, Image, Linking, Platform, TouchableOpacity, View } from 'react-native';
-import { SystemBars } from 'react-native-edge-to-edge';
 
 import {
   AlertDialog,
@@ -22,8 +23,8 @@ import SplashImage from '@/assets/images/splash.png';
 import SplashLogoIcon from '@/assets/images/splash_logo.png';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { initAegis, setAegisConfig } from '@/lib/aegis';
 import {
+  DATE_FORMAT_DASH,
   IS_PRIVACY_POLICY_AGREED,
   SPLASH_DATE,
   SPLASH_DISPLAY_COUNT,
@@ -35,12 +36,15 @@ import { NotificationManager } from '@/lib/notification';
 import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 import BuglyModule from '@/modules/bugly';
+import fileCache from '@/utils/file-cache';
 import { isAccountExist } from '@/utils/is-account-exist';
 
 ExpoSplashScreen.preventAutoHideAsync();
 
 export default function SplashScreen() {
   const redirect = useRedirectWithoutHistory();
+
+  const { target, cold_launch } = useLocalSearchParams();
 
   const [shouldShowPrivacyAgree, setShouldShowPrivacyAgree] = useState(true);
   const [privacyDialogVisible, setPrivacyDialogVisible] = useState(false);
@@ -60,41 +64,70 @@ export default function SplashScreen() {
   const initThirdParty = useCallback(async () => {
     console.log('init ThirdParty Libraries');
     await NotificationManager.init();
-    initAegis();
     if (Platform.OS === 'android') {
       // 崩溃上报
       BuglyModule.initBugly();
     }
   }, []);
 
-  const navigateToHome = useCallback(() => {
+  // 跳转DeepLink目标页或主页面
+  const navigateToTarget = useCallback(() => {
     setHideSystemBars(false);
     // 延迟使得系统栏恢复显示
     setTimeout(() => {
-      // 我们判断传入的参数，如果含 qrcode 则跳转到 qrcode 页面
-      // 目前暂时不使用这套方案，但是暂时留置，和 _layout.tsx 中的监听代码留置一样。
-      // if (method === 'qrcode') {
-      //   redirect('/(tabs)/qrcode');
-      // }
-      redirect('/(tabs)');
+      if (target && typeof target === 'string') {
+        // targetPath如果无效，有not-found兜底，此处无需处理
+        const targetPath = decodeURIComponent(target) as RelativePathString;
+        if (cold_launch === 'true') {
+          // 冷启动下先进入主页再跳转相应页面，保证返回栈
+          redirect('/(tabs)');
+          router.push(targetPath);
+        } else {
+          router.replace(targetPath);
+        }
+      } else {
+        // 无参冷启动
+        redirect('/(tabs)');
+      }
     }, 1);
-  }, [redirect]);
+  }, [cold_launch, redirect, target]);
+
+  // 获取开屏页，1s 超时
+  const fetchSplashWithTimeout = useCallback(async () => {
+    const timeout = new Promise<null>((_, reject) => setTimeout(reject, 1000, new Error('timeout')));
+
+    try {
+      return await Promise.race([
+        getApiV1LaunchScreenScreen({
+          type: 1,
+          student_id: LocalUser.getUser().userid || '',
+          device: Platform.OS,
+        }),
+        timeout,
+      ]);
+    } catch (error: any) {
+      console.log(error);
+      // 超时或无图片均返回 null
+      if (error.message === 'timeout' || error?.data?.code === '40001') {
+        return null;
+      }
+      throw error;
+    }
+  }, []);
 
   // 拉取Splash并展示
   const getSplash = useCallback(async () => {
     console.log('getSplash');
     try {
-      const result = await getApiV1LaunchScreenScreen({
-        type: 1,
-        student_id: LocalUser.getUser().userid || '',
-        device: Platform.OS,
-      });
-      if (result.data.data.length === 0) {
-        // 理论上不会触发
-        navigateToHome();
+      const result = await fetchSplashWithTimeout();
+
+      if (!result || !result.data.data || result.data.data.length === 0) {
+        navigateToTarget();
+        console.log('no splash to display');
         return;
       }
       const splash = result.data.data[0];
+      console.log('splash fetched:', splash);
       if (splash.id?.toString() !== (await AsyncStorage.getItem(SPLASH_ID))) {
         // ID与上次不同，重置计数
         await AsyncStorage.multiSet([
@@ -105,18 +138,22 @@ export default function SplashScreen() {
       const lastDate = await AsyncStorage.getItem(SPLASH_DATE);
       let displayCount = 0;
       // 如果上次展示不是今天，重置计数
-      if (lastDate !== new Date().toDateString()) {
+      if (lastDate !== dayjs().format(DATE_FORMAT_DASH)) {
         await AsyncStorage.setItem(SPLASH_DISPLAY_COUNT, '0');
       } else {
         displayCount = Number(await AsyncStorage.getItem(SPLASH_DISPLAY_COUNT));
       }
       if ((splash.frequency || 10) < displayCount) {
-        navigateToHome();
+        navigateToTarget();
         return;
       }
       // 未达到频次，展示
       setSplashId(splash.id || -1);
-      setSplashImage(splash.url || '');
+      setSplashImage(
+        (await fileCache.getCachedFile(splash.url as string, {
+          maxAge: (splash.end_at || 0) * 1000 - Date.now(),
+        })) || '',
+      );
       setSplashTarget(splash.href || '');
       setCountdown(splash.duration || 3);
       setSplashText(splash.text || '点击查看详情');
@@ -124,13 +161,13 @@ export default function SplashScreen() {
       setShowSplashImage(true);
       await AsyncStorage.multiSet([
         [SPLASH_DISPLAY_COUNT, (displayCount + 1).toString()],
-        [SPLASH_DATE, new Date().toDateString()],
+        [SPLASH_DATE, dayjs().format(DATE_FORMAT_DASH)],
       ]);
     } catch {
       // 不使用 handleError，静默处理
-      navigateToHome();
+      navigateToTarget();
     }
-  }, [navigateToHome]);
+  }, [fetchSplashWithTimeout, navigateToTarget]);
 
   // 处理开屏页点击事件
   const handleSplashClick = useCallback(async () => {
@@ -146,8 +183,8 @@ export default function SplashScreen() {
       console.error(error);
     }
     // 跳过倒计时
-    navigateToHome();
-  }, [navigateToHome, splashId, splashTarget]);
+    navigateToTarget();
+  }, [navigateToTarget, splashId, splashTarget]);
 
   // 检查登录状态，如果账户存在则会检查和服务器的连接状态
   const checkLoginStatus = useCallback(async () => {
@@ -163,12 +200,6 @@ export default function SplashScreen() {
     // 此时我们按照正常逻辑请求服务端，会获得 cookie 过期的错误，再由我们客户端静态登录
     // 整个逻辑自动化地实现在了 api/axios.ts 中
 
-    // 在此处开始加载 AEGIS 符合逻辑，同时不需要额外的再 load 一次
-    console.log('set AEGIS config for', LocalUser.getUser().userid);
-    // Alert.alert('AEGIS', 'set config for ' + LocalUser.getUser().userid);
-    setAegisConfig({
-      uin: LocalUser.getUser().userid,
-    });
     if (Platform.OS === 'android') {
       BuglyModule.setUserId(LocalUser.getUser().userid);
     }
@@ -197,6 +228,7 @@ export default function SplashScreen() {
   useEffect(() => {
     ExpoSplashScreen.hideAsync();
     const handleAppStateChange = (nextAppState: string) => {
+      console.log('Splash AppState changed to', nextAppState);
       if (nextAppState === 'active') {
         if (!shouldShowPrivacyAgree) {
           console.log('shouldShowPrivacyAgree false, remove listener');
@@ -208,7 +240,11 @@ export default function SplashScreen() {
       }
     };
 
-    checkAndShowPrivacyAgree();
+    // 这个参数是DeepLink带过来的，如果直接桌面启动则为 undefined
+    // 下面条件代表桌面冷启动或从DeepLink冷启动，需要手动触发一次，DeepLink热启动会在handleAppStateChange触发
+    if (cold_launch !== 'false') {
+      checkAndShowPrivacyAgree();
+    }
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
 
@@ -225,7 +261,7 @@ export default function SplashScreen() {
         setCountdown(prev => {
           if (prev === 1) {
             clearInterval(timer);
-            navigateToHome();
+            navigateToTarget();
           }
           return prev - 1;
         });
@@ -233,7 +269,7 @@ export default function SplashScreen() {
 
       return () => clearInterval(timer);
     }
-  }, [showSplashImage, navigateToHome]);
+  }, [showSplashImage, navigateToTarget]);
 
   useFocusEffect(
     useCallback(() => {
@@ -249,22 +285,27 @@ export default function SplashScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View>
+        <StatusBar hidden={hideSystemBars} />
         {!showSplashImage ? (
           // 默认开屏
           <Image className="h-full w-full bg-background" source={SplashImage} fadeDuration={0} resizeMode="cover" />
         ) : (
           <View className="flex h-full flex-col">
             {/* Splash内容 */}
-            <View className="mb-10 flex-1">
+            <View className="relative mb-10 flex-1">
               {/* Image 占据全部空间 */}
               <Image className="h-full w-full" src={splashImage} resizeMode="cover" />
               {/* TouchableOpacity 放置在 Image 的下方 */}
               {splashType !== 1 && (
-                <TouchableOpacity onPress={handleSplashClick} activeOpacity={0.7}>
-                  <View className="mx-auto -mt-28 mb-10 h-auto w-1/2 flex-1 items-center justify-center rounded-full bg-black/60">
+                <View className="absolute bottom-10 left-0 right-0 flex items-center">
+                  <TouchableOpacity
+                    onPress={handleSplashClick}
+                    activeOpacity={0.7}
+                    className="h-16 w-1/2 items-center justify-center rounded-full bg-black/60 py-2"
+                  >
                     <Text className="text-white">{splashText}</Text>
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
 
@@ -277,13 +318,11 @@ export default function SplashScreen() {
 
               {/* 跳过按钮靠右 */}
               <View className="absolute bottom-11 right-8 w-20 rounded-full border-gray-400 bg-card py-2">
-                <TouchableOpacity onPress={navigateToHome} activeOpacity={0.7}>
+                <TouchableOpacity onPress={navigateToTarget} activeOpacity={0.7}>
                   <Text className="mx-auto">跳过 {countdown}</Text>
                 </TouchableOpacity>
               </View>
             </View>
-
-            <SystemBars hidden={hideSystemBars} />
           </View>
         )}
       </View>

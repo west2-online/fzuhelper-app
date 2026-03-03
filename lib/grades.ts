@@ -93,8 +93,9 @@ const excludedElectiveTypes = [
 // 移除补考课程对应的原课程
 const removeReexaminationCourse = (data: CourseGradesData[]) =>
   data.filter(item => {
-    if (!item.gpa) return true;
-    if (item.exam_type.includes('补考')) return true; // 补考课程不需要排除
+    if (item.exam_type.includes('补考')) { // 当前课程是补考课程
+      return item.gpa !== ''; // 保留出了成绩的补考课程
+    }
 
     // 找到对应的补考课程
     const nItem = data.find(
@@ -102,8 +103,10 @@ const removeReexaminationCourse = (data: CourseGradesData[]) =>
       o => o.name === item.name && o.teacher === item.teacher && o.exam_type.includes('补考'),
     );
 
-    if (!nItem) return true; // 没有补考课程则保留原始成绩
-    return !nItem.gpa; // 补考成绩已出则过滤掉当前课程（原始挂科的成绩）
+    return (
+      !nItem || // 没有找到补考课程
+      (nItem.exam_type.includes('补考') && !nItem.gpa) // 找到补考课程但补考课程没有出成绩
+    );
   });
 
 // 获取 GPA 相关数据

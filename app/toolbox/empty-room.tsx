@@ -10,11 +10,13 @@ import { Text } from '@/components/ui/text';
 import useApiRequest from '@/hooks/useApiRequest';
 import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { FAQ_EMPTY_ROOM } from '@/lib/FAQ';
+import { EMPTY_ROOM_SELECTED_CAMPUS_KEY } from '@/lib/constants';
 import { type IntRange } from '@/types/int-range';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View, useColorScheme } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
 import DateTimePicker, { useDefaultClassNames } from 'react-native-ui-datepicker';
@@ -68,7 +70,7 @@ export default function EmptyRoomPage() {
 
   const [selectedRange, setSelectedRange] = useState<LessonRange>({ start: 1, end: 11 });
   const [selectedDate, setSelectedDate] = useState(today);
-  const [selectedCampus, setSelectedCampus] = useState<Campus>('旗山校区');
+  const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null);
   const [showFAQ, setShowFAQ] = useState(false);
 
   const [pickerSelectedDate, setPickerSelectedDate] = useState(selectedDate);
@@ -79,12 +81,16 @@ export default function EmptyRoomPage() {
   const [isCampusPickerVisible, setCampusPickerVisible] = useState(false);
   const campusData = CAMPUS_LIST.map(campus => ({ value: campus, label: campus }));
 
-  const apiResult = useApiRequest(getApiV1CommonClassroomEmpty, {
-    date: selectedDate.format(DATE_FMT),
-    campus: selectedCampus,
-    startTime: selectedRange.start.toString(),
-    endTime: selectedRange.end.toString(),
-  });
+  const apiResult = useApiRequest(
+    getApiV1CommonClassroomEmpty,
+    {
+      date: selectedDate.format(DATE_FMT),
+      campus: selectedCampus!,
+      startTime: selectedRange.start.toString(),
+      endTime: selectedRange.end.toString(),
+    },
+    { enabled: !!selectedCampus },
+  );
   const { data: roomData, refetch } = apiResult;
 
   const { state } = useMultiStateRequest(apiResult, {
@@ -100,6 +106,16 @@ export default function EmptyRoomPage() {
     () => <DateNavigator date={selectedDate.format(DATE_FMT)} onPress={() => setIsDateTimePickerVisible(true)} />,
     [selectedDate],
   );
+
+  useEffect(() => {
+    AsyncStorage.getItem(EMPTY_ROOM_SELECTED_CAMPUS_KEY).then(value => {
+      if (value && CAMPUS_LIST.includes(value as Campus)) {
+        setSelectedCampus(value as Campus);
+      } else {
+        setSelectedCampus('旗山校区');
+      }
+    });
+  }, []);
 
   return (
     <>
@@ -213,8 +229,9 @@ export default function EmptyRoomPage() {
           value={selectedCampus}
           data={campusData}
           onConfirm={value => {
-            setSelectedCampus(value);
             setCampusPickerVisible(false);
+            setSelectedCampus(value);
+            AsyncStorage.setItem(EMPTY_ROOM_SELECTED_CAMPUS_KEY, value!);
           }}
         />
         {/* FAQ Modal */}

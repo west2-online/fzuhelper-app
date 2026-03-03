@@ -12,7 +12,7 @@ import RadioButton from '@/components/radio-button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
-import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, type CustomCourse } from '@/lib/course';
+import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, getCourseSetting, type CustomCourse } from '@/lib/course';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -64,6 +64,7 @@ const DEFAULT_EMPTY_COURSE: CustomCourse = {
   remark: '',
   type: CUSTOM_TYPE,
   examType: '',
+  semester: '',
 };
 
 export default function CourseAddPage() {
@@ -105,6 +106,11 @@ export default function CourseAddPage() {
     }
 
     setDisabled(true);
+
+    if (!newCourse.semester) {
+      newCourse.semester = (await getCourseSetting()).selectedSemester;
+    }
+
     if (newCourse.id === -1 || !newCourse.storageKey) {
       await CourseCache.addCustomCourse(newCourse);
     } else {
