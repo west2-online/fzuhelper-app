@@ -22,6 +22,7 @@ import { getApiV1LaunchScreenImagePointTime, getApiV1LaunchScreenScreen } from '
 import SplashImage from '@/assets/images/splash.png';
 import SplashLogoIcon from '@/assets/images/splash_logo.png';
 
+import { triggerHaptic } from '@/components/haptics';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import {
   DATE_FORMAT_DASH,
@@ -299,7 +300,10 @@ export default function SplashScreen() {
               {splashType !== 1 && (
                 <View className="absolute bottom-10 left-0 right-0 flex items-center">
                   <TouchableOpacity
-                    onPress={handleSplashClick}
+                    onPress={() => {
+                      triggerHaptic('medium');
+                      handleSplashClick();
+                    }}
                     activeOpacity={0.7}
                     className="h-16 w-1/2 items-center justify-center rounded-full bg-black/60 py-2"
                   >
@@ -318,7 +322,13 @@ export default function SplashScreen() {
 
               {/* 跳过按钮靠右 */}
               <View className="absolute bottom-11 right-8 w-20 rounded-full border-gray-400 bg-card py-2">
-                <TouchableOpacity onPress={navigateToTarget} activeOpacity={0.7}>
+                <TouchableOpacity
+                  onPress={() => {
+                    triggerHaptic('medium');
+                    navigateToTarget();
+                  }}
+                  activeOpacity={0.7}
+                >
                   <Text className="mx-auto">跳过 {countdown}</Text>
                 </TouchableOpacity>
               </View>

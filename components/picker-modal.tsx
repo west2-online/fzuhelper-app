@@ -6,6 +6,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
+import { triggerHaptic } from '@/components/haptics';
 import { Text } from '@/components/ui/text';
 
 interface PickerModalProps<T> {
@@ -53,10 +54,12 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
   }, [handleAnimation, value, visible]);
 
   const handleClose = useCallback(() => {
+    triggerHaptic('light');
     handleAnimation(false, onClose);
   }, [handleAnimation, onClose]);
 
   const handleConfirm = useCallback(() => {
+    triggerHaptic('light');
     handleAnimation(false, () => onConfirm(tempValue));
   }, [onConfirm, tempValue, handleAnimation]);
 
@@ -95,6 +98,7 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
             style={styles.wheelpicker}
             data={data}
             value={tempValue}
+            onValueChanging={() => triggerHaptic('light')}
             onValueChanged={onValueChanged}
             itemTextStyle={itemTextStyle}
             enableScrollByTapOnItem

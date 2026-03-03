@@ -6,6 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
+import { triggerHaptic } from '@/components/haptics';
 
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
@@ -121,6 +122,11 @@ export default function TabLayout() {
               // TODO: 目前是使用了 BlurView 来实现毛玻璃效果，但是这个组件在 Android 上会有问题，因此暂时不使用
               <View className={'flex-1 bg-background/10'} />
             ),
+        }}
+        screenListeners={{
+          tabPress: () => {
+            triggerHaptic('light');
+          },
         }}
       >
         <Tabs.Screen

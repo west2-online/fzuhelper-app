@@ -5,6 +5,7 @@ import { Icon } from '@/components/Icon';
 import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { ScrollView } from 'react-native-gesture-handler';
+import { triggerHaptic } from '../haptics';
 
 interface FriendListModalProps {
   visible: boolean;
@@ -33,7 +34,13 @@ export function FriendListModal({
       {/* 这里用 flex-1 确保整个 Modal 的背景可点击 */}
       <View className="flex-1 bg-[#00000050]">
         {/* 透明背景可点击关闭 */}
-        <Pressable className="absolute inset-0" onPress={onClose} />
+        <Pressable
+          className="absolute inset-0"
+          onPress={() => {
+            triggerHaptic('light');
+            onClose();
+          }}
+        />
 
         {/* 弹出窗口 */}
         <View className="-max-h-screen-safe-offset-64 absolute left-4 top-28 w-1/2 max-w-md gap-1 rounded-xl bg-background p-5 shadow-xl">
@@ -44,6 +51,7 @@ export function FriendListModal({
               className="flex h-14 flex-row items-center justify-between"
               activeOpacity={0.7}
               onPress={() => {
+                triggerHaptic('light');
                 onClose();
                 onSelectFriend(undefined);
               }}
@@ -59,6 +67,7 @@ export function FriendListModal({
                 className="flex h-14 flex-row items-center"
                 activeOpacity={0.7}
                 onPress={() => {
+                  triggerHaptic('light');
                   onClose();
                   onSelectFriend(friend.stu_id);
                 }}
@@ -77,6 +86,7 @@ export function FriendListModal({
             className="flex h-14 justify-center"
             activeOpacity={0.7}
             onPress={() => {
+              triggerHaptic('medium');
               onClose();
               router.push('/settings/friend/list');
             }}

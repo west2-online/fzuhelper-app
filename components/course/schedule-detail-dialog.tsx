@@ -16,6 +16,7 @@ import { pushToWebViewJWCH } from '@/lib/webview';
 
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
 import { Link } from 'expo-router';
+import { triggerHaptic } from '../haptics';
 
 interface ScheduleDetailsDialogProps {
   open: boolean;
@@ -35,17 +36,20 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
   }, [onOpenChange]);
 
   const handleSyllabusPress = useCallback(() => {
+    triggerHaptic('medium');
     closeDialog();
     pushToWebViewJWCH(schedule.syllabus!, '教学大纲');
   }, [schedule.syllabus, closeDialog]);
 
   const handleLessonplanPress = useCallback(() => {
+    triggerHaptic('medium');
     closeDialog();
     pushToWebViewJWCH(schedule.lessonplan!, '授课计划');
   }, [schedule.lessonplan, closeDialog]);
 
   const setPriority = useCallback(
     (course: CourseInfo) => {
+      triggerHaptic('heavy');
       closeDialog();
       CourseCache.setPriority(course);
     },
@@ -53,15 +57,22 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={open => {
+        triggerHaptic('light');
+        onOpenChange?.(open);
+      }}
+    >
       <DialogContent className="flex w-[90vw] flex-col justify-center pb-6 pt-10 sm:max-w-[425px]">
         <View className="flex flex-row items-center justify-between">
           {/* 向左按钮 */}
           <Pressable
             className={`flex-none ${schedules.length <= 1 ? 'invisible' : ''}`}
-            onPress={() =>
-              schedules.length > 1 && setScheduleIndex(scheduleIndex === 0 ? schedules.length - 1 : scheduleIndex - 1)
-            }
+            onPress={() => {
+              triggerHaptic('light');
+              schedules.length > 1 && setScheduleIndex(scheduleIndex === 0 ? schedules.length - 1 : scheduleIndex - 1);
+            }}
           >
             <Image className="m-1 h-5 w-5" source={ArrowRightIcon} style={{ transform: [{ scaleX: -1 }] }} />
           </Pressable>
@@ -142,7 +153,10 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                             key: (schedule as CustomCourse).storageKey,
                           },
                         }}
-                        onPress={closeDialog}
+                        onPress={() => {
+                          triggerHaptic('medium');
+                          closeDialog();
+                        }}
                         asChild
                       >
                         <Button variant="link">
@@ -153,12 +167,14 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Button
                         variant="link"
                         onPress={() => {
+                          triggerHaptic('heavy');
                           Alert.alert('删除自定义课程', '确认要删除该自定义课程吗？', [
                             { text: '取消', style: 'cancel' },
                             {
                               text: '删除',
                               style: 'destructive',
                               onPress: () => {
+                                triggerHaptic('heavy');
                                 closeDialog();
                                 CourseCache.removeCustomCourse((schedule as CustomCourse).storageKey);
                               },
@@ -183,9 +199,10 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
           {/* 向右按钮 */}
           <Pressable
             className={`flex-none ${schedules.length <= 1 ? 'invisible' : ''}`}
-            onPress={() =>
-              schedules.length > 1 && setScheduleIndex(scheduleIndex === schedules.length - 1 ? 0 : scheduleIndex + 1)
-            }
+            onPress={() => {
+              triggerHaptic('light');
+              schedules.length > 1 && setScheduleIndex(scheduleIndex === schedules.length - 1 ? 0 : scheduleIndex + 1);
+            }}
           >
             <Image className="m-1 h-5 w-5" source={ArrowRightIcon} />
           </Pressable>

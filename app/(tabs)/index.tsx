@@ -1,4 +1,4 @@
-import { Tabs, useFocusEffect } from 'expo-router';
+import { router, Tabs, useFocusEffect } from 'expo-router';
 import { forwardRef, Suspense, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
@@ -18,6 +18,7 @@ import { Icon } from '@/components/Icon';
 import { CourseErrorBoundary } from '@/components/course/course-error-boundary';
 import CourseWeek from '@/components/course/course-week';
 import { FriendListModal } from '@/components/course/friend-list-modal';
+import { triggerHaptic } from '@/components/haptics';
 import Loading from '@/components/loading';
 import ErrorView from '@/components/multistateview/error-view';
 import PageContainer from '@/components/page-container';
@@ -127,6 +128,7 @@ const CourseGrid = forwardRef(
         if (viewableItems.length > 0) {
           const firstViewableWeek = viewableItems[0].item.week;
           if (firstViewableWeek !== selectedWeek) {
+            triggerHaptic('light');
             onWeekChange(firstViewableWeek);
           }
         }
@@ -249,7 +251,14 @@ function HomePageContent({
     }
 
     return (
-      <TouchableOpacity activeOpacity={0.7} onPress={() => setMenuVisible(true)} className="w-32 flex-row items-center">
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => {
+          triggerHaptic('light');
+          setMenuVisible(true);
+        }}
+        className="w-32 flex-row items-center"
+      >
         <Text className={`ml-4 font-medium ${textSize}`}>{title}</Text>
         <Icon name="chevron-forward" size={iconSize} className="ml-0.5" />
       </TouchableOpacity>
@@ -258,7 +267,13 @@ function HomePageContent({
 
   const headerTitle = useCallback(
     () => (
-      <Pressable onPress={() => setShowWeekSelector(!showWeekSelector)} className="flex flex-row items-center">
+      <Pressable
+        onPress={() => {
+          triggerHaptic('light');
+          setShowWeekSelector(!showWeekSelector);
+        }}
+        className="flex flex-row items-center"
+      >
         <Text className="mr-1 text-lg">
           第 {selectedWeek} 周 {selectedWeek === currentWeek ? '(本周)' : ''}
         </Text>
@@ -272,9 +287,25 @@ function HomePageContent({
     () => (
       <>
         {selectedFriendId === undefined && (
-          <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
+          <Icon
+            onPress={() => {
+              triggerHaptic('medium');
+              router.push('/settings/custom-course');
+            }}
+            name="add-circle-outline"
+            size={24}
+            className="mr-6"
+          />
         )}
-        <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
+        <Icon
+          onPress={() => {
+            triggerHaptic('medium');
+            router.push('/settings/course');
+          }}
+          name="settings-outline"
+          size={24}
+          className="mr-4"
+        />
       </>
     ),
     [selectedFriendId],
@@ -335,8 +366,18 @@ export default function HomePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState<string | undefined>(undefined);
   const prevSettingsRef = useRef<string | null>(null);
+  const refreshStateInitializedRef = useRef(false);
 
   const { handleError } = useSafeResponseSolve();
+
+  useEffect(() => {
+    if (!refreshStateInitializedRef.current) {
+      refreshStateInitializedRef.current = true;
+      return;
+    }
+
+    triggerHaptic('light');
+  }, [isRefreshing]);
 
   // 初始化通知管理器
   useEffect(() => {

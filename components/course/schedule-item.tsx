@@ -1,6 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import { Pressable, useColorScheme, View } from 'react-native';
 
+import { triggerHaptic } from '@/components/haptics';
 import { Text } from '@/components/ui/text';
 
 import OverlapIcon from '@/assets/images/course/overlap.svg';
@@ -30,7 +31,10 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
           style={{
             backgroundColor: getCourseColor(color, isDarkMode),
           }}
-          onPress={() => setDetailsDialogOpen(true)}
+          onPress={() => {
+            triggerHaptic('light');
+            setDetailsDialogOpen(true);
+          }}
         >
           <Text
             className={`${span > 1 ? 'line-clamp-3' : 'line-clamp-2'} truncate text-wrap break-all text-center text-[11px]`}
