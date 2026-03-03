@@ -9,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useColorScheme } from '../../lib/useColorScheme';
 import { cn } from '../../lib/utils';
-import * as Haptics from 'expo-haptics';
+import { triggerHaptic } from '../haptics';
 
 const SwitchWeb = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives.RootProps>(
   ({ className, ...props }, ref) => (
@@ -77,7 +77,7 @@ const SwitchNative = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives
           ref={ref}
           onPress={
             () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+              triggerHaptic('heavy');
             }
           }
         >

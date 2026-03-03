@@ -15,6 +15,7 @@ import { Text } from '@/components/ui/text';
 import LabelSwitch from '@/components/label-switch';
 import { queryClient } from '@/components/query-provider';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
+import { HAPTIC_ENABLED_KEY } from '@/lib/constants';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
 import { LocalUser, logoutUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
@@ -23,6 +24,7 @@ import { getReleaseChannel, storeReleaseChannel } from '@/utils/android-update';
 export default function SettingPage() {
   const redirect = useRedirectWithoutHistory();
   const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // (仅 Android) 发布渠道
+  const [hapticEnabled, setHapticEnabled] = useState<string | null>('false'); // 触觉反馈开关
 
   // 清除数据
   const handleClearData = () => {
@@ -125,7 +127,14 @@ export default function SettingPage() {
     if (Platform.OS === 'android') {
       getReleaseChannel().then(setReleaseChannel);
     }
+    AsyncStorage.getItem(HAPTIC_ENABLED_KEY).then(setHapticEnabled);
   }, []);
+
+  const handleChangeHapticEnabled = async () => {
+    const newValue = hapticEnabled === 'true' ? 'false' : 'true';
+    setHapticEnabled(newValue);
+    await AsyncStorage.setItem(HAPTIC_ENABLED_KEY, newValue);
+  };
 
   // 添加重置忽略设置的函数
   const handleResetIgnoredAlerts = () => {
@@ -198,6 +207,8 @@ export default function SettingPage() {
             {Platform.OS === 'ios' && (
               <LabelEntry leftText="TestFlight 内测计划" onPress={handleChangeReleaseChannelIOS} />
             )}
+
+            <LabelSwitch label="交互触感" value={hapticEnabled === 'true'} onValueChange={handleChangeHapticEnabled} />
 
             <Link href="/common/about" asChild>
               <LabelEntry leftText="关于福uu" />

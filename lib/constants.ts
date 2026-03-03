@@ -180,6 +180,9 @@ export const DATETIME_SECOND_FORMAT = `${DATE_FORMAT} ${TIME_SECOND_FORMAT}`;
 // 发布通道
 export const ANDROID_RELEASE_CHANNEL_KEY = 'release_channel';
 
+// 震动设置
+export const HAPTIC_ENABLED_KEY = 'haptic_enabled';
+
 // 主题设置
 export const COLOR_SCHEME_KEY = 'color_scheme';
 // 壁纸压暗
