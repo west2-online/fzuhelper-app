@@ -1,8 +1,7 @@
 import { RejectEnum } from '@/api/enum';
 import { get, postJSON } from '@/modules/native-request';
 import { Buffer } from 'buffer';
-import * as Crypto from 'expo-crypto';
-import { privateDecrypt } from 'react-native-quick-crypto';
+import forge from 'node-forge';
 import SSOLogin from './sso-login';
 
 interface OfflineCodeParams {
@@ -11,13 +10,7 @@ interface OfflineCodeParams {
   offline_effective_time: string; // 有效时间
   version: string; // 版本号，如 "1" 表示 v2，其他表示 v3
   currentCount: number; // 当前使用次数
-}
-
-interface QRCodeGeneratorResult {
-  result: string;
-  dataString?: string;
-  barCode?: string;
-  error?: string;
+  offlineCodeVersion?: string;
 }
 
 const YKT_URLS = {
@@ -25,12 +18,180 @@ const YKT_URLS = {
     'https://xcx.fzu.edu.cn/berserker-auth/cas/login/ruiJie?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-base%2Fredirect%3FappId%3D16%26nodeId%3D15%26type%3Dapp',
   GET_USER_INFO: 'https://xcx.fzu.edu.cn/berserker-base/user?synAccessSource=h5',
   GET_CODEBAR_PAY_INFO: 'https://xcx.fzu.edu.cn/berserker-app/ykt/tsm/codebarPayinfo?synAccessSource=h5',
+  GET_BATCH_BARCODE: 'https://xcx.fzu.edu.cn/berserker-app/ykt/tsm/batchGetBarCodeGet',
   GET_OFFLINE_PAY_INFO: 'https://xcx.fzu.edu.cn/berserker-app/ykt/tsm/offlienPar',
   GET_FRONT_INFO: 'https://xcx.fzu.edu.cn/berserker-app/frontInfo?synAccessSource=h5',
   REFERER: 'https://xcx.fzu.edu.cn/plat/pay?appId=16&nodeId=15',
 };
 
+const FALLBACK_PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
+MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBANU64/H2n5i6i2L9
+xs7TQ2nC7Oe8S/LkyiumV5YWoOjcbDzJ8Nm9JSBFSt12Y3mDmVT2guP763akpL4P
+U9rz30Vt9uL8EnjzGRvhwvIQq1HfI9z8c67GJbL1wOxLFknnXxPPicn7B5/nTN66
+zobrhhgbUDUTO4eBZCPryDf9/fJNAgMBAAECgYEAtBN2/BpOsFoiayhtJLBQR1pC
+XnasIWZMws5JO8zCecXldvUIfap6VyWN0zgvTCjybkl9QvK26UykgIpLRCcez2Yk
+4znIWS4AJb2TvcpbEIRt8mMICGtp9MNe54GieQ9dTQdKY2J4e+zJKHJUgut03M6C
+ME8SYss0uu1RksiamGECQQDsm91KWfQEi5bOJJ5ippAYsGyQkByATzRqbGPXPCwZ
+1HRBrDMQBjE4u89EwKpb50H6HYbySB/Pqi6VI20Y6ltlAkEA5rSH02LaY3GIb5ih
+oD2D7oqbwt3x4bJvJRjq0oFr/tPkTrV9NyrdUcDzSSpJs4TXNwU8oV2+J0cQTwhd
+7gBwyQJARmEec81J/kgfNXZC/okY958Sy/Vx5OCqcLWJBS7K12wQoLA+CBgvb/a9
+cm/0vJ2PTHyX9V1qyPSQIqCFBRJA2QJAValGnZig2je3nygfKy5sJFBXEX3zaAgm
++LFNz6e6f74RkaAVxDwoPUjVjJ8lCoESoB1Tq97w0giy54WFyu9i8QJAQY/ozmFh
+VLYEVJjk/c+KorA3j3Wt94x4SnIcq00Gj8bh8dVGydfPY5lVNLOAjMwofAETTrHV
+OxZLn+h28MX9Mg==
+-----END PRIVATE KEY-----`;
+
 export default class YKTLogin {
+  #decryptUserHashKeyHex(userhashkeyHex: string, privateKeyPem: string): string {
+    const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+    const encryptedBytes = forge.util.hexToBytes(userhashkeyHex);
+    const decryptedBytes = privateKey.decrypt(encryptedBytes, 'RSAES-PKCS1-V1_5');
+    return forge.util.bytesToHex(decryptedBytes).toUpperCase();
+  }
+
+  #padEvenHex(value: string): string {
+    return value.length % 2 === 0 ? value : `0${value}`;
+  }
+
+  #hexLengthPrefix(valueHex: string): string {
+    return this.#padEvenHex((valueHex.length / 2).toString(16).toUpperCase());
+  }
+
+  #hexToBytes(hex: string): number[] {
+    const normalized = this.#padEvenHex(hex);
+    const bytes: number[] = [];
+    for (let i = 0; i < normalized.length; i += 2) {
+      bytes.push(parseInt(normalized.slice(i, i + 2), 16));
+    }
+    return bytes;
+  }
+
+  #bytesToHex(bytes: number[]): string {
+    let hex = '';
+    for (let i = 0; i < bytes.length; i += 1) {
+      const value = Number(bytes[i] ?? 0);
+      const h = value < 0 ? (255 + value + 1).toString(16) : value.toString(16);
+      hex += h.length === 1 ? `0${h}` : h;
+    }
+    return hex.toUpperCase();
+  }
+
+  #buildPayAccTag(payacc: string, accountType: string): string {
+    let payaccHex = '';
+    for (let i = 0; i < payacc.length; i += 1) {
+      payaccHex += payacc.charCodeAt(i).toString(16).toUpperCase();
+    }
+    payaccHex = this.#padEvenHex(payaccHex);
+
+    const tag84 = `84${this.#hexLengthPrefix(payaccHex)}${payaccHex}`;
+    const accountTypeHex = this.#padEvenHex(accountType.toUpperCase());
+    const tag85 = `85${this.#hexLengthPrefix(accountTypeHex)}${accountTypeHex}`;
+    const payload = `${tag84}${tag85}`;
+
+    return `6F${this.#hexLengthPrefix(payload)}${payload}`;
+  }
+
+  #sha1HexText(value: string): string {
+    const md = forge.md.sha1.create();
+    md.update(value, 'utf8');
+    return md.digest().toHex().toUpperCase();
+  }
+
+  async #getBatchBarcode({
+    synjonesAuth,
+    account,
+    payacc,
+    paytype,
+  }: {
+    synjonesAuth: string;
+    account: string;
+    payacc: string;
+    paytype: string;
+  }): Promise<string> {
+    const barcodeUrl = `${YKT_URLS.GET_BATCH_BARCODE}?account=${encodeURIComponent(account)}&payacc=${encodeURIComponent(payacc)}&paytype=${encodeURIComponent(paytype)}&synAccessSource=h5`;
+    const barcodeResp = await this.#get({
+      url: barcodeUrl,
+      headers: {
+        Referer: YKT_URLS.REFERER,
+        Synaccesssource: 'h5',
+        'Synjones-Auth': `bearer ${synjonesAuth}`,
+      },
+    });
+
+    const barcodeList = barcodeResp.data?.barcode;
+    const barcode = Array.isArray(barcodeList) ? barcodeList[0] : undefined;
+    const digits = typeof barcode === 'string' ? barcode.replace(/\D/g, '') : '';
+
+    if (digits.length < 18) {
+      throw {
+        type: RejectEnum.BizFailed,
+        data: barcodeResp,
+      };
+    }
+
+    return digits.slice(0, 20);
+  }
+
+  #isNewOfflineVersion(offlineParams: OfflineCodeParams): boolean {
+    if (offlineParams.offlineCodeVersion !== undefined && offlineParams.offlineCodeVersion !== null) {
+      return String(offlineParams.offlineCodeVersion) !== '0';
+    }
+
+    return Number(offlineParams.version) >= 3;
+  }
+
+  #parseJSONData(data: unknown) {
+    if (ArrayBuffer.isView(data)) {
+      const view = data as ArrayBufferView;
+      const uint8 = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+      const raw = Buffer.from(uint8).toString('utf-8');
+      return JSON.parse(raw) as Record<string, any>;
+    }
+
+    if (data instanceof ArrayBuffer) {
+      const raw = Buffer.from(new Uint8Array(data)).toString('utf-8');
+      return JSON.parse(raw) as Record<string, any>;
+    }
+
+    if (Array.isArray(data)) {
+      const isByteArray = data.every(item => typeof item === 'number');
+      if (isByteArray) {
+        const raw = Buffer.from(data).toString('utf-8');
+        return JSON.parse(raw) as Record<string, any>;
+      }
+    }
+
+    if (Buffer.isBuffer(data)) {
+      return JSON.parse(data.toString('utf-8')) as Record<string, any>;
+    }
+
+    if (typeof data === 'string') {
+      return JSON.parse(data) as Record<string, any>;
+    }
+
+    if (typeof data === 'object' && data !== null) {
+      return data as Record<string, any>;
+    }
+
+    const raw = String(data ?? '');
+    return JSON.parse(raw) as Record<string, any>;
+  }
+
+  #normalizePrivateKey(privateKey?: string): string | undefined {
+    if (!privateKey) {
+      return undefined;
+    }
+
+    const trimmed = privateKey.trim();
+    if (trimmed.includes('\n')) {
+      return trimmed;
+    }
+
+    return trimmed
+      .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
+      .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----');
+  }
+
   async #request(
     method: 'GET' | 'POST',
     url: string,
@@ -56,8 +217,7 @@ export default class YKTLogin {
         };
       }
 
-      const { data } = response;
-      const jsonData = JSON.parse(Buffer.from(data).toString('utf-8'));
+      const jsonData = this.#parseJSONData(response.data);
 
       // 检查响应码是否为成功
       if (jsonData.code !== 200) {
@@ -183,13 +343,27 @@ export default class YKTLogin {
       },
     });
     console.log('Codebar Pay Info Response:', codebarResp);
-    const payInfo = codebarResp.data[0]; // 假设取第一个
+    const payInfo = Array.isArray(codebarResp.data) ? codebarResp.data[0] : undefined;
+    if (!payInfo?.account || !payInfo?.payacc || !payInfo?.paytype || !payInfo?.voucher) {
+      throw {
+        type: RejectEnum.BizFailed,
+        data: codebarResp,
+      };
+    }
+
     const payacc = payInfo.payacc;
     const paytype = payInfo.paytype;
     const voucher = payInfo.voucher;
+
+    const currentBarcode = await this.#getBatchBarcode({
+      synjonesAuth,
+      account: payInfo.account,
+      payacc,
+      paytype,
+    });
     console.log('支付信息:', { payacc, paytype, voucher });
     // 获取 offline params
-    const offlineUrl = `${YKT_URLS.GET_OFFLINE_PAY_INFO}?payacc=${payacc}&paytype=${paytype}&voucher=${voucher}&synAccessSource=h5`;
+    const offlineUrl = `${YKT_URLS.GET_OFFLINE_PAY_INFO}?payacc=${encodeURIComponent(payacc)}&paytype=${encodeURIComponent(paytype)}&voucher=${encodeURIComponent(voucher)}&synAccessSource=h5`;
     const offlineResp = await this.#get({
       url: offlineUrl,
       headers: {
@@ -203,72 +377,62 @@ export default class YKTLogin {
     console.log('离线支付参数:', offlineParams);
     // 获取 privateKey
     const frontResp = await this.#get({ url: YKT_URLS.GET_FRONT_INFO });
-    const config = JSON.parse(frontResp.data.getFrontConfig);
-    // 使用提供的私钥，如果API返回的私钥不可用
-    const privateKey =
-      config.privateKey ||
-      `-----BEGIN PRIVATE KEY-----MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBANU64/H2n5i6i2L9xs7TQ2nC7Oe8S/LkyiumV5YWoOjcbDzJ8Nm9JSBFSt12Y3mDmVT2guP763akpL4PU9rz30Vt9uL8EnjzGRvhwvIQq1HfI9z8c67GJbL1wOxLFknnXxPPicn7B5/nTN66zobrhhgbUDUTO4eBZCPryDf9/fJNAgMBAAECgYEAtBN2/BpOsFoiayhtJLBQR1pCXnasIWZMws5JO8zCecXldvUIfap6VyWN0zgvTCjybkl9QvK26UykgIpLRCcez2Yk4znIWS4AJb2TvcpbEIRt8mMICGtp9MNe54GieQ9dTQdKY2J4e+zJKHJUgut03M6CME8SYss0uu1RksiamGECQQDsm91KWfQEi5bOJJ5ippAYsGyQkByATzRqbGPXPCwZ1HRBrDMQBjE4u89EwKpb50H6HYbySB/Pqi6VI20Y6ltlAkEA5rSH02LaY3GIb5ihoD2D7oqbwt3x4bJvJRjq0oFr/tPkTrV9NyrdUcDzSSpJs4TXNwU8oV2+J0cQTwhd7gBwyQJARmEec81J/kgfNXZC/okY958Sy/Vx5OCqcLWJBS7K12wQoLA+CBgvb/a9cm/0vJ2PTHyX9V1qyPSQIqCFBRJA2QJAValGnZig2je3nygfKy5sJFBXEX3zaAgm+LFNz6e6f74RkaAVxDwoPUjVjJ8lCoESoB1Tq97w0giy54WFyu9i8QJAQY/ozmFhVLYEVJjk/c+KorA3j3Wt94x4SnIcq00Gj8bh8dVGydfPY5lVNLOAjMwofAETTrHVOxZLn+h28MX9Mg==-----END PRIVATE KEY-----`;
-    console.log('Private Key:', privateKey);
+
+    const frontConfig =
+      typeof frontResp.data?.getFrontConfig === 'string'
+        ? JSON.parse(frontResp.data.getFrontConfig)
+        : frontResp.data?.getFrontConfig || {};
+    const privateKey = this.#normalizePrivateKey(frontConfig.privateKey) || FALLBACK_PRIVATE_KEY;
+
     // 生成二维码数据
-    return this.#generateQRCodeDataString(payacc, offlineParams, privateKey);
-  }
-
-  // 辅助函数
-  #padHex(hex: string): string {
-    return (hex.length % 2 !== 0 ? '0' : '') + hex;
-  }
-
-  #getLengthHexPrefix(lengthHex: string): string {
-    return this.#padHex((lengthHex.length / 2).toString(16).toUpperCase());
+    return this.#generateQRCodeDataString(currentBarcode, payacc, offlineParams, privateKey);
   }
 
   // 生成二维码数据字符串
   async #generateQRCodeDataString(
+    currentBarcode: string,
     payacc: string,
     offlineParams: OfflineCodeParams,
     privateKeyPem: string,
   ): Promise<string> {
     try {
-      // RSA 解密 userhashkey，使用 PKCS#1 v1.5 填充
-      const decryptedBuffer = privateDecrypt(
-        {
-          key: privateKeyPem,
-          padding: 1, // RSA_PKCS1_PADDING
-        },
-        Buffer.from(offlineParams.userhashkey, 'hex'),
-      );
+      const hashKeyHex = this.#decryptUserHashKeyHex(offlineParams.userhashkey, privateKeyPem).substring(0, 32);
+      const offlineUserDataHex = (offlineParams.offline_userdata || '').toUpperCase();
+      const payAccTagHex = this.#buildPayAccTag(payacc, '01');
+      const isNewVersion = this.#isNewOfflineVersion(offlineParams);
 
-      const decrypted = decryptedBuffer.toString('hex');
+      const totalLength = isNewVersion
+        ? 13 + (offlineUserDataHex.length + payAccTagHex.length) / 2 + 1
+        : 13 + offlineUserDataHex.length / 2;
 
-      // 将 payacc 转换为十六进制字符串
-      const payaccHex = Array.from(payacc, char => char.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+      const headerBytes = this.#generateHeaderBytes(currentBarcode, totalLength, offlineParams, isNewVersion);
+      let digestSourceHex = this.#bytesToHex(headerBytes).substring(48);
 
-      // 获取 headerBytes
-      const headerBytes = this.#generateHeaderBytes(offlineParams);
-
-      // 拼接数据进行 SHA1 哈希
-      const dataToHash = decrypted + payaccHex + headerBytes;
-      const hash = await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA1, Buffer.from(dataToHash, 'hex'));
-      const hashHex = Buffer.from(hash).toString('hex');
-
-      // 拼接最终的 QR 数据字符串
-      const qrDataString = hashHex + decrypted + payaccHex + headerBytes;
-
-      // 转换为字节数组
-      const qrDataBytes = Buffer.from(qrDataString, 'hex');
-
-      // 根据版本拼接字节 (version "1" 表示 v2，其他表示 v3)
-      let barcodeBytes: number[];
-      if (offlineParams.version === '1') {
-        barcodeBytes = [2, ...Array.from(qrDataBytes), 0];
+      let payAccTagLengthHex = '';
+      if (isNewVersion) {
+        payAccTagLengthHex = this.#padEvenHex((payAccTagHex.length / 2).toString(16).toUpperCase());
+        digestSourceHex = `${digestSourceHex}${offlineUserDataHex}${payAccTagLengthHex}${payAccTagHex}${hashKeyHex}`;
       } else {
-        barcodeBytes = [3, ...Array.from(qrDataBytes), 0];
+        digestSourceHex = `${digestSourceHex}${offlineUserDataHex}${hashKeyHex}`;
       }
-      barcodeBytes.push(...[0, 0, 0, 0]);
 
-      // 转换为字符串
-      const barcodeString = String.fromCharCode(...barcodeBytes);
-      return barcodeString;
+      const hash8 = this.#sha1HexText(digestSourceHex).substring(0, 8).toUpperCase();
+      const payloadHex = isNewVersion
+        ? `${offlineUserDataHex}${payAccTagLengthHex}${payAccTagHex}${hash8}`
+        : `${offlineUserDataHex}${hash8}`;
+
+      const payloadBytes = this.#hexToBytes(payloadHex);
+      const combinedBytes = [...headerBytes, ...payloadBytes];
+      const protocolSuffix = `S${String.fromCharCode(isNewVersion ? 80 : 79)}`;
+
+      if (isNewVersion) {
+        const encoded = Buffer.from(new Uint8Array(combinedBytes.slice(22))).toString('base64');
+        return `${currentBarcode}${protocolSuffix}${encoded}`;
+      }
+
+      const rawBytes = combinedBytes.slice(22);
+      const rawText = Buffer.from(new Uint8Array(rawBytes)).toString('latin1');
+      return `${currentBarcode}${protocolSuffix}${rawText}`;
     } catch (error) {
       console.error('二维码生成失败:', error);
       throw error;
@@ -276,43 +440,44 @@ export default class YKTLogin {
   }
 
   // 生成 headerBytes
-  #generateHeaderBytes(offlineParams: OfflineCodeParams): string {
-    // 计算 totalLength
-    const version = offlineParams.version || '3';
-    const offlineUserData = offlineParams.offline_userdata || '';
-    const totalLength = version === '1' ? 13 + offlineUserData.length / 2 : 13 + offlineUserData.length / 2 + 1;
+  #generateHeaderBytes(
+    currentBarcode: string,
+    totalLength: number,
+    offlineParams: OfflineCodeParams,
+    isNewVersion: boolean,
+  ): number[] {
+    const version = Number.parseInt(offlineParams.version, 10) || 3;
+    const protocolCode = isNewVersion ? 80 : 79;
+    const effectiveTime = Number(offlineParams.offline_effective_time) || 0;
+    const timestamp = Math.floor(Date.now() / 1000);
+    const timestampByte0 = timestamp % 256;
+    const timestampByte1 = Math.floor(timestamp / 256) % 256;
+    const timestampByte2 = Math.floor(timestamp / 65536) % 256;
+    const timestampByte3 = Math.floor(timestamp / 16777216) % 256;
+    const currentCountByte = 0;
+    const effectiveTimeByte = Math.floor(effectiveTime) % 256;
+    const totalLengthByte0 = Math.floor(totalLength / 256) % 256;
+    const totalLengthByte1 = totalLength % 256;
 
-    // 生成 headerBytes
-    const currentBarcode = '00000000000000000000';
-    const headerBytes = new Array(33);
-    for (let i = 0; i < currentBarcode.length; i++) {
+    const headerBytes = new Array(33).fill(0);
+    for (let i = 0; i < currentBarcode.length && i < 20; i += 1) {
       headerBytes[i] = currentBarcode.charCodeAt(i);
     }
-    headerBytes[20] = 83;
-    headerBytes[21] = version === '1' ? 79 : 80; // v2 是 79，v3 是 80
-    headerBytes[22] = Math.floor(totalLength / 256);
-    headerBytes[23] = Math.floor(totalLength % 256);
-    headerBytes[24] = parseInt(version, 10);
-    headerBytes[25] = offlineParams.currentCount || 0;
-    const timestamp = Math.floor(Date.now() / 1000);
-    // eslint-disable-next-line no-bitwise
-    headerBytes[26] = timestamp & 255;
-    // eslint-disable-next-line no-bitwise
-    headerBytes[27] = (timestamp >> 8) & 255;
-    // eslint-disable-next-line no-bitwise
-    headerBytes[28] = (timestamp >> 16) & 255;
-    // eslint-disable-next-line no-bitwise
-    headerBytes[29] = (timestamp >> 24) & 255;
-    headerBytes[30] = 1;
-    headerBytes[31] = parseInt(offlineParams.offline_effective_time, 10) || 0;
-    headerBytes[32] = 1; // statusFlag 固定为 1
 
-    let headerHex = '';
-    for (let i = 0; i < headerBytes.length; i++) {
-      if (headerBytes[i] !== undefined) {
-        headerHex += headerBytes[i].toString(16).padStart(2, '0');
-      }
-    }
-    return headerHex.toUpperCase().substring(48);
+    headerBytes[20] = 83;
+    headerBytes[21] = protocolCode;
+    headerBytes[22] = totalLengthByte0;
+    headerBytes[23] = totalLengthByte1;
+    headerBytes[24] = version;
+    headerBytes[25] = currentCountByte;
+    headerBytes[26] = timestampByte0;
+    headerBytes[27] = timestampByte1;
+    headerBytes[28] = timestampByte2;
+    headerBytes[29] = timestampByte3;
+    headerBytes[30] = 1;
+    headerBytes[31] = effectiveTimeByte;
+    headerBytes[32] = 1;
+
+    return headerBytes;
   }
 }
