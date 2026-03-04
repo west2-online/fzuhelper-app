@@ -93,15 +93,15 @@ const UnifiedLoginPage: React.FC = () => {
     };
 
     try {
-      const loginResult = await ssoLogin.current!.login(account, accountPassword, twoFactorCallback);
+      const cookies = await ssoLogin.current!.login(account, accountPassword, twoFactorCallback);
       // 如果返回空字符串，说明用户取消了验证码输入
-      if (!loginResult) {
+      if (!cookies) {
         console.log('用户取消了SSO登录');
         return false;
       }
-      await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, loginResult.cookies);
+      await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookies);
       await AsyncStorage.setItem(SSO_LOGIN_USER_KEY, JSON.stringify({ account: account, password: accountPassword }));
-      console.log('登录SSO成功:', loginResult);
+      console.log('登录SSO成功:', cookies);
       return true;
     } catch (error: any) {
       // 这个 code 和 msg 是 SSO 提供的,不是我们自己定义的
