@@ -49,9 +49,9 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ github.token }}
-          title: "chore: bump version to ${{ steps.version.outputs.next }}"
-          body: "Auto bump version to ${{ steps.version.outputs.next }} (detected tag ${{ steps.tag.outputs.current }})"
+          title: 'chore: bump version to ${{ steps.version.outputs.next }}'
+          body: 'Auto bump version to ${{ steps.version.outputs.next }} (detected tag ${{ steps.tag.outputs.current }})'
           base: master
           branch: bump-version-${{ steps.version.outputs.next }}
-          commit-message: "chore: bump version to ${{ steps.version.outputs.next }}"
+          commit-message: 'chore: bump version to ${{ steps.version.outputs.next }}'
           sign-commits: true

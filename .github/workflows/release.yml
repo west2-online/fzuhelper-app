@@ -38,11 +38,11 @@ jobs:
 
           git fetch --tags --force
           ALL_TAGS=$(git tag -l "*.*.*" --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')
-          
+
           PREV_TAG=$(echo "$ALL_TAGS" | grep -B1 "$GITHUB_REF_NAME" | head -n1)
-          
+
           [ -z "$PREV_TAG" ] && PREV_TAG=$(git rev-list --max-parents=0 HEAD)
-          
+
           echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
       - name: Generate changelog
@@ -54,7 +54,7 @@ jobs:
             ${{ steps.version-info.outputs.prev_tag }}..HEAD | sed 's/%/%%/g')
 
           COMPARE_URL="https://github.com/${{ github.repository }}/compare/${{ steps.version-info.outputs.prev_tag }}...${{ github.ref_name }}"
-          
+
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "## [${{ steps.version-info.outputs.current_version }}]($COMPARE_URL)" >> $GITHUB_OUTPUT
           echo "### $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
@@ -66,8 +66,8 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ steps.version-info.outputs.current_version }}
-          generate_release_notes: true  # 自动生成发布说明
+          generate_release_notes: true # 自动生成发布说明
           body: ${{ steps.changelog.outputs.changelog }}
-          make_latest:  true
+          make_latest: true
           files: |
             ${{ steps.apk-info.outputs.apk_filename }}

@@ -105,7 +105,7 @@ class ApiService {
       },
     });
     console.log('获取报修记录:', resp);
-    if (resp.code !== 0) {
+    if (resp.code !== '0') {
       throw new Error(`获取报修记录失败${resp.code} ${resp.msg}`);
     }
     return resp.data as RepairHistoryData[];

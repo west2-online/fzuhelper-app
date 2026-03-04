@@ -96,6 +96,11 @@ export function useCoursePageData() {
         termsData = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), {
           staleTime: 7 * EXPIRE_ONE_DAY,
         });
+      } else {
+        // 后台异步刷新学期数据
+        fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), {
+          staleTime: 7 * EXPIRE_ONE_DAY,
+        });
       }
 
       // 2. 获取当前日期和课表设置
@@ -103,7 +108,11 @@ export function useCoursePageData() {
       const selectedSemester = setting.selectedSemester || locateDateRes.semester;
 
       // 3. 获取当前学期信息
-      const currentTerm = termsData?.data?.data?.terms?.find(t => t.term === selectedSemester);
+      const currentTerm = termsData?.data?.data?.terms?.find(
+        t =>
+          (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? deConvertSemester(t.term) : t.term) ===
+          selectedSemester,
+      );
       if (!termsData || !currentTerm) {
         console.error('Failed to load term data: ', termsData, currentTerm);
         throw new Error('获取学期信息失败，请稍后再试');

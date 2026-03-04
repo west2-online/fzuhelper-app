@@ -40,6 +40,7 @@ import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen, getApiV1ToolboxConfig } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
 import { EXPIRE_ONE_DAY, TOOLBOX_BANNER_KEY, TOOLBOX_CONFIG_KEY } from '@/lib/constants';
+import fileCache from '@/utils/file-cache';
 import DeviceInfo from 'react-native-device-info';
 import { toast } from 'sonner-native';
 
@@ -312,14 +313,21 @@ const processTools = (tools: ToolboxTool[], columns: number): ToolboxTool[] => {
   return [...tools, ...placeholders];
 };
 
-function processBannerData(bannerData: LaunchScreenScreenResponse): BannerContent[] {
+async function processBannerData(bannerData: LaunchScreenScreenResponse): Promise<BannerContent[]> {
   const banners: BannerContent[] = [];
   for (const banner of bannerData) {
     if (!banner.url) break;
+    let bannerUri = '';
+    try {
+      bannerUri = await fileCache.getCachedFile(banner.url, { maxAge: (banner.end_at || 0) * 1000 - Date.now() });
+    } catch (e) {
+      console.log('获取横幅图片失败:', e);
+      continue;
+    }
     if (banner.type === 2 && banner.href) {
       // 网页跳转
       banners.push({
-        image: { uri: banner.url },
+        image: { uri: bannerUri },
         text: banner.text ?? '',
         type: BannerType.URL,
         href: banner.href,
@@ -327,7 +335,7 @@ function processBannerData(bannerData: LaunchScreenScreenResponse): BannerConten
     } else if (banner.type === 3 && banner.href) {
       // 跳转 activity
       banners.push({
-        image: { uri: banner.url },
+        image: { uri: bannerUri },
         text: banner.text ?? '',
         type: BannerType.Activity,
         href: banner.href,
@@ -335,7 +343,7 @@ function processBannerData(bannerData: LaunchScreenScreenResponse): BannerConten
     } else {
       // 纯图片
       banners.push({
-        image: { uri: banner.url },
+        image: { uri: bannerUri },
         text: banner.text ?? '',
         type: BannerType.NULL,
       });
@@ -463,16 +471,18 @@ const useToolsPageData = (columns: number) => {
     return processTools(toolList, columns);
   }, [toolList, columns]);
 
-  const processedBanners = useMemo(() => {
+  const processedBanners = useMemo(async () => {
     if (bannerData) {
-      const processed = processBannerData(bannerData);
+      const processed = await processBannerData(bannerData);
       return processed.length > 0 ? processed : DEFAULT_BANNERS;
     }
     return DEFAULT_BANNERS;
   }, [bannerData]);
 
   useEffect(() => {
-    setBannerList(processedBanners);
+    (async () => {
+      setBannerList(await processedBanners);
+    })();
   }, [processedBanners]);
 
   return { bannerList, toolList: processedTools };
