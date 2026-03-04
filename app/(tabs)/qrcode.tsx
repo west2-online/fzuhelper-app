@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { Tabs as ExpoTabs, useFocusEffect } from 'expo-router';
 import QRCodeGenerator from 'qrcode-generator';
@@ -17,7 +16,7 @@ import { Text } from '@/components/ui/text';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { DATETIME_SECOND_FORMAT, SSO_LOGIN_USER_KEY } from '@/lib/constants';
+import { DATETIME_SECOND_FORMAT } from '@/lib/constants';
 import { SSOlogoutAndCleanData as SSOLogout } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
@@ -117,8 +116,7 @@ export default function YiMaTongPage() {
       console.log('刷新中...', currentSynjonesAuth);
 
       try {
-        const newPayCode = await yktLoginRef.current!.getPayCode(currentSynjonesAuth);
-        setPayCode(newPayCode);
+        setPayCode(await yktLoginRef.current!.getPayCode(currentSynjonesAuth));
         // setIdentifyCode(newIdentifyCode);
       } catch (error) {
         console.error('刷新失败:', error);
@@ -145,34 +143,18 @@ export default function YiMaTongPage() {
   // 获取本地数据
   const getLocalData = useCallback(async () => {
     try {
-      // 检查是否有本地用户信息，如果有则尝试直接获取支付码
-      const storedUserInfo = await AsyncStorage.getItem(SSO_LOGIN_USER_KEY);
-      if (storedUserInfo) {
-        const parsedUserInfo = JSON.parse(storedUserInfo);
-        if (parsedUserInfo.account && parsedUserInfo.password) {
-          // 尝试直接登录YKT并获取数据
-          try {
-            const synjonesAuthToken = await yktLoginRef.current!.login(parsedUserInfo.account, parsedUserInfo.password);
-            const userName = await yktLoginRef.current!.getUserInfo(synjonesAuthToken);
+      // 首先尝试从本地读取token
+      const synjonesAuthToken = await yktLoginRef.current!.getAuth();
+      const userName = await yktLoginRef.current!.getUserInfo(synjonesAuthToken);
+      setSynjonesAuth(synjonesAuthToken);
+      setName(userName);
+      setPayCode(await yktLoginRef.current!.getPayCode(synjonesAuthToken));
+      setIsLoading(false);
 
-            setSynjonesAuth(synjonesAuthToken);
-            setName(userName);
-            setIsLoading(false);
-
-            // 立即刷新一次数据
-            // await refresh(synjonesAuth);
-          } catch (error) {
-            console.error('自动登录失败:', error);
-            setIsLoading(false);
-          }
-        } else {
-          setIsLoading(false);
-        }
-      } else {
-        setIsLoading(false);
-      }
+      // 立即刷新一次数据
+      // await refresh(synjonesAuth);
     } catch (error) {
-      console.error('获取本地数据失败:', error);
+      console.error('自动登录失败:', error);
       setIsLoading(false);
     }
   }, []);

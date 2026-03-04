@@ -1,10 +1,12 @@
 import { RejectEnum } from '@/api/enum';
 import { get, postJSON } from '@/modules/native-request';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';
 import forge from 'node-forge';
+import { SSO_LOGIN_COOKIE_KEY, YKT_SYNJONES_AUTH_KEY, YKT_USERNAME_KEY } from './constants';
 import SSOLogin from './sso-login';
 
-interface OfflineCodeParams {
+export interface OfflineCodeParams {
   offline_userdata: string; // 十六进制字符串
   userhashkey: string; // 十六进制字符串，RSA加密的对称密钥
   offline_effective_time: string; // 有效时间
@@ -13,9 +15,14 @@ interface OfflineCodeParams {
   offlineCodeVersion?: string;
 }
 
+export interface PayInfo {
+  account: string;
+  payacc: string;
+  paytype: string;
+  voucher: string;
+}
+
 const YKT_URLS = {
-  GET_AUTH:
-    'https://xcx.fzu.edu.cn/berserker-auth/cas/login/ruiJie?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-base%2Fredirect%3FappId%3D16%26nodeId%3D15%26type%3Dapp',
   GET_USER_INFO: 'https://xcx.fzu.edu.cn/berserker-base/user?synAccessSource=h5',
   GET_CODEBAR_PAY_INFO: 'https://xcx.fzu.edu.cn/berserker-app/ykt/tsm/codebarPayinfo?synAccessSource=h5',
   GET_BATCH_BARCODE: 'https://xcx.fzu.edu.cn/berserker-app/ykt/tsm/batchGetBarCodeGet',
@@ -95,41 +102,6 @@ export default class YKTLogin {
     const md = forge.md.sha1.create();
     md.update(value, 'utf8');
     return md.digest().toHex().toUpperCase();
-  }
-
-  async #getBatchBarcode({
-    synjonesAuth,
-    account,
-    payacc,
-    paytype,
-  }: {
-    synjonesAuth: string;
-    account: string;
-    payacc: string;
-    paytype: string;
-  }): Promise<string> {
-    const barcodeUrl = `${YKT_URLS.GET_BATCH_BARCODE}?account=${encodeURIComponent(account)}&payacc=${encodeURIComponent(payacc)}&paytype=${encodeURIComponent(paytype)}&synAccessSource=h5`;
-    const barcodeResp = await this.#get({
-      url: barcodeUrl,
-      headers: {
-        Referer: YKT_URLS.REFERER,
-        Synaccesssource: 'h5',
-        'Synjones-Auth': `bearer ${synjonesAuth}`,
-      },
-    });
-
-    const barcodeList = barcodeResp.data?.barcode;
-    const barcode = Array.isArray(barcodeList) ? barcodeList[0] : undefined;
-    const digits = typeof barcode === 'string' ? barcode.replace(/\D/g, '') : '';
-
-    if (digits.length < 18) {
-      throw {
-        type: RejectEnum.BizFailed,
-        data: barcodeResp,
-      };
-    }
-
-    return digits.slice(0, 20);
   }
 
   #isNewOfflineVersion(offlineParams: OfflineCodeParams): boolean {
@@ -242,72 +214,58 @@ export default class YKTLogin {
     }
   }
 
-  async #post({
-    url,
-    headers = {},
-    formData = {},
-  }: {
-    url: string;
-    headers?: Record<string, string>;
-    formData?: Record<string, string>;
-  }) {
-    return this.#request('POST', url, headers, formData);
-  }
-
   async #get({ url, headers = {} }: { url: string; headers?: Record<string, string> }) {
     return this.#request('GET', url, headers);
   }
 
+  async isAuthValid(synjonesAuth: string): Promise<boolean> {
+    try {
+      await this.getUserInfo(synjonesAuth);
+      return true;
+    } catch (error) {
+      console.error('验证 synjonesAuth 失败:', error);
+      return false;
+    }
+  }
+
   // 登录获取 synjones-auth
-  async login(account: string, password: string): Promise<string> {
-    if (account === '' || password === '') {
-      throw {
-        type: RejectEnum.NativeLoginFailed,
-        data: '账号密码不能为空',
-      };
+  async getAuth(): Promise<string> {
+    // 首先尝试从本地读取token
+    const tokenStorage = await AsyncStorage.getItem(YKT_SYNJONES_AUTH_KEY);
+    if (tokenStorage && (await this.isAuthValid(tokenStorage))) {
+      console.log('从本地读取到token:', tokenStorage);
+      return tokenStorage;
     }
 
-    const sso = new SSOLogin();
-    const loginResult = await sso.login(account, password);
+    // 本地没有就检查SSO是否登录
+    const ssoCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
+    if (!ssoCookie) {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '未登录SSO',
+      };
+    }
+    // sso登录获取token
+    const ssoLogin = new SSOLogin();
+    const loginResult = await ssoLogin.getYKTAuth(ssoCookie);
 
     // 检查登录结果
-    if (typeof loginResult === 'string' || !loginResult.ticket) {
+    if (!loginResult) {
       throw {
         type: RejectEnum.NativeLoginFailed,
         data: '获取 ticket 失败',
       };
     }
-
-    const authUrl = `${YKT_URLS.GET_AUTH}&ticket=${loginResult.ticket}`;
-    console.log('Auth URL:', authUrl);
-    const authResp = await get(authUrl, {
-      Host: 'xcx.fzu.edu.cn',
-      Referer:
-        'https://sso.fzu.edu.cn/login?service=https:%2F%2Fxcx.fzu.edu.cn%2Fberserker-auth%2Fcas%2Flogin%2FruiJie%3FtargetUrl%3Dhttps%253A%252F%252Fxcx.fzu.edu.cn%252Fberserker-base%252Fredirect%253FappId%253D16%2526nodeId%253D15%2526type%253Dapp',
-    }); // 使用 get 直接，因为 #get 会解析 JSON，但这里是重定向
-    console.log('Auth Response Headers:', authResp.headers);
-
-    // 从 Location 提取 synjones-auth
-    const location = authResp.headers.Location;
-    if (!location) {
-      throw {
-        type: RejectEnum.NativeLoginFailed,
-        data: '获取 synjones-auth 失败',
-      };
-    }
-    console.log('重定向地址:', location);
-    const url = new URL(location);
-    const synjonesAuth = url.searchParams.get('synjones-auth');
-    if (!synjonesAuth) {
-      throw {
-        type: RejectEnum.NativeLoginFailed,
-        data: 'synjones-auth 不存在',
-      };
-    }
-    return synjonesAuth;
+    console.log('通过SSO登录获取到token:', loginResult);
+    return loginResult;
   }
+
   // 获取用户信息
   async getUserInfo(synjonesAuth: string): Promise<string> {
+    const cachedName = await AsyncStorage.getItem(YKT_USERNAME_KEY);
+    if (cachedName) {
+      return cachedName;
+    }
     if (synjonesAuth === '') {
       throw {
         type: RejectEnum.NativeLoginFailed,
@@ -322,18 +280,20 @@ export default class YKTLogin {
       },
     });
 
-    return userInfoResp.data.name;
+    const name = userInfoResp.data.name;
+    await AsyncStorage.setItem(YKT_USERNAME_KEY, name);
+    return name;
   }
-  // 获取支付码
-  async getPayCode(synjonesAuth: string): Promise<string> {
+
+  // 获取支付信息
+  async getCodebarPayInfo(synjonesAuth: string): Promise<PayInfo> {
     if (synjonesAuth === '') {
       throw {
         type: RejectEnum.NativeLoginFailed,
         data: 'synjonesAuth 不能为空',
       };
     }
-    console.log('获取支付码的 synjonesAuth:', synjonesAuth);
-    // 获取 codebarPayinfo
+
     const codebarResp = await this.#get({
       url: YKT_URLS.GET_CODEBAR_PAY_INFO,
       headers: {
@@ -342,7 +302,7 @@ export default class YKTLogin {
         'Synjones-Auth': `bearer ${synjonesAuth}`,
       },
     });
-    console.log('Codebar Pay Info Response:', codebarResp);
+
     const payInfo = Array.isArray(codebarResp.data) ? codebarResp.data[0] : undefined;
     if (!payInfo?.account || !payInfo?.payacc || !payInfo?.paytype || !payInfo?.voucher) {
       throw {
@@ -350,19 +310,49 @@ export default class YKTLogin {
         data: codebarResp,
       };
     }
+    return payInfo;
+  }
 
-    const payacc = payInfo.payacc;
-    const paytype = payInfo.paytype;
-    const voucher = payInfo.voucher;
-
-    const currentBarcode = await this.#getBatchBarcode({
-      synjonesAuth,
-      account: payInfo.account,
-      payacc,
-      paytype,
+  // 获取批量二维码中的字符串
+  async getBatchBarcode(synjonesAuth: string, account: string, payacc: string, paytype: string): Promise<string> {
+    const barcodeUrl = `${YKT_URLS.GET_BATCH_BARCODE}?account=${encodeURIComponent(account)}&payacc=${encodeURIComponent(payacc)}&paytype=${encodeURIComponent(paytype)}&synAccessSource=h5`;
+    const barcodeResp = await this.#get({
+      url: barcodeUrl,
+      headers: {
+        Referer: YKT_URLS.REFERER,
+        Synaccesssource: 'h5',
+        'Synjones-Auth': `bearer ${synjonesAuth}`,
+      },
     });
-    console.log('支付信息:', { payacc, paytype, voucher });
-    // 获取 offline params
+
+    const barcodeList = barcodeResp.data?.barcode;
+    const barcode = Array.isArray(barcodeList) ? barcodeList[0] : undefined;
+    const digits = typeof barcode === 'string' ? barcode.replace(/\D/g, '') : '';
+
+    if (digits.length < 18) {
+      throw {
+        type: RejectEnum.BizFailed,
+        data: barcodeResp,
+      };
+    }
+
+    return digits.slice(0, 20);
+  }
+
+  // 获取离线支付信息
+  async getOfflineParams(
+    synjonesAuth: string,
+    payacc: string,
+    paytype: string,
+    voucher: string,
+  ): Promise<OfflineCodeParams> {
+    if (synjonesAuth === '') {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: 'synjonesAuth 不能为空',
+      };
+    }
+
     const offlineUrl = `${YKT_URLS.GET_OFFLINE_PAY_INFO}?payacc=${encodeURIComponent(payacc)}&paytype=${encodeURIComponent(paytype)}&voucher=${encodeURIComponent(voucher)}&synAccessSource=h5`;
     const offlineResp = await this.#get({
       url: offlineUrl,
@@ -372,20 +362,47 @@ export default class YKTLogin {
         'Synjones-Auth': `bearer ${synjonesAuth}`,
       },
     });
-    console.log('Offline Pay Info Response:', offlineResp);
-    const offlineParams: OfflineCodeParams = offlineResp.data;
-    console.log('离线支付参数:', offlineParams);
-    // 获取 privateKey
-    const frontResp = await this.#get({ url: YKT_URLS.GET_FRONT_INFO });
 
-    const frontConfig =
-      typeof frontResp.data?.getFrontConfig === 'string'
-        ? JSON.parse(frontResp.data.getFrontConfig)
-        : frontResp.data?.getFrontConfig || {};
-    const privateKey = this.#normalizePrivateKey(frontConfig.privateKey) || FALLBACK_PRIVATE_KEY;
+    return offlineResp.data;
+  }
+
+  // 获取 privateKey
+  async getPrivateKey(): Promise<string> {
+    try {
+      const frontResp = await this.#get({ url: YKT_URLS.GET_FRONT_INFO });
+      const frontConfig =
+        typeof frontResp.data?.getFrontConfig === 'string'
+          ? JSON.parse(frontResp.data.getFrontConfig)
+          : frontResp.data?.getFrontConfig || {};
+      return this.#normalizePrivateKey(frontConfig.privateKey) || FALLBACK_PRIVATE_KEY;
+    } catch (error) {
+      console.error('获取 privateKey 失败:', error);
+      return FALLBACK_PRIVATE_KEY;
+    }
+  }
+  // 获取支付码
+  async getPayCode(synjonesAuth: string): Promise<string> {
+    if (synjonesAuth === '') {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: 'synjonesAuth 不能为空',
+      };
+    }
+
+    // 获取 codebarPayinfo
+    const payInfo = await this.getCodebarPayInfo(synjonesAuth);
+
+    // 获取当前使用的 barcode
+    const currentBarcode = await this.getBatchBarcode(synjonesAuth, payInfo.account, payInfo.payacc, payInfo.paytype);
+
+    // 获取 offline params
+    const offlineParams = await this.getOfflineParams(synjonesAuth, payInfo.payacc, payInfo.paytype, payInfo.voucher);
+
+    // 获取 privateKey
+    const privateKey = await this.getPrivateKey();
 
     // 生成二维码数据
-    return this.#generateQRCodeDataString(currentBarcode, payacc, offlineParams, privateKey);
+    return this.#generateQRCodeDataString(currentBarcode, payInfo.payacc, offlineParams, privateKey);
   }
 
   // 生成二维码数据字符串

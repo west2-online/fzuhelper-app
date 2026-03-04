@@ -115,7 +115,7 @@ class SSOLogin {
     }
   }
 
-  // 登录, 保存 cookie，返回cookie和ticket
+  // 登录, 保存 cookie，返回并保存 cookie
   async login(account: string, password: string, twoFactorCallback?: TwoFactorAuthCallback) {
     /**
      * @param account 学号
@@ -263,9 +263,7 @@ class SSOLogin {
 
     const cookies = `SOURCEID_TGC=${SOURCEID_TGC}`;
 
-    const ticket = new URL(loginResp.headers.Location).searchParams.get('ticket');
-
-    return { cookies, ticket };
+    return cookies;
   }
 
   // 获取学习空间的token
@@ -399,6 +397,43 @@ class SSOLogin {
         data: '无法从SSO登录到公寓报修',
       };
     }
+  }
+
+  // 获取一卡通系统的token
+  async getYKTAuth(ssoCookie: string) {
+    /**
+     * @param ssoCookie 登录SSO后的cookie
+     * @returns 一卡通系统的token
+     */
+    if (ssoCookie === '') {
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: 'SSOcookie不能为空,请先登录',
+      };
+    }
+
+    let resp;
+    try {
+      resp = await this.#get({
+        url: 'https://sso.fzu.edu.cn/login?service=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-auth%2Fcas%2Flogin%2FruiJie%3FtargetUrl%3Dhttps%253A%252F%252Fxcx.fzu.edu.cn%252Fberserker-base%252Fredirect%253FappId%253D16%2526nodeId%253D15%2526type%253Dapp',
+        headers: {
+          Cookie: ssoCookie,
+        },
+      });
+      resp = await this.#get({
+        url: resp.headers.Location,
+        headers: {
+          Cookie: ssoCookie,
+        },
+      });
+    } catch (error) {
+      console.error('无法从SSO登录到一卡通系统:', error);
+      throw {
+        type: RejectEnum.NativeLoginFailed,
+        data: '无法从SSO登录到一卡通系统',
+      };
+    }
+    return extractKV(resp.headers.Location, 'synjones-auth');
   }
 }
 
