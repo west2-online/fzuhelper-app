@@ -1,5 +1,5 @@
 import { Buffer } from '@craftzdog/react-native-buffer';
-import CryptoJs from 'crypto-js';
+import forge from 'node-forge';
 
 import { RejectEnum } from '@/api/enum';
 import { SSO_LOGIN_SMS_URL, SSO_LOGIN_URL, SSO_LOGIN_VERIFY_SMS_CODE_URL } from '@/lib/constants';
@@ -415,16 +415,20 @@ function encrypt(raw_password: string, keyBase64: string): string {
    * 4. 将加密结果 Base64 编码后返回
    **/
   // 解码 base64 格式的密钥
-  const key = CryptoJs.enc.Base64.parse(keyBase64);
+  const key = forge.util.decode64(keyBase64);
 
   // 通过 AES 加密明文密码，使用 ECB 模式和 PKCS7 填充
-  const encrypted = CryptoJs.AES.encrypt(raw_password, key, {
-    mode: CryptoJs.mode.ECB,
-    padding: CryptoJs.pad.Pkcs7,
-  });
-
+  const cipher = forge.cipher.createCipher('AES-ECB', key);
+  cipher.start();
+  cipher.update(forge.util.createBuffer(raw_password, 'utf8'));
+  if (!cipher.finish()) {
+    throw {
+      type: RejectEnum.NativeLoginFailed,
+      data: '密码加密失败',
+    };
+  }
   // 返回 base64 编码格式的加密后密码
-  return encrypted.toString();
+  return forge.util.encode64(cipher.output.getBytes());
 }
 
 function genCSRFToken(): { csrfKey: string; csrfValue: string } {
@@ -446,7 +450,9 @@ function genCSRFToken(): { csrfKey: string; csrfValue: string } {
   const tokenData = base64Key.substring(0, halfLength) + base64Key + base64Key.substring(halfLength);
 
   // 对组合 base64 求 MD5
-  const csrfValue = CryptoJs.MD5(tokenData).toString();
+  const md5 = forge.md.md5.create();
+  md5.update(tokenData, 'utf8');
+  const csrfValue = md5.digest().toHex();
 
   return { csrfKey, csrfValue };
 }

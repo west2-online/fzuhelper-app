@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { Tabs as ExpoTabs, useFocusEffect } from 'expo-router';
+import QRCodeGenerator from 'qrcode-generator';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import QRCode from 'react-native-qrcode-svg';
+import { SvgXml } from 'react-native-svg';
 
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
@@ -41,16 +42,42 @@ interface QRCodeViewProps {
   color?: string;
 }
 
-const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' }) =>
-  value ? (
+const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' }) => {
+  const svgXml = useMemo(() => {
+    if (!value || size <= 0) {
+      return undefined;
+    }
+
+    try {
+      const qr = QRCodeGenerator(0, 'L');
+      qr.addData(value, 'Byte');
+      qr.make();
+
+      const moduleCount = qr.getModuleCount();
+      const cellSize = Math.max(Math.floor(size / moduleCount), 1);
+      let xml = qr.createSvgTag(cellSize, 0);
+
+      if (color !== '#000000') {
+        xml = xml.replace(/#000000/g, color);
+      }
+
+      return xml;
+    } catch (error) {
+      console.error('生成字节二维码失败:', error);
+      return undefined;
+    }
+  }, [color, size, value]);
+
+  return value && svgXml ? (
     <View className="mx-auto bg-white p-4">
-      <QRCode size={size} value={value} color={color} />
+      <SvgXml xml={svgXml} width={Math.max(size, 1)} height={Math.max(size, 1)} />
     </View>
   ) : (
     <View className="mx-auto my-4" style={{ height: size, width: size }}>
       <Loading />
     </View>
   );
+};
 
 export default function YiMaTongPage() {
   const yktLoginRef = useRef<YKTLogin | null>(null);
@@ -98,6 +125,7 @@ export default function YiMaTongPage() {
         handleError(error as any);
       } finally {
         setIsRefreshing(false);
+        setIsLoading(false);
       }
     },
     [handleError],
@@ -124,11 +152,12 @@ export default function YiMaTongPage() {
         if (parsedUserInfo.account && parsedUserInfo.password) {
           // 尝试直接登录YKT并获取数据
           try {
-            const synjonesAuth = await yktLoginRef.current!.login(parsedUserInfo.account, parsedUserInfo.password);
-            const userName = await yktLoginRef.current!.getUserInfo(synjonesAuth);
+            const synjonesAuthToken = await yktLoginRef.current!.login(parsedUserInfo.account, parsedUserInfo.password);
+            const userName = await yktLoginRef.current!.getUserInfo(synjonesAuthToken);
 
-            setSynjonesAuth(synjonesAuth);
+            setSynjonesAuth(synjonesAuthToken);
             setName(userName);
+            setIsLoading(false);
 
             // 立即刷新一次数据
             // await refresh(synjonesAuth);
