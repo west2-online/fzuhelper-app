@@ -3,7 +3,7 @@ import { get, postJSON } from '@/modules/native-request';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';
 import forge from 'node-forge';
-import { SSO_LOGIN_COOKIE_KEY, YKT_SYNJONES_AUTH_KEY, YKT_USERNAME_KEY } from './constants';
+import { SSO_LOGIN_COOKIE_KEY, YKT_SYNJONES_AUTH_KEY, YKT_USER_INFO_KEY } from './constants';
 import SSOLogin from './sso-login';
 
 export interface OfflineCodeParams {
@@ -220,7 +220,13 @@ export default class YKTLogin {
 
   async isAuthValid(synjonesAuth: string): Promise<boolean> {
     try {
-      await this.getUserInfo(synjonesAuth);
+      const userInfoResp = await this.#get({
+        url: YKT_URLS.GET_USER_INFO,
+        headers: {
+          'Synjones-Auth': `bearer ${synjonesAuth}`,
+        },
+      });
+      console.log('synjonesAuth 验证成功', userInfoResp);
       return true;
     } catch (error) {
       console.error('验证 synjonesAuth 失败:', error);
@@ -257,14 +263,15 @@ export default class YKTLogin {
       };
     }
     console.log('通过SSO登录获取到token:', loginResult);
+    await AsyncStorage.setItem(YKT_SYNJONES_AUTH_KEY, loginResult);
     return loginResult;
   }
 
   // 获取用户信息
   async getUserInfo(synjonesAuth: string): Promise<string> {
-    const cachedName = await AsyncStorage.getItem(YKT_USERNAME_KEY);
-    if (cachedName) {
-      return cachedName;
+    const cachedUserInfo = await AsyncStorage.getItem(YKT_USER_INFO_KEY);
+    if (cachedUserInfo) {
+      return cachedUserInfo;
     }
     if (synjonesAuth === '') {
       throw {
@@ -280,9 +287,9 @@ export default class YKTLogin {
       },
     });
 
-    const name = userInfoResp.data.name;
-    await AsyncStorage.setItem(YKT_USERNAME_KEY, name);
-    return name;
+    const userInfo = JSON.stringify(userInfoResp.data);
+    await AsyncStorage.setItem(YKT_USER_INFO_KEY, userInfo);
+    return userInfo;
   }
 
   // 获取支付信息
@@ -380,6 +387,7 @@ export default class YKTLogin {
       return FALLBACK_PRIVATE_KEY;
     }
   }
+
   // 获取支付码
   async getPayCode(synjonesAuth: string): Promise<string> {
     if (synjonesAuth === '') {

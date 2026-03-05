@@ -43,7 +43,7 @@ export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
 // 一卡通
 // 以 YKT_ 开头
 export const YKT_SYNJONES_AUTH_KEY = 'ykt_synjones-auth';
-export const YKT_USERNAME_KEY = 'ykt_username'; // 姓名
+export const YKT_USER_INFO_KEY = 'ykt_user_info'; // 用户信息
 
 // SSO 登录
 export const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';

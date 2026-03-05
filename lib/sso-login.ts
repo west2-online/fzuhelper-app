@@ -412,20 +412,28 @@ class SSOLogin {
       };
     }
 
+    let cookie = ssoCookie;
     let resp;
     try {
       resp = await this.#get({
         url: 'https://sso.fzu.edu.cn/login?service=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-auth%2Fcas%2Flogin%2FruiJie%3FtargetUrl%3Dhttps%253A%252F%252Fxcx.fzu.edu.cn%252Fberserker-base%252Fredirect%253FappId%253D16%2526nodeId%253D15%2526type%253Dapp',
         headers: {
-          Cookie: ssoCookie,
+          Cookie: cookie,
         },
       });
+
+      const SESSION = extractKV(resp.headers['Set-Cookie'], 'SESSION');
+      cookie += `; SESSION=${SESSION}`;
+      console.log('重定向1:', resp.headers);
+
       resp = await this.#get({
         url: resp.headers.Location,
         headers: {
-          Cookie: ssoCookie,
+          Cookie: cookie,
         },
       });
+
+      console.log('重定向2:', resp.headers);
     } catch (error) {
       console.error('无法从SSO登录到一卡通系统:', error);
       throw {
