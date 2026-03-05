@@ -6,20 +6,23 @@ import forge from 'node-forge';
 import { SSO_LOGIN_COOKIE_KEY, YKT_SYNJONES_AUTH_KEY, YKT_USER_INFO_KEY } from './constants';
 import SSOLogin from './sso-login';
 
-export interface OfflineCodeParams {
+interface OfflineCodeParams {
   offline_userdata: string; // 十六进制字符串
   userhashkey: string; // 十六进制字符串，RSA加密的对称密钥
   offline_effective_time: string; // 有效时间
   version: string; // 版本号，如 "1" 表示 v2，其他表示 v3
-  currentCount: number; // 当前使用次数
-  offlineCodeVersion?: string;
 }
 
-export interface PayInfo {
+interface PayInfo {
   account: string;
   payacc: string;
   paytype: string;
   voucher: string;
+}
+
+interface FrontInfo {
+  privateKey: string;
+  offlineCode: string;
 }
 
 const YKT_URLS = {
@@ -104,12 +107,8 @@ export default class YKTLogin {
     return md.digest().toHex().toUpperCase();
   }
 
-  #isNewOfflineVersion(offlineParams: OfflineCodeParams): boolean {
-    if (offlineParams.offlineCodeVersion !== undefined && offlineParams.offlineCodeVersion !== null) {
-      return String(offlineParams.offlineCodeVersion) !== '0';
-    }
-
-    return Number(offlineParams.version) >= 3;
+  #isNewOfflineVersion(frontInfo: FrontInfo): boolean {
+    return String(frontInfo.offlineCode) !== '0';
   }
 
   #parseJSONData(data: unknown) {
@@ -220,13 +219,12 @@ export default class YKTLogin {
 
   async isAuthValid(synjonesAuth: string): Promise<boolean> {
     try {
-      const userInfoResp = await this.#get({
+      await this.#get({
         url: YKT_URLS.GET_USER_INFO,
         headers: {
           'Synjones-Auth': `bearer ${synjonesAuth}`,
         },
       });
-      console.log('synjonesAuth 验证成功', userInfoResp);
       return true;
     } catch (error) {
       console.error('验证 synjonesAuth 失败:', error);
@@ -310,7 +308,7 @@ export default class YKTLogin {
       },
     });
 
-    const payInfo = Array.isArray(codebarResp.data) ? codebarResp.data[0] : undefined;
+    const payInfo = codebarResp.data[0];
     if (!payInfo?.account || !payInfo?.payacc || !payInfo?.paytype || !payInfo?.voucher) {
       throw {
         type: RejectEnum.BizFailed,
@@ -332,18 +330,14 @@ export default class YKTLogin {
       },
     });
 
-    const barcodeList = barcodeResp.data?.barcode;
-    const barcode = Array.isArray(barcodeList) ? barcodeList[0] : undefined;
-    const digits = typeof barcode === 'string' ? barcode.replace(/\D/g, '') : '';
-
-    if (digits.length < 18) {
+    const barcode = barcodeResp.data.barcode[0];
+    if (barcode.length !== 20) {
       throw {
         type: RejectEnum.BizFailed,
         data: barcodeResp,
       };
     }
-
-    return digits.slice(0, 20);
+    return barcode;
   }
 
   // 获取离线支付信息
@@ -369,22 +363,18 @@ export default class YKTLogin {
         'Synjones-Auth': `bearer ${synjonesAuth}`,
       },
     });
-
     return offlineResp.data;
   }
 
-  // 获取 privateKey
-  async getPrivateKey(): Promise<string> {
+  // 获取前端配置
+  async getFrontInfo(): Promise<FrontInfo> {
     try {
       const frontResp = await this.#get({ url: YKT_URLS.GET_FRONT_INFO });
-      const frontConfig =
-        typeof frontResp.data?.getFrontConfig === 'string'
-          ? JSON.parse(frontResp.data.getFrontConfig)
-          : frontResp.data?.getFrontConfig || {};
-      return this.#normalizePrivateKey(frontConfig.privateKey) || FALLBACK_PRIVATE_KEY;
+      const frontConfig = JSON.parse(frontResp.data.getFrontConfig);
+      return frontConfig;
     } catch (error) {
       console.error('获取 privateKey 失败:', error);
-      return FALLBACK_PRIVATE_KEY;
+      return { privateKey: FALLBACK_PRIVATE_KEY, offlineCode: '0' };
     }
   }
 
@@ -400,17 +390,17 @@ export default class YKTLogin {
     // 获取 codebarPayinfo
     const payInfo = await this.getCodebarPayInfo(synjonesAuth);
 
-    // 获取当前使用的 barcode
-    const currentBarcode = await this.getBatchBarcode(synjonesAuth, payInfo.account, payInfo.payacc, payInfo.paytype);
-
-    // 获取 offline params
-    const offlineParams = await this.getOfflineParams(synjonesAuth, payInfo.payacc, payInfo.paytype, payInfo.voucher);
-
-    // 获取 privateKey
-    const privateKey = await this.getPrivateKey();
+    const [currentBarcode, offlineParams, frontInfo] = await Promise.all([
+      // 获取当前使用的 barcode
+      this.getBatchBarcode(synjonesAuth, payInfo.account, payInfo.payacc, payInfo.paytype),
+      // 获取 offline params
+      this.getOfflineParams(synjonesAuth, payInfo.payacc, payInfo.paytype, payInfo.voucher),
+      // 获取 front info
+      this.getFrontInfo(),
+    ]);
 
     // 生成二维码数据
-    return this.#generateQRCodeDataString(currentBarcode, payInfo.payacc, offlineParams, privateKey);
+    return this.#generateQRCodeDataString(currentBarcode, payInfo.payacc, offlineParams, frontInfo);
   }
 
   // 生成二维码数据字符串
@@ -418,13 +408,13 @@ export default class YKTLogin {
     currentBarcode: string,
     payacc: string,
     offlineParams: OfflineCodeParams,
-    privateKeyPem: string,
+    frontInfo: FrontInfo,
   ): Promise<string> {
     try {
-      const hashKeyHex = this.#decryptUserHashKeyHex(offlineParams.userhashkey, privateKeyPem).substring(0, 32);
+      const hashKeyHex = this.#decryptUserHashKeyHex(offlineParams.userhashkey, frontInfo.privateKey).substring(0, 32);
       const offlineUserDataHex = (offlineParams.offline_userdata || '').toUpperCase();
       const payAccTagHex = this.#buildPayAccTag(payacc, '01');
-      const isNewVersion = this.#isNewOfflineVersion(offlineParams);
+      const isNewVersion = this.#isNewOfflineVersion(frontInfo);
 
       const totalLength = isNewVersion
         ? 13 + (offlineUserDataHex.length + payAccTagHex.length) / 2 + 1
