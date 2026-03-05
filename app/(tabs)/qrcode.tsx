@@ -91,7 +91,6 @@ export default function YiMaTongPage() {
   const [synjonesAuth, setSynjonesAuth] = useState<string | null>(null); // YKT 认证令牌
   const [name, setName] = useState<string | null>(null); // 用户名
   const [payCode, setPayCode] = useState<string | null>(null); // 支付码（字符串）
-  // const [identifyCode, setIdentifyCode] = useState<IdentifyRespData>(); // 身份码
   const [libCodeContent, setLibCodeContent] = useState<string>(); // 图书馆码
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
@@ -104,7 +103,6 @@ export default function YiMaTongPage() {
     setSynjonesAuth(null);
     setName(null);
     setPayCode(null);
-    // setIdentifyCode(undefined);
     setLibCodeContent(undefined);
   }, []);
 
@@ -117,7 +115,6 @@ export default function YiMaTongPage() {
 
       try {
         setPayCode(await yktLoginRef.current!.getPayCode(currentSynjonesAuth));
-        // setIdentifyCode(newIdentifyCode);
       } catch (error) {
         console.error('刷新失败:', error);
         handleError(error as any);
@@ -143,7 +140,6 @@ export default function YiMaTongPage() {
   // 获取本地数据
   const getLocalData = useCallback(async () => {
     try {
-      // 首先尝试从本地读取token
       const synjonesAuthToken = await yktLoginRef.current!.getAuth();
       const userInfo = JSON.parse(await yktLoginRef.current!.getUserInfo(synjonesAuthToken));
       setSynjonesAuth(synjonesAuthToken);
@@ -151,9 +147,6 @@ export default function YiMaTongPage() {
       setLibCodeContent(userInfo.account);
       setPayCode(await yktLoginRef.current!.getPayCode(synjonesAuthToken));
       setIsLoading(false);
-
-      // 立即刷新一次数据
-      // await refresh(synjonesAuth);
     } catch (error) {
       console.error('自动登录失败:', error);
       setIsLoading(false);
@@ -233,9 +226,6 @@ export default function YiMaTongPage() {
                 <TabsTrigger value="消费码" className="w-auto">
                   <Text className="text-center">消费码</Text>
                 </TabsTrigger>
-                <TabsTrigger value="认证码" className="w-auto">
-                  <Text className="text-center">认证码</Text>
-                </TabsTrigger>
                 <TabsTrigger value="入馆码" className="w-auto">
                   <Text className="text-center">入馆码</Text>
                 </TabsTrigger>
@@ -247,9 +237,6 @@ export default function YiMaTongPage() {
                     <CardHeader>
                       <TabsContent value="消费码">
                         <CardTitle className={titleClassname}>消费码</CardTitle>
-                      </TabsContent>
-                      <TabsContent value="认证码">
-                        <CardTitle className={titleClassname}>认证码</CardTitle>
                       </TabsContent>
                       <TabsContent value="入馆码">
                         <CardTitle className={titleClassname}>入馆码</CardTitle>
@@ -268,9 +255,6 @@ export default function YiMaTongPage() {
                       <TabsContent value="消费码">
                         <QRCodeView size={qrWidth} value={payCode || undefined} />
                       </TabsContent>
-                      {/* <TabsContent value="认证码">
-                        <QRCodeView size={qrWidth} value={identifyCode?.content} color={identifyCode?.color} />
-                      </TabsContent> */}
                       <TabsContent value="入馆码">
                         <QRCodeView size={qrWidth} value={libCodeContent} />
                       </TabsContent>
@@ -295,11 +279,6 @@ export default function YiMaTongPage() {
                         <TabsContent value="消费码">
                           <Text className="text-base text-text-secondary">
                             消费码：适用于福州大学大门、生活区入口及宿舍楼门禁，不可用于桃李园消费。
-                          </Text>
-                        </TabsContent>
-                        <TabsContent value="认证码">
-                          <Text className="text-base text-text-secondary">
-                            认证码：适用于福州大学铜盘校区入口门禁。
                           </Text>
                         </TabsContent>
                         <TabsContent value="入馆码">
