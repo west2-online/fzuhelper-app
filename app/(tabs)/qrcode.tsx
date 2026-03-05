@@ -145,9 +145,10 @@ export default function YiMaTongPage() {
     try {
       // 首先尝试从本地读取token
       const synjonesAuthToken = await yktLoginRef.current!.getAuth();
-      const userName = await yktLoginRef.current!.getUserInfo(synjonesAuthToken);
+      const userInfo = JSON.parse(await yktLoginRef.current!.getUserInfo(synjonesAuthToken));
       setSynjonesAuth(synjonesAuthToken);
-      setName(userName);
+      setName(userInfo.name);
+      setLibCodeContent(userInfo.account);
       setPayCode(await yktLoginRef.current!.getPayCode(synjonesAuthToken));
       setIsLoading(false);
 
