@@ -23,6 +23,10 @@ jobs:
           gh release download alpha --pattern "FzuHelper_*.apk" --dir "$GITHUB_WORKSPACE/outputs/apk/release"
 
           APK_PATH=$(ls "$GITHUB_WORKSPACE"/outputs/apk/release/FzuHelper_*.apk | head -n 1)
+          if [[ -z "$APK_PATH" ]]; then
+              echo "Error: APK file not found in the release assets."
+              exit 1
+          fi
 
           echo "APK_PATH=$APK_PATH" >> "$GITHUB_OUTPUT"
         env:

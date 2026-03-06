@@ -39,6 +39,8 @@ jobs:
           mkdir -p eas-cli
           gh release download --repo linrongda/eas-cli --pattern eas-cli.tar.gz --dir eas-cli
           tar -xzf eas-cli/eas-cli.tar.gz -C eas-cli
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Compute and Inject buildNumber
         run: |
