@@ -49,12 +49,14 @@ const CourseGrid = forwardRef(
     },
     ref,
   ) => {
+    const { handleError } = useSafeResponseSolve();
     const { currentTerm, maxWeek } = coursePageData;
     const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
 
     // 好友课表数据
     const {
       data: friendCourseData,
+      error: friendError,
       isError: isFriendError,
       refetch: refetchFriend,
     } = useApiRequest(
@@ -164,6 +166,10 @@ const CourseGrid = forwardRef(
 
     // 好友课表加载失败时，在组件内展示错误视图，保持 header 可交互
     if (selectedFriendId && isFriendError) {
+      const data = handleError(friendError) as { code: string; message: string };
+      if (data) {
+        toast.error(data.message ? data.message : '好友课表加载失败，请稍后再试');
+      }
       return <ErrorView refresh={() => refetchFriend()} />;
     }
 
@@ -377,8 +383,10 @@ export default function HomePage() {
             await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
           } catch (error: any) {
             console.error('Settings refresh failed:', error);
-            handleError(error);
-            toast.error('刷新失败，请稍后再试');
+            const data = handleError(error) as { code: string; message: string };
+            if (data) {
+              toast.error(data.message ? data.message : '刷新失败，请稍后再试');
+            }
           } finally {
             setIsRefreshing(false);
           }
@@ -404,7 +412,10 @@ export default function HomePage() {
       }
     } catch (error: any) {
       console.error('Refresh failed:', error);
-      handleError(error);
+      const data = handleError(error) as { code: string; message: string };
+      if (data) {
+        toast.error(data.message ? data.message : '刷新失败，请稍后再试');
+      }
     } finally {
       setIsRefreshing(false);
     }
