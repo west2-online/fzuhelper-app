@@ -121,9 +121,9 @@ const LoginPage: React.FC = () => {
       if (data) {
         Alert.alert('请求失败', data.code + ': ' + data.message);
       }
-      await refreshCaptcha();
       // 访问令牌获取失败，清除账户信息
       await LocalUser.clear();
+      await refreshCaptcha();
       if (Platform.OS === 'android') {
         await BuglyModule.setUserId('');
       }
