@@ -9,22 +9,34 @@ jobs:
     environment: beta
 
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: outputs
-          path: ${{ github.workspace }}/outputs/
-
-      - name: Extract Version Info
+      - name: Download APK and Extract Version Info
         id: version-info
         shell: bash
         run: |
-          echo "APP_VERSION_CODE=$(cat $GITHUB_WORKSPACE/outputs/version-code)" >> "$GITHUB_OUTPUT"
-          echo "APP_VERSION_NAME=$(cat $GITHUB_WORKSPACE/outputs/version-name)" >> "$GITHUB_OUTPUT"
+          mkdir -p "$GITHUB_WORKSPACE/outputs/apk/release"
+          gh release download alpha --pattern "FzuHelper_*.apk" --dir "$GITHUB_WORKSPACE/outputs/apk/release"
+
+          APK_PATH=$(ls "$GITHUB_WORKSPACE"/outputs/apk/release/FzuHelper_*.apk | head -n 1)
+          APK_FILENAME=$(basename "$APK_PATH")
+          if [[ "$APK_FILENAME" =~ ^FzuHelper_([0-9]+\.[0-9]+\.[0-9]+)\.([0-9]+)\.apk$ ]]; then
+            APP_VERSION_NAME="${BASH_REMATCH[1]}"
+            APP_VERSION_CODE="${BASH_REMATCH[2]}"
+          else
+            echo "Unexpected APK filename format: $APK_FILENAME"
+            exit 1
+          fi
+          CHANGELOG=$(gh release view alpha --json body --jq .body)
+
+          echo "APK_FILENAME=$APK_FILENAME" >> "$GITHUB_OUTPUT"
+          echo "APP_VERSION_NAME=$APP_VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "APP_VERSION_CODE=$APP_VERSION_CODE" >> "$GITHUB_OUTPUT"
           {
             echo "CHANGELOG<<BSEOF"
-            cat $GITHUB_WORKSPACE/outputs/changelog
+            echo "$CHANGELOG"
             echo "BSEOF"
           } >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Get Upload Params
         id: upload-params
@@ -40,7 +52,6 @@ jobs:
         id: upload-apk
         run: |
           cd $GITHUB_WORKSPACE/outputs/apk/release
-          mv app-arm64-v8a-release.apk $APK_FILENAME
           RESPONSE=$(curl -X POST "https://v0.api.upyun.com/fzuhelper-filedown" \
             -F "file=@$APK_FILENAME" \
             -F "policy=$UPYUN_POLICY" \
@@ -50,7 +61,7 @@ jobs:
 
           echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_OUTPUT"
         env:
-          APK_FILENAME: FzuHelper_${{ steps.version-info.outputs.APP_VERSION_NAME }}(${{ steps.version-info.outputs.APP_VERSION_CODE }}).apk
+          APK_FILENAME: ${{ steps.version-info.outputs.APK_FILENAME }}
           UPYUN_POLICY: ${{ steps.upload-params.outputs.UPYUN_POLICY }}
           UPYUN_AUTH: ${{ steps.upload-params.outputs.UPYUN_AUTH }}
 
