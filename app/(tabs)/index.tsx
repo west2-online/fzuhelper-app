@@ -416,7 +416,7 @@ export default function HomePage() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         contentContainerClassName="flex-1"
       >
-        <CourseErrorBoundary>
+        <CourseErrorBoundary handleError={handleError}>
           <Suspense fallback={<Loading />}>
             <HomePageContent selectedFriendId={selectedFriendId} setSelectedFriendId={setSelectedFriendId} />
           </Suspense>

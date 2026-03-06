@@ -2,11 +2,12 @@ import { Component, type ReactNode } from 'react';
 import { toast } from 'sonner-native';
 
 import ErrorView from '@/components/multistateview/error-view';
+import type { RejectError } from '@/types/reject-error';
 
 interface CourseErrorBoundaryProps {
   children: ReactNode;
   onReset?: () => void;
-  handleError?: (error: Error) => { message: string } | void;
+  handleError?: (error: RejectError) => unknown;
 }
 
 interface CourseErrorBoundaryState {
@@ -28,7 +29,7 @@ export class CourseErrorBoundary extends Component<CourseErrorBoundaryProps, Cou
 
     // 调用 handleError 显示 toast 错误提示
     if (this.props.handleError) {
-      const data = this.props.handleError(error);
+      const data = this.props.handleError(error as any);
       if (data) {
         toast.error((data as { message: string }).message || '加载失败，请检查网络连接');
       }
