@@ -2,7 +2,7 @@
 
 ## 运作方式
 
-我们使用 oneapi 的自动更新（通过`yarn run oneapi`）同步 apifox 中的接口和`@/api`目录下的接口。
+我们使用 oneapi 的自动更新（通过`yarn run openapi`）同步 apifox 中的接口和`@/api`目录下的接口。
 
 需要保证接口文档定义清晰。例如，如果你的接口没有要求传参，但是 apifox 中设计了一个 formdata，会导致 app 侧编写报错（比如提示需要传参等内容）
 
