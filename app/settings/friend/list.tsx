@@ -129,12 +129,12 @@ export default function FriendManagePage() {
       <View className="flex-row items-center gap-3">
         {!isManage && (
           <BorderlessButton onPress={() => setShowAddMenu(true)}>
-            <HeaderIcon name="add-outline" />
+            <HeaderIcon name="add-circle-outline" />
           </BorderlessButton>
         )}
         {friendList && friendList.length > 0 && (
           <BorderlessButton onPress={isManage ? handleSave : enterManage} enabled={!isSaving}>
-            <HeaderIcon name={isManage ? 'checkmark' : 'create-outline'} />
+            <HeaderIcon name={isManage ? 'checkmark' : 'settings-outline'} />
           </BorderlessButton>
         )}
       </View>
