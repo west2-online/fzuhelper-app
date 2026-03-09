@@ -1,10 +1,15 @@
 import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Alert, BackHandler, FlatList, Platform, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, BackHandler, Platform, TouchableOpacity, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { UserFriendListResponse, UserFriendListResponse_Friend } from '@/api/backend';
-import { getApiV1UserFriendList, getApiV1UserFriendMaxNum, postApiV1UserFriendOpenApiDelete } from '@/api/generate';
+import {
+  getApiV1UserFriendList,
+  getApiV1UserFriendMaxNum,
+  postApiV1UserFriendOpenApiDelete,
+  postApiV1UserFriendReorder,
+} from '@/api/generate';
 import { Icon } from '@/components/Icon';
 import MultiStateView from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
@@ -16,6 +21,7 @@ import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FRIEND_LIST_KEY } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import dayjs from 'dayjs';
+import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -33,6 +39,32 @@ export default function FriendManagePage() {
   });
 
   const [isManage, setIsManage] = useState(false);
+  const [orderedList, setOrderedList] = useState<UserFriendListResponse>(friendList ?? []);
+  const orderChangedRef = useRef(false);
+
+  // 从服务端拉取数据后同步到本地排序状态
+  useEffect(() => {
+    if (friendList) {
+      setOrderedList(friendList);
+    }
+  }, [friendList]);
+
+  const handleReorder = useCallback(
+    async (data: UserFriendListResponse) => {
+      orderChangedRef.current = false;
+      try {
+        await postApiV1UserFriendReorder({ friend_ids: data.map(item => item.stu_id) });
+        toast.success('排序已更新');
+      } catch (error: any) {
+        const errData = handleError(error) as { message: string };
+        if (errData) {
+          toast.error(errData.message);
+        }
+        refetch();
+      }
+    },
+    [handleError, refetch],
+  );
 
   const handleDelete = useCallback(
     async (friend: UserFriendListResponse_Friend) => {
@@ -66,34 +98,56 @@ export default function FriendManagePage() {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: UserFriendListResponse[0] }) => (
-      <View className="flex-row items-center justify-between py-4">
-        <View className="flex-1 gap-1">
-          <Text className="text-lg font-medium">{item.name}</Text>
-          <Text className="text-sm text-text-secondary">
-            {item.grade}级 {item.college} {item.major}专业
-          </Text>
+    ({ item, drag, isActive }: RenderItemParams<UserFriendListResponse[0]>) => (
+      <ScaleDecorator>
+        <View className="flex-row items-center justify-between py-4">
+          {isManage && (
+            <TouchableOpacity onLongPress={drag} disabled={isActive} className="mr-3 p-2">
+              <Icon name="reorder-three-outline" size={24} />
+            </TouchableOpacity>
+          )}
+          <View className="flex-1 gap-1">
+            <Text className="text-lg font-medium">{item.name}</Text>
+            <Text className="text-sm text-text-secondary">
+              {item.grade}级 {item.college} {item.major}
+            </Text>
+          </View>
+          {isManage && (
+            <TouchableOpacity onPress={() => handleDelete(item)} className="p-2">
+              <Icon name="trash-outline" size={24} color="#ef4444" />
+            </TouchableOpacity>
+          )}
         </View>
-        {isManage && (
-          <TouchableOpacity onPress={() => handleDelete(item)} className="p-2">
-            <Icon name="trash-outline" size={24} color="#ef4444" />
-          </TouchableOpacity>
-        )}
-      </View>
+      </ScaleDecorator>
     ),
     [handleDelete, isManage],
   );
 
+  const exitManage = useCallback(() => {
+    if (orderChangedRef.current && orderedList.length > 0) {
+      handleReorder(orderedList);
+    }
+    setIsManage(false);
+  }, [orderedList, handleReorder]);
+
   const headerRight = useCallback(() => {
     if (friendList && friendList.length > 0) {
       return (
-        <BorderlessButton onPress={() => setIsManage(!isManage)}>
+        <BorderlessButton
+          onPress={() => {
+            if (isManage) {
+              exitManage();
+            } else {
+              setIsManage(true);
+            }
+          }}
+        >
           <Text>{isManage ? '完成' : '管理'}</Text>
         </BorderlessButton>
       );
     }
     return null;
-  }, [isManage, friendList]);
+  }, [isManage, friendList, exitManage]);
 
   useFocusEffect(
     useCallback(() => {
@@ -107,7 +161,7 @@ export default function FriendManagePage() {
       if (Platform.OS === 'android') {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
           if (isManage) {
-            setIsManage(false);
+            exitManage();
             return true;
           }
 
@@ -118,7 +172,7 @@ export default function FriendManagePage() {
           subscription.remove();
         };
       }
-    }, [isManage]),
+    }, [isManage, exitManage]),
   );
 
   return (
@@ -136,18 +190,24 @@ export default function FriendManagePage() {
           refresh={refetch}
           className="flex-1"
           content={
-            <FlatList
-              data={friendList}
-              renderItem={renderItem}
-              keyExtractor={item => item.stu_id}
-              contentContainerClassName="px-8"
-            />
+            <View className="flex-1">
+              <DraggableFlatList
+                data={orderedList}
+                renderItem={renderItem}
+                keyExtractor={item => item.stu_id}
+                contentContainerClassName="px-8"
+                onDragEnd={({ data }) => {
+                  orderChangedRef.current = true;
+                  setOrderedList(data);
+                }}
+              />
+            </View>
           }
         />
-        {friendList && maxNumData && (
-          <View className="mb-4 flex-row items-center justify-center gap-3">
+        {orderedList.length > 0 && maxNumData && (
+          <View className="mb-4 flex-row items-center justify-center gap-3 pt-1">
             <Text className="text-sm text-text-secondary">
-              好友数量：{friendList.length} / {maxNumData.max_num}
+              好友数量：{orderedList.length} / {maxNumData.max_num}
             </Text>
             <Text
               className="text-sm text-primary"
