@@ -33,7 +33,7 @@ jobs:
 
       - name: Delete alpha by GitHub CLI
         run: |
-          gh release delete alpha --yes --cleanup-tag >/dev/null 2>&1 || echo "No alpha release exists."
+          gh release delete alpha --repo ${{ github.repository }} --yes --cleanup-tag || echo "No alpha release exists."
         env:
           GH_TOKEN: ${{ github.token }}
 
