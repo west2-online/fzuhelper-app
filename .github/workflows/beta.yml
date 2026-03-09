@@ -14,7 +14,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$GITHUB_WORKSPACE/outputs/apk/release"
-          gh release download alpha --pattern "FzuHelper_*.apk" --dir "$GITHUB_WORKSPACE/outputs/apk/release"
+          gh release download alpha --repo ${{ github.repository }} --pattern "FzuHelper_*.apk" --dir "$GITHUB_WORKSPACE/outputs/apk/release"
 
           APK_PATH=$(ls "$GITHUB_WORKSPACE"/outputs/apk/release/FzuHelper_*.apk | head -n 1)
           APK_FILENAME=$(basename "$APK_PATH")
@@ -25,7 +25,7 @@ jobs:
             echo "Unexpected APK filename format: $APK_FILENAME"
             exit 1
           fi
-          CHANGELOG=$(gh release view alpha --json body --jq .body)
+          CHANGELOG=$(gh release view alpha --repo ${{ github.repository }} --json body --jq .body)
 
           echo "APK_FILENAME=$APK_FILENAME" >> "$GITHUB_OUTPUT"
           echo "APP_VERSION_NAME=$APP_VERSION_NAME" >> "$GITHUB_OUTPUT"
