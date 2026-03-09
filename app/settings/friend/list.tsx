@@ -1,6 +1,6 @@
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { BackHandler, FlatList, Modal, Platform, Pressable, TouchableOpacity, View } from 'react-native';
+import { Alert, BackHandler, FlatList, Modal, Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { UserFriendListResponse } from '@/api/backend';
@@ -16,6 +16,7 @@ import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FRIEND_LIST_KEY } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
+import dayjs from 'dayjs';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -53,13 +54,7 @@ export default function FriendManagePage() {
     setPendingDeletes(prev => new Set(prev).add(stuId));
   }, []);
 
-  const handleSave = useCallback(async () => {
-    if (isSaving) return;
-    if (pendingDeletes.size === 0) {
-      setIsManage(false);
-      return;
-    }
-
+  const doDelete = useCallback(async () => {
     setIsSaving(true);
     try {
       for (const stuId of pendingDeletes) {
@@ -77,11 +72,37 @@ export default function FriendManagePage() {
     } finally {
       setIsSaving(false);
     }
-  }, [isSaving, pendingDeletes, handleError, refetch]);
+  }, [pendingDeletes, handleError, refetch]);
+
+  const handleSave = useCallback(() => {
+    if (isSaving) return;
+    if (pendingDeletes.size === 0) {
+      setIsManage(false);
+      return;
+    }
+
+    const deletedFriends = friendList?.filter(f => pendingDeletes.has(f.stu_id)) ?? [];
+    const details = deletedFriends
+      .map(f => {
+        const days = dayjs().diff(dayjs(f.created_at * 1000), 'day');
+        return `${f.name}（已成为好友 ${days} 天）`;
+      })
+      .join('\n');
+
+    Alert.alert('确定要删除以下好友吗？', details, [
+      { text: '放弃修改', style: 'cancel' },
+      { text: '确定删除', style: 'destructive', onPress: doDelete },
+    ]);
+  }, [isSaving, pendingDeletes, friendList, doDelete]);
 
   const enterManage = useCallback(() => {
     setPendingDeletes(new Set());
     setIsManage(true);
+  }, []);
+
+  const handleDiscard = useCallback(() => {
+    setPendingDeletes(new Set());
+    setIsManage(false);
   }, []);
 
   const renderItem = useCallback(
@@ -232,8 +253,11 @@ export default function FriendManagePage() {
           }
         />
         {isManage && (
-          <SafeAreaView edges={['bottom']} className="px-6 pb-2">
-            <Button onPress={handleSave} disabled={isSaving} className="w-full">
+          <SafeAreaView edges={['bottom']} className="flex-row gap-4 px-6 pb-2">
+            <Button variant="outline" onPress={handleDiscard} disabled={isSaving} className="flex-1">
+              <Text>放弃</Text>
+            </Button>
+            <Button onPress={handleSave} disabled={isSaving} className="flex-1">
               <Text>{isSaving ? '保存中...' : '完成'}</Text>
             </Button>
           </SafeAreaView>
