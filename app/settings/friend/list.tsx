@@ -1,6 +1,16 @@
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, BackHandler, FlatList, Modal, Platform, Pressable, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  BackHandler,
+  FlatList,
+  Modal,
+  Platform,
+  Pressable,
+  RefreshControl,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { toast } from 'sonner-native';
 
 import { UserFriendListResponse } from '@/api/backend';
@@ -35,6 +45,7 @@ export default function FriendManagePage() {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [pendingDeletes, setPendingDeletes] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,
@@ -94,6 +105,15 @@ export default function FriendManagePage() {
       { text: '确定删除', style: 'destructive', onPress: doDelete },
     ]);
   }, [isSaving, pendingDeletes, friendList, doDelete]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   const enterManage = useCallback(() => {
     setPendingDeletes(new Set());
@@ -249,6 +269,7 @@ export default function FriendManagePage() {
               renderItem={renderItem}
               keyExtractor={item => item.stu_id}
               contentContainerClassName="px-8"
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             />
           }
         />
