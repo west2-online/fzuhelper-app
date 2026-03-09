@@ -1,10 +1,11 @@
 import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Alert, BackHandler, FlatList, Platform, TouchableOpacity, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { BackHandler, FlatList, Modal, Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-import { UserFriendListResponse, UserFriendListResponse_Friend } from '@/api/backend';
+import { UserFriendListResponse } from '@/api/backend';
 import { getApiV1UserFriendList, getApiV1UserFriendMaxNum, postApiV1UserFriendOpenApiDelete } from '@/api/generate';
+import { HeaderIcon } from '@/components/HeaderIcon';
 import { Icon } from '@/components/Icon';
 import MultiStateView from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
@@ -15,55 +16,73 @@ import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { FRIEND_LIST_KEY } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
-import dayjs from 'dayjs';
 import { BorderlessButton } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const HEADER_HEIGHT = Platform.OS === 'ios' ? 44 : 56;
 
 export default function FriendManagePage() {
   const { handleError } = useSafeResponseSolve();
+  const insets = useSafeAreaInsets();
 
   const apiResult = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
   const { data: friendList, refetch } = apiResult;
 
   const { data: maxNumData } = useApiRequest(getApiV1UserFriendMaxNum, {});
 
+  const [isManage, setIsManage] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [pendingDeletes, setPendingDeletes] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,
     onEmpty: () => setIsManage(false),
   });
 
-  const [isManage, setIsManage] = useState(false);
+  // 管理模式下根据待删除集合过滤列表，非管理模式直接使用 API 数据
+  const displayList = useMemo(() => {
+    if (!friendList) return [];
+    if (isManage && pendingDeletes.size > 0) {
+      return friendList.filter(f => !pendingDeletes.has(f.stu_id));
+    }
+    return friendList;
+  }, [isManage, friendList, pendingDeletes]);
 
-  const handleDelete = useCallback(
-    async (friend: UserFriendListResponse_Friend) => {
-      const diff = dayjs().diff(dayjs(friend.created_at * 1000), 'day');
-      const diffString = diff === 0 ? '今天' : ` ${diff} 天前`;
-      Alert.alert(
-        '提示',
-        `你与 ${friend.name} 在${diffString}成为好友，解除好友关系后，你们将无法再互相查看课表。确定要删除好友吗？`,
-        [
-          { text: '取消', style: 'cancel' },
-          {
-            text: '删除',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await postApiV1UserFriendOpenApiDelete({ student_id: friend.stu_id });
-                toast.success('删除成功');
-                refetch();
-              } catch (error: any) {
-                const data = handleError(error) as { message: string };
-                if (data) {
-                  toast.error(data.message);
-                }
-              }
-            },
-          },
-        ],
-      );
-    },
-    [handleError, refetch],
-  );
+  const handleMarkDelete = useCallback((stuId: string) => {
+    setPendingDeletes(prev => new Set(prev).add(stuId));
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    if (isSaving) return;
+    if (pendingDeletes.size === 0) {
+      setIsManage(false);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      for (const stuId of pendingDeletes) {
+        await postApiV1UserFriendOpenApiDelete({ student_id: stuId });
+      }
+      toast.success(`成功删除 ${pendingDeletes.size} 位好友`);
+      setPendingDeletes(new Set());
+      setIsManage(false);
+      refetch();
+    } catch (error: any) {
+      const data = handleError(error) as { message: string };
+      if (data) {
+        toast.error(data.message);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }, [isSaving, pendingDeletes, handleError, refetch]);
+
+  const enterManage = useCallback(() => {
+    setPendingDeletes(new Set());
+    setIsManage(true);
+  }, []);
 
   const renderItem = useCallback(
     ({ item }: { item: UserFriendListResponse[0] }) => (
@@ -71,29 +90,36 @@ export default function FriendManagePage() {
         <View className="flex-1 gap-1">
           <Text className="text-lg font-medium">{item.name}</Text>
           <Text className="text-sm text-text-secondary">
-            {item.grade}级 {item.college} {item.major}专业
+            {item.grade}级 {item.college} {item.major}
           </Text>
         </View>
         {isManage && (
-          <TouchableOpacity onPress={() => handleDelete(item)} className="p-2">
+          <TouchableOpacity onPress={() => handleMarkDelete(item.stu_id)} className="p-2">
             <Icon name="trash-outline" size={24} color="#ef4444" />
           </TouchableOpacity>
         )}
       </View>
     ),
-    [handleDelete, isManage],
+    [handleMarkDelete, isManage],
   );
 
-  const headerRight = useCallback(() => {
-    if (friendList && friendList.length > 0) {
-      return (
-        <BorderlessButton onPress={() => setIsManage(!isManage)}>
-          <Text>{isManage ? '完成' : '管理'}</Text>
-        </BorderlessButton>
-      );
-    }
-    return null;
-  }, [isManage, friendList]);
+  const headerRight = useCallback(
+    () => (
+      <View className="flex-row items-center gap-3">
+        {!isManage && (
+          <BorderlessButton onPress={() => setShowAddMenu(true)}>
+            <HeaderIcon name="add-outline" />
+          </BorderlessButton>
+        )}
+        {friendList && friendList.length > 0 && (
+          <BorderlessButton onPress={isManage ? handleSave : enterManage} enabled={!isSaving}>
+            <HeaderIcon name={isManage ? 'checkmark' : 'create-outline'} />
+          </BorderlessButton>
+        )}
+      </View>
+    ),
+    [isManage, friendList, handleSave, enterManage, isSaving],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -107,6 +133,7 @@ export default function FriendManagePage() {
       if (Platform.OS === 'android') {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
           if (isManage) {
+            setPendingDeletes(new Set());
             setIsManage(false);
             return true;
           }
@@ -130,6 +157,66 @@ export default function FriendManagePage() {
         }}
       />
 
+      {/* 添加好友下拉菜单 */}
+      <Modal visible={showAddMenu} transparent animationType="fade" onRequestClose={() => setShowAddMenu(false)}>
+        <Pressable className="flex-1" onPress={() => setShowAddMenu(false)}>
+          <View
+            className="absolute right-4 rounded-xl bg-popover p-1"
+            style={{
+              top: insets.top + HEADER_HEIGHT,
+              elevation: 8,
+              minWidth: 160,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 8,
+            }}
+          >
+            <Pressable
+              className="flex-row items-center gap-3 rounded-lg px-4 py-3 active:opacity-60"
+              onPress={() => {
+                setShowAddMenu(false);
+                router.push('/settings/friend/invite');
+              }}
+            >
+              <Icon name="person-outline" size={18} />
+              <Text>我的邀请码</Text>
+            </Pressable>
+            <Pressable
+              className="flex-row items-center gap-3 rounded-lg px-4 py-3 active:opacity-60"
+              onPress={() => {
+                setShowAddMenu(false);
+                router.push('/settings/friend/add');
+              }}
+            >
+              <Icon name="keypad-outline" size={18} />
+              <Text>输入邀请码</Text>
+            </Pressable>
+
+            {friendList && maxNumData && (
+              <View className="flex-col border-t border-border px-4 py-3">
+                <View className="mb-1">
+                  <Text className="text-sm text-text-secondary">
+                    好友数量：{friendList.length} / {maxNumData.max_num}
+                  </Text>
+                </View>
+                <View>
+                  <Text
+                    className="text-sm text-primary"
+                    onPress={() => {
+                      setShowAddMenu(false);
+                      pushToWebViewNormal('https://west2-online.feishu.cn/docx/WyKmdkR5foZHWJxwne2cOJGbnXd');
+                    }}
+                  >
+                    提升上限
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        </Pressable>
+      </Modal>
+
       <PageContainer>
         <MultiStateView
           state={state}
@@ -137,34 +224,20 @@ export default function FriendManagePage() {
           className="flex-1"
           content={
             <FlatList
-              data={friendList}
+              data={displayList}
               renderItem={renderItem}
               keyExtractor={item => item.stu_id}
               contentContainerClassName="px-8"
             />
           }
         />
-        {friendList && maxNumData && (
-          <View className="mb-4 flex-row items-center justify-center gap-3">
-            <Text className="text-sm text-text-secondary">
-              好友数量：{friendList.length} / {maxNumData.max_num}
-            </Text>
-            <Text
-              className="text-sm text-primary"
-              onPress={() => pushToWebViewNormal('https://west2-online.feishu.cn/docx/WyKmdkR5foZHWJxwne2cOJGbnXd')}
-            >
-              提升上限
-            </Text>
-          </View>
+        {isManage && (
+          <SafeAreaView edges={['bottom']} className="px-6 pb-2">
+            <Button onPress={handleSave} disabled={isSaving} className="w-full">
+              <Text>{isSaving ? '保存中...' : '完成'}</Text>
+            </Button>
+          </SafeAreaView>
         )}
-        <SafeAreaView edges={['bottom']} className="mb-2 flex-row gap-4 px-6">
-          <Button variant="outline" className="flex-1" onPress={() => router.push('/settings/friend/invite')}>
-            <Text>我的邀请码</Text>
-          </Button>
-          <Button className="flex-1" onPress={() => router.push('/settings/friend/add')}>
-            <Text>添加好友</Text>
-          </Button>
-        </SafeAreaView>
       </PageContainer>
     </>
   );
