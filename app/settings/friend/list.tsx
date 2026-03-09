@@ -1,6 +1,6 @@
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, BackHandler, Platform, TouchableOpacity, View } from 'react-native';
+import { Alert, BackHandler, FlatList, Platform, RefreshControl, TouchableOpacity, View } from 'react-native';
 import { toast } from 'sonner-native';
 
 import { UserFriendListResponse, UserFriendListResponse_Friend } from '@/api/backend';
@@ -22,7 +22,7 @@ import { FRIEND_LIST_KEY } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import dayjs from 'dayjs';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
-import { BorderlessButton, RefreshControl } from 'react-native-gesture-handler';
+import { BorderlessButton } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FriendManagePage() {
@@ -96,30 +96,40 @@ export default function FriendManagePage() {
     [handleError, refetch],
   );
 
-  const renderItem = useCallback(
+  const renderFriendItem = useCallback(
+    (item: UserFriendListResponse[0]) => (
+      <View className="flex-row items-center justify-between py-4">
+        <View className="flex-1 gap-1">
+          <Text className="text-lg font-medium">{item.name}</Text>
+          <Text className="text-sm text-text-secondary">
+            {item.grade}级 {item.college} {item.major}
+          </Text>
+        </View>
+      </View>
+    ),
+    [],
+  );
+
+  const renderDraggableItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<UserFriendListResponse[0]>) => (
       <ScaleDecorator>
         <View className="flex-row items-center justify-between py-4">
-          {isManage && (
-            <TouchableOpacity onPressIn={drag} disabled={isActive} className="mr-3 p-2">
-              <Icon name="reorder-three-outline" size={24} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity onPressIn={drag} disabled={isActive} className="mr-3 p-2">
+            <Icon name="reorder-three-outline" size={24} />
+          </TouchableOpacity>
           <View className="flex-1 gap-1">
             <Text className="text-lg font-medium">{item.name}</Text>
             <Text className="text-sm text-text-secondary">
               {item.grade}级 {item.college} {item.major}
             </Text>
           </View>
-          {isManage && (
-            <TouchableOpacity onPress={() => handleDelete(item)} className="p-2">
-              <Icon name="trash-outline" size={24} color="#ef4444" />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity onPress={() => handleDelete(item)} className="p-2">
+            <Icon name="trash-outline" size={24} color="#ef4444" />
+          </TouchableOpacity>
         </View>
       </ScaleDecorator>
     ),
-    [handleDelete, isManage],
+    [handleDelete],
   );
 
   const exitManage = useCallback(() => {
@@ -190,20 +200,30 @@ export default function FriendManagePage() {
           className="flex-1"
           content={
             <View className="flex-1">
-              <DraggableFlatList
-                data={orderedList}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => `${index}-${item.stu_id}`}
-                contentContainerClassName="px-8"
-                className="h-full"
-                refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} enabled={!isManage} />}
-                onDragEnd={({ data, from, to }) => {
-                  if (from !== to) {
-                    orderChangedRef.current = true;
-                    setOrderedList(data);
-                  }
-                }}
-              />
+              {isManage ? (
+                <DraggableFlatList
+                  data={orderedList}
+                  renderItem={renderDraggableItem}
+                  keyExtractor={(item, index) => `${index}-${item.stu_id}`}
+                  contentContainerClassName="px-8"
+                  className="h-full"
+                  onDragEnd={({ data, from, to }) => {
+                    if (from !== to) {
+                      orderChangedRef.current = true;
+                      setOrderedList(data);
+                    }
+                  }}
+                />
+              ) : (
+                // DraggableFlatList使用RefreshControl会导致安卓上无法滚动
+                <FlatList
+                  data={orderedList}
+                  renderItem={({ item }) => renderFriendItem(item)}
+                  keyExtractor={item => item.stu_id}
+                  contentContainerClassName="px-8"
+                  refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+                />
+              )}
             </View>
           }
         />
