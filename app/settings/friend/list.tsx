@@ -22,14 +22,14 @@ import { FRIEND_LIST_KEY } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import dayjs from 'dayjs';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
-import { BorderlessButton } from 'react-native-gesture-handler';
+import { BorderlessButton, RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FriendManagePage() {
   const { handleError } = useSafeResponseSolve();
 
   const apiResult = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
-  const { data: friendList, refetch } = apiResult;
+  const { data: friendList, refetch, isFetching } = apiResult;
 
   const { data: maxNumData } = useApiRequest(getApiV1UserFriendMaxNum, {});
 
@@ -54,7 +54,6 @@ export default function FriendManagePage() {
       orderChangedRef.current = false;
       try {
         await postApiV1UserFriendReorder({ friend_ids: data.map(item => item.stu_id) });
-        toast.success('排序已更新');
       } catch (error: any) {
         const errData = handleError(error) as { message: string };
         if (errData) {
@@ -102,7 +101,7 @@ export default function FriendManagePage() {
       <ScaleDecorator>
         <View className="flex-row items-center justify-between py-4">
           {isManage && (
-            <TouchableOpacity onLongPress={drag} disabled={isActive} className="mr-3 p-2">
+            <TouchableOpacity onPressIn={drag} disabled={isActive} className="mr-3 p-2">
               <Icon name="reorder-three-outline" size={24} />
             </TouchableOpacity>
           )}
@@ -188,17 +187,19 @@ export default function FriendManagePage() {
         <MultiStateView
           state={state}
           refresh={refetch}
-          className="flex-1"
           content={
             <View className="flex-1">
               <DraggableFlatList
                 data={orderedList}
                 renderItem={renderItem}
-                keyExtractor={item => item.stu_id}
+                keyExtractor={(item, index) => `${index}-${item.stu_id}`}
                 contentContainerClassName="px-8"
-                onDragEnd={({ data }) => {
-                  orderChangedRef.current = true;
-                  setOrderedList(data);
+                refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} enabled={!isManage} />}
+                onDragEnd={({ data, from, to }) => {
+                  if (from !== to) {
+                    orderChangedRef.current = true;
+                    setOrderedList(data);
+                  }
                 }}
               />
             </View>
