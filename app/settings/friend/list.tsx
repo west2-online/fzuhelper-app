@@ -215,6 +215,7 @@ export default function FriendManagePage() {
                   }}
                 />
               ) : (
+                // DraggableFlatList嵌套FlatList会导致安卓上无法滚动
                 <FlatList
                   data={orderedList}
                   renderItem={({ item }) => renderFriendItem(item)}
