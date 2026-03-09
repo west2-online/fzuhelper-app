@@ -187,7 +187,7 @@ export default function FriendManagePage() {
         <MultiStateView
           state={state}
           refresh={refetch}
-          className='flex-1'
+          className="flex-1"
           content={
             <View className="flex-1">
               <DraggableFlatList
@@ -195,7 +195,7 @@ export default function FriendManagePage() {
                 renderItem={renderItem}
                 keyExtractor={(item, index) => `${index}-${item.stu_id}`}
                 contentContainerClassName="px-8"
-                className='h-full'
+                className="h-full"
                 refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} enabled={!isManage} />}
                 onDragEnd={({ data, from, to }) => {
                   if (from !== to) {
