@@ -1,25 +1,35 @@
 import { getApiV1JwchUserInfo } from '@/api/generate/user';
 import { get } from '@/modules/native-request';
 import { UserInfo } from '@/types/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetch as fetchNetInfo } from '@react-native-community/netinfo';
 import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { LocalUser } from './user';
 
 export class FeedbackManager {
-  private userInfo: UserInfo | undefined = undefined;
+  private static instance: FeedbackManager;
+
+  public static getInstance(): FeedbackManager {
+    if (!FeedbackManager.instance) {
+      FeedbackManager.instance = new FeedbackManager();
+    }
+    return FeedbackManager.instance;
+  }
+  // -----------------------------个人信息-----------------------------
 
   getStuId = (): string => {
     return LocalUser.getUser().userid;
   };
 
-  #getUserInfo = async (): Promise<UserInfo> => {
-    if (this.userInfo) {
-      return this.userInfo;
+  #getUserInfo = async (): Promise<UserInfo | undefined> => {
+    try {
+      const userInfo = await getApiV1JwchUserInfo();
+      return userInfo?.data?.data || undefined;
+    } catch (error) {
+      console.error('getUserInfo error:', error);
+      return undefined;
     }
-    const userInfo = await getApiV1JwchUserInfo();
-    this.userInfo = userInfo?.data?.data || undefined;
-    return this.userInfo;
   };
 
   getStuName = async (): Promise<string> => {
@@ -32,6 +42,8 @@ export class FeedbackManager {
     return userInfo?.college || '';
   };
 
+  // -----------------------------设备信息-----------------------------
+
   /**
    * 获取网络类型
    * @returns wifi, cellular, vpn ..., https://github.com/react-native-netinfo/react-native-netinfo#netinfostatetype
@@ -43,8 +55,13 @@ export class FeedbackManager {
 
   // 是否在校园网内，如果不是则会302到系统提示页面
   getNetworkIsCampus = async (): Promise<boolean> => {
-    const resp = await get('https://info.fzu.edu.cn/', {});
-    return resp.status === 200;
+    try {
+      const resp = await get('https://info.fzu.edu.cn/', {});
+      return resp.status === 200;
+    } catch (error) {
+      console.error('getNetworkIsCampus error:', error);
+      return false;
+    }
   };
 
   getOsName = (): string => {
@@ -95,5 +112,37 @@ export class FeedbackManager {
     } else {
       return await DeviceInfo.getProduct();
     }
+  };
+
+  // -----------------------------版本信息-----------------------------
+
+  APP_VERSION_HISTORY_KEY = 'app_version_history';
+
+  getAppVersion = (): string => {
+    return DeviceInfo.getVersion() + ' (' + DeviceInfo.getBuildNumber() + ')';
+  };
+
+  addAppVersionHistory = async (): Promise<void> => {
+    try {
+      const versionHistory = await AsyncStorage.getItem(this.APP_VERSION_HISTORY_KEY);
+      // [version1, version2, version3], 最新的在前面，最多记录10个
+      const versionHistoryList = JSON.parse(versionHistory || '[]') as string[];
+      if (versionHistoryList.length > 0 && versionHistoryList[0] === this.getAppVersion()) {
+        return;
+      }
+      if (versionHistoryList.length >= 10) {
+        versionHistoryList.pop();
+      }
+      versionHistoryList.unshift(this.getAppVersion());
+      await AsyncStorage.setItem(this.APP_VERSION_HISTORY_KEY, JSON.stringify(versionHistoryList));
+    } catch (error) {
+      console.error('addAppVersionHistory error:', error);
+      await AsyncStorage.setItem(this.APP_VERSION_HISTORY_KEY, JSON.stringify([this.getAppVersion()]));
+    }
+  };
+
+  getAppVersionHistory = async (): Promise<string> => {
+    const versionHistory = await AsyncStorage.getItem(this.APP_VERSION_HISTORY_KEY);
+    return versionHistory || '[]';
   };
 }
