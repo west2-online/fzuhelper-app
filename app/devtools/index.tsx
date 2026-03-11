@@ -166,6 +166,11 @@ export default function HomePage() {
                 <Text>Multi State Test</Text>
               </Button>
             </Link>
+            <Link href="/devtools/feedback-test" asChild>
+              <Button>
+                <Text>Feedback Test</Text>
+              </Button>
+            </Link>
 
             {/* 功能测试 */}
             <Text className="m-3 my-4 text-lg font-bold">Shortcut</Text>
