@@ -59,7 +59,27 @@ export class FeedbackManager {
     return await DeviceInfo.getManufacturer();
   };
 
+  getBrand = async (): Promise<string> => {
+    return await DeviceInfo.getBrand();
+  };
+
   getDeviceModel = (): string => {
     return DeviceInfo.getModel();
+  };
+
+  getProduct = async (): Promise<string> => {
+    return await DeviceInfo.getProduct();
+  };
+
+  getDeviceId = async (): Promise<string> => {
+    return await DeviceInfo.getDeviceId();
+  };
+
+  getSystemName = async (): Promise<string> => {
+    return await DeviceInfo.getSystemName();
+  };
+
+  getSystemVersion = async (): Promise<string> => {
+    return await DeviceInfo.getSystemVersion();
   };
 }
