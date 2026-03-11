@@ -51,35 +51,49 @@ export class FeedbackManager {
     return Platform.OS;
   };
 
+  /**
+   * 获取操作系统版本
+   * @returns Android: 16 (36), iOS: 26.0
+   */
   getOsVersion = (): string => {
-    return String(Platform.Version);
+    if (Platform.OS === 'android') {
+      return DeviceInfo.getSystemVersion() + ' (' + String(Platform.Version) + ')';
+    } else {
+      return DeviceInfo.getSystemVersion();
+    }
   };
 
+  /**
+   * 获取制造商（品牌）
+   * @returns Manufacturer (Brand) if Manufacturer is not equal to Brand
+   */
   getManufacturer = async (): Promise<string> => {
-    return await DeviceInfo.getManufacturer();
+    const brand = DeviceInfo.getBrand();
+    const manufacturer = await DeviceInfo.getManufacturer();
+    if (manufacturer === brand) {
+      return manufacturer;
+    } else {
+      return manufacturer + ' (' + brand + ')';
+    }
   };
 
-  getBrand = async (): Promise<string> => {
-    return await DeviceInfo.getBrand();
-  };
-
+  /**
+   * 获取设备Model，对于iOS是设备传播名
+   * @returns 例如 Android: 22041211AC（代表红米K50）, iOS: iPhone 17 Pro
+   */
   getDeviceModel = (): string => {
     return DeviceInfo.getModel();
   };
 
+  /**
+   * 获取设备型号(Device)，非设备传播名
+   * @returns 例如 Android: rubens（代表红米K50）, iOS: iPhone18,1（代表iPhone 17 Pro） https://github.com/KHwang9883/MobileModels https://storage.googleapis.com/play_public/supported_devices.csv
+   */
   getProduct = async (): Promise<string> => {
-    return await DeviceInfo.getProduct();
-  };
-
-  getDeviceId = async (): Promise<string> => {
-    return await DeviceInfo.getDeviceId();
-  };
-
-  getSystemName = async (): Promise<string> => {
-    return await DeviceInfo.getSystemName();
-  };
-
-  getSystemVersion = async (): Promise<string> => {
-    return await DeviceInfo.getSystemVersion();
+    if (Platform.OS === 'ios') {
+      return DeviceInfo.getDeviceId();
+    } else {
+      return await DeviceInfo.getProduct();
+    }
   };
 }
