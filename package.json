@@ -1,6 +1,6 @@
 {
   "name": "fzuhelper-app",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "//": "下面的 version 每一位都只能是【一位】数字！！！",
   "version": "7.2.3",
   "private": true,
@@ -70,6 +70,7 @@
     "react-native-image-crop-picker": "^0.51.0",
     "react-native-image-zoom-viewer": "^3.0.1",
     "react-native-keyboard-controller": "1.18.5",
+    "react-native-logs": "^5.6.0",
     "react-native-mime-types": "^2.5.0",
     "react-native-permissions": "^5.4.1",
     "react-native-qrcode-svg": "^6.3.12",

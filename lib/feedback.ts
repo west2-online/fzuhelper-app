@@ -1,12 +1,14 @@
 import { getApiV1JwchUserInfo } from '@/api/generate/user';
 import { get } from '@/modules/native-request';
 import { UserInfo } from '@/types/user';
+import { ensureDir } from '@/utils/file-cache';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetch as fetchNetInfo } from '@react-native-community/netinfo';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import { consoleTransport, fileAsyncTransport, logger } from 'react-native-logs';
 import { LocalUser } from './user';
-
 export class FeedbackManager {
   private static instance: FeedbackManager;
 
@@ -144,5 +146,27 @@ export class FeedbackManager {
   getAppVersionHistory = async (): Promise<string> => {
     const versionHistory = await AsyncStorage.getItem(this.APP_VERSION_HISTORY_KEY);
     return versionHistory || '[]';
+  };
+
+  // -----------------------------日志-----------------------------
+
+  private isLoggerInitialized = false;
+
+  initLogger = async (): Promise<void> => {
+    if (this.isLoggerInitialized || __DEV__) return; // 调试下日志直接输出到控制台
+    const logDir = FileSystem.documentDirectory + 'app_logs/';
+    await ensureDir(logDir);
+    const log = logger.createLogger({
+      transport: fileAsyncTransport,
+      transportOptions: {
+        FS: FileSystem,
+        fileName: '{date-today}.log',
+        fileNameDateType: 'iso',
+        filePath: logDir,
+      },
+    });
+    log.patchConsole();
+    log.info('Logger initialized');
+    this.isLoggerInitialized = true;
   };
 }

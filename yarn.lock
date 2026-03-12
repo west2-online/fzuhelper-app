@@ -8974,6 +8974,11 @@ react-native-keyboard-controller@1.18.5:
   dependencies:
     react-native-is-edge-to-edge "^1.2.1"
 
+react-native-logs@^5.6.0:
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/react-native-logs/-/react-native-logs-5.6.0.tgz#4abb199a746c429e901290c5cdac1dcc38f1cd1c"
+  integrity sha512-+5A/AlepSGvaT2RE8YpoLOUNxfra8WBqUOM/GBjggCnfH5+RaCDThpKL6QnengAf+Limmoidm9YXPFzQ9cj3bQ==
+
 react-native-mime-types@^2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/react-native-mime-types/-/react-native-mime-types-2.5.0.tgz#2f2b6f44696797878602da822dfdc2ae5c9b29a8"
