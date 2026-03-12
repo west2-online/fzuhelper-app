@@ -4,11 +4,13 @@ import { UserInfo } from '@/types/user';
 import { ensureDir } from '@/utils/file-cache';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetch as fetchNetInfo } from '@react-native-community/netinfo';
+import dayjs from 'dayjs';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import { consoleTransport, fileAsyncTransport, logger } from 'react-native-logs';
+import { fileAsyncTransport, logger } from 'react-native-logs';
 import { LocalUser } from './user';
+
 export class FeedbackManager {
   private static instance: FeedbackManager;
 
@@ -157,10 +159,11 @@ export class FeedbackManager {
     const logDir = FileSystem.documentDirectory + 'app_logs/';
     await ensureDir(logDir);
     const log = logger.createLogger({
+      async: true,
       transport: fileAsyncTransport,
       transportOptions: {
         FS: FileSystem,
-        fileName: '{date-today}.log',
+        fileName: '{date-today}.log', // YYYY-M-D.log
         fileNameDateType: 'iso',
         filePath: logDir,
       },
@@ -168,5 +171,31 @@ export class FeedbackManager {
     log.patchConsole();
     log.info('Logger initialized');
     this.isLoggerInitialized = true;
+
+    // 根据文件名，后台清理7天外的日志
+    setTimeout(async () => {
+      try {
+        const files = await FileSystem.readDirectoryAsync(logDir);
+        const now = dayjs();
+        const sevenDaysAgo = now.subtract(7, 'day');
+
+        for (const file of files) {
+          if (file.endsWith('.log')) {
+            const datePart = file.slice(0, -4); // 去掉 .log 后缀
+            const logDate = dayjs(datePart, 'YYYY-M-D');
+            if (logDate.isValid() && logDate.isBefore(sevenDaysAgo)) {
+              try {
+                await FileSystem.deleteAsync(logDir + file, { idempotent: true });
+                log.info(`Old log removed: ${file}`);
+              } catch (e) {
+                log.warn(`Failed to delete old log: ${file}`, e);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        log.warn('Log cleanup failed', e);
+      }
+    }, 1000);
   };
 }
