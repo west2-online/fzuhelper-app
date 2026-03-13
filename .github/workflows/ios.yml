@@ -56,10 +56,10 @@ jobs:
       - name: Generate Changelog
         id: changelog
         run: |
-          GIT_LOG=$(git log -3 --pretty=format:"%s%n%b") || { echo "Failed to get git log"; exit 1; }
+          GIT_LOG=$(git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}') || { echo "Failed to get git log"; exit 1; }
           {
             echo "CHANGELOG<<BSEOF"
-            echo -e "同步自 GitHub 最近三条提交记录:\n $GIT_LOG"
+            echo -e "同步自 GitHub 最近三条提交记录:\n$GIT_LOG"
             echo "BSEOF"
           } >> "$GITHUB_OUTPUT"
 
