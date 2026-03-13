@@ -64,7 +64,7 @@ jobs:
         run: |
           echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
           echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
-          git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}'" > android/app/build/outputs/changelog
+          git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}' > android/app/build/outputs/changelog
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
