@@ -1,8 +1,9 @@
+import { Text } from '@/components/ui/text';
 import { DATETIME_SECOND_FORMAT } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import dayjs from 'dayjs';
 import React, { useMemo } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Icon } from './Icon';
 
 interface LastUpdateTimeProps {

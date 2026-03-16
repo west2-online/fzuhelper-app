@@ -1,6 +1,7 @@
+import { Text } from '@/components/ui/text';
 import { Href, router } from 'expo-router';
 import { memo, useCallback } from 'react';
-import { Linking, Text } from 'react-native';
+import { Linking } from 'react-native';
 
 export interface FAQItem {
   question?: string;
