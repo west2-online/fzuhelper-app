@@ -1,6 +1,8 @@
 import { Switch } from '@/components/ui/switch';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+
+import { Text } from '@/components/ui/text';
 
 interface SwitchWithLabelProps {
   label: string;
