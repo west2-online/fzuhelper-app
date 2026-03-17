@@ -29,7 +29,7 @@ export type FileMeta = {
 type CachedFileWithMeta = CachedFile & { __meta?: FileMeta | null };
 
 // 确保目录存在；如果不存在则尝试创建
-async function ensureDir(path: string): Promise<void> {
+export async function ensureDir(path: string): Promise<void> {
   try {
     const info = await FileSystem.getInfoAsync(path);
     if (!info.exists) await FileSystem.makeDirectoryAsync(path, { intermediates: true });
