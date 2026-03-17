@@ -35,10 +35,10 @@ export const JWCH_TERM_LIST_KEY = 'jwch_term_list';
 // 以 YJSY_ 开头
 export const YJSY_COOKIES_DOMAIN = 'https://yjsglxt.fzu.edu.cn'; // YJSY Cookies 域名
 
-// 一码通
-// 以 YMT_ 开头
-export const YMT_ACCESS_TOKEN_KEY = 'ymt_access_token';
-export const YMT_USERNAME_KEY = 'ymt_username'; // 姓名
+// 一卡通
+// 以 YKT_ 开头
+export const YKT_SYNJONES_AUTH_KEY = 'ykt_synjones_auth';
+export const YKT_USER_INFO_KEY = 'ykt_user_info'; // 用户信息
 
 // SSO 登录
 export const SSO_LOGIN_URL = 'https://sso.fzu.edu.cn/login';
