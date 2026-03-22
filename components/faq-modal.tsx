@@ -1,7 +1,8 @@
 import FAQContent, { FAQItem } from '@/components/faq-content';
+import { Text } from '@/components/ui/text';
 import { useFocusEffect } from 'expo-router';
 import React, { memo, useCallback, useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
 
 interface FAQModalProps {
   visible: boolean; // 控制 Modal 显示与否

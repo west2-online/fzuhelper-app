@@ -1,6 +1,7 @@
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
+import { Text } from '@/components/ui/text';
 import React from 'react';
-import { Image, ImageSourcePropType, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 
 interface LabelIconEntryProps {
   icon: ImageSourcePropType;

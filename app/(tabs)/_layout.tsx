@@ -106,6 +106,7 @@ export default function TabLayout() {
           headerTitleAlign: 'center',
           headerShadowVisible: false,
           headerTransparent: true,
+          tabBarAllowFontScaling: false,
           tabBarPosition: 'bottom',
           tabBarStyle: { position: 'absolute', elevation: 0 },
           // eslint-disable-next-line react/no-unstable-nested-components

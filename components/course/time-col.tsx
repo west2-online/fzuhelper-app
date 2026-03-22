@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import { memo, useEffect, useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { CLASS_SCHEDULES, TIME_FORMAT } from '@/lib/constants';
 import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
 import { cn } from '@/lib/utils';

@@ -1,9 +1,10 @@
 import { Card } from '@/components/ui/card';
+import { Text } from '@/components/ui/text';
 import { REMOTE_MAP_URL } from '@/lib/constants';
 import { getCachedFile } from '@/utils/file-cache';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { memo, useEffect, useState } from 'react';
-import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import ImageZoom from 'react-native-image-zoom-viewer';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';

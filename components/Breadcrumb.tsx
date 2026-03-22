@@ -1,6 +1,8 @@
 import { ChevronRight } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
-import { FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, TouchableOpacity, View } from 'react-native';
+
+import { Text } from '@/components/ui/text';
 
 interface BreadcrumbProps {
   currentPath: string;
