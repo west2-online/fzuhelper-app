@@ -132,6 +132,11 @@ export default function HomePage() {
                 <Text>Domitory Repair API</Text>
               </Button>
             </Link>
+            <Link href="/devtools/webview-tools" asChild>
+              <Button>
+                <Text>WebView Tools</Text>
+              </Button>
+            </Link>
 
             {/* Toast 示例 */}
             <Text className="m-3 my-4 text-lg font-bold">Toast</Text>
