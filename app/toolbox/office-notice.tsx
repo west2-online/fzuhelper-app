@@ -5,11 +5,12 @@ import Loading from '@/components/loading';
 import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
 import { Card } from '@/components/ui/card';
+import { Text } from '@/components/ui/text';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_NOTICE } from '@/lib/FAQ';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Linking, RefreshControl, Text, TouchableOpacity } from 'react-native';
+import { FlatList, Linking, RefreshControl, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
