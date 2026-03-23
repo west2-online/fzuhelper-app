@@ -65,6 +65,8 @@ const config: ExpoConfig = {
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: true, // 允许访问非 HTTPS 的内容
       },
+      // 关闭 iOS 26 液态玻璃效果
+      UIDesignRequiresCompatibility: true
     },
     entitlements: {
       'com.apple.security.application-groups': ['group.FzuHelper.NextCourse'],
