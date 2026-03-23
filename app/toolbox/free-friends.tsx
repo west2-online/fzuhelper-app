@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import { Pressable, View } from 'react-native';
 
 import { JwchCourseListResponse_Course } from '@/api/backend';
+import { RejectEnum } from '@/api/enum';
 import { getApiV1FriendCourse, getApiV1UserFriendList } from '@/api/generate';
 import { CourseErrorBoundary } from '@/components/course/course-error-boundary';
 import FreeFriendsGrid, { type FreeFriendsGridRef } from '@/components/free-friends/free-friends-grid';
@@ -11,6 +12,7 @@ import ParticipantSelectorModal from '@/components/free-friends/participant-sele
 import SlotDetailModal, { type ParticipantStatus, type SlotInfo } from '@/components/free-friends/slot-detail-modal';
 import { Icon } from '@/components/Icon';
 import Loading from '@/components/loading';
+import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { Text } from '@/components/ui/text';
@@ -37,11 +39,13 @@ function FreeFriendsContent() {
   const gridRef = useRef<FreeFriendsGridRef>(null);
 
   // Fetch friend list
-  const { data: friendList } = useApiRequest(
-    getApiV1UserFriendList,
-    {},
-    { persist: true, queryKey: [FRIEND_LIST_KEY] },
-  );
+  const {
+    data: friendList,
+    isFetching: isFriendListFetching,
+    isError: isFriendListError,
+    error: friendListError,
+    refetch: refetchFriendList,
+  } = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
 
   const totalFriends = friendList?.length ?? 0;
 
@@ -74,7 +78,16 @@ function FreeFriendsContent() {
     })),
   });
 
-  const allLoaded = friendCourseQueries.length > 0 && friendCourseQueries.every(q => q.isSuccess || q.isError);
+  const allLoaded = friendCourseQueries.every(q => q.isSuccess || q.isError);
+  const isFriendCoursesLoading = totalFriends > 0 && !allLoaded;
+
+  const state = useMemo(() => {
+    if (isFriendListFetching || isFriendCoursesLoading) return STATE.LOADING;
+    if (isFriendListError) {
+      return friendListError?.type === RejectEnum.NetworkError ? STATE.NO_NETWORK : STATE.ERROR;
+    }
+    return STATE.CONTENT;
+  }, [friendListError?.type, isFriendCoursesLoading, isFriendListError, isFriendListFetching]);
 
   // Helper: collect all busy (week, day, period) slots for a set of schedulesByDays
   const collectBusySlots = useCallback(
@@ -239,6 +252,62 @@ function FreeFriendsContent() {
     setSelectedParticipantIds(new Set(ids));
   }, []);
 
+  const handleRefresh = useCallback(() => {
+    refetchFriendList();
+    friendCourseQueries.forEach(query => {
+      query.refetch();
+    });
+  }, [friendCourseQueries, refetchFriendList]);
+
+  const msvContent =
+    totalFriends === 0 ? (
+      <View className="flex-1 items-center justify-center px-8">
+        <Text className="mb-2 text-center text-lg font-medium">还没有好友</Text>
+        <Text className="text-center text-text-secondary">前往好友管理添加好友后，这里会显示大家都有空的时间段</Text>
+        <Pressable
+          className="mt-6 rounded-lg bg-primary px-6 py-3"
+          onPress={() => router.push('/settings/friend/list')}
+        >
+          <Text className="font-medium text-white">去添加好友</Text>
+        </Pressable>
+      </View>
+    ) : (
+      <>
+        <FreeFriendsGrid
+          ref={gridRef}
+          selectedWeek={selectedWeek}
+          onWeekChange={setSelectedWeek}
+          allFreeMatrix={allFreeMatrix}
+          totalFriends={totalParticipants}
+          maxWeek={maxWeek}
+          currentTerm={currentTerm}
+          onSlotPress={handleSlotPress}
+        />
+
+        <PickerModal
+          visible={showWeekSelector}
+          title="选择周数"
+          data={weekPickerData}
+          value={String(selectedWeek)}
+          onClose={() => setShowWeekSelector(false)}
+          onConfirm={val => {
+            setShowWeekSelector(false);
+            gridRef.current?.scrollToWeek(parseInt(val, 10));
+          }}
+        />
+
+        <SlotDetailModal slotInfo={slotInfo} participants={participantsStatus} onClose={() => setSlotInfo(null)} />
+
+        <ParticipantSelectorModal
+          visible={showParticipantSelector}
+          friendList={friendList}
+          selectedIds={selectedParticipantIds}
+          onConfirm={confirmParticipantSelection}
+          onClose={() => setShowParticipantSelector(false)}
+        />
+      </>
+    );
+
   return (
     <CoursePageProvider value={{ setting: coursePageData.setting }}>
       <Stack.Screen
@@ -249,61 +318,7 @@ function FreeFriendsContent() {
         }}
       />
 
-      {/* No friends: prompt to add */}
-      {totalFriends === 0 ? (
-        <View className="flex-1 items-center justify-center px-8">
-          <Text className="mb-2 text-center text-lg font-medium">还没有好友</Text>
-          <Text className="text-center text-text-secondary">前往好友管理添加好友后，这里会显示大家都有空的时间段</Text>
-          <Pressable
-            className="mt-6 rounded-lg bg-primary px-6 py-3"
-            onPress={() => router.push('/settings/friend/list')}
-          >
-            <Text className="font-medium text-white">去添加好友</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <>
-          {/* Loading indicator while fetching friend courses */}
-          {!allLoaded && (
-            <View className="absolute inset-x-0 top-0 z-10 items-center py-1">
-              <Text className="text-xs text-text-secondary">正在加载好友课表…</Text>
-            </View>
-          )}
-
-          <FreeFriendsGrid
-            ref={gridRef}
-            selectedWeek={selectedWeek}
-            onWeekChange={setSelectedWeek}
-            allFreeMatrix={allFreeMatrix}
-            totalFriends={totalParticipants}
-            maxWeek={maxWeek}
-            currentTerm={currentTerm}
-            onSlotPress={handleSlotPress}
-          />
-
-          <PickerModal
-            visible={showWeekSelector}
-            title="选择周数"
-            data={weekPickerData}
-            value={String(selectedWeek)}
-            onClose={() => setShowWeekSelector(false)}
-            onConfirm={val => {
-              setShowWeekSelector(false);
-              gridRef.current?.scrollToWeek(parseInt(val, 10));
-            }}
-          />
-
-          <SlotDetailModal slotInfo={slotInfo} participants={participantsStatus} onClose={() => setSlotInfo(null)} />
-
-          <ParticipantSelectorModal
-            visible={showParticipantSelector}
-            friendList={friendList}
-            selectedIds={selectedParticipantIds}
-            onConfirm={confirmParticipantSelection}
-            onClose={() => setShowParticipantSelector(false)}
-          />
-        </>
-      )}
+      <MultiStateView state={state} className="flex-1" content={msvContent} refresh={handleRefresh} />
     </CoursePageProvider>
   );
 }

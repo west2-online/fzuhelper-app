@@ -2,12 +2,13 @@ import { memo, useMemo } from 'react';
 import { Pressable, View, type LayoutRectangle } from 'react-native';
 
 import { Text } from '@/components/ui/text';
-import { SCHEDULE_ITEM_MARGIN, SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
+import { SCHEDULE_ITEM_MARGIN } from '@/lib/course';
 
 interface FreeFriendsColProps {
   freeCountPerSlot: number[];
   totalFriends: number;
   flatListLayout: LayoutRectangle;
+  minItemHeight?: number;
   onSlotPress?: (period: number) => void;
 }
 
@@ -28,12 +29,14 @@ const FreeFriendsCol: React.FC<FreeFriendsColProps> = ({
   freeCountPerSlot,
   totalFriends,
   flatListLayout,
+  minItemHeight = 36,
   onSlotPress,
 }) => {
-  const itemHeight = useMemo(
-    () => Math.max(SCHEDULE_ITEM_MIN_HEIGHT, Math.floor(flatListLayout.height / 11)),
-    [flatListLayout.height],
-  );
+  const itemHeight = useMemo(() => {
+    const totalMargin = SCHEDULE_ITEM_MARGIN * 22;
+    const availableHeight = Math.max(0, flatListLayout.height - totalMargin);
+    return Math.max(minItemHeight, Math.floor(availableHeight / 11));
+  }, [flatListLayout.height, minItemHeight]);
 
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>
