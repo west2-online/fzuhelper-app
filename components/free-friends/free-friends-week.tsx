@@ -9,9 +9,8 @@ import TimeCol from '@/components/course/time-col';
 import FreeFriendsCol from '@/components/free-friends/free-friends-col';
 import { Text } from '@/components/ui/text';
 import { DATE_FORMAT_FULL } from '@/lib/constants';
-import { LEFT_TIME_COLUMN_WIDTH, TOP_CALENDAR_HEIGHT } from '@/lib/course';
+import { LEFT_TIME_COLUMN_WIDTH, SCHEDULE_ITEM_MIN_HEIGHT, TOP_CALENDAR_HEIGHT } from '@/lib/course';
 const DAYS = ['一', '二', '三', '四', '五', '六', '日'] as const;
-const FREE_FRIENDS_MIN_ITEM_HEIGHT = 36;
 
 interface FreeFriendsWeekProps {
   week: number;
@@ -90,10 +89,7 @@ const FreeFriendsWeek = memo<FreeFriendsWeekProps>(
             overScrollMode="never"
             bounces={false}
           >
-            <TimeCol
-              height={flatListLayout.height - TOP_CALENDAR_HEIGHT}
-              minItemHeight={FREE_FRIENDS_MIN_ITEM_HEIGHT}
-            />
+            <TimeCol height={flatListLayout.height - TOP_CALENDAR_HEIGHT} minItemHeight={SCHEDULE_ITEM_MIN_HEIGHT} />
             <View className="flex flex-1 flex-row">
               {Array.from({ length: 7 }, (_, day) => (
                 <FreeFriendsCol
@@ -101,7 +97,7 @@ const FreeFriendsWeek = memo<FreeFriendsWeekProps>(
                   freeCountPerSlot={freeMatrix[day] ?? new Array(11).fill(0)}
                   totalFriends={totalFriends}
                   flatListLayout={colLayout}
-                  minItemHeight={FREE_FRIENDS_MIN_ITEM_HEIGHT}
+                  minItemHeight={SCHEDULE_ITEM_MIN_HEIGHT}
                   onSlotPress={period => onSlotPress?.(day, period)}
                 />
               ))}

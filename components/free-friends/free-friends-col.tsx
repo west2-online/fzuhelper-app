@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react';
 import { Pressable, View, type LayoutRectangle } from 'react-native';
 
 import { Text } from '@/components/ui/text';
-import { SCHEDULE_ITEM_MARGIN } from '@/lib/course';
+import { SCHEDULE_ITEM_MARGIN, SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
 
 interface FreeFriendsColProps {
   freeCountPerSlot: number[];
@@ -29,14 +29,13 @@ const FreeFriendsCol: React.FC<FreeFriendsColProps> = ({
   freeCountPerSlot,
   totalFriends,
   flatListLayout,
-  minItemHeight = 36,
+  minItemHeight = SCHEDULE_ITEM_MIN_HEIGHT,
   onSlotPress,
 }) => {
-  const itemHeight = useMemo(() => {
-    const totalMargin = SCHEDULE_ITEM_MARGIN * 22;
-    const availableHeight = Math.max(0, flatListLayout.height - totalMargin);
-    return Math.max(minItemHeight, Math.floor(availableHeight / 11));
-  }, [flatListLayout.height, minItemHeight]);
+  const itemHeight = useMemo(
+    () => Math.max(minItemHeight, Math.floor(flatListLayout.height / 11)),
+    [flatListLayout.height, minItemHeight],
+  );
 
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>
@@ -44,18 +43,18 @@ const FreeFriendsCol: React.FC<FreeFriendsColProps> = ({
         const style = getSlotStyle(count, totalFriends);
         const period = index + 1;
         return (
-          <Pressable
-            key={index}
-            className={`items-center justify-center rounded ${style ? style.bg : ''}`}
-            style={{ height: itemHeight, margin: SCHEDULE_ITEM_MARGIN }}
-            onPress={style ? () => onSlotPress?.(period) : undefined}
-          >
-            {style && (
-              <Text className={`text-center text-[10px] font-bold ${style.text}`} numberOfLines={1}>
-                {style.label}
-              </Text>
-            )}
-          </Pressable>
+          <View key={index} style={{ height: itemHeight, padding: SCHEDULE_ITEM_MARGIN }}>
+            <Pressable
+              className={`flex-1 items-center justify-center rounded ${style ? style.bg : ''}`}
+              onPress={style ? () => onSlotPress?.(period) : undefined}
+            >
+              {style && (
+                <Text className={`text-center text-[10px] font-bold ${style.text}`} numberOfLines={1}>
+                  {style.label}
+                </Text>
+              )}
+            </Pressable>
+          </View>
         );
       })}
     </View>
