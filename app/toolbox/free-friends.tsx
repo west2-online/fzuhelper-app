@@ -240,7 +240,7 @@ function FreeFriendsContent() {
     () => (
       <Pressable className="mr-4 flex flex-row items-center gap-1" onPress={() => setShowParticipantSelector(true)}>
         <Icon name="people-outline" size={20} />
-        <Text className="text-xs text-primary">
+        <Text className="pl-1">
           {selectedParticipantIds.size}/{totalFriends + 1}
         </Text>
       </Pressable>
