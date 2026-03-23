@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -11,9 +11,7 @@ interface ParticipantSelectorModalProps {
   visible: boolean;
   friendList: UserFriendListResponse_Friend[] | undefined;
   selectedIds: Set<string>;
-  onToggle: (id: string) => void;
-  onSelectAll: () => void;
-  onDeselectAll: () => void;
+  onConfirm: (ids: Set<string>) => void;
   onClose: () => void;
 }
 
@@ -21,11 +19,44 @@ const ParticipantSelectorModal: React.FC<ParticipantSelectorModalProps> = ({
   visible,
   friendList,
   selectedIds,
-  onToggle,
-  onSelectAll,
-  onDeselectAll,
+  onConfirm,
   onClose,
 }) => {
+  const [draftSelectedIds, setDraftSelectedIds] = useState<Set<string>>(new Set(selectedIds));
+
+  useEffect(() => {
+    if (visible) {
+      setDraftSelectedIds(new Set(selectedIds));
+    }
+  }, [visible, selectedIds]);
+
+  const handleToggle = useCallback((id: string) => {
+    setDraftSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    const all = new Set(['self']);
+    friendList?.forEach(f => all.add(f.stu_id));
+    setDraftSelectedIds(all);
+  }, [friendList]);
+
+  const handleDeselectAll = useCallback(() => {
+    setDraftSelectedIds(new Set());
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    onConfirm(new Set(draftSelectedIds));
+    onClose();
+  }, [draftSelectedIds, onConfirm, onClose]);
+
   const renderCheckbox = useCallback(
     (checked: boolean) => (
       <View
@@ -38,13 +69,13 @@ const ParticipantSelectorModal: React.FC<ParticipantSelectorModalProps> = ({
   );
 
   return (
-    <FloatModal visible={visible} title="选择参与人" onClose={onClose}>
+    <FloatModal visible={visible} title="选择参与人" onClose={onClose} onConfirm={handleConfirm}>
       {/* Select all / Deselect all */}
       <View className="mb-3 flex flex-row gap-2">
-        <Pressable className="flex-1 rounded-md bg-primary/10 py-2" onPress={onSelectAll}>
+        <Pressable className="flex-1 rounded-md bg-primary/10 py-2" onPress={handleSelectAll}>
           <Text className="text-center text-sm font-medium text-primary">全选</Text>
         </Pressable>
-        <Pressable className="flex-1 rounded-md bg-destructive/10 py-2" onPress={onDeselectAll}>
+        <Pressable className="flex-1 rounded-md bg-destructive/10 py-2" onPress={handleDeselectAll}>
           <Text className="text-center text-sm font-medium text-destructive">清空</Text>
         </Pressable>
       </View>
@@ -53,10 +84,10 @@ const ParticipantSelectorModal: React.FC<ParticipantSelectorModalProps> = ({
         {/* Self */}
         <Pressable
           className="mb-2 flex flex-row items-center justify-between rounded-lg border border-border p-3"
-          onPress={() => onToggle('self')}
+          onPress={() => handleToggle('self')}
         >
           <Text className="font-medium">我</Text>
-          {renderCheckbox(selectedIds.has('self'))}
+          {renderCheckbox(draftSelectedIds.has('self'))}
         </Pressable>
 
         {/* Friends */}
@@ -64,7 +95,7 @@ const ParticipantSelectorModal: React.FC<ParticipantSelectorModalProps> = ({
           <Pressable
             key={friend.stu_id}
             className="mb-2 flex flex-row items-center justify-between rounded-lg border border-border p-3"
-            onPress={() => onToggle(friend.stu_id)}
+            onPress={() => handleToggle(friend.stu_id)}
           >
             <View className="flex-1">
               <Text className="font-medium">{friend.name}</Text>
@@ -72,7 +103,7 @@ const ParticipantSelectorModal: React.FC<ParticipantSelectorModalProps> = ({
                 {friend.college} · {friend.major}
               </Text>
             </View>
-            {renderCheckbox(selectedIds.has(friend.stu_id))}
+            {renderCheckbox(draftSelectedIds.has(friend.stu_id))}
           </Pressable>
         ))}
       </ScrollView>

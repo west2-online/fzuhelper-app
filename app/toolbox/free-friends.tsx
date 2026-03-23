@@ -235,33 +235,15 @@ function FreeFriendsContent() {
     [selectedParticipantIds.size, totalFriends],
   );
 
-  const toggleParticipant = useCallback((id: string) => {
-    setSelectedParticipantIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }, []);
-
-  const selectAllParticipants = useCallback(() => {
-    const all = new Set(['self']);
-    friendList?.forEach(f => all.add(f.stu_id));
-    setSelectedParticipantIds(all);
-  }, [friendList]);
-
-  const deselectAllParticipants = useCallback(() => {
-    setSelectedParticipantIds(new Set());
+  const confirmParticipantSelection = useCallback((ids: Set<string>) => {
+    setSelectedParticipantIds(new Set(ids));
   }, []);
 
   return (
     <CoursePageProvider value={{ setting: coursePageData.setting }}>
       <Stack.Screen
         options={{
-          title: '没课约',
+          title: '约好友',
           headerTitle,
           headerRight,
         }}
@@ -317,9 +299,7 @@ function FreeFriendsContent() {
             visible={showParticipantSelector}
             friendList={friendList}
             selectedIds={selectedParticipantIds}
-            onToggle={toggleParticipant}
-            onSelectAll={selectAllParticipants}
-            onDeselectAll={deselectAllParticipants}
+            onConfirm={confirmParticipantSelection}
             onClose={() => setShowParticipantSelector(false)}
           />
         </>

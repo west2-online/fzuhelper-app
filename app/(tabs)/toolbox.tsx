@@ -290,7 +290,7 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
   },
   {
     id: 210,
-    name: '约',
+    name: '约好友',
     icon: FreeFriendsIcon,
     type: ToolType.LINK,
     href: '/toolbox/free-friends',
