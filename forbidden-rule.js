@@ -52,6 +52,6 @@ module.exports = [
     source: 'react-native',
     names: ['Text'],
     message: '此组件会跟随系统字体大小，请从 @/components/ui/ 导入',
-    allowIn: ['components/ui/text.tsx'],
+    allowIn: ['components/ui/text.tsx', 'utils/patch-text-component.ts'],
   },
 ];
