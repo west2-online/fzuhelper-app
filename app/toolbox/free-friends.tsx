@@ -21,6 +21,7 @@ import useApiRequest from '@/hooks/useApiRequest';
 import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { EXPIRE_ONE_DAY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, type ExtendCourse } from '@/lib/course';
+import { BorderlessButton } from 'react-native-gesture-handler';
 
 function FreeFriendsContent() {
   const router = useRouter();
@@ -238,12 +239,14 @@ function FreeFriendsContent() {
 
   const headerRight = useCallback(
     () => (
-      <Pressable className="mr-4 flex flex-row items-center gap-1" onPress={() => setShowParticipantSelector(true)}>
-        <Icon name="people-outline" size={20} />
-        <Text className="pl-1">
-          {selectedParticipantIds.size}/{totalFriends + 1}
-        </Text>
-      </Pressable>
+      <BorderlessButton onPress={() => setShowParticipantSelector(true)}>
+        <View className="flex-row items-center gap-1 py-4">
+          <Icon name="people-outline" size={20} />
+          <Text className="pl-1">
+            {selectedParticipantIds.size}/{totalFriends + 1}
+          </Text>
+        </View>
+      </BorderlessButton>
     ),
     [selectedParticipantIds.size, totalFriends],
   );
