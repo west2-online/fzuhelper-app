@@ -4,6 +4,7 @@ import { UserFriendListResponse, UserFriendListResponse_Friend } from '@/api/bac
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
+import { ScrollView } from 'react-native-gesture-handler';
 
 interface FriendListModalProps {
   visible: boolean;
@@ -35,41 +36,43 @@ export function FriendListModal({
         <Pressable className="absolute inset-0" onPress={onClose} />
 
         {/* 弹出窗口 */}
-        <View className="absolute left-4 top-28 w-1/2 max-w-md gap-1 rounded-xl bg-background p-5 shadow-xl">
+        <View className="-max-h-screen-safe-offset-64 absolute left-4 top-28 w-1/2 max-w-md gap-1 rounded-xl bg-background p-5 shadow-xl">
           {/* 小箭头 */}
           <View className="absolute -top-1 left-20 h-3 w-3 rotate-45 bg-background" />
-          <TouchableOpacity
-            className="flex h-14 flex-row items-center justify-between"
-            activeOpacity={0.7}
-            onPress={() => {
-              onClose();
-              onSelectFriend(undefined);
-            }}
-          >
-            <View className="flex flex-row items-center">
-              <Text className="line-clamp-1 text-lg">我的课表</Text>
-            </View>
-            {!selectedFriendId && <Icon name="checkmark" size={20} color="#007AFF" />}
-          </TouchableOpacity>
-          {friendList?.map((friend: UserFriendListResponse_Friend) => (
+          <ScrollView showsVerticalScrollIndicator={false} overScrollMode="never">
             <TouchableOpacity
-              key={friend.stu_id}
-              className="flex h-14 flex-row items-center"
+              className="flex h-14 flex-row items-center justify-between"
               activeOpacity={0.7}
               onPress={() => {
                 onClose();
-                onSelectFriend(friend.stu_id);
+                onSelectFriend(undefined);
               }}
             >
-              <View className="flex-1">
-                <Text className="line-clamp-1 text-lg">{friend.name}</Text>
-                <Text className="line-clamp-1 text-sm text-text-secondary">
-                  {friend.grade}级{friend.major}专业
-                </Text>
+              <View className="flex flex-row items-center">
+                <Text className="line-clamp-1 text-lg">我的课表</Text>
               </View>
-              {selectedFriendId === friend.stu_id && <Icon name="checkmark" size={20} color="#007AFF" />}
+              {!selectedFriendId && <Icon name="checkmark" size={20} color="#007AFF" />}
             </TouchableOpacity>
-          ))}
+            {friendList?.map((friend: UserFriendListResponse_Friend) => (
+              <TouchableOpacity
+                key={friend.stu_id}
+                className="flex h-14 flex-row items-center"
+                activeOpacity={0.7}
+                onPress={() => {
+                  onClose();
+                  onSelectFriend(friend.stu_id);
+                }}
+              >
+                <View className="flex-1">
+                  <Text className="line-clamp-1 text-lg">{friend.name}</Text>
+                  <Text className="line-clamp-1 text-sm text-text-secondary">
+                    {friend.grade}级 {friend.major}
+                  </Text>
+                </View>
+                {selectedFriendId === friend.stu_id && <Icon name="checkmark" size={20} color="#007AFF" />}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
           <TouchableOpacity
             className="flex h-14 justify-center"
             activeOpacity={0.7}

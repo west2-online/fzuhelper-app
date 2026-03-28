@@ -72,16 +72,6 @@ export const useSafeResponseSolve = () => {
           break;
 
         case RejectEnum.BizFailed:
-          // 静默处理"没有可用图片"错误
-          if (
-            typeof error.data === 'object' &&
-            error.data !== null &&
-            'message' in error.data &&
-            error.data.message === '没有可用图片'
-          ) {
-            console.log('静默处理无可用图片的业务异常');
-            break;
-          }
           console.error('业务异常:', error.data);
           return error.data;
 

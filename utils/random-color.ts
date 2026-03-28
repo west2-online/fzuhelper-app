@@ -29,9 +29,30 @@ export const courseColors = [
 
 const defaultColor = '#000000'; // 默认颜色(全黑)
 const examColor = '#FF6347'; // 考试的颜色
-const courseColorMap: Map<string, string> = new Map(); // 存储 courseName 和颜色的对
-// 应关系
-let availableColors = [...courseColors]; // 可用颜色数组
+
+// 每个学号对应独立的颜色映射和可用颜色数组
+const studentColorMaps: Map<string, Map<string, string>> = new Map();
+const studentAvailableColors: Map<string, string[]> = new Map();
+
+/**
+ * 获取指定学号的颜色映射，不存在则创建
+ */
+const getColorMapForStudent = (studentId: string): Map<string, string> => {
+  if (!studentColorMaps.has(studentId)) {
+    studentColorMaps.set(studentId, new Map());
+  }
+  return studentColorMaps.get(studentId)!;
+};
+
+/**
+ * 获取指定学号的可用颜色数组，不存在则创建
+ */
+const getAvailableColorsForStudent = (studentId: string): string[] => {
+  if (!studentAvailableColors.has(studentId)) {
+    studentAvailableColors.set(studentId, [...courseColors]);
+  }
+  return studentAvailableColors.get(studentId)!;
+};
 
 /**
  * 返回考试的颜色
@@ -41,12 +62,16 @@ export const getExamColor = (): string => examColor;
 
 /**
  * 依据课程key 获取颜色
- * @param course 课程信息
+ * @param courseName 课程名称
+ * @param studentId 学号，用于区分不同学生的颜色映射
  */
-export const allocateColorForCourse = (courseName: string): string => {
+export const allocateColorForCourse = (courseName: string, studentId: string): string => {
+  const colorMap = getColorMapForStudent(studentId);
+  const availableColors = getAvailableColorsForStudent(studentId);
+
   // 如果已经为这个 courseName 分配了颜色，直接返回
-  if (courseColorMap.has(courseName)) {
-    return courseColorMap.get(courseName)!;
+  if (colorMap.has(courseName)) {
+    return colorMap.get(courseName)!;
   }
 
   // 如果没有可用颜色，返回默认颜色
@@ -63,20 +88,21 @@ export const allocateColorForCourse = (courseName: string): string => {
   availableColors.splice(randomIndex, 1);
 
   // 将新颜色与 courseName 的关系存储到映射中
-  courseColorMap.set(courseName, color);
+  colorMap.set(courseName, color);
 
-  console.log(`为课程 "${courseName}" 分配颜色:`, color);
+  console.log(`为学号 "${studentId}" 的课程 "${courseName}" 分配颜色:`, color);
 
   return color;
 };
 
 /**
- * 清空颜色索引和映射
+ * 清空指定学号的颜色索引和映射
+ * @param studentId 学号，用于区分不同学生的颜色映射
  */
-export const clearColorMapping = () => {
-  console.log('Clearing color index and resetting mappings');
-  availableColors = [...courseColors]; // 重置可用颜色数组
-  courseColorMap.clear(); // 清空 courseName 和颜色的映射
+export const clearColorMapping = (studentId: string) => {
+  console.log(`Clearing color index and resetting mappings for student: ${studentId}`);
+  studentAvailableColors.set(studentId, [...courseColors]); // 重置可用颜色数组
+  studentColorMaps.get(studentId)?.clear(); // 清空 courseName 和颜色的映射
 };
 
 /**

@@ -9,13 +9,13 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
+      - name: Checkout Source Code
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Restore Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ github.workspace }}/node_modules
@@ -24,20 +24,23 @@ jobs:
             ${{ runner.os }}-
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: yarn
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: yarn install --frozen-lockfile --prefer-offline
 
       - name: Prebuild
@@ -47,8 +50,8 @@ jobs:
         run: |
           cd android
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
-          ./gradlew app:packageRelease --build-cache --parallel --configure-on-demand --max-workers=$(nproc) \
-            -D org.gradle.jvmargs="-Xmx4g -Xms1g -XX:MetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseG1GC"
+          ./gradlew app:packageRelease --no-problems-report \
+          -D org.gradle.jvmargs="-Xmx12g -XX:MetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseParallelGC"
         env:
           KEYSTORE_PATH: 'keystore.jks'
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
@@ -61,10 +64,10 @@ jobs:
         run: |
           echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
           echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
-          echo "$(git log -3 --pretty=format:"%s%n%b%n")" > android/app/build/outputs/changelog
+          git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}' > android/app/build/outputs/changelog
 
-      - name: Upload outputs
-        uses: actions/upload-artifact@v4
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
         with:
           name: outputs
           path: android/app/build/outputs

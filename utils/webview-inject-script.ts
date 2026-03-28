@@ -163,6 +163,16 @@ const termXuankeDetailScript: StringScript = `
 })();
 `;
 
+const xiaoxuankeDetailScript: StringScript = `
+(function() {
+    // 避免教学大纲列过高导致一页显示的项过少
+    const select = document.querySelector('#ContentPlaceHolder1_DataList_xxk > tbody > tr:nth-child(2) > td:nth-child(6)');
+    if (select) {
+        select.setAttribute('style', select.getAttribute('style') + 'width:30px;');
+    }
+})();
+`;
+
 const commentGuideScript: StringScript = `
   (function() {
     // 提示可以使用一键评议
@@ -183,8 +193,10 @@ const urlToScriptMap: Record<string, Script[]> = {
   // 培养计划
   'https://jwcjwxt2.fzu.edu.cn:81/pyfa/pyjh/pyfa_bzy.aspx': [commonScript, darkModeScript, pyjhDarkModeScript],
   // 学期选课详情页
-  'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_kclist.aspx': [ratioScript, termXuankeDetailScript],
-  // 其他选课页面
+  'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_kclist.aspx': [termXuankeDetailScript],
+  // 校选课详情页
+  'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xxk/xxk_kclist.aspx': [xiaoxuankeDetailScript],
+  // 所有选课页面
   'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/': [ratioScript],
   // 评议列表页
   'https://jwcjwxt2.fzu.edu.cn:81/student/jscp/TeaList.aspx': [commentGuideScript],

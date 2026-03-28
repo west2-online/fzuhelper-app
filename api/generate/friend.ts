@@ -172,3 +172,16 @@ export async function getApiV1UserFriendList(options?: {
     ...(options || {}),
   });
 }
+
+/** 获取好友数量上限 GET /api/v1/user/friend/max-num https://apifox.com/web/project/3275694/apis/api-421800242-run */
+export async function getApiV1UserFriendMaxNum(options?: {
+  [key: string]: unknown;
+}) {
+  return request<{ code: string; message: string; data: { max_num: number } }>(
+    '/api/v1/user/friend/max-num',
+    {
+      method: 'GET',
+      ...(options || {}),
+    }
+  );
+}

@@ -6,19 +6,22 @@ import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
 import { LocalUser } from '@/lib/user';
 import { type RejectError } from '@/types/reject-error';
 import { isApiData, isHeaders, isNativeLoginError } from '@/types/type-guards';
+import { Platform } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 
 const baseURL = 'https://fzuhelper.west2.online/';
 
-const request = axios.create({
-  baseURL,
-  timeout: 5000,
+const commonHeaders = {
   // 禁用本地缓存
-  headers: {
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    Pragma: 'no-cache',
-    Expires: '0',
-  },
-});
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
+  Pragma: 'no-cache',
+  Expires: '0',
+  // 私有接口请求头
+  'X-App-Version': DeviceInfo.getBuildNumber(),
+  'X-App-Platform': Platform.OS,
+};
+
+const request = axios.create({ baseURL, timeout: 5000, headers: commonHeaders });
 
 type PromiseExecutorParameters = Parameters<ConstructorParameters<typeof Promise<AxiosResponse<any, any>>>[0]>;
 // 请求队列
@@ -88,6 +91,7 @@ request.interceptors.response.use(
             timeout: 5000,
             headers: {
               Authorization: await AsyncStorage.getItem(REFRESH_TOKEN_KEY),
+              ...commonHeaders,
             },
           });
           if (res.data.code !== ResultEnum.SuccessCode) {

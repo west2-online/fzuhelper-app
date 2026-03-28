@@ -5,7 +5,6 @@ import { toast } from 'sonner-native';
 
 import ColorRadioButton from '@/components/color-radio-button';
 import Entry from '@/components/entry';
-import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import RadioButton from '@/components/radio-button';
@@ -71,7 +70,6 @@ export default function CourseAddPage() {
   const searchParams = useLocalSearchParams();
   const key = (searchParams.key as string) ?? '';
 
-  const [loaded, setLoaded] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [course, setCourse] = useState<CustomCourse>(DEFAULT_EMPTY_COURSE);
   const [isWeekDayPickerVisible, setWeekDayPickerVisible] = useState(false);
@@ -81,15 +79,12 @@ export default function CourseAddPage() {
   const [pickerWeekType, setPickerWeekType] = useState<'startWeek' | 'endWeek' | null>(null);
 
   useEffect(() => {
-    setLoaded(false);
     if (key) {
       CourseCache.load().then(async () => {
         setCourse((await CourseCache.getCustomCourse(key)) || DEFAULT_EMPTY_COURSE);
-        setLoaded(true);
       });
     } else {
       setCourse(DEFAULT_EMPTY_COURSE);
-      setLoaded(true);
     }
   }, [key]);
 
@@ -138,192 +133,188 @@ export default function CourseAddPage() {
         }}
       />
 
-      {loaded ? (
-        <PageContainer>
-          <KeyboardAwareScrollView className="px-4" keyboardShouldPersistTaps="handled">
-            <View className="my-2">
-              <Text className="text-lg">名称</Text>
-              <Input
-                value={course.name}
-                onChangeText={name => setCourse(prev => ({ ...prev, name }))}
-                placeholder="课程名称（必填）"
-              />
-            </View>
+      <PageContainer>
+        <KeyboardAwareScrollView className="px-4" keyboardShouldPersistTaps="handled">
+          <View className="my-2">
+            <Text className="text-lg">名称</Text>
+            <Input
+              value={course.name}
+              onChangeText={name => setCourse(prev => ({ ...prev, name }))}
+              placeholder="课程名称（必填）"
+            />
+          </View>
 
-            <View className="my-2">
-              <Text className="text-lg">教师</Text>
-              <Input
-                value={course.teacher}
-                onChangeText={teacher => setCourse(prev => ({ ...prev, teacher }))}
-                placeholder="任课教师名称（选填）"
-              />
-            </View>
+          <View className="my-2">
+            <Text className="text-lg">教师</Text>
+            <Input
+              value={course.teacher}
+              onChangeText={teacher => setCourse(prev => ({ ...prev, teacher }))}
+              placeholder="任课教师名称（选填）"
+            />
+          </View>
 
-            <View className="my-2">
-              <Text className="text-lg">地点</Text>
-              <Input
-                value={course.location}
-                onChangeText={location => setCourse(prev => ({ ...prev, location }))}
-                placeholder="教学楼+教室号 或具体地点（选填）"
-              />
-            </View>
-            <Text className="my-2 text-lg">时间</Text>
+          <View className="my-2">
+            <Text className="text-lg">地点</Text>
+            <Input
+              value={course.location}
+              onChangeText={location => setCourse(prev => ({ ...prev, location }))}
+              placeholder="教学楼+教室号 或具体地点（选填）"
+            />
+          </View>
+          <Text className="my-2 text-lg">时间</Text>
 
-            <View className="mb-2 flex-1 items-center justify-between px-2">
+          <View className="mb-2 flex-1 items-center justify-between px-2">
+            <Entry
+              text={WEEKDAYS.find(w => w.value === course.weekday)?.label || '选择星期'}
+              placeholder="选择星期"
+              onPress={() => {
+                setWeekDayPickerVisible(true);
+              }}
+            />
+          </View>
+
+          {/* 横向显示选择节数，因为有 3 个控件，LabelEntry(起始节) Text 和 LabelEntry(结束节) */}
+          <View className="mb-2 flex-row items-center justify-between px-2">
+            <View className="mx-2 flex-1 items-end">
               <Entry
-                text={WEEKDAYS.find(w => w.value === course.weekday)?.label || '选择星期'}
-                placeholder="选择星期"
+                text={course.startClass ? `第 ${course.startClass} 节` : '未知'}
+                placeholder="选择开始节"
                 onPress={() => {
-                  setWeekDayPickerVisible(true);
+                  setPickerClassType('startClass');
+                  setClassPickerVisible(true);
                 }}
               />
             </View>
-
-            {/* 横向显示选择节数，因为有 3 个控件，LabelEntry(起始节) Text 和 LabelEntry(结束节) */}
-            <View className="mb-2 flex-row items-center justify-between px-2">
-              <View className="mx-2 flex-1 items-end">
-                <Entry
-                  text={course.startClass ? `第 ${course.startClass} 节` : '未知'}
-                  placeholder="选择开始节"
-                  onPress={() => {
-                    setPickerClassType('startClass');
-                    setClassPickerVisible(true);
-                  }}
-                />
-              </View>
-              <Text className="mx-2 text-lg text-text-secondary">至</Text>
-              <View className="mx-2 flex-1">
-                <Entry
-                  text={course.endClass ? `第 ${course.endClass} 节` : '未知'}
-                  placeholder="选择结束节"
-                  onPress={() => {
-                    setPickerClassType('endClass');
-                    setClassPickerVisible(true);
-                  }}
-                />
-              </View>
-            </View>
-
-            {/* 横向显示选择周数，因为有 3 个控件，LabelEntry(起始周) Text 和 LabelEntry(结束周) */}
-            <View className="mb-2 flex-row items-center justify-between px-2">
-              <View className="mx-2 flex-1 items-end">
-                <Entry
-                  text={course.startClass ? `第 ${course.startWeek} 周` : '未知'}
-                  placeholder="选择开始节"
-                  onPress={() => {
-                    setPickerWeekType('startWeek');
-                    setWeekPickerVisible(true);
-                  }}
-                />
-              </View>
-              <Text className="mx-2 text-lg text-text-secondary">至</Text>
-              <View className="mx-2 flex-1">
-                <Entry
-                  text={course.endClass ? `第 ${course.endWeek} 周` : '未知'}
-                  placeholder="选择结束周"
-                  onPress={() => {
-                    setPickerWeekType('endWeek');
-                    setWeekPickerVisible(true);
-                  }}
-                />
-              </View>
-            </View>
-
-            <View className="my-2 flex-1 items-center justify-between">
-              <RadioButton
-                options={WEEK_OPTIONS}
-                selectedValue={course.single && course.double ? 'both' : course.single ? 'single' : 'double'}
-                onChange={value => {
-                  if (value === 'both') {
-                    setCourse(prev => ({ ...prev, single: true, double: true }));
-                  } else if (value === 'single') {
-                    setCourse(prev => ({ ...prev, single: true, double: false }));
-                  } else if (value === 'double') {
-                    setCourse(prev => ({ ...prev, single: false, double: true }));
-                  }
+            <Text className="mx-2 text-lg text-text-secondary">至</Text>
+            <View className="mx-2 flex-1">
+              <Entry
+                text={course.endClass ? `第 ${course.endClass} 节` : '未知'}
+                placeholder="选择结束节"
+                onPress={() => {
+                  setPickerClassType('endClass');
+                  setClassPickerVisible(true);
                 }}
               />
             </View>
+          </View>
 
-            <Text className="text-lg">颜色</Text>
-            <View className="my-6 flex-1 items-center justify-between">
-              <ColorRadioButton
-                options={COLOR_OPTIONS}
-                selectedValue={course.color} // 当前选中的颜色值
-                onChange={newColor => setCourse(prev => ({ ...prev, color: newColor }))} // 更新课程颜色
+          {/* 横向显示选择周数，因为有 3 个控件，LabelEntry(起始周) Text 和 LabelEntry(结束周) */}
+          <View className="mb-2 flex-row items-center justify-between px-2">
+            <View className="mx-2 flex-1 items-end">
+              <Entry
+                text={course.startClass ? `第 ${course.startWeek} 周` : '未知'}
+                placeholder="选择开始节"
+                onPress={() => {
+                  setPickerWeekType('startWeek');
+                  setWeekPickerVisible(true);
+                }}
               />
             </View>
-
-            <View className="my-2">
-              <Text className="text-lg">备注</Text>
-              <Input
-                value={course.remark}
-                onChangeText={newRemark => setCourse(prev => ({ ...prev, remark: newRemark }))}
-                placeholder="对这门课的个人备注（选填）"
+            <Text className="mx-2 text-lg text-text-secondary">至</Text>
+            <View className="mx-2 flex-1">
+              <Entry
+                text={course.endClass ? `第 ${course.endWeek} 周` : '未知'}
+                placeholder="选择结束周"
+                onPress={() => {
+                  setPickerWeekType('endWeek');
+                  setWeekPickerVisible(true);
+                }}
               />
             </View>
+          </View>
 
-            <PickerModal
-              visible={isWeekDayPickerVisible}
-              title="选择星期"
-              data={WEEKDAYS} // 使用 weekdays 数据源
-              value={course.weekday} // 当前选中的值
-              onClose={() => setWeekDayPickerVisible(false)}
-              onConfirm={selectedValue => {
-                setCourse(prev => ({ ...prev, weekday: selectedValue }));
-                setWeekDayPickerVisible(false);
-              }}
-            />
-
-            <PickerModal
-              visible={isClassPickerVisible}
-              title={`选择${pickerClassType === 'startClass' ? '开始节' : '结束节'}`}
-              data={Array.from({ length: 11 }, (_, i) => ({
-                value: i + 1,
-                label: `第 ${i + 1} 节`,
-              }))}
-              value={pickerClassType === 'startClass' ? course.startClass : course.endClass}
-              onClose={() => setClassPickerVisible(false)}
-              onConfirm={selectedValue => {
-                if (pickerClassType === 'startClass') {
-                  setCourse(prev => ({ ...prev, startClass: selectedValue }));
-                } else if (pickerClassType === 'endClass') {
-                  setCourse(prev => ({ ...prev, endClass: selectedValue }));
+          <View className="my-2 flex-1 items-center justify-between">
+            <RadioButton
+              options={WEEK_OPTIONS}
+              selectedValue={course.single && course.double ? 'both' : course.single ? 'single' : 'double'}
+              onChange={value => {
+                if (value === 'both') {
+                  setCourse(prev => ({ ...prev, single: true, double: true }));
+                } else if (value === 'single') {
+                  setCourse(prev => ({ ...prev, single: true, double: false }));
+                } else if (value === 'double') {
+                  setCourse(prev => ({ ...prev, single: false, double: true }));
                 }
-                setClassPickerVisible(false);
               }}
             />
+          </View>
 
-            <PickerModal
-              visible={isWeekPickerVisible}
-              title={`选择${pickerWeekType === 'startWeek' ? '开始周' : '结束周'}`}
-              data={Array.from({ length: 22 }, (_, i) => ({
-                value: i + 1,
-                label: `第 ${i + 1} 周`,
-              }))}
-              value={pickerWeekType === 'startWeek' ? course.startWeek : course.endWeek}
-              onClose={() => setWeekPickerVisible(false)}
-              onConfirm={selectedValue => {
-                if (pickerWeekType === 'startWeek') {
-                  setCourse(prev => ({ ...prev, startWeek: selectedValue }));
-                } else if (pickerWeekType === 'endWeek') {
-                  setCourse(prev => ({ ...prev, endWeek: selectedValue }));
-                }
-                setWeekPickerVisible(false);
-              }}
+          <Text className="text-lg">颜色</Text>
+          <View className="my-6 flex-1 items-center justify-between">
+            <ColorRadioButton
+              options={COLOR_OPTIONS}
+              selectedValue={course.color} // 当前选中的颜色值
+              onChange={newColor => setCourse(prev => ({ ...prev, color: newColor }))} // 更新课程颜色
             />
+          </View>
 
-            <SafeAreaView className="mx-4 space-y-4" edges={['bottom']}>
-              <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
-              <Text className="my-2 text-base text-text-secondary">
-                自定义课程保存在设备本地，退出登录或卸载应用将导致课程被清除
-              </Text>
-            </SafeAreaView>
-          </KeyboardAwareScrollView>
-        </PageContainer>
-      ) : (
-        <Loading />
-      )}
+          <View className="my-2">
+            <Text className="text-lg">备注</Text>
+            <Input
+              value={course.remark}
+              onChangeText={newRemark => setCourse(prev => ({ ...prev, remark: newRemark }))}
+              placeholder="对这门课的个人备注（选填）"
+            />
+          </View>
+
+          <PickerModal
+            visible={isWeekDayPickerVisible}
+            title="选择星期"
+            data={WEEKDAYS} // 使用 weekdays 数据源
+            value={course.weekday} // 当前选中的值
+            onClose={() => setWeekDayPickerVisible(false)}
+            onConfirm={selectedValue => {
+              setCourse(prev => ({ ...prev, weekday: selectedValue }));
+              setWeekDayPickerVisible(false);
+            }}
+          />
+
+          <PickerModal
+            visible={isClassPickerVisible}
+            title={`选择${pickerClassType === 'startClass' ? '开始节' : '结束节'}`}
+            data={Array.from({ length: 11 }, (_, i) => ({
+              value: i + 1,
+              label: `第 ${i + 1} 节`,
+            }))}
+            value={pickerClassType === 'startClass' ? course.startClass : course.endClass}
+            onClose={() => setClassPickerVisible(false)}
+            onConfirm={selectedValue => {
+              if (pickerClassType === 'startClass') {
+                setCourse(prev => ({ ...prev, startClass: selectedValue }));
+              } else if (pickerClassType === 'endClass') {
+                setCourse(prev => ({ ...prev, endClass: selectedValue }));
+              }
+              setClassPickerVisible(false);
+            }}
+          />
+
+          <PickerModal
+            visible={isWeekPickerVisible}
+            title={`选择${pickerWeekType === 'startWeek' ? '开始周' : '结束周'}`}
+            data={Array.from({ length: 22 }, (_, i) => ({
+              value: i + 1,
+              label: `第 ${i + 1} 周`,
+            }))}
+            value={pickerWeekType === 'startWeek' ? course.startWeek : course.endWeek}
+            onClose={() => setWeekPickerVisible(false)}
+            onConfirm={selectedValue => {
+              if (pickerWeekType === 'startWeek') {
+                setCourse(prev => ({ ...prev, startWeek: selectedValue }));
+              } else if (pickerWeekType === 'endWeek') {
+                setCourse(prev => ({ ...prev, endWeek: selectedValue }));
+              }
+              setWeekPickerVisible(false);
+            }}
+          />
+
+          <SafeAreaView className="mx-4 space-y-4" edges={['bottom']}>
+            <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
+            <Text className="my-2 text-base text-text-secondary">
+              自定义课程保存在设备本地，退出登录或卸载应用将导致课程被清除
+            </Text>
+          </SafeAreaView>
+        </KeyboardAwareScrollView>
+      </PageContainer>
     </>
   );
 }

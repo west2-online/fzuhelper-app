@@ -1,13 +1,14 @@
 import PageContainer from '@/components/page-container';
 import { Paper, PaperType } from '@/components/PaperList';
 import { Card } from '@/components/ui/card';
+import { Text } from '@/components/ui/text';
 import { PAPER_SEARCH_HISTORY_KEY } from '@/lib/constants';
 import { FolderIcon, getFileIcon, guessFileType } from '@/lib/filetype';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, UnknownOutputParams, useLocalSearchParams, useRouter } from 'expo-router';
 import { Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface SearchPageParam extends UnknownOutputParams {

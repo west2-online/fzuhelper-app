@@ -8,6 +8,15 @@ module.exports = function ({ types: t }) {
         const filename = state.file.opts.filename || '';
         const importSource = pathNode.node.source.value;
 
+        // 跳过 node_modules
+        if (
+          filename.includes(`${path.sep}node_modules${path.sep}`) ||
+          filename.includes('/node_modules/') ||
+          filename.includes('\\node_modules\\')
+        ) {
+          return;
+        }
+
         // 检查 ESLint 注释是否禁用本规则
         const leadingComments = pathNode.node.leadingComments || [];
         const hasESLintDisable = leadingComments.some(comment =>
@@ -24,10 +33,11 @@ module.exports = function ({ types: t }) {
             rule.allowIn?.some(allowPath => {
               const fileAbs = path.resolve(filename);
               const allowAbs = path.resolve(allowPath);
-              // 文件名完全匹配，或在允许的目录内
+              const relative = path.relative(allowAbs, fileAbs);
+
+              // 文件名完全匹配，或在允许目录内
               return (
-                fileAbs === allowAbs ||
-                (path.isAbsolute(path.relative(allowAbs, fileAbs)) && path.relative(allowAbs, fileAbs).startsWith('..'))
+                fileAbs === allowAbs || (relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative))
               );
             })
           ) {

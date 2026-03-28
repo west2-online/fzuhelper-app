@@ -1,5 +1,6 @@
 import { CommonSettingsManager } from '@/lib/common-settings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Link, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
@@ -12,10 +13,9 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import LabelSwitch from '@/components/label-switch';
-import { queryClient } from '@/components/query-provider';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
-import { LocalUser, logoutUser } from '@/lib/user';
+import { logoutUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
 import { getReleaseChannel, storeReleaseChannel } from '@/utils/android-update';
 
@@ -35,8 +35,12 @@ export default function SettingPage() {
         style: 'destructive',
         onPress: async () => {
           await AsyncStorage.clear(); // 清空 AsyncStorage
-          queryClient.clear(); // 清除所有缓存
-          await LocalUser.clear(); // 清除本地用户
+          await logoutUser(); // 清除用户数据
+          try {
+            await FileSystem.deleteAsync(FileSystem.cacheDirectory as string, { idempotent: true }); // 清除系统缓存
+          } catch (error) {
+            console.error('Error clearing cache directory:', error);
+          }
           toast.success('清除完成，请重新登录');
           setTimeout(() => {
             redirect('/(guest)');

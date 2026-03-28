@@ -29,24 +29,26 @@ export default function FriendAddPage() {
   const { code } = useLocalSearchParams();
 
   const handleClipboard = useCallback(() => {
-    Clipboard.getString().then(s => {
-      console.log('Clipboard content:', s);
-      const { scheme, hostname, queryParams } = Linking.parse(s);
-      console.log('Parsed Clipboard URL:', { scheme, hostname, queryParams });
-      let text = '';
-      if (scheme === 'fzuhelper' && hostname === 'friend_invite' && queryParams?.code) {
-        // 精确匹配
-        text = queryParams.code as string;
-      } else {
-        // 尝试从剪贴板文本中提取邀请码
-        text = s;
-      }
-      const validCode = extractInvitationCode(text);
-      if (validCode) {
-        setInvitationCode(validCode);
-        toast.info('已从剪贴板读取邀请码');
-      }
-    });
+    Clipboard.getString()
+      .then(s => {
+        console.log('Clipboard content:', s);
+        const { scheme, hostname, queryParams } = Linking.parse(s);
+        console.log('Parsed Clipboard URL:', { scheme, hostname, queryParams });
+        let text = '';
+        if (scheme === 'fzuhelper' && hostname === 'friend_invite' && queryParams?.code) {
+          // 精确匹配
+          text = queryParams.code as string;
+        } else {
+          // 尝试从剪贴板文本中提取邀请码
+          text = s;
+        }
+        const validCode = extractInvitationCode(text);
+        if (validCode) {
+          setInvitationCode(validCode);
+          toast.info('已从剪贴板读取邀请码');
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

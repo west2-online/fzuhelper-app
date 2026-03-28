@@ -1,5 +1,5 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
-import { getApiV1JwchClassroomExam, getApiV1JwchCourseList } from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1TermsList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { queryClient } from '@/components/query-provider';
 import {
@@ -28,6 +28,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
+import { formatExamData } from './exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from './locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
 
@@ -241,10 +242,16 @@ export class CourseCache {
       );
 
       // 将数据保存到原生共享存储中，以便在小组件中调用
-      const termsList = (await queryClient.getQueryData([COURSE_TERMS_LIST_KEY])) as any;
+      const termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([
+        COURSE_TERMS_LIST_KEY,
+      ]);
       const courseSettings = await getCourseSetting();
       const term = courseSettings.selectedSemester;
-      const currentTerm = termsList.data.data.terms.find((termData: any) => termData.term === term);
+      const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === term);
+      if (!currentTerm) {
+        console.warn('无法找到当前学期信息，跳过小组件同步');
+        return;
+      }
       const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
       const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
       const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
@@ -576,7 +583,8 @@ export class CourseCache {
 
     /* 到此处我们认为数据是不一致的，开始重新处理课程 */
     this.startID = DEFAULT_STARTID; // 初始化 id
-    clearColorMapping(); // 清空颜色映射，重新分配颜色
+    const currentUserId = LocalUser.getUser().userid;
+    clearColorMapping(currentUserId); // 清空颜色映射，重新分配颜色
 
     const schedules = this.parseCourses(tempData); // 解析课程数据
 
@@ -586,7 +594,7 @@ export class CourseCache {
       return {
         ...schedule,
         name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
-        color: allocateColorForCourse(schedule.name), // 分配颜色
+        color: allocateColorForCourse(schedule.name, currentUserId), // 分配颜色
         priority: DEFAULT_PRIORITY, // 默认优先级
         id: id,
         type: COURSE_TYPE,
@@ -617,7 +625,12 @@ export class CourseCache {
    * @param courses - 原始课程数据
    * @returns 按天归类的课程数据
    */
-  public static processFriendCourses(courses: JwchCourseListResponse_Course[]): Record<number, ExtendCourse[]> {
+  public static processFriendCourses(
+    courses: JwchCourseListResponse_Course[],
+    friendId?: string,
+  ): Record<number, ExtendCourse[]> {
+    const studentId = friendId ?? 'friend'; // 使用好友学号作为颜色映射的 key
+    clearColorMapping(studentId); // 清空好友的颜色映射，重新分配颜色
     const schedules = this.parseCourses(courses); // 解析课程数据
 
     // 为每个课程生成颜色并扩展数据
@@ -626,7 +639,7 @@ export class CourseCache {
       return {
         ...schedule,
         name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
-        color: allocateColorForCourse(schedule.name), // 分配颜色
+        color: allocateColorForCourse(schedule.name, studentId), // 分配颜色
         priority: DEFAULT_PRIORITY, // 默认优先级
         id: id,
         type: COURSE_TYPE,
@@ -882,9 +895,25 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
 
   // 考场信息
   if ((await getCourseSetting()).exportExamToCourseTable) {
-    await fetchWithCache([EXAM_ROOM_KEY, queryTerm], () => getApiV1JwchClassroomExam({ term: queryTerm }), {
+    const examData = await fetchWithCache(
+      [EXAM_ROOM_KEY, queryTerm],
+      () => getApiV1JwchClassroomExam({ term: queryTerm }),
+      {
+        staleTime: 0,
+      },
+    );
+
+    const formattedExamData = formatExamData(examData.data.data);
+    const termsList = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), {
       staleTime: 0,
     });
+    const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === queryTerm);
+    if (currentTerm) {
+      CourseCache.mergeExamCourses(formattedExamData, currentTerm.start_date, currentTerm.end_date);
+    } else {
+      console.warn('无法找到当前学期信息，跳过考试数据合并');
+    }
   }
+
   CourseCache.save(); // 强制保存一次
 };

@@ -11,20 +11,21 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Source Code
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Extract current tag
+      - name: Extract Current Tag
         id: tag
         run: |
           CURRENT_TAG=${GITHUB_REF_NAME}
-          echo "current=$CURRENT_TAG" >> $GITHUB_OUTPUT
+          echo "CURRENT_TAG=$CURRENT_TAG" >> $GITHUB_OUTPUT
 
-      - name: Calculate next version
+      - name: Calculate Next Version
         id: version
         run: |
-          IFS='.' read -r major minor patch <<< "${{ steps.tag.outputs.current }}"
+          IFS='.' read -r major minor patch <<< "${{ steps.tag.outputs.CURRENT_TAG }}"
 
           if [ "$patch" -lt 9 ]; then
             patch=$((patch+1))
@@ -39,19 +40,19 @@ jobs:
           fi
 
           NEXT_VERSION="$major.$minor.$patch"
-          echo "next=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Bump version
+      - name: Bump Version
         run: |
-          jq '.version = "${{ steps.version.outputs.next }}"' package.json > package.tmp && mv package.tmp package.json
+          jq '.version = "${{ steps.version.outputs.NEXT_VERSION }}"' package.json > package.tmp && mv package.tmp package.json
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ github.token }}
-          title: "chore: bump version to ${{ steps.version.outputs.next }}"
-          body: "Auto bump version to ${{ steps.version.outputs.next }} (detected tag ${{ steps.tag.outputs.current }})"
+          title: 'chore: bump version to ${{ steps.version.outputs.NEXT_VERSION }}'
+          body: 'Auto bump version to ${{ steps.version.outputs.NEXT_VERSION }} (detected tag ${{ steps.tag.outputs.CURRENT_TAG }})'
           base: master
-          branch: bump-version-${{ steps.version.outputs.next }}
-          commit-message: "chore: bump version to ${{ steps.version.outputs.next }}"
+          branch: bump-version-${{ steps.version.outputs.NEXT_VERSION }}
+          commit-message: 'chore: bump version to ${{ steps.version.outputs.NEXT_VERSION }}'
           sign-commits: true

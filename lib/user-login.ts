@@ -66,7 +66,7 @@ class UserLogin {
       .join('; ');
   }
 
-  #clearCookies() {
+  clearCookies() {
     this.#cookies = {};
   }
 
@@ -250,7 +250,7 @@ class UserLogin {
     if (!resHeaders.Location) {
       const data = this.#responseToString(_data);
       const result = this.#parseErrors(data);
-      this.#clearCookies(); // 清空 cookie
+      this.clearCookies(); // 清空 cookie
       return rejectWith({
         type: RejectEnum.NativeLoginFailed,
         data: result ?? '研究生教务系统登录失败',

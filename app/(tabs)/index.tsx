@@ -10,6 +10,7 @@ import {
   type ViewToken,
 } from 'react-native';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
+import { toast } from 'sonner-native';
 
 import { JwchCourseListResponse_Course } from '@/api/backend';
 import { getApiV1FriendCourse, getApiV1UserFriendList } from '@/api/generate';
@@ -48,12 +49,14 @@ const CourseGrid = forwardRef(
     },
     ref,
   ) => {
+    const { handleError } = useSafeResponseSolve();
     const { currentTerm, maxWeek } = coursePageData;
     const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
 
     // 好友课表数据
     const {
       data: friendCourseData,
+      error: friendError,
       isError: isFriendError,
       refetch: refetchFriend,
     } = useApiRequest(
@@ -70,7 +73,9 @@ const CourseGrid = forwardRef(
       if (selectedFriendId) {
         // 情况 A：查看好友课表，仅在数据成功返回时更新
         if (friendCourseData) {
-          setSchedulesByDays(CourseCache.processFriendCourses(friendCourseData as JwchCourseListResponse_Course[]));
+          setSchedulesByDays(
+            CourseCache.processFriendCourses(friendCourseData as JwchCourseListResponse_Course[], selectedFriendId),
+          );
         }
       } else {
         // 情况 B：查看本人课表，立即同步并监听缓存刷新
@@ -161,6 +166,10 @@ const CourseGrid = forwardRef(
 
     // 好友课表加载失败时，在组件内展示错误视图，保持 header 可交互
     if (selectedFriendId && isFriendError) {
+      const data = handleError(friendError) as { code: string; message: string };
+      if (data) {
+        toast.error(data.message ? data.message : '好友课表加载失败，请稍后再试');
+      }
       return <ErrorView refresh={() => refetchFriend()} />;
     }
 
@@ -330,7 +339,6 @@ function HomePageContent({
 
 export default function HomePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [resetKey, setResetKey] = useState(0);
   const [selectedFriendId, setSelectedFriendId] = useState<string | undefined>(undefined);
   const prevSettingsRef = useRef<string | null>(null);
 
@@ -375,8 +383,10 @@ export default function HomePage() {
             await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
           } catch (error: any) {
             console.error('Settings refresh failed:', error);
-            handleError(error);
-            toast.error('刷新失败，请稍后再试');
+            const data = handleError(error) as { code: string; message: string };
+            if (data) {
+              toast.error(data.message ? data.message : '刷新失败，请稍后再试');
+            }
           } finally {
             setIsRefreshing(false);
           }
@@ -400,10 +410,12 @@ export default function HomePage() {
         await forceRefreshCourseData(setting.selectedSemester);
         await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
       }
-      setResetKey(prev => prev + 1);
     } catch (error: any) {
       console.error('Refresh failed:', error);
-      handleError(error);
+      const data = handleError(error) as { code: string; message: string };
+      if (data) {
+        toast.error(data.message ? data.message : '刷新失败，请稍后再试');
+      }
     } finally {
       setIsRefreshing(false);
     }
@@ -415,13 +427,7 @@ export default function HomePage() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         contentContainerClassName="flex-1"
       >
-        <CourseErrorBoundary
-          key={resetKey}
-          onReset={() => {
-            queryClient.resetQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
-            setResetKey(prev => prev + 1);
-          }}
-        >
+        <CourseErrorBoundary handleError={handleError}>
           <Suspense fallback={<Loading />}>
             <HomePageContent selectedFriendId={selectedFriendId} setSelectedFriendId={setSelectedFriendId} />
           </Suspense>
