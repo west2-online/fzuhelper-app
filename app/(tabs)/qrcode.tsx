@@ -15,13 +15,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { DATETIME_SECOND_FORMAT } from '@/lib/constants';
 import { SSOlogoutAndCleanData as SSOLogout } from '@/lib/sso';
 import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 import YKTLogin from '@/lib/ykt-login';
 import NativeBrightnessModule from '@/modules/native-brightness';
+
+const extractErrorMessage = (error: any): string => {
+  const candidate = error as { data?: string };
+  return candidate.data as string;
+};
 
 const CurrentTime: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(dayjs().format(DATETIME_SECOND_FORMAT));
@@ -91,10 +95,10 @@ export default function YiMaTongPage() {
   const [synjonesAuth, setSynjonesAuth] = useState<string | null>(null); // YKT 认证令牌
   const [name, setName] = useState<string | null>(null); // 用户名
   const [payCode, setPayCode] = useState<string | null>(null); // 支付码（字符串）
+  const [payCodeMessage, setPayCodeMessage] = useState<string | null>(null); // 消费码提示信息
   const [libCodeContent, setLibCodeContent] = useState<string>(); // 图书馆码
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
-  const { handleError } = useSafeResponseSolve();
   const [qrWidth, setQrWidth] = useState(0);
   const redirect = useRedirectWithoutHistory();
 
@@ -107,24 +111,25 @@ export default function YiMaTongPage() {
   }, []);
 
   // 刷新支付码和身份码
-  const refresh = useCallback(
-    async (currentSynjonesAuth: string) => {
-      setIsRefreshing(true); // 触发重新渲染
+  const refresh = useCallback(async (currentSynjonesAuth: string) => {
+    setIsRefreshing(true); // 触发重新渲染
 
-      console.log('刷新中...', currentSynjonesAuth);
+    console.log('刷新中...', currentSynjonesAuth);
 
-      try {
-        setPayCode(await yktLoginRef.current!.getPayCode(currentSynjonesAuth));
-      } catch (error) {
-        console.error('刷新失败:', error);
-        handleError(error as any);
-      } finally {
-        setIsRefreshing(false);
-        setIsLoading(false);
-      }
-    },
-    [handleError],
-  );
+    try {
+      setPayCode(await yktLoginRef.current!.getPayCode(currentSynjonesAuth));
+      setPayCodeMessage(null);
+    } catch (error) {
+      console.error('刷新失败:', error);
+      const message = extractErrorMessage(error);
+      setPayCode(null);
+      setPayCodeMessage(message);
+      return;
+    } finally {
+      setIsRefreshing(false);
+      setIsLoading(false);
+    }
+  }, []);
 
   // 当 synjonesAuth 变更时，自动刷新
   useEffect(() => {
@@ -146,9 +151,13 @@ export default function YiMaTongPage() {
       setName(userInfo.name);
       setLibCodeContent(userInfo.account);
       setPayCode(await yktLoginRef.current!.getPayCode(synjonesAuthToken));
+      setPayCodeMessage(null);
       setIsLoading(false);
     } catch (error) {
       console.error('自动登录失败:', error);
+      const message = extractErrorMessage(error);
+      setPayCode(null);
+      setPayCodeMessage(message);
       setIsLoading(false);
     }
   }, []);
@@ -253,7 +262,13 @@ export default function YiMaTongPage() {
                       onLayout={event => setQrWidth(event.nativeEvent.layout.width * 0.75)}
                     >
                       <TabsContent value="消费码">
-                        <QRCodeView size={qrWidth} value={payCode || undefined} />
+                        {payCodeMessage ? (
+                          <View className="mx-auto my-6 px-4">
+                            <Text className="text-center text-base text-text-secondary">{payCodeMessage}</Text>
+                          </View>
+                        ) : (
+                          <QRCodeView size={qrWidth} value={payCode || undefined} />
+                        )}
                       </TabsContent>
                       <TabsContent value="入馆码">
                         <QRCodeView size={qrWidth} value={libCodeContent} />
@@ -278,7 +293,7 @@ export default function YiMaTongPage() {
                         <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
                         <TabsContent value="消费码">
                           <Text className="text-base text-text-secondary">
-                            消费码：适用于福州大学大门、生活区入口及宿舍楼门禁，不可用于桃李园消费。
+                            消费码：适用于福州大学大门、生活区入口及宿舍楼门禁。
                           </Text>
                         </TabsContent>
                         <TabsContent value="入馆码">

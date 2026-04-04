@@ -34,23 +34,6 @@ const YKT_URLS = {
   REFERER: 'https://xcx.fzu.edu.cn/plat/pay?appId=16&nodeId=15',
 };
 
-const FALLBACK_PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
-MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBANU64/H2n5i6i2L9
-xs7TQ2nC7Oe8S/LkyiumV5YWoOjcbDzJ8Nm9JSBFSt12Y3mDmVT2guP763akpL4P
-U9rz30Vt9uL8EnjzGRvhwvIQq1HfI9z8c67GJbL1wOxLFknnXxPPicn7B5/nTN66
-zobrhhgbUDUTO4eBZCPryDf9/fJNAgMBAAECgYEAtBN2/BpOsFoiayhtJLBQR1pC
-XnasIWZMws5JO8zCecXldvUIfap6VyWN0zgvTCjybkl9QvK26UykgIpLRCcez2Yk
-4znIWS4AJb2TvcpbEIRt8mMICGtp9MNe54GieQ9dTQdKY2J4e+zJKHJUgut03M6C
-ME8SYss0uu1RksiamGECQQDsm91KWfQEi5bOJJ5ippAYsGyQkByATzRqbGPXPCwZ
-1HRBrDMQBjE4u89EwKpb50H6HYbySB/Pqi6VI20Y6ltlAkEA5rSH02LaY3GIb5ih
-oD2D7oqbwt3x4bJvJRjq0oFr/tPkTrV9NyrdUcDzSSpJs4TXNwU8oV2+J0cQTwhd
-7gBwyQJARmEec81J/kgfNXZC/okY958Sy/Vx5OCqcLWJBS7K12wQoLA+CBgvb/a9
-cm/0vJ2PTHyX9V1qyPSQIqCFBRJA2QJAValGnZig2je3nygfKy5sJFBXEX3zaAgm
-+LFNz6e6f74RkaAVxDwoPUjVjJ8lCoESoB1Tq97w0giy54WFyu9i8QJAQY/ozmFh
-VLYEVJjk/c+KorA3j3Wt94x4SnIcq00Gj8bh8dVGydfPY5lVNLOAjMwofAETTrHV
-OxZLn+h28MX9Mg==
------END PRIVATE KEY-----`;
-
 export default class YKTLogin {
   #decryptUserHashKeyHex(userhashkeyHex: string, privateKeyPem: string): string {
     const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
@@ -148,21 +131,6 @@ export default class YKTLogin {
     return JSON.parse(raw) as Record<string, any>;
   }
 
-  #normalizePrivateKey(privateKey?: string): string | undefined {
-    if (!privateKey) {
-      return undefined;
-    }
-
-    const trimmed = privateKey.trim();
-    if (trimmed.includes('\n')) {
-      return trimmed;
-    }
-
-    return trimmed
-      .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
-      .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----');
-  }
-
   async #request(
     method: 'GET' | 'POST',
     url: string,
@@ -195,7 +163,7 @@ export default class YKTLogin {
         // 根据文档，成功是 200
         throw {
           type: RejectEnum.BizFailed,
-          data: jsonData,
+          data: '请求失败，服务器返回错误码：' + jsonData.code,
         };
       }
 
@@ -271,12 +239,6 @@ export default class YKTLogin {
     if (cachedUserInfo) {
       return cachedUserInfo;
     }
-    if (synjonesAuth === '') {
-      throw {
-        type: RejectEnum.NativeLoginFailed,
-        data: 'synjonesAuth 不能为空',
-      };
-    }
 
     const userInfoResp = await this.#get({
       url: YKT_URLS.GET_USER_INFO,
@@ -285,6 +247,12 @@ export default class YKTLogin {
       },
     });
 
+    if (!userInfoResp.data) {
+      throw {
+        type: RejectEnum.BizFailed,
+        data: '获取用户信息失败',
+      };
+    }
     const userInfo = JSON.stringify(userInfoResp.data);
     await AsyncStorage.setItem(YKT_USER_INFO_KEY, userInfo);
     return userInfo;
@@ -292,13 +260,6 @@ export default class YKTLogin {
 
   // 获取支付信息
   async getCodebarPayInfo(synjonesAuth: string): Promise<PayInfo> {
-    if (synjonesAuth === '') {
-      throw {
-        type: RejectEnum.NativeLoginFailed,
-        data: 'synjonesAuth 不能为空',
-      };
-    }
-
     const codebarResp = await this.#get({
       url: YKT_URLS.GET_CODEBAR_PAY_INFO,
       headers: {
@@ -309,10 +270,21 @@ export default class YKTLogin {
     });
 
     const payInfo = codebarResp.data[0];
+    if (!payInfo?.voucher && payInfo?.voucherStatus === 0) {
+      throw {
+        type: RejectEnum.BizFailed,
+        data: `未开通离线支付权限，
+请前往福大一卡通小程序开通。
+
+提示：
+小程序-我的-设置-支付设置-脱机二维码设置
+初始密码为身份证号后6位`,
+      };
+    }
     if (!payInfo?.account || !payInfo?.payacc || !payInfo?.paytype || !payInfo?.voucher) {
       throw {
         type: RejectEnum.BizFailed,
-        data: codebarResp,
+        data: '获取支付信息失败',
       };
     }
     return payInfo;
@@ -334,7 +306,7 @@ export default class YKTLogin {
     if (barcode.length !== 20) {
       throw {
         type: RejectEnum.BizFailed,
-        data: barcodeResp,
+        data: '获取批量二维码失败',
       };
     }
     return barcode;
@@ -347,13 +319,6 @@ export default class YKTLogin {
     paytype: string,
     voucher: string,
   ): Promise<OfflineCodeParams> {
-    if (synjonesAuth === '') {
-      throw {
-        type: RejectEnum.NativeLoginFailed,
-        data: 'synjonesAuth 不能为空',
-      };
-    }
-
     const offlineUrl = `${YKT_URLS.GET_OFFLINE_PAY_INFO}?payacc=${encodeURIComponent(payacc)}&paytype=${encodeURIComponent(paytype)}&voucher=${encodeURIComponent(voucher)}&synAccessSource=h5`;
     const offlineResp = await this.#get({
       url: offlineUrl,
@@ -363,6 +328,13 @@ export default class YKTLogin {
         'Synjones-Auth': `bearer ${synjonesAuth}`,
       },
     });
+
+    if (!offlineResp.data) {
+      throw {
+        type: RejectEnum.BizFailed,
+        data: '获取离线支付信息失败',
+      };
+    }
     return offlineResp.data;
   }
 
@@ -373,20 +345,16 @@ export default class YKTLogin {
       const frontConfig = JSON.parse(frontResp.data.getFrontConfig);
       return frontConfig;
     } catch (error) {
-      console.error('获取 privateKey 失败:', error);
-      return { privateKey: FALLBACK_PRIVATE_KEY, offlineCode: '0' };
+      console.error('获取前端配置失败:', error);
+      throw {
+        type: RejectEnum.BizFailed,
+        data: '获取前端配置失败',
+      };
     }
   }
 
   // 获取支付码
   async getPayCode(synjonesAuth: string): Promise<string> {
-    if (synjonesAuth === '') {
-      throw {
-        type: RejectEnum.NativeLoginFailed,
-        data: 'synjonesAuth 不能为空',
-      };
-    }
-
     // 获取 codebarPayinfo
     const payInfo = await this.getCodebarPayInfo(synjonesAuth);
 
@@ -420,79 +388,69 @@ export default class YKTLogin {
         ? 13 + (offlineUserDataHex.length + payAccTagHex.length) / 2 + 1
         : 13 + offlineUserDataHex.length / 2;
 
-      const headerBytes = this.#generateHeaderBytes(currentBarcode, totalLength, offlineParams, isNewVersion);
-      let digestSourceHex = this.#bytesToHex(headerBytes).substring(48);
-
-      let payAccTagLengthHex = '';
-      if (isNewVersion) {
-        payAccTagLengthHex = this.#padEvenHex((payAccTagHex.length / 2).toString(16).toUpperCase());
-        digestSourceHex = `${digestSourceHex}${offlineUserDataHex}${payAccTagLengthHex}${payAccTagHex}${hashKeyHex}`;
-      } else {
-        digestSourceHex = `${digestSourceHex}${offlineUserDataHex}${hashKeyHex}`;
-      }
-
+      // 仅生成会进入正文的 header 后半段（header[22..32]）。
+      const headerTailBytes = this.#generateHeaderBytes(totalLength, offlineParams);
+      const payAccTagLengthHex = isNewVersion ? this.#hexLengthPrefix(payAccTagHex) : '';
+      // v3 在离线数据后追加 payacc 标签；v2 仅使用离线数据。
+      const basePayloadHex = isNewVersion
+        ? `${offlineUserDataHex}${payAccTagLengthHex}${payAccTagHex}`
+        : offlineUserDataHex;
+      // 摘要源 = header[24..32] + 业务负载 + 解密后的用户密钥前 16 字节。
+      const digestSourceHex = `${this.#bytesToHex(headerTailBytes).substring(4)}${basePayloadHex}${hashKeyHex}`;
       const hash8 = this.#sha1HexText(digestSourceHex).substring(0, 8).toUpperCase();
-      const payloadHex = isNewVersion
-        ? `${offlineUserDataHex}${payAccTagLengthHex}${payAccTagHex}${hash8}`
-        : `${offlineUserDataHex}${hash8}`;
+      const payloadHex = `${basePayloadHex}${hash8}`;
 
       const payloadBytes = this.#hexToBytes(payloadHex);
-      const combinedBytes = [...headerBytes, ...payloadBytes];
+      const bodyBytes = [...headerTailBytes, ...payloadBytes];
       const protocolSuffix = `S${String.fromCharCode(isNewVersion ? 80 : 79)}`;
 
       if (isNewVersion) {
-        const encoded = Buffer.from(new Uint8Array(combinedBytes.slice(22))).toString('base64');
+        // 新协议使用 base64 承载正文。
+        const encoded = Buffer.from(bodyBytes).toString('base64');
         return `${currentBarcode}${protocolSuffix}${encoded}`;
       }
 
-      const rawBytes = combinedBytes.slice(22);
-      const rawText = Buffer.from(new Uint8Array(rawBytes)).toString('latin1');
+      // 旧协议直接按 latin1 文本拼接正文。
+      const rawText = Buffer.from(bodyBytes).toString('latin1');
       return `${currentBarcode}${protocolSuffix}${rawText}`;
     } catch (error) {
       console.error('二维码生成失败:', error);
-      throw error;
+      throw {
+        type: RejectEnum.BizFailed,
+        data: '二维码生成失败',
+      };
     }
   }
 
   // 生成 headerBytes
-  #generateHeaderBytes(
-    currentBarcode: string,
-    totalLength: number,
-    offlineParams: OfflineCodeParams,
-    isNewVersion: boolean,
-  ): number[] {
+  #generateHeaderBytes(totalLength: number, offlineParams: OfflineCodeParams): number[] {
     const version = Number.parseInt(offlineParams.version, 10) || 3;
-    const protocolCode = isNewVersion ? 80 : 79;
     const effectiveTime = Number(offlineParams.offline_effective_time) || 0;
-    const timestamp = Math.floor(Date.now() / 1000);
-    const timestampByte0 = timestamp % 256;
-    const timestampByte1 = Math.floor(timestamp / 256) % 256;
-    const timestampByte2 = Math.floor(timestamp / 65536) % 256;
-    const timestampByte3 = Math.floor(timestamp / 16777216) % 256;
+    const timestampSeconds = Math.floor(Date.now() / 1000);
+    const timestampByte0 = timestampSeconds % 256;
+    const timestampByte1 = Math.floor(timestampSeconds / 256) % 256;
+    const timestampByte2 = Math.floor(timestampSeconds / 65536) % 256;
+    const timestampByte3 = Math.floor(timestampSeconds / 16777216) % 256;
     const currentCountByte = 0;
     const effectiveTimeByte = Math.floor(effectiveTime) % 256;
-    const totalLengthByte0 = Math.floor(totalLength / 256) % 256;
-    const totalLengthByte1 = totalLength % 256;
+    const totalLengthInt = Math.floor(totalLength);
+    const totalLengthByte0 = Math.floor(totalLengthInt / 256) % 256;
+    const totalLengthByte1 = totalLengthInt % 256;
 
-    const headerBytes = new Array(33).fill(0);
-    for (let i = 0; i < currentBarcode.length && i < 20; i += 1) {
-      headerBytes[i] = currentBarcode.charCodeAt(i);
-    }
-
-    headerBytes[20] = 83;
-    headerBytes[21] = protocolCode;
-    headerBytes[22] = totalLengthByte0;
-    headerBytes[23] = totalLengthByte1;
-    headerBytes[24] = version;
-    headerBytes[25] = currentCountByte;
-    headerBytes[26] = timestampByte0;
-    headerBytes[27] = timestampByte1;
-    headerBytes[28] = timestampByte2;
-    headerBytes[29] = timestampByte3;
-    headerBytes[30] = 1;
-    headerBytes[31] = effectiveTimeByte;
-    headerBytes[32] = 1;
-
-    return headerBytes;
+    // 仅返回正文所需字节：header[22..32]。
+    // 其中 timestamp 与长度字段保持原协议的小端序。
+    return [
+      totalLengthByte0,
+      totalLengthByte1,
+      version,
+      currentCountByte,
+      timestampByte0,
+      timestampByte1,
+      timestampByte2,
+      timestampByte3,
+      1,
+      effectiveTimeByte,
+      1,
+    ];
   }
 }
