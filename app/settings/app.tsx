@@ -13,10 +13,9 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 
 import LabelSwitch from '@/components/label-switch';
-import { queryClient } from '@/components/query-provider';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { SSOlogoutAndCleanData } from '@/lib/sso';
-import { LocalUser, logoutUser } from '@/lib/user';
+import { logoutUser } from '@/lib/user';
 import { getWebViewHref } from '@/lib/webview';
 import { getReleaseChannel, storeReleaseChannel } from '@/utils/android-update';
 
@@ -36,8 +35,7 @@ export default function SettingPage() {
         style: 'destructive',
         onPress: async () => {
           await AsyncStorage.clear(); // 清空 AsyncStorage
-          queryClient.clear(); // 清除网络请求缓存
-          await LocalUser.clear(); // 清除本地用户
+          await logoutUser(); // 清除用户数据
           try {
             await FileSystem.deleteAsync(FileSystem.cacheDirectory as string, { idempotent: true }); // 清除系统缓存
           } catch (error) {

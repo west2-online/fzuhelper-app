@@ -14,6 +14,7 @@ const Text = React.forwardRef<TextRef, SlottableTextProps>(
       <Component
         className={cn('text-base text-text-primary web:select-text', textClass, className)}
         ref={ref}
+        allowFontScaling={false}
         {...props}
       />
     );

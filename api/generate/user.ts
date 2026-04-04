@@ -63,6 +63,45 @@ export async function putApiV1JwchUserInfo(
   });
 }
 
+/** 好友排序 POST /api/v1/user/friend/reorder https://apifox.com/web/project/3275694/apis/api-424437609-run */
+export async function postApiV1UserFriendReorder(
+  body: {
+    /** 按顺序排列的好友学号 */
+    friend_ids: string[];
+  },
+  options?: { [key: string]: unknown }
+) {
+  const formData = new FormData();
+
+  Object.keys(body).forEach((ele) => {
+    const item = (body as { [key: string]: any })[ele];
+
+    if (item !== undefined && item !== null) {
+      if (typeof item === 'object' && !(item instanceof File)) {
+        if (item instanceof Array) {
+          item.forEach((f) => formData.append(ele, f || ''));
+        } else {
+          formData.append(ele, JSON.stringify(item));
+        }
+      } else {
+        formData.append(ele, item);
+      }
+    }
+  });
+
+  return request<{ code: string; message: string }>(
+    '/api/v1/user/friend/reorder',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      data: formData,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 验证码自动识别 POST /api/v1/user/validate-code https://apifox.com/web/project/3275694/apis/api-215763225-run */
 export async function postApiV1UserValidateCode(
   body: {

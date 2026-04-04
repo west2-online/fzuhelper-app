@@ -77,6 +77,7 @@ export class LocalUser {
     this.identifier = '';
     this.cookies = '';
     this.isLoaded = false;
+    this.loginObject.clearCookies();
     await AsyncStorage.multiRemove([
       LOCAL_USER_INFO_KEY,
       LOCAL_USER_CREDENTIAL_KEY,

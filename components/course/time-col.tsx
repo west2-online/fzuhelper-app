@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import { memo, useEffect, useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { CLASS_SCHEDULES, TIME_FORMAT } from '@/lib/constants';
 import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
 import { cn } from '@/lib/utils';
@@ -26,13 +27,14 @@ const getCurrentTime = () => {
 
 interface TimeColProps {
   height: number;
+  minItemHeight?: number;
 }
 
 // 课程表的左侧时间段列
-const TimeCol: React.FC<TimeColProps> = ({ height }) => {
+const TimeCol: React.FC<TimeColProps> = ({ height, minItemHeight = SCHEDULE_ITEM_MIN_HEIGHT }) => {
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
 
-  const displayHeight = useMemo(() => Math.max(SCHEDULE_ITEM_MIN_HEIGHT, Math.floor(height / 11)), [height]);
+  const displayHeight = useMemo(() => Math.max(minItemHeight, Math.floor(height / 11)), [height, minItemHeight]);
 
   // 定时更新当前时间
   useEffect(() => {
