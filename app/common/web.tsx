@@ -1,8 +1,8 @@
 import { Icon } from '@/components/Icon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import CookieManager from '@preeternal/react-native-cookie-manager';
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
-import CookieManager from '@react-native-cookies/cookies';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';

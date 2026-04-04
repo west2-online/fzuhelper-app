@@ -10,7 +10,7 @@ import {
   REFRESH_TOKEN_KEY,
 } from '@/lib/constants';
 import { get } from '@/modules/native-request';
-import { Buffer } from 'buffer';
+import { Buffer } from '@craftzdog/react-native-buffer';
 import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
 import { CourseCache } from './course';
 import UserLogin from './user-login';

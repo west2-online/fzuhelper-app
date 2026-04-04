@@ -1,4 +1,4 @@
-import { Buffer } from 'buffer';
+import { Buffer } from '@craftzdog/react-native-buffer';
 
 import { RejectEnum } from '@/api/enum';
 import { get, postJSON } from '@/modules/native-request';
