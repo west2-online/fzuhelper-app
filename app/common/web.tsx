@@ -6,7 +6,7 @@ import Geolocation, { GeolocationOptions } from '@react-native-community/geoloca
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform, Share, View, useColorScheme } from 'react-native';
+import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
@@ -16,6 +16,7 @@ import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
 
+import { useTheme } from '@/components/app-theme-provider';
 import {
   JWCH_COOKIES_DOMAIN,
   SSO_LOGIN_COOKIE_DOMAIN,
@@ -47,7 +48,7 @@ export default function Web() {
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
   const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
-  const colorScheme = useColorScheme();
+  const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
 
   const setCookies = useCallback(async () => {
@@ -200,7 +201,7 @@ export default function Web() {
           setWebpageTitle(event.title); // 只有在没有传递 title 参数时才更新标题
         }
 
-        webViewRef.current?.injectJavaScript(getScriptByURL(event.url, colorScheme));
+        webViewRef.current?.injectJavaScript(getScriptByURL(event.url, currentTheme));
         if (Platform.OS === 'ios') {
           webViewRef.current?.injectJavaScript(getGeoLocationJS()); // 注入定位设计
           // Android 不需要注入这个代码也可以授权，但是即使定位到了，易班也提示定位失败
@@ -212,7 +213,7 @@ export default function Web() {
         }, 200);
       }
     },
-    [title, colorScheme],
+    [title, currentTheme],
   );
 
   // 方案参考：https://stackoverflow.com/questions/74347489/how-to-pass-geolocation-permission-to-react-native-webview

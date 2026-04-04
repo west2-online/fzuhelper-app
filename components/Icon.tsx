@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Href, router } from 'expo-router';
 import React from 'react';
-import { View, useColorScheme } from 'react-native';
+import { View } from 'react-native';
 import { BorderlessButton } from 'react-native-gesture-handler';
+import { useTheme } from './app-theme-provider';
 
 interface IconProps {
   name: keyof typeof Ionicons.glyphMap; // 限制为 Ionicons 支持的图标名称
@@ -14,10 +15,10 @@ interface IconProps {
 }
 
 export const Icon: React.FC<IconProps> = ({ name, size = 24, color, className, href, onPress }) => {
-  const colorScheme = useColorScheme();
+  const { isDarkTheme } = useTheme();
 
   // 根据系统主题动态设置默认颜色
-  const adaptiveColor = color || (colorScheme === 'dark' ? 'white' : 'black');
+  const adaptiveColor = color || (isDarkTheme ? 'white' : 'black');
 
   const IconComponent = <Ionicons name={name} size={size} color={adaptiveColor} />;
 

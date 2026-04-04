@@ -1,5 +1,6 @@
 import { getApiV1CommonClassroomEmpty } from '@/api/generate';
 import { Icon } from '@/components/Icon';
+import { useTheme } from '@/components/app-theme-provider';
 import ClassroomList from '@/components/classroom-list';
 import FAQModal from '@/components/faq-modal';
 import MultiStateView from '@/components/multistateview/multi-state-view';
@@ -17,7 +18,7 @@ import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { CalendarDaysIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { TouchableOpacity, View, useColorScheme } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
 import DateTimePicker, { useDefaultClassNames } from 'react-native-ui-datepicker';
 
@@ -37,8 +38,8 @@ interface DateNavigatorProps {
 }
 
 function DateNavigator({ date, onPress }: DateNavigatorProps) {
-  const currentColorScheme = useColorScheme();
-  const iconColor = useMemo(() => (currentColorScheme === 'dark' ? 'white' : 'black'), [currentColorScheme]);
+  const { isDarkTheme } = useTheme();
+  const iconColor = useMemo(() => (isDarkTheme ? 'white' : 'black'), [isDarkTheme]);
 
   return (
     <Pressable onPress={onPress}>

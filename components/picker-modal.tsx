@@ -1,12 +1,13 @@
 import WheelPicker from '@quidone/react-native-wheel-picker';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import { Text } from '@/components/ui/text';
+import { useTheme } from './app-theme-provider';
 
 interface PickerModalProps<T> {
   visible: boolean;
@@ -20,8 +21,8 @@ interface PickerModalProps<T> {
 export default function PickerModal<T>({ visible, title, data, value, onClose, onConfirm }: PickerModalProps<T>) {
   const [tempValue, setTempValue] = useState(value);
   const [pickerKey, setPickerKey] = useState(0);
-  const colorScheme = useColorScheme();
-  const itemTextStyle = useMemo(() => ({ color: colorScheme === 'dark' ? 'white' : 'black' }), [colorScheme]);
+  const { isDarkTheme } = useTheme();
+  const itemTextStyle = useMemo(() => ({ color: isDarkTheme ? 'white' : 'black' }), [isDarkTheme]);
 
   const HEIGHT = 310; // 预估总高度
   const DURATION = 250; // 动画时长
