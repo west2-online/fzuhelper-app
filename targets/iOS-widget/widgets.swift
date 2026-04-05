@@ -168,9 +168,7 @@ struct widgetEntryView: View {
   @Environment(\.widgetFamily) var widgetFamily  // 获取当前小组件的尺寸类型
 
   var body: some View {
-    let backgroundColor: Color = colorScheme == .dark ? .black : .white
-    let textColor: Color = colorScheme == .dark ? .white : .black
-    let secondaryTextColor = textColor.opacity(0.7)
+    let secondaryOpacity = 0.7
 
     ZStack {
       if widgetFamily == .accessoryRectangular {
@@ -179,7 +177,6 @@ struct widgetEntryView: View {
           // 课程名称
           Text(entry.courseName)
             .font(.headline)
-            .foregroundColor(textColor)
             .lineLimit(1)  // 限制为 1 行
             .truncationMode(.tail)
 
@@ -187,7 +184,7 @@ struct widgetEntryView: View {
           HStack {
             Text(entry.courseLocation)
               .font(.caption)
-              .foregroundColor(secondaryTextColor)
+              .opacity(secondaryOpacity)
               .lineLimit(1)
               .truncationMode(.tail)
 
@@ -196,7 +193,7 @@ struct widgetEntryView: View {
             // 周几，第几周
             Text("\(entry.courseWeekday)")
               .font(.caption)
-              .foregroundColor(secondaryTextColor)
+              .opacity(secondaryOpacity)
               .lineLimit(1)
             
             if entry.courseWeek > 0 {
@@ -205,7 +202,7 @@ struct widgetEntryView: View {
                   (entry.notCurrentWeek ? "（非本周）" : "第 \(entry.courseWeek) 周")
                 )
                 .font(.caption)
-                .foregroundColor(secondaryTextColor)
+                .opacity(secondaryOpacity)
                 .lineLimit(1)
               }
             }
@@ -214,7 +211,7 @@ struct widgetEntryView: View {
           HStack {
             Text("更新于" + entry.date.formattedTimeOnly())
                 .font(.caption)
-                .foregroundColor(secondaryTextColor)
+                .opacity(secondaryOpacity)
                 .lineLimit(1)
             
             Spacer() // 空间分隔符，推送内容到左右两端
@@ -222,18 +219,16 @@ struct widgetEntryView: View {
             // 周几
             Text("\(entry.courseSection)")
               .font(.caption)
-              .foregroundColor(secondaryTextColor)
+              .opacity(secondaryOpacity)
               .lineLimit(1)
           }
         }
         .padding(.horizontal, 4)  // 调整内边距
       } else {
-        backgroundColor.ignoresSafeArea()
         VStack(alignment: .leading, spacing: 8) {
           // 课程名称
           Text(entry.courseName)
             .font(.headline)
-            .foregroundColor(textColor)
             .lineLimit(2)  // 限制最多显示 2 行
             .truncationMode(
               .tail
@@ -249,7 +244,7 @@ struct widgetEntryView: View {
                 "第 \(entry.courseWeek) 周" + (entry.notCurrentWeek ? "（非本周）" : "")
               )
               .font(entry.notCurrentWeek ? .caption : .subheadline)
-              .foregroundColor(secondaryTextColor)
+              .foregroundColor(.secondary)
               .lineLimit(1)
             }
           }
@@ -257,7 +252,7 @@ struct widgetEntryView: View {
           // 课程地点
           Text(entry.courseLocation)
             .font(.subheadline)
-            .foregroundColor(secondaryTextColor)
+            .foregroundColor(.secondary)
             .lineLimit(1)
 
           // 课程时间信息
@@ -266,13 +261,13 @@ struct widgetEntryView: View {
             Text(entry.courseSection)
           }
           .font(.subheadline)
-          .foregroundColor(secondaryTextColor)
+          .foregroundColor(.secondary)
 
           // 备注信息
           if !entry.courseRemark.isEmpty {
             Text(entry.courseRemark)
               .font(.footnote)
-              .foregroundColor(secondaryTextColor)
+              .foregroundColor(.secondary)
               .lineLimit(1)
           }
 
@@ -280,14 +275,14 @@ struct widgetEntryView: View {
           if entry.showUpdateTime {
               Text(entry.date.formattedTimeOnly())
                   .font(.caption)
-                  .foregroundColor(secondaryTextColor)
+                  .foregroundColor(.secondary)
                   .lineLimit(1)
           }
         }
         .padding()
       }
     }
-    .widgetBackground(backgroundColor)
+    .widgetBackground(Color.clear)
   }
 }
 
