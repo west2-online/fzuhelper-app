@@ -15,6 +15,7 @@ import Loading from '@/components/loading';
 import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
+import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { CoursePageProvider } from '@/context/course-page';
 import useApiRequest from '@/hooks/useApiRequest';
@@ -263,31 +264,32 @@ function FreeFriendsContent() {
     });
   }, [friendCourseQueries, refetchFriendList]);
 
-  const msvContent =
-    totalFriends === 0 ? (
-      <View className="flex-1 items-center justify-center px-8">
-        <Text className="mb-2 text-center text-lg font-medium">还没有好友</Text>
-        <Text className="text-center text-text-secondary">前往好友管理添加好友后，这里会显示大家都有空的时间段</Text>
-        <Pressable
-          className="mt-6 rounded-lg bg-primary px-6 py-3"
-          onPress={() => router.push('/settings/friend/list')}
-        >
-          <Text className="font-medium text-white">去添加好友</Text>
-        </Pressable>
-      </View>
-    ) : (
+  const msvContent = useMemo(() => {
+    return (
       <>
-        <FreeFriendsGrid
-          ref={gridRef}
-          selectedWeek={selectedWeek}
-          onWeekChange={setSelectedWeek}
-          allFreeMatrix={allFreeMatrix}
-          totalFriends={totalParticipants}
-          maxWeek={maxWeek}
-          currentTerm={currentTerm}
-          onSlotPress={handleSlotPress}
-        />
-
+        {totalFriends === 0 ? (
+          <View className="flex-1 items-center justify-center px-8">
+            <Text className="mb-2 text-center text-lg font-medium">还没有好友</Text>
+            <Text className="text-center text-text-secondary">
+              前往好友管理添加好友后，这里会显示大家都有空的时间段
+            </Text>
+            <Button className="mt-10 w-1/2" onPress={() => router.push('/settings/friend/list')}>
+              <Text className="font-medium text-white">去添加好友</Text>
+            </Button>
+          </View>
+        ) : (
+          <FreeFriendsGrid
+            ref={gridRef}
+            selectedWeek={selectedWeek}
+            onWeekChange={setSelectedWeek}
+            allFreeMatrix={allFreeMatrix}
+            totalFriends={totalParticipants}
+            maxWeek={maxWeek}
+            currentTerm={currentTerm}
+            onSlotPress={handleSlotPress}
+          />
+        )}
+        {/* 周数选择器 */}
         <PickerModal
           visible={showWeekSelector}
           title="选择周数"
@@ -299,9 +301,9 @@ function FreeFriendsContent() {
             gridRef.current?.scrollToWeek(parseInt(val, 10));
           }}
         />
-
+        {/* 详情弹窗 */}
         <SlotDetailModal slotInfo={slotInfo} participants={participantsStatus} onClose={() => setSlotInfo(null)} />
-
+        {/* 参与者选择 */}
         <ParticipantSelectorModal
           visible={showParticipantSelector}
           friendList={friendList}
@@ -311,6 +313,24 @@ function FreeFriendsContent() {
         />
       </>
     );
+  }, [
+    allFreeMatrix,
+    confirmParticipantSelection,
+    currentTerm,
+    friendList,
+    handleSlotPress,
+    maxWeek,
+    participantsStatus,
+    router,
+    selectedParticipantIds,
+    selectedWeek,
+    showParticipantSelector,
+    showWeekSelector,
+    slotInfo,
+    totalFriends,
+    totalParticipants,
+    weekPickerData,
+  ]);
 
   const { bottom } = useSafeAreaInsets();
 
