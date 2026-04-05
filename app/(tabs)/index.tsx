@@ -255,7 +255,11 @@ function HomePageContent({
     }
 
     return (
-      <TouchableOpacity activeOpacity={0.7} onPress={() => setMenuVisible(true)} className="w-32 flex-row items-center">
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => setMenuVisible(true)}
+        className="w-32 flex-row items-center py-3"
+      >
         <Text className={`ml-4 font-medium ${textSize}`}>{title}</Text>
         <Icon name="chevron-forward" size={iconSize} className="ml-0.5" />
       </TouchableOpacity>

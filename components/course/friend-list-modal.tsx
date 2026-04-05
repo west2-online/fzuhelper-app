@@ -36,12 +36,12 @@ export function FriendListModal({
         <Pressable className="absolute inset-0" onPress={onClose} />
 
         {/* 弹出窗口 */}
-        <View className="-max-h-screen-safe-offset-64 absolute left-4 top-28 w-1/2 max-w-md gap-1 rounded-xl bg-background p-5 shadow-xl">
+        <View className="-max-h-screen-safe-offset-64 absolute left-4 top-28 w-1/2 max-w-md gap-1 rounded-xl bg-background py-3 shadow-xl">
           {/* 小箭头 */}
           <View className="absolute -top-1 left-20 h-3 w-3 rotate-45 bg-background" />
           <ScrollView showsVerticalScrollIndicator={false} overScrollMode="never">
             <TouchableOpacity
-              className="flex h-14 flex-row items-center justify-between"
+              className="flex h-16 flex-row items-center justify-between px-5"
               activeOpacity={0.7}
               onPress={() => {
                 onClose();
@@ -56,7 +56,7 @@ export function FriendListModal({
             {friendList?.map((friend: UserFriendListResponse_Friend) => (
               <TouchableOpacity
                 key={friend.stu_id}
-                className="flex h-14 flex-row items-center"
+                className="flex h-16 flex-row items-center px-5"
                 activeOpacity={0.7}
                 onPress={() => {
                   onClose();
@@ -74,7 +74,7 @@ export function FriendListModal({
             ))}
           </ScrollView>
           <TouchableOpacity
-            className="flex h-14 justify-center"
+            className="flex h-16 justify-center px-5"
             activeOpacity={0.7}
             onPress={() => {
               onClose();
