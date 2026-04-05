@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { FlatList, useWindowDimensions, type LayoutRectangle } from 'react-native';
+import { FlatList, useWindowDimensions, ViewStyle, type LayoutRectangle } from 'react-native';
 
 import FreeFriendsWeek from '@/components/free-friends/free-friends-week';
 import { getFirstDateByWeek } from '@/lib/locate-date';
@@ -11,6 +11,7 @@ export interface FreeFriendsGridRef {
 }
 
 interface FreeFriendsGridProps {
+  style: ViewStyle;
   selectedWeek: number;
   onWeekChange: (week: number) => void;
   // allFreeMatrix[week-1][day][period-1] = number of free friends
@@ -22,7 +23,7 @@ interface FreeFriendsGridProps {
 }
 
 const FreeFriendsGrid = forwardRef<FreeFriendsGridRef, FreeFriendsGridProps>(
-  ({ selectedWeek, onWeekChange, allFreeMatrix, totalFriends, maxWeek, currentTerm, onSlotPress }, ref) => {
+  ({ style, selectedWeek, onWeekChange, allFreeMatrix, totalFriends, maxWeek, currentTerm, onSlotPress }, ref) => {
     const { width } = useWindowDimensions();
     const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });
     const flatListRef = useRef<FlatList>(null);
@@ -85,6 +86,7 @@ const FreeFriendsGrid = forwardRef<FreeFriendsGridRef, FreeFriendsGridProps>(
     return (
       <FlatList
         className="flex-1"
+        style={style}
         ref={flatListRef}
         horizontal
         pagingEnabled

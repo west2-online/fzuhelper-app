@@ -264,6 +264,8 @@ function FreeFriendsContent() {
     });
   }, [friendCourseQueries, refetchFriendList]);
 
+  const { bottom } = useSafeAreaInsets();
+
   const msvContent = useMemo(() => {
     return (
       <>
@@ -280,6 +282,7 @@ function FreeFriendsContent() {
         ) : (
           <FreeFriendsGrid
             ref={gridRef}
+            style={{ paddingBottom: bottom }}
             selectedWeek={selectedWeek}
             onWeekChange={setSelectedWeek}
             allFreeMatrix={allFreeMatrix}
@@ -315,6 +318,7 @@ function FreeFriendsContent() {
     );
   }, [
     allFreeMatrix,
+    bottom,
     confirmParticipantSelection,
     currentTerm,
     friendList,
@@ -332,8 +336,6 @@ function FreeFriendsContent() {
     weekPickerData,
   ]);
 
-  const { bottom } = useSafeAreaInsets();
-
   return (
     <CoursePageProvider value={{ setting: coursePageData.setting }}>
       <Stack.Screen
@@ -344,13 +346,7 @@ function FreeFriendsContent() {
         }}
       />
 
-      <MultiStateView
-        style={{ paddingBottom: bottom }}
-        state={state}
-        className="flex-1"
-        content={msvContent}
-        refresh={handleRefresh}
-      />
+      <MultiStateView state={state} className="flex-1" content={msvContent} refresh={handleRefresh} />
     </CoursePageProvider>
   );
 }
