@@ -282,7 +282,7 @@ function FreeFriendsContent() {
         ) : (
           <FreeFriendsGrid
             ref={gridRef}
-            style={{ paddingBottom: bottom }}
+            style={{ marginBottom: bottom }}
             selectedWeek={selectedWeek}
             onWeekChange={setSelectedWeek}
             allFreeMatrix={allFreeMatrix}
