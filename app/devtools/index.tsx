@@ -1,7 +1,7 @@
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { ACCESS_TOKEN_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
+import { ACCESS_TOKEN_KEY, YKT_SYNJONES_AUTH_KEY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, EXAM_TYPE } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
 import { LocalUser } from '@/lib/user';
@@ -55,13 +55,13 @@ export default function HomePage() {
     toast.success('已经设置过期的 AccessToken');
   };
 
-  // 设置过期的服务端（一码通） access token
-  const setInvalidAccessTokenYmt = async () => {
+  // 设置过期的一卡通 synjones auth
+  const setInvalidSynjonesAuth = async () => {
     await AsyncStorage.setItem(
-      YMT_ACCESS_TOKEN_KEY,
+      YKT_SYNJONES_AUTH_KEY,
       'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjowLCJleHAiOjE3MDAxMTA5MjksImlhdCI6MTY5OTUwNjEyOSwiaXNzIjoid2VzdDItb25saW5lIn0.wk108E9cho0wb6dOU_jYQQN1_K0Z_XAh4-mrBzJcgn1nCgsSHJHn8D6RW5T6sDhl1jQdSCrkOeXqb7egFHXMCA',
     );
-    toast.success('已经为一码通设置无效的 AccessToken');
+    toast.success('已经为一卡通设置无效的 Synjones Auth');
   };
 
   // 判断 Cookie 是否有效
@@ -189,8 +189,8 @@ export default function HomePage() {
             <Button onPress={setExpiredAccessToken}>
               <Text>Set Expired AccessToken (west2-online)</Text>
             </Button>
-            <Button onPress={setInvalidAccessTokenYmt}>
-              <Text>Set Invalid AccessToken (ymt)</Text>
+            <Button onPress={setInvalidSynjonesAuth}>
+              <Text>Set Invalid Synjones Auth</Text>
             </Button>
             <Button onPress={SetDifferentCourseCacheDigest}>
               <Text>Set Different Course Cache Digest</Text>
