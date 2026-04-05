@@ -19,10 +19,10 @@ const getSlotStyle = (count: number, total: number): { bg: string; text: string;
   const busy = total - safeCount;
   if (safeCount === 0) {
     // all busy
-    return { bg: 'bg-red-400', text: 'text-red-900', label: `全忙` };
+    return { bg: 'bg-red-400', text: 'text-white', label: `全忙` };
   }
   // some busy
-  return { bg: 'bg-yellow-300', text: 'text-yellow-900', label: `${busy}人忙` };
+  return { bg: 'bg-yellow-300', text: 'text-black', label: `${busy}人忙` };
 };
 
 const FreeFriendsCol: React.FC<FreeFriendsColProps> = ({
