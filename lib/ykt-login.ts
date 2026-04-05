@@ -274,11 +274,11 @@ export default class YKTLogin {
       throw {
         type: RejectEnum.BizFailed,
         data: `未开通离线支付权限，
-请前往福大一卡通小程序开通。
+请前往“福大一卡通”微信小程序开通。
 
-提示：
+开通路径：
 小程序-我的-设置-支付设置-脱机二维码设置
-初始密码为身份证号后6位`,
+初始密码为身份证号后6位，X用0代替`,
       };
     }
     if (!payInfo?.account || !payInfo?.payacc || !payInfo?.paytype || !payInfo?.voucher) {
