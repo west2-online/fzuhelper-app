@@ -71,6 +71,17 @@ const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' 
     }
   }, [color, size, value]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (svgXml) {
+        NativeBrightnessModule.enableHighBrightness();
+        return () => {
+          NativeBrightnessModule.disableHighBrightness();
+        };
+      }
+    }, [svgXml]),
+  );
+
   return value && svgXml ? (
     <View className="mx-auto bg-white p-4">
       <SvgXml xml={svgXml} width={Math.max(size, 1)} height={Math.max(size, 1)} />
@@ -110,26 +121,34 @@ export default function YiMaTongPage() {
     setLibCodeContent(undefined);
   }, []);
 
-  // 刷新支付码和身份码
-  const refresh = useCallback(async (currentSynjonesAuth: string) => {
-    setIsRefreshing(true); // 触发重新渲染
-
-    console.log('刷新中...', currentSynjonesAuth);
-
+  const loadPayCode = useCallback(async (currentSynjonesAuth: string) => {
     try {
       setPayCode(await yktLoginRef.current!.getPayCode(currentSynjonesAuth));
       setPayCodeMessage(null);
+      return true;
     } catch (error) {
-      console.error('刷新失败:', error);
+      console.error('获取支付码失败:', error);
       const message = extractErrorMessage(error);
       setPayCode(null);
       setPayCodeMessage(message);
-      return;
-    } finally {
-      setIsRefreshing(false);
-      setIsLoading(false);
+      return false;
     }
   }, []);
+
+  // 刷新支付码和身份码
+  const refresh = useCallback(
+    async (currentSynjonesAuth: string) => {
+      setIsRefreshing(true); // 触发重新渲染
+      console.log('刷新中...', currentSynjonesAuth);
+      try {
+        await loadPayCode(currentSynjonesAuth);
+      } finally {
+        setIsRefreshing(false);
+        setIsLoading(false);
+      }
+    },
+    [loadPayCode],
+  );
 
   // 当 synjonesAuth 变更时，自动刷新
   useEffect(() => {
@@ -150,17 +169,11 @@ export default function YiMaTongPage() {
       setSynjonesAuth(synjonesAuthToken);
       setName(userInfo.name);
       setLibCodeContent(userInfo.account);
-      setPayCode(await yktLoginRef.current!.getPayCode(synjonesAuthToken));
-      setPayCodeMessage(null);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('自动登录失败:', error);
-      const message = extractErrorMessage(error);
-      setPayCode(null);
-      setPayCodeMessage(message);
+      await loadPayCode(synjonesAuthToken);
+    } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [loadPayCode]);
 
   // 获取焦点时读取本地数据（初始化时，Tab切换时，登录页返回时）
   useFocusEffect(
@@ -202,17 +215,6 @@ export default function YiMaTongPage() {
       { cancelable: false },
     );
   }, [SSOlogoutAndCleanData]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (synjonesAuth) {
-        NativeBrightnessModule.enableHighBrightness();
-        return () => {
-          NativeBrightnessModule.disableHighBrightness();
-        };
-      }
-    }, [synjonesAuth]),
-  );
 
   // iOS 16、17标题文字顶部被裁切问题
   const titleClassname = useMemo(() => {

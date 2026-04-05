@@ -273,8 +273,8 @@ export default class YKTLogin {
     if (!payInfo?.voucher && payInfo?.voucherStatus === 0) {
       throw {
         type: RejectEnum.BizFailed,
-        data: `未开通离线支付权限，
-请前往“福大一卡通”微信小程序开通。
+        data: `未开通离线支付权限
+请前往“福大一卡通”微信小程序开通
 
 开通路径：
 小程序-我的-设置-支付设置-脱机二维码设置
