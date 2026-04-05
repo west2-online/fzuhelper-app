@@ -22,6 +22,7 @@ import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { EXPIRE_ONE_DAY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, type ExtendCourse } from '@/lib/course';
 import { BorderlessButton } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function FreeFriendsContent() {
   const router = useRouter();
@@ -311,6 +312,8 @@ function FreeFriendsContent() {
       </>
     );
 
+  const { bottom } = useSafeAreaInsets();
+
   return (
     <CoursePageProvider value={{ setting: coursePageData.setting }}>
       <Stack.Screen
@@ -321,7 +324,13 @@ function FreeFriendsContent() {
         }}
       />
 
-      <MultiStateView state={state} className="flex-1" content={msvContent} refresh={handleRefresh} />
+      <MultiStateView
+        style={{ paddingBottom: bottom }}
+        state={state}
+        className="flex-1"
+        content={msvContent}
+        refresh={handleRefresh}
+      />
     </CoursePageProvider>
   );
 }
