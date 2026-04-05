@@ -35,12 +35,12 @@ function FreeFriendsContent() {
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const [slotInfo, setSlotInfo] = useState<SlotInfo | null>(null);
   const [showParticipantSelector, setShowParticipantSelector] = useState(false);
-  // 'self' represents the user, friend stu_id represents friends
+  // 'self' 表示用户本人，好友则使用各自的 stu_id 表示
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<Set<string>>(new Set(['self']));
 
   const gridRef = useRef<FreeFriendsGridRef>(null);
 
-  // Fetch friend list
+  // 获取好友列表
   const {
     data: friendList,
     isFetching: isFriendListFetching,
@@ -51,7 +51,7 @@ function FreeFriendsContent() {
 
   const totalFriends = friendList?.length ?? 0;
 
-  // Initialize: select all participants by default
+  // 初始化：默认选中所有参与者
   useEffect(() => {
     if (friendList && friendList.length > 0) {
       setSelectedParticipantIds(prev => {
@@ -63,10 +63,10 @@ function FreeFriendsContent() {
     }
   }, [friendList]);
 
-  // Total participants = selected participants count
+  // 参与者总数
   const totalParticipants = selectedParticipantIds.size;
 
-  // Fetch all friends' courses in parallel
+  // 并行获取所有好友的课程
   const friendCourseQueries = useQueries({
     queries: (friendList ?? []).map(friend => ({
       queryKey: ['free_friends_course', friend.stu_id, selectedSemester] as const,
@@ -91,7 +91,7 @@ function FreeFriendsContent() {
     return STATE.CONTENT;
   }, [friendListError?.type, isFriendCoursesLoading, isFriendListError, isFriendListFetching]);
 
-  // Helper: collect all busy (week, day, period) slots for a set of schedulesByDays
+  // 辅助方法：从 schedulesByDay 中收集所有忙碌时段（周、天、节次）
   const collectBusySlots = useCallback(
     (schedulesByDay: Record<number, ExtendCourse[]>): string[] => {
       const seen: Record<string, boolean> = {};
@@ -121,15 +121,15 @@ function FreeFriendsContent() {
     [maxWeek],
   );
 
-  // Build the free-count matrix for all weeks
-  // allFreeMatrix[week-1][day][period-1] = number of participants who are free
+  // 构建所有周次的空闲人数矩阵
+  // 矩阵[周序号-1][星期][节次-1] = 当前时段空闲的参与者数量
   const allFreeMatrix = useMemo<number[][][]>(() => {
-    // Initialise: all selected participants are free
+    // 初始化：默认所有选中的参与者都空闲
     const matrix: number[][][] = Array.from({ length: maxWeek }, () =>
       Array.from({ length: 7 }, () => new Array(11).fill(totalParticipants)),
     );
 
-    // Subtract the user's own busy slots if selected
+    // 若已选中本人，则扣除本人忙碌时段
     if (selectedParticipantIds.has('self')) {
       const ownBusy = collectBusySlots(ownSchedulesByDays as Record<number, ExtendCourse[]>);
       for (let i = 0; i < ownBusy.length; i++) {
@@ -140,7 +140,7 @@ function FreeFriendsContent() {
 
     if (!allLoaded || totalFriends === 0) return matrix;
 
-    // Subtract each selected friend's busy slots
+    // 逐个扣除已选中好友的忙碌时段
     friendCourseQueries.forEach((query, index) => {
       if (!query.data) return;
       const friend = friendList?.[index];
@@ -165,7 +165,7 @@ function FreeFriendsContent() {
     friendList,
   ]);
 
-  // Check if a specific slot is busy for a given schedulesByDays
+  // 判断在给定 schedulesByDay 下，某个时段是否忙碌
   const isSlotBusy = useCallback(
     (schedulesByDay: Record<number, ExtendCourse[]>, week: number, day: number, period: number): boolean => {
       const courses = schedulesByDay[day];
@@ -181,18 +181,18 @@ function FreeFriendsContent() {
     [maxWeek],
   );
 
-  // Get status of all participants for a specific slot
+  // 获取某个时段下所有参与者的状态
   const getParticipantsStatus = useCallback(
     (week: number, day: number, period: number): ParticipantStatus[] => {
       const participants: ParticipantStatus[] = [];
 
-      // Add self first if selected
+      // 若已选中本人，优先加入本人状态
       if (selectedParticipantIds.has('self')) {
         const isOwnBusy = isSlotBusy(ownSchedulesByDays as Record<number, ExtendCourse[]>, week, day, period);
         participants.push({ name: '我', college: '', major: '', isBusy: isOwnBusy });
       }
 
-      // Add selected friends
+      // 添加已选中的好友状态
       friendList?.forEach((friend, index) => {
         if (!selectedParticipantIds.has(friend.stu_id)) return;
         const query = friendCourseQueries[index];
