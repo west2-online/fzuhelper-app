@@ -158,6 +158,7 @@ async function fetchJobFairMonthData(month: Dayjs): Promise<JobFairMonthData> {
         time: item.time || startsAt.format('HH:mm'),
         startsAt,
         dateKey: startsAt.format(DATE_KEY_FORMAT),
+        // zphval === '3' 代表宣讲会，其他值代表招聘会
         detailUrl: `${item.zphval === '3' ? LECTURE_DETAIL_URL : JOB_FAIR_DETAIL_URL}?id=${item.id}`,
       };
     })
@@ -182,13 +183,15 @@ function EventCard({ item }: { item: JobFairItem }) {
 
         <View className="flex-row items-center">
           <Icon name="time-outline" size={16} className="mr-2" />
-          <Text className="text-sm text-text-secondary">{item.time}</Text>
+          <Text className="text-sm text-text-secondary">{`${item.startsAt.format('M 月 D 日')} ${item.time}`}</Text>
         </View>
 
-        <View className="mt-2 flex-row items-center">
-          <Icon name="location-outline" size={16} className="mr-2" />
-          <Text className="flex-1 text-sm text-text-secondary">{item.place || '地点待定'}</Text>
-        </View>
+        {item.place ? (
+          <View className="mt-2 flex-row items-center">
+            <Icon name="location-outline" size={16} className="mr-2" />
+            <Text className="flex-1 text-sm text-text-secondary">{item.place}</Text>
+          </View>
+        ) : null}
       </Card>
     </Pressable>
   );
