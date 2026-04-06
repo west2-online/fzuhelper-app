@@ -28,6 +28,46 @@ const MORE_TOOLS: Tool[] = [
     },
   },
   {
+    name: '马上就办',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://oss.fzu.edu.cn/kuz12345/',
+      title: '马上就办',
+      sso: true,
+    },
+  },
+  {
+    name: '可信电子文档系统',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://sso.fzu.edu.cn/login?service=http%3A%2F%2Fetrust.fzu.edu.cn%2Fapi%2Fcas%2Flogin%3Fsource%3Dmobile',
+      title: '可信电子文档系统',
+      sso: true,
+    },
+  },
+  {
+    name: '团委管理服务平台',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'http://59.77.241.196:8081/wise/',
+      title: '团委管理服务平台',
+      sso: true,
+    },
+  },
+  {
+    name: '“一站式”智慧学工系统',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://yzsxg.fzu.edu.cn',
+      title: '“一站式”智慧学工系统',
+      sso: true,
+    },
+  },
+  {
     name: '讲座报告',
     icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
@@ -47,17 +87,46 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  // {
-  //   // 不可用
-  //   name: '马上就办',
-  //   icon: ElectroCarIcon,
-  //   type: ToolType.WEBVIEW,
-  //   params: {
-  //     url: 'https://oss.fzu.edu.cn/kuz12345/',
-  //     title: '马上就办',
-  //     sso: true,
-  //   },
-  // },
+  {
+    name: '电动车登记',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'http://doorwxoa.fzu.edu.cn/nonmotorReg',
+      title: '电动车登记',
+      sso: true,
+    },
+  },
+  {
+    name: '校园统一支付平台',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'http://tyzf.fzu.edu.cn',
+      title: '校园统一支付平台',
+      sso: true,
+    },
+  },
+  {
+    name: '一卡通',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://xcx.fzu.edu.cn/berserker-auth/cas/login/wisedu?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-base%2Fredirect%3FappId%3D16%26nodeId%3D15%26type%3Dapp',
+      title: '一卡通',
+      sso: true,
+    },
+  },
+  {
+    name: '一表通',
+    icon: ElectroCarIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://sso.fzu.edu.cn/login?service=https://mybt.fzu.edu.cn/login',
+      title: '一表通',
+      sso: true,
+    },
+  },
   // {
   //   // 不可用
   //   name: '通知文件系统',
@@ -90,37 +159,6 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  // {
-  //   // sso 登录不可用
-  //   name: '校园统一支付平台',
-  //   icon: ElectroCarIcon,
-  //   type: ToolType.WEBVIEW,
-  //   params: {
-  //     url: 'http://tyzf.fzu.edu.cn',
-  //     title: '校园统一支付平台',
-  //     sso: true,
-  //   },
-  // },
-  {
-    name: '一卡通',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://xcx.fzu.edu.cn/berserker-auth/cas/login/wisedu?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-base%2Fredirect%3FappId%3D16%26nodeId%3D15%26type%3Dapp',
-      title: '一卡通',
-      sso: true,
-    },
-  },
-  {
-    name: '一表通',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://sso.fzu.edu.cn/login?service=https://mybt.fzu.edu.cn/login',
-      title: '一表通',
-      sso: true,
-    },
-  },
   {
     name: '个人简历',
     icon: ElectroCarIcon,
@@ -128,16 +166,6 @@ const MORE_TOOLS: Tool[] = [
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/curriculumVitae/app/index',
       title: '个人简历',
-      sso: true,
-    },
-  },
-  {
-    name: '可信电子文档系统',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://sso.fzu.edu.cn/login?service=http%3A%2F%2Fetrust.fzu.edu.cn%2Fapi%2Fcas%2Flogin%3Fsource%3Dmobile',
-      title: '可信电子文档系统',
       sso: true,
     },
   },
@@ -254,26 +282,6 @@ const MORE_TOOLS: Tool[] = [
   //     sso: true,
   //   },
   // },
-  {
-    name: '校园风光',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/scenery/app/index',
-      title: '校园风光',
-      sso: true,
-    },
-  },
-  {
-    name: '电动车登记',
-    icon: ElectroCarIcon,
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'http://doorwxoa.fzu.edu.cn/nonmotorReg',
-      title: '电动车登记',
-      sso: true,
-    },
-  },
   {
     name: '集体返校预约',
     icon: ElectroCarIcon,
