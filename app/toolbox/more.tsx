@@ -199,15 +199,15 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  {
-    name: '智慧体育',
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'http://aisports.fzu.edu.cn/api/cas/rankingsPage?schoolNo=',
-      title: '智慧体育',
-      sso: true,
-    },
-  },
+  // {
+  //   name: '智慧体育',
+  //   type: ToolType.WEBVIEW,
+  //   params: {
+  //     url: 'http://aisports.fzu.edu.cn/api/cas/rankingsPage?schoolNo=',
+  //     title: '智慧体育',
+  //     sso: true,
+  //   },
+  // },
   {
     name: '校园地图',
     type: ToolType.WEBVIEW,
@@ -244,16 +244,14 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  // {
-  //   // 不可用
-  //   name: '校园网接入指南',
-  //   type: ToolType.WEBVIEW,
-  //   params: {
-  //     url: 'https://app.fzu.edu.cn/appService/guidance/app/articleInfo',
-  //     title: '校园网接入指南',
-  //     sso: true,
-  //   },
-  // },
+  {
+    name: '校园网接入指南',
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://app.fzu.edu.cn/appService/guidance/app/articleCollapse',
+      title: '校园网接入指南',
+    },
+  },
   {
     name: '集体返校预约',
     type: ToolType.WEBVIEW,
@@ -292,15 +290,16 @@ const MORE_TOOLS: Tool[] = [
   //     sso: true,
   //   },
   // },
-  {
-    name: '校园出入管理系统',
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'http://dooroa.fzu.edu.cn/cas/index',
-      title: '校园出入管理系统',
-      sso: true,
-    },
-  },
+  // {
+  //   // 打开无内容
+  //   name: '校园出入管理系统',
+  //   type: ToolType.WEBVIEW,
+  //   params: {
+  //     url: 'http://dooroa.fzu.edu.cn/cas/index',
+  //     title: '校园出入管理系统',
+  //     sso: true,
+  //   },
+  // },
   // {
   //   // 重要：学生无权限登录，点开会导致 sso 登录失败
   //   name: '横向财务综合信息系统',
@@ -324,7 +323,7 @@ const MORE_TOOLS: Tool[] = [
     name: '住宿服务申请',
     type: ToolType.WEBVIEW,
     params: {
-      url: 'http://ehall.fzu.edu.cn/ssfw/sys/xszsapp/*default/index.do',
+      url: 'http://ehall.fzu.edu.cn/ssfw/sys/swmxszsapp/*default/index.do',
       title: '住宿服务申请',
       sso: true,
     },
@@ -349,24 +348,26 @@ const MORE_TOOLS: Tool[] = [
   //     sso: true,
   //   },
   // },
-  {
-    name: '一卡通服务大厅',
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://xcx.fzu.edu.cn/berserker-auth/cas/login/wisedu?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fplat-pc%3Fname%3DloginTransit%0A',
-      title: '一卡通服务大厅',
-      sso: true,
-    },
-  },
-  {
-    name: '物联平台（正式）',
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'http://aiot.fzu.edu.cn',
-      title: '物联平台（正式）',
-      sso: true,
-    },
-  },
+  // {
+  //   // 打开无内容
+  //   name: '一卡通服务大厅',
+  //   type: ToolType.WEBVIEW,
+  //   params: {
+  //     url: 'https://xcx.fzu.edu.cn/berserker-auth/cas/login/wisedu?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fplat-pc%3Fname%3DloginTransit%0A',
+  //     title: '一卡通服务大厅',
+  //     sso: true,
+  //   },
+  // },
+  // {
+  //   // 打开无数据
+  //   name: '物联平台（正式）',
+  //   type: ToolType.WEBVIEW,
+  //   params: {
+  //     url: 'http://aiot.fzu.edu.cn',
+  //     title: '物联平台（正式）',
+  //     sso: true,
+  //   },
+  // },
   // {
   //   // 不可用
   //   name: '社团管理',
