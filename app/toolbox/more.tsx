@@ -23,8 +23,10 @@ const MORE_TOOLS: Tool[] = [
     icon: ElectroCarIcon,
     type: ToolType.FUNCTION,
     action: () => {
-      toast.info('请忽略重新登录提示，可以正常使用，校方正在修复中');
-      pushToWebViewSSO('https://app.fzu.edu.cn/appService/mailbox/app/freeMailbox', '福大邮箱');
+      pushToWebViewSSO(
+        'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https%3A%2F%2Fapp.fzu.edu.cn%2FappService%2Fmailbox%2Fapp%2FfreeMailbox',
+        '福大邮箱',
+      );
     },
   },
   {
