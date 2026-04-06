@@ -437,7 +437,7 @@ export default function MoreToolsPage() {
       <Tabs.Screen
         options={{
           title: '更多工具',
-          headerRight: headerRight,
+          headerRight,
         }}
       />
       {/* 工具列表 */}
