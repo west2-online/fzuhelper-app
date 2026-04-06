@@ -16,7 +16,6 @@ import { toolOnPress, ToolType, type Tool } from '@/utils/tools';
 // 更多页面中的工具列表
 const MORE_TOOLS: Tool[] = [
   {
-    // 会跳出提示：请重新登录，但实际上是可以正常使用的
     name: '福大邮箱',
     type: ToolType.FUNCTION,
     action: () => {
