@@ -3,9 +3,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
 
-import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
 import FAQModal from '@/components/faq-modal';
 import { Icon } from '@/components/Icon';
 import LabelEntry from '@/components/label-entry';
@@ -20,7 +18,6 @@ const MORE_TOOLS: Tool[] = [
   {
     // 会跳出提示：请重新登录，但实际上是可以正常使用的
     name: '福大邮箱',
-    icon: ElectroCarIcon,
     type: ToolType.FUNCTION,
     action: () => {
       pushToWebViewSSO(
@@ -31,7 +28,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '马上就办',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://oss.fzu.edu.cn/kuz12345/',
@@ -41,7 +37,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '可信电子文档系统',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://sso.fzu.edu.cn/login?service=http%3A%2F%2Fetrust.fzu.edu.cn%2Fapi%2Fcas%2Flogin%3Fsource%3Dmobile',
@@ -51,7 +46,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '团委管理服务平台',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'http://59.77.241.196:8081/wise/',
@@ -61,7 +55,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '“一站式”智慧学工系统',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://yzsxg.fzu.edu.cn',
@@ -71,7 +64,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '讲座报告',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://www.fzu.edu.cn/jzbg.htm',
@@ -81,7 +73,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '考证信息查询',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://app.fzu.edu.cn/appService/guidance/app/searchExam',
@@ -91,7 +82,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '电动车登记',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'http://doorwxoa.fzu.edu.cn/nonmotorReg',
@@ -101,7 +91,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '校园统一支付平台',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'http://tyzf.fzu.edu.cn',
@@ -111,7 +100,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '一卡通',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://xcx.fzu.edu.cn/berserker-auth/cas/login/wisedu?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-base%2Fredirect%3FappId%3D16%26nodeId%3D15%26type%3Dapp',
@@ -121,7 +109,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '一表通',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://sso.fzu.edu.cn/login?service=https://mybt.fzu.edu.cn/login',
@@ -132,7 +119,6 @@ const MORE_TOOLS: Tool[] = [
   // {
   //   // 不可用
   //   name: '通知文件系统',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'https://info22-fzu-edu-cn-s.fzu.edu.cn/index.jsp',
@@ -143,7 +129,6 @@ const MORE_TOOLS: Tool[] = [
   // {
   //   // 不可用
   //   name: '学生离校',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'http://ehall.fzu.edu.cn/portal/html/select_role.html?appId=4598215922499875',
@@ -153,7 +138,6 @@ const MORE_TOOLS: Tool[] = [
   // },
   {
     name: '校友活动',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/activityCenter/app/center',
@@ -163,7 +147,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '个人简历',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/curriculumVitae/app/index',
@@ -173,7 +156,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '场地预约',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/area/app/index',
@@ -184,7 +166,6 @@ const MORE_TOOLS: Tool[] = [
   // 首页已有
   // {
   //   name: '失物招领',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/lostAndFound/app',
@@ -195,7 +176,6 @@ const MORE_TOOLS: Tool[] = [
   // 不如历年卷
   // {
   //   name: '学习资料分享',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/studyShare/app/index',
@@ -205,7 +185,6 @@ const MORE_TOOLS: Tool[] = [
   // },
   {
     name: '迎新服务',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'http://ehall.fzu.edu.cn/fxfw/sys/swmyxapp/*default/index.do',
@@ -215,7 +194,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '实名身份核验',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://idself.fzu.edu.cn/public/client/account-activate/name?backUrl=https:%2F%2Fidself.fzu.edu.cn',
@@ -225,7 +203,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '智慧体育',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'http://aisports.fzu.edu.cn/api/cas/rankingsPage?schoolNo=',
@@ -235,7 +212,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '校园地图',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://map.fzu.edu.cn',
@@ -245,7 +221,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '校园活动',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/activityCenter/app/center',
@@ -255,7 +230,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '校园活动收藏',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/activityCenter/app/collectList',
@@ -265,7 +239,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '校园网报修',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'http://59.77.227.111:32001/relax/mobile/index.html',
@@ -276,7 +249,6 @@ const MORE_TOOLS: Tool[] = [
   // {
   //   // 不可用
   //   name: '校园网接入指南',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'https://app.fzu.edu.cn/appService/guidance/app/articleInfo',
@@ -286,7 +258,6 @@ const MORE_TOOLS: Tool[] = [
   // },
   {
     name: '集体返校预约',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/backToSchool/app/index',
@@ -296,7 +267,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '党员培训',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://sso.fzu.edu.cn/login?service=https://oss.fzu.edu.cn/api/auth/cas/connector/login?applicationUrl=https://oss.fzu.edu.cn/gbpxMobileUserApp',
@@ -307,7 +277,6 @@ const MORE_TOOLS: Tool[] = [
   // {
   //   // 不可用
   //   name: '党费查询',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'https://app.fzu.edu.cn/appEntry/app/index?redirectUrl=https://app.fzu.edu.cn/appService/partyDues/app/index',
@@ -318,7 +287,6 @@ const MORE_TOOLS: Tool[] = [
   // {
   //   // sso 登录不可用
   //   name: '校领导信箱',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'http://ldxx.fzu.edu.cn',
@@ -328,7 +296,6 @@ const MORE_TOOLS: Tool[] = [
   // },
   {
     name: '校园出入管理系统',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'http://dooroa.fzu.edu.cn/cas/index',
@@ -339,7 +306,6 @@ const MORE_TOOLS: Tool[] = [
   // {
   //   // 重要：学生无权限登录，点开会导致 sso 登录失败
   //   name: '横向财务综合信息系统',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'http://59.77.233.18/dlpt/caslogin.aspx',
@@ -349,7 +315,6 @@ const MORE_TOOLS: Tool[] = [
   // },
   // {
   //   name: '横向项目合同管理系统',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'http://trpcontract.fzu.edu.cn/portal/',
@@ -359,7 +324,6 @@ const MORE_TOOLS: Tool[] = [
   // },
   {
     name: '住宿服务申请',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'http://ehall.fzu.edu.cn/ssfw/sys/xszsapp/*default/index.do',
@@ -370,7 +334,6 @@ const MORE_TOOLS: Tool[] = [
   // 已经在工具箱主页面提供
   // {
   //   name: '公寓报修',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'http://ehall.fzu.edu.cn/ssfw/sys/ssbxapp/*default/index.do',
@@ -381,7 +344,6 @@ const MORE_TOOLS: Tool[] = [
   // {
   //   // sso 登录不可用
   //   name: '节能监管平台',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'http://ems.fzu.edu.cn/',
@@ -391,7 +353,6 @@ const MORE_TOOLS: Tool[] = [
   // },
   {
     name: '一卡通服务大厅',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://xcx.fzu.edu.cn/berserker-auth/cas/login/wisedu?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fplat-pc%3Fname%3DloginTransit%0A',
@@ -401,7 +362,6 @@ const MORE_TOOLS: Tool[] = [
   },
   {
     name: '物联平台（正式）',
-    icon: ElectroCarIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'http://aiot.fzu.edu.cn',
@@ -412,7 +372,6 @@ const MORE_TOOLS: Tool[] = [
   // {
   //   // 不可用
   //   name: '社团管理',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'https://cloud.bywin.cn:3004/xgSystem/',
@@ -423,7 +382,6 @@ const MORE_TOOLS: Tool[] = [
   // {
   //   // 不可用
   //   name: '学生社团活动',
-  //   icon: ElectroCarIcon,
   //   type: ToolType.WEBVIEW,
   //   params: {
   //     url: 'https://cloud.bywin.cn:3004/xgSystem/',
