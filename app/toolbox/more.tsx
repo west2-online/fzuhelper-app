@@ -45,6 +45,14 @@ const MORE_TOOLS: Tool[] = [
     },
   },
   {
+    name: '通知文件系统',
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://info.fzu.edu.cn/',
+      title: '通知文件系统',
+    },
+  },
+  {
     name: '团委管理服务平台',
     type: ToolType.WEBVIEW,
     params: {
@@ -114,14 +122,6 @@ const MORE_TOOLS: Tool[] = [
       url: 'https://sso.fzu.edu.cn/login?service=https://mybt.fzu.edu.cn/login',
       title: '一表通',
       sso: true,
-    },
-  },
-  {
-    name: '通知文件系统',
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://info.fzu.edu.cn/',
-      title: '通知文件系统',
     },
   },
   // {
