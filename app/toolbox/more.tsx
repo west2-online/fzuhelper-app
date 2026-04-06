@@ -102,7 +102,7 @@ const MORE_TOOLS: Tool[] = [
     name: '一卡通',
     type: ToolType.WEBVIEW,
     params: {
-      url: 'https://xcx.fzu.edu.cn/berserker-auth/cas/login/wisedu?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-base%2Fredirect%3FappId%3D16%26nodeId%3D15%26type%3Dapp',
+      url: 'https://xcx.fzu.edu.cn/berserker-auth/cas/redirect/ruiJie?targetUrl=https%3A%2F%2Fxcx.fzu.edu.cn%2Fberserker-base%2Fredirect%3FappId%3D16%26nodeId%3D15%26type%3Dapp',
       title: '一卡通',
       sso: true,
     },
@@ -116,16 +116,14 @@ const MORE_TOOLS: Tool[] = [
       sso: true,
     },
   },
-  // {
-  //   // 不可用
-  //   name: '通知文件系统',
-  //   type: ToolType.WEBVIEW,
-  //   params: {
-  //     url: 'https://info22-fzu-edu-cn-s.fzu.edu.cn/index.jsp',
-  //     title: '通知文件系统',
-  //     sso: true,
-  //   },
-  // },
+  {
+    name: '通知文件系统',
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://info.fzu.edu.cn/',
+      title: '通知文件系统',
+    },
+  },
   // {
   //   // 不可用
   //   name: '学生离校',
