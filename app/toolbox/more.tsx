@@ -30,7 +30,7 @@ const MORE_TOOLS: Tool[] = [
     name: '马上就办',
     type: ToolType.WEBVIEW,
     params: {
-      url: 'https://oss.fzu.edu.cn/kuz12345/',
+      url: 'https://sso.fzu.edu.cn/login?service=https://oss.fzu.edu.cn/api/auth/cas/connector/login?applicationUrl=https://oss.fzu.edu.cn/kuz12345-h5/',
       title: '马上就办',
       sso: true,
     },
