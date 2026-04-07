@@ -84,9 +84,9 @@ function FreeFriendsContent() {
         errorAlertedRef.current.delete(friend.stu_id);
         const res = await getApiV1FriendCourse({ student_id: friend.stu_id, term: selectedSemester });
         const courses = res.data.data;
-        if (!Array.isArray(courses)) return {} as Record<number, ExtendCourse[]>;
-        return CourseCache.processFriendCourses(courses as JwchCourseListResponse_Course[]);
+        return Array.isArray(courses) ? (courses as JwchCourseListResponse_Course[]) : [];
       },
+      select: (courses: JwchCourseListResponse_Course[]) => CourseCache.processFriendCourses(courses),
       staleTime: EXPIRE_ONE_DAY,
       retry: false,
     })),
