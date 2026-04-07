@@ -86,7 +86,6 @@ function FreeFriendsContent() {
         const courses = res.data.data;
         return Array.isArray(courses) ? (courses as JwchCourseListResponse_Course[]) : [];
       },
-      select: (courses: JwchCourseListResponse_Course[]) => CourseCache.processFriendCourses(courses),
       staleTime: EXPIRE_ONE_DAY,
       retry: false,
     })),
@@ -94,6 +93,14 @@ function FreeFriendsContent() {
 
   const allLoaded = friendCourseQueries.every(q => q.isSuccess || q.isError);
   const isFriendCoursesLoading = selectedFriends.length > 0 && !allLoaded;
+
+  // 将接口返回的原始数据缓存并转换为 ExtendCourse[][]
+  const processedFriendCourses = useMemo(() => {
+    return friendCourseQueries.map((query, index) => {
+      if (!query.data) return null;
+      return CourseCache.processFriendCourses(query.data, selectedFriends[index].stu_id);
+    });
+  }, [friendCourseQueries, selectedFriends]);
 
   // 检查加载失败的好友并统一弹窗提示
   useEffect(() => {
@@ -171,11 +178,11 @@ function FreeFriendsContent() {
     if (!allLoaded || totalFriends === 0) return matrix;
 
     // 逐个扣除已选中好友的忙碌时段
-    friendCourseQueries.forEach((query, index) => {
-      if (!query.data) return;
+    processedFriendCourses.forEach((coursesData, index) => {
+      if (!coursesData) return;
       const friend = selectedFriends[index];
       if (!friend) return;
-      const busySlots = collectBusySlots(query.data as Record<number, ExtendCourse[]>);
+      const busySlots = collectBusySlots(coursesData as Record<number, ExtendCourse[]>);
       for (let i = 0; i < busySlots.length; i++) {
         const parts = busySlots[i].split(',').map(Number);
         matrix[parts[0] - 1][parts[1]][parts[2] - 1] = Math.max(0, matrix[parts[0] - 1][parts[1]][parts[2] - 1] - 1);
@@ -187,7 +194,7 @@ function FreeFriendsContent() {
     collectBusySlots,
     ownSchedulesByDays,
     allLoaded,
-    friendCourseQueries,
+    processedFriendCourses,
     totalParticipants,
     totalFriends,
     maxWeek,
@@ -224,22 +231,29 @@ function FreeFriendsContent() {
 
       // 添加已选中的好友状态
       selectedFriends.forEach((friend, index) => {
-        const query = friendCourseQueries[index];
-        const isBusy = query?.data
-          ? isSlotBusy(query.data as Record<number, ExtendCourse[]>, week, day, period)
+        const coursesData = processedFriendCourses[index];
+        const isBusy = coursesData
+          ? isSlotBusy(coursesData as Record<number, ExtendCourse[]>, week, day, period)
           : false;
         participants.push({
           name: friend.name,
           college: friend.college,
           major: friend.major,
           isBusy,
-          isError: query?.isError ?? false,
+          isError: friendCourseQueries[index]?.isError ?? false,
         });
       });
 
       return participants;
     },
-    [friendCourseQueries, selectedFriends, isSlotBusy, ownSchedulesByDays, selectedParticipantIds],
+    [
+      processedFriendCourses,
+      friendCourseQueries,
+      selectedFriends,
+      isSlotBusy,
+      ownSchedulesByDays,
+      selectedParticipantIds,
+    ],
   );
 
   const handleSlotPress = useCallback((week: number, day: number, period: number) => {
