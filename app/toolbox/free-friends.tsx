@@ -107,7 +107,7 @@ function FreeFriendsContent() {
     });
 
     if (errorFriends.length > 0) {
-      Alert.alert('加载失败', `${errorFriends.join('、')} 的课表加载失败，请下拉刷新重试`, [{ text: '确定' }]);
+      toast.error(`${errorFriends.join('、')} 的课表加载失败，请下拉刷新重试`);
     }
   }, [friendCourseQueries, selectedFriends, allLoaded]);
 
@@ -338,28 +338,6 @@ function FreeFriendsContent() {
             onSlotPress={handleSlotPress}
           />
         )}
-        {/* 周数选择器 */}
-        <PickerModal
-          visible={showWeekSelector}
-          title="选择周数"
-          data={weekPickerData}
-          value={String(selectedWeek)}
-          onClose={() => setShowWeekSelector(false)}
-          onConfirm={val => {
-            setShowWeekSelector(false);
-            gridRef.current?.scrollToWeek(parseInt(val, 10));
-          }}
-        />
-        {/* 详情弹窗 */}
-        <SlotDetailModal slotInfo={slotInfo} participants={participantsStatus} onClose={() => setSlotInfo(null)} />
-        {/* 参与者选择 */}
-        <ParticipantSelectorModal
-          visible={showParticipantSelector}
-          friendList={friendList}
-          selectedIds={selectedParticipantIds}
-          onConfirm={confirmParticipantSelection}
-          onClose={() => setShowParticipantSelector(false)}
-        />
       </ScrollView>
     );
   }, [
@@ -367,21 +345,13 @@ function FreeFriendsContent() {
     handleRefresh,
     allFreeMatrix,
     bottom,
-    confirmParticipantSelection,
     currentTerm,
-    friendList,
     handleSlotPress,
     maxWeek,
-    participantsStatus,
     router,
-    selectedParticipantIds,
     selectedWeek,
-    showParticipantSelector,
-    showWeekSelector,
-    slotInfo,
     totalFriends,
     totalParticipants,
-    weekPickerData,
   ]);
 
   return (
@@ -395,6 +365,29 @@ function FreeFriendsContent() {
       />
 
       <MultiStateView state={state} className="flex-1" content={msvContent} refresh={handleRefresh} />
+
+      {/* 周数选择器 */}
+      <PickerModal
+        visible={showWeekSelector}
+        title="选择周数"
+        data={weekPickerData}
+        value={String(selectedWeek)}
+        onClose={() => setShowWeekSelector(false)}
+        onConfirm={val => {
+          setShowWeekSelector(false);
+          gridRef.current?.scrollToWeek(parseInt(val, 10));
+        }}
+      />
+      {/* 详情弹窗 */}
+      <SlotDetailModal slotInfo={slotInfo} participants={participantsStatus} onClose={() => setSlotInfo(null)} />
+      {/* 参与者选择 */}
+      <ParticipantSelectorModal
+        visible={showParticipantSelector}
+        friendList={friendList}
+        selectedIds={selectedParticipantIds}
+        onConfirm={confirmParticipantSelection}
+        onClose={() => setShowParticipantSelector(false)}
+      />
     </CoursePageProvider>
   );
 }
