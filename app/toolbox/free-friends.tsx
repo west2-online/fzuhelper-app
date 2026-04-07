@@ -81,6 +81,7 @@ function FreeFriendsContent() {
     queries: selectedFriends.map(friend => ({
       queryKey: [FRIEND_COURSE_KEY, friend.stu_id, selectedSemester] as const,
       queryFn: async () => {
+        errorAlertedRef.current.delete(friend.stu_id);
         const res = await getApiV1FriendCourse({ student_id: friend.stu_id, term: selectedSemester });
         const courses = res.data.data;
         if (!Array.isArray(courses)) return {} as Record<number, ExtendCourse[]>;
@@ -290,9 +291,7 @@ function FreeFriendsContent() {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      if (isFriendListError) {
-        await refetchFriendList();
-      }
+      await refetchFriendList();
       const promises = selectedFriends.map(friend =>
         queryClient.invalidateQueries({ queryKey: [FRIEND_COURSE_KEY, friend.stu_id, selectedSemester] }),
       );
@@ -307,7 +306,7 @@ function FreeFriendsContent() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, isFriendListError, refetchFriendList, selectedFriends, selectedSemester, handleError]);
+  }, [isRefreshing, refetchFriendList, selectedFriends, selectedSemester, handleError]);
 
   const { bottom } = useSafeAreaInsets();
 
