@@ -88,6 +88,7 @@ function FreeFriendsContent() {
         return CourseCache.processFriendCourses(courses as JwchCourseListResponse_Course[]);
       },
       staleTime: EXPIRE_ONE_DAY,
+      retry: false,
     })),
   });
 
