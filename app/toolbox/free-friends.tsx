@@ -1,8 +1,8 @@
 import { useQueries } from '@tanstack/react-query';
 import { Stack, useRouter } from 'expo-router';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
-import { BorderlessButton, RefreshControl, ScrollView } from 'react-native-gesture-handler';
+import { View } from 'react-native';
+import { BorderlessButton, Pressable, RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -256,11 +256,13 @@ function FreeFriendsContent() {
 
   const headerTitle = useCallback(
     () => (
-      <Pressable onPress={() => setShowWeekSelector(v => !v)} className="flex flex-row items-center">
-        <Text className="mr-1 text-lg">
-          第 {selectedWeek} 周{selectedWeek === currentWeek ? ' (本周)' : ''}
-        </Text>
-        <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+      <Pressable onPress={() => setShowWeekSelector(v => !v)}>
+        <View className="flex flex-row items-center">
+          <Text className="mr-1 text-lg">
+            第 {selectedWeek} 周{selectedWeek === currentWeek ? ' (本周)' : ''}
+          </Text>
+          <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+        </View>
       </Pressable>
     ),
     [selectedWeek, currentWeek, showWeekSelector],
