@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/text';
 const DAYS = ['一', '二', '三', '四', '五', '六', '日'] as const;
 
 export interface ParticipantStatus {
+  stu_id: string;
   name: string;
   college: string;
   major: string;
@@ -34,9 +35,9 @@ const SlotDetailModal: React.FC<SlotDetailModalProps> = ({ slotInfo, participant
     <FloatModal visible={!!slotInfo} title={title} onClose={onClose}>
       {participants && (
         <ScrollView className="max-h-64">
-          {participants.map((participant, idx) => (
+          {participants.map(participant => (
             <View
-              key={idx}
+              key={participant.stu_id}
               className={`mb-2 flex-row items-center justify-between rounded-lg border-2 p-3 ${
                 participant.isError
                   ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20'

@@ -226,7 +226,7 @@ function FreeFriendsContent() {
       // 若已选中本人，优先加入本人状态
       if (selectedParticipantIds.has('self')) {
         const isOwnBusy = isSlotBusy(ownSchedulesByDays as Record<number, ExtendCourse[]>, week, day, period);
-        participants.push({ name: '我', college: '', major: '', isBusy: isOwnBusy });
+        participants.push({ stu_id: 'self', name: '我', college: '', major: '', isBusy: isOwnBusy });
       }
 
       // 添加已选中的好友状态
@@ -236,6 +236,7 @@ function FreeFriendsContent() {
           ? isSlotBusy(coursesData as Record<number, ExtendCourse[]>, week, day, period)
           : false;
         participants.push({
+          stu_id: friend.stu_id,
           name: friend.name,
           college: friend.college,
           major: friend.major,
