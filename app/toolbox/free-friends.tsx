@@ -93,7 +93,7 @@ function FreeFriendsContent() {
   const allLoaded = friendCourseQueries.every(q => q.isSuccess || q.isError);
   const isFriendCoursesLoading = selectedFriends.length > 0 && !allLoaded;
 
-  // 检查加载失败的好友并统一弹窗提示（等所有请求跑完再结算）
+  // 检查加载失败的好友并统一弹窗提示
   useEffect(() => {
     if (!allLoaded) return;
 
@@ -311,7 +311,10 @@ function FreeFriendsContent() {
 
   const msvContent = useMemo(() => {
     return (
-      <>
+      <ScrollView
+        contentContainerClassName="flex-1"
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+      >
         {totalFriends === 0 ? (
           <View className="flex-1 items-center justify-center px-8">
             <Text className="mb-2 text-center text-lg font-medium">还没有好友</Text>
@@ -357,9 +360,11 @@ function FreeFriendsContent() {
           onConfirm={confirmParticipantSelection}
           onClose={() => setShowParticipantSelector(false)}
         />
-      </>
+      </ScrollView>
     );
   }, [
+    isRefreshing,
+    handleRefresh,
     allFreeMatrix,
     bottom,
     confirmParticipantSelection,
@@ -389,12 +394,7 @@ function FreeFriendsContent() {
         }}
       />
 
-      <ScrollView
-        contentContainerClassName="flex-1"
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
-      >
-        <MultiStateView state={state} className="flex-1" content={msvContent} refresh={handleRefresh} />
-      </ScrollView>
+      <MultiStateView state={state} className="flex-1" content={msvContent} refresh={handleRefresh} />
     </CoursePageProvider>
   );
 }
