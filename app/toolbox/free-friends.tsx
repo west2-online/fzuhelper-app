@@ -1,7 +1,10 @@
 import { useQueries } from '@tanstack/react-query';
 import { Stack, useRouter } from 'expo-router';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
+import { BorderlessButton, RefreshControl, ScrollView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import { JwchCourseListResponse_Course } from '@/api/backend';
 import { RejectEnum } from '@/api/enum';
@@ -15,15 +18,15 @@ import Loading from '@/components/loading';
 import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
+import { queryClient } from '@/components/query-provider';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { CoursePageProvider } from '@/context/course-page';
 import useApiRequest from '@/hooks/useApiRequest';
 import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
-import { EXPIRE_ONE_DAY, FRIEND_LIST_KEY } from '@/lib/constants';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { EXPIRE_ONE_DAY, FRIEND_COURSE_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, type ExtendCourse } from '@/lib/course';
-import { BorderlessButton } from 'react-native-gesture-handler';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function FreeFriendsContent() {
   const router = useRouter();
@@ -39,6 +42,11 @@ function FreeFriendsContent() {
   // 'self' 表示用户本人，好友则使用各自的 stu_id 表示
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<Set<string>>(new Set(['self']));
 
+  const [hasSelectedInitially, setHasSelectedInitially] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const errorAlertedRef = useRef<Set<string>>(new Set());
+  const { handleError } = useSafeResponseSolve();
+
   const gridRef = useRef<FreeFriendsGridRef>(null);
 
   // 获取好友列表
@@ -52,25 +60,26 @@ function FreeFriendsContent() {
 
   const totalFriends = friendList?.length ?? 0;
 
-  // 初始化：默认选中所有参与者
+  // 首次加载好友列表后自动弹出选择器
   useEffect(() => {
-    if (friendList && friendList.length > 0) {
-      setSelectedParticipantIds(prev => {
-        const next = new Set(prev);
-        next.add('self');
-        friendList.forEach(f => next.add(f.stu_id));
-        return next;
-      });
+    if (friendList && friendList.length > 0 && !hasSelectedInitially) {
+      setHasSelectedInitially(true);
+      setShowParticipantSelector(true);
     }
-  }, [friendList]);
+  }, [friendList, hasSelectedInitially]);
 
   // 参与者总数
   const totalParticipants = selectedParticipantIds.size;
 
-  // 并行获取所有好友的课程
+  // 选中的好友列表
+  const selectedFriends = useMemo(() => {
+    return (friendList ?? []).filter(f => selectedParticipantIds.has(f.stu_id));
+  }, [friendList, selectedParticipantIds]);
+
+  // 并行获取所有选中好友的课程
   const friendCourseQueries = useQueries({
-    queries: (friendList ?? []).map(friend => ({
-      queryKey: ['free_friends_course', friend.stu_id, selectedSemester] as const,
+    queries: selectedFriends.map(friend => ({
+      queryKey: [FRIEND_COURSE_KEY, friend.stu_id, selectedSemester] as const,
       queryFn: async () => {
         const res = await getApiV1FriendCourse({ student_id: friend.stu_id, term: selectedSemester });
         const courses = res.data.data;
@@ -82,7 +91,25 @@ function FreeFriendsContent() {
   });
 
   const allLoaded = friendCourseQueries.every(q => q.isSuccess || q.isError);
-  const isFriendCoursesLoading = totalFriends > 0 && !allLoaded;
+  const isFriendCoursesLoading = selectedFriends.length > 0 && !allLoaded;
+
+  // 检查加载失败的好友并统一弹窗提示（等所有请求跑完再结算）
+  useEffect(() => {
+    if (!allLoaded) return;
+
+    const errorFriends: string[] = [];
+    friendCourseQueries.forEach((q, index) => {
+      const friend = selectedFriends[index];
+      if (q.isError && friend && !errorAlertedRef.current.has(friend.stu_id)) {
+        errorFriends.push(friend.name);
+        errorAlertedRef.current.add(friend.stu_id);
+      }
+    });
+
+    if (errorFriends.length > 0) {
+      Alert.alert('加载失败', `${errorFriends.join('、')} 的课表加载失败，请下拉刷新重试`, [{ text: '确定' }]);
+    }
+  }, [friendCourseQueries, selectedFriends, allLoaded]);
 
   const state = useMemo(() => {
     if (isFriendListFetching || isFriendCoursesLoading) return STATE.LOADING;
@@ -144,8 +171,8 @@ function FreeFriendsContent() {
     // 逐个扣除已选中好友的忙碌时段
     friendCourseQueries.forEach((query, index) => {
       if (!query.data) return;
-      const friend = friendList?.[index];
-      if (!friend || !selectedParticipantIds.has(friend.stu_id)) return;
+      const friend = selectedFriends[index];
+      if (!friend) return;
       const busySlots = collectBusySlots(query.data as Record<number, ExtendCourse[]>);
       for (let i = 0; i < busySlots.length; i++) {
         const parts = busySlots[i].split(',').map(Number);
@@ -163,7 +190,7 @@ function FreeFriendsContent() {
     totalFriends,
     maxWeek,
     selectedParticipantIds,
-    friendList,
+    selectedFriends,
   ]);
 
   // 判断在给定 schedulesByDay 下，某个时段是否忙碌
@@ -194,8 +221,7 @@ function FreeFriendsContent() {
       }
 
       // 添加已选中的好友状态
-      friendList?.forEach((friend, index) => {
-        if (!selectedParticipantIds.has(friend.stu_id)) return;
+      selectedFriends.forEach((friend, index) => {
         const query = friendCourseQueries[index];
         const isBusy = query?.data
           ? isSlotBusy(query.data as Record<number, ExtendCourse[]>, week, day, period)
@@ -205,12 +231,13 @@ function FreeFriendsContent() {
           college: friend.college,
           major: friend.major,
           isBusy,
+          isError: query?.isError ?? false,
         });
       });
 
       return participants;
     },
-    [friendCourseQueries, friendList, isSlotBusy, ownSchedulesByDays, selectedParticipantIds],
+    [friendCourseQueries, selectedFriends, isSlotBusy, ownSchedulesByDays, selectedParticipantIds],
   );
 
   const handleSlotPress = useCallback((week: number, day: number, period: number) => {
@@ -257,12 +284,28 @@ function FreeFriendsContent() {
     setSelectedParticipantIds(new Set(ids));
   }, []);
 
-  const handleRefresh = useCallback(() => {
-    refetchFriendList();
-    friendCourseQueries.forEach(query => {
-      query.refetch();
-    });
-  }, [friendCourseQueries, refetchFriendList]);
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      if (isFriendListError) {
+        await refetchFriendList();
+      }
+      const promises = selectedFriends.map(friend =>
+        queryClient.invalidateQueries({ queryKey: [FRIEND_COURSE_KEY, friend.stu_id, selectedSemester] }),
+      );
+      errorAlertedRef.current.clear();
+      await Promise.all(promises);
+    } catch (error: any) {
+      console.error('Refresh failed:', error);
+      const data = handleError(error) as { code: string; message: string };
+      if (data) {
+        toast.error(data.message ? data.message : '刷新失败，请稍后再试');
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, isFriendListError, refetchFriendList, selectedFriends, selectedSemester, handleError]);
 
   const { bottom } = useSafeAreaInsets();
 
@@ -346,7 +389,12 @@ function FreeFriendsContent() {
         }}
       />
 
-      <MultiStateView state={state} className="flex-1" content={msvContent} refresh={handleRefresh} />
+      <ScrollView
+        contentContainerClassName="flex-1"
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+      >
+        <MultiStateView state={state} className="flex-1" content={msvContent} refresh={handleRefresh} />
+      </ScrollView>
     </CoursePageProvider>
   );
 }

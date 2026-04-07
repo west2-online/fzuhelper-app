@@ -12,6 +12,7 @@ export interface ParticipantStatus {
   college: string;
   major: string;
   isBusy: boolean;
+  isError?: boolean;
 }
 
 export interface SlotInfo {
@@ -36,14 +37,35 @@ const SlotDetailModal: React.FC<SlotDetailModalProps> = ({ slotInfo, participant
           {participants.map((participant, idx) => (
             <View
               key={idx}
-              className={`mb-2 rounded-lg border-2 p-3 ${participant.isBusy ? 'border-red-500' : 'border-green-500'}`}
+              className={`mb-2 flex-row items-center justify-between rounded-lg border-2 p-3 ${
+                participant.isError
+                  ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20'
+                  : participant.isBusy
+                    ? 'border-red-500 bg-red-50 dark:bg-red-950/20'
+                    : 'border-green-500 bg-green-50 dark:bg-green-950/20'
+              }`}
             >
-              <Text className="font-medium">{participant.name}</Text>
-              {participant.college && (
-                <Text className="text-xs text-text-secondary">
-                  {participant.college} · {participant.major}
+              <View>
+                <Text className="font-medium">{participant.name}</Text>
+                {participant.college && (
+                  <Text className="text-xs text-text-secondary">
+                    {participant.college} · {participant.major}
+                  </Text>
+                )}
+              </View>
+              <View>
+                <Text
+                  className={`text-sm font-bold ${
+                    participant.isError
+                      ? 'text-yellow-600 dark:text-yellow-500'
+                      : participant.isBusy
+                        ? 'text-red-500'
+                        : 'text-green-500'
+                  }`}
+                >
+                  {participant.isError ? '加载失败' : participant.isBusy ? '有课（忙碌）' : '无课（空闲）'}
                 </Text>
-              )}
+              </View>
             </View>
           ))}
         </ScrollView>
