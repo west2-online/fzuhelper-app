@@ -242,7 +242,7 @@ function FreeFriendsContent() {
   const headerRight = useCallback(
     () => (
       <BorderlessButton onPress={() => setShowParticipantSelector(true)}>
-        <View className="flex-row items-center gap-1 py-4">
+        <View className="flex-row items-center gap-1 p-2">
           <Icon name="people-outline" size={20} />
           <Text className="pl-1">
             {selectedParticipantIds.size}/{totalFriends + 1}
