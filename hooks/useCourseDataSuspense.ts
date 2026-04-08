@@ -105,17 +105,17 @@ export function useCoursePageData() {
 
       // 2. 获取当前日期和课表设置
       const [locateDateRes, setting] = await Promise.all([locateDate(), getCourseSetting()]);
-      const selectedSemester = setting.selectedSemester || locateDateRes.semester;
+      setting.selectedSemester = setting.selectedSemester || locateDateRes.semester;
 
       // 3. 获取当前学期信息
-      const currentTerm = termsData?.data?.data?.terms?.find(t => t.term === selectedSemester);
+      const currentTerm = termsData?.data?.data?.terms?.find(t => t.term === setting.selectedSemester);
       if (!termsData || !currentTerm) {
         console.error('Failed to load term data: ', termsData, currentTerm);
         throw new Error('获取学期信息失败，请稍后再试');
       }
 
       // 4. 计算当前周数（历史学期为 -1）和最大周数
-      const currentWeek = locateDateRes.semester === selectedSemester ? locateDateRes.week : -1;
+      const currentWeek = locateDateRes.semester === setting.selectedSemester ? locateDateRes.week : -1;
       const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
 
       // 5. 加载课表数据
@@ -125,14 +125,14 @@ export function useCoursePageData() {
       }
 
       // 6. 尝试使用缓存数据
-      const cachedSchedules = CourseCache.getCachedData(selectedSemester);
+      const cachedSchedules = CourseCache.getCachedData(setting.selectedSemester);
       if (cachedSchedules) {
         // 后台异步刷新数据
         loadCourseAndExamData(queryTerm, setting, currentTerm)
           .then(hasChanged => {
             // 缓存更新后，回填页面查询数据
             if (hasChanged) {
-              const updated = CourseCache.getCachedData(selectedSemester);
+              const updated = CourseCache.getCachedData(setting.selectedSemester);
               queryClient.setQueryData<CoursePageData>([COURSE_PAGE_ALL_DATA_KEY], {
                 setting,
                 currentWeek,
@@ -149,7 +149,7 @@ export function useCoursePageData() {
             console.error('Background refresh failed:', error);
           });
         // 同步确保选中学期写回设置
-        await updateCourseSetting({ selectedSemester });
+        await updateCourseSetting({ selectedSemester: setting.selectedSemester });
         return {
           setting,
           currentWeek,
@@ -163,10 +163,10 @@ export function useCoursePageData() {
       const hasChanged = await loadCourseAndExamData(queryTerm, setting, currentTerm);
 
       // 8. 获取课表数据
-      const schedulesByDays = CourseCache.getCachedData(selectedSemester);
+      const schedulesByDays = CourseCache.getCachedData(setting.selectedSemester);
 
       // 9. 更新选中学期
-      await updateCourseSetting({ selectedSemester });
+      await updateCourseSetting({ selectedSemester: setting.selectedSemester });
 
       // 10. 提示数据刷新
       if (hasChanged) {
