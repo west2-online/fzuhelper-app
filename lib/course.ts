@@ -627,9 +627,9 @@ export class CourseCache {
    */
   public static processFriendCourses(
     courses: JwchCourseListResponse_Course[],
-    friendId?: string,
+    friendId: string,
   ): Record<number, ExtendCourse[]> {
-    const studentId = friendId ?? 'friend'; // 使用好友学号作为颜色映射的 key
+    const studentId = friendId; // 使用好友学号作为颜色映射的 key
     clearColorMapping(studentId); // 清空好友的颜色映射，重新分配颜色
     const schedules = this.parseCourses(courses); // 解析课程数据
 
