@@ -29,7 +29,7 @@ import useApiRequest from '@/hooks/useApiRequest';
 import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { hasCustomBackground } from '@/lib/appearance';
-import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
+import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_COURSE_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
@@ -64,7 +64,7 @@ const CourseGrid = forwardRef(
       { student_id: selectedFriendId!, term: coursePageData.setting.selectedSemester },
       {
         enabled: !!selectedFriendId,
-        queryKey: ['friend_course', selectedFriendId!, coursePageData.setting.selectedSemester],
+        queryKey: [FRIEND_COURSE_KEY, selectedFriendId!, coursePageData.setting.selectedSemester],
       },
     );
 
@@ -255,7 +255,11 @@ function HomePageContent({
     }
 
     return (
-      <TouchableOpacity activeOpacity={0.7} onPress={() => setMenuVisible(true)} className="w-32 flex-row items-center">
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => setMenuVisible(true)}
+        className="min-h-11 w-32 flex-row items-center"
+      >
         <Text className={`ml-4 font-medium ${textSize}`}>{title}</Text>
         <Icon name="chevron-forward" size={iconSize} className="ml-0.5" />
       </TouchableOpacity>
@@ -403,7 +407,7 @@ export default function HomePage() {
     try {
       if (selectedFriendId) {
         // 刷新好友课表
-        await queryClient.invalidateQueries({ queryKey: ['friend_course', selectedFriendId] });
+        await queryClient.invalidateQueries({ queryKey: [FRIEND_COURSE_KEY, selectedFriendId] });
       } else {
         // 刷新自己的课表
         const setting = await getCourseSetting();

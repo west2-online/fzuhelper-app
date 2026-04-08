@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { toast } from 'sonner-native';
 
 import { UserFriendListResponse_Friend } from '@/api/backend';
 import { Icon } from '@/components/Icon';
@@ -53,6 +54,10 @@ const ParticipantSelectorModal: React.FC<ParticipantSelectorModalProps> = ({
   }, []);
 
   const handleConfirm = useCallback(() => {
+    if (draftSelectedIds.size === 0) {
+      toast.error('请至少选择一个参与人');
+      return;
+    }
     onConfirm(new Set(draftSelectedIds));
     onClose();
   }, [draftSelectedIds, onConfirm, onClose]);

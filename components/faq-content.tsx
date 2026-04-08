@@ -18,17 +18,21 @@ function FAQContent(item: FAQItem) {
 
     // 如果是数组，逐个渲染
     return (
-      <Text className="mb-1 text-sm text-text-secondary">
+      <Text className="mb-1">
         {answer.map((part, index) => {
           if (typeof part === 'string') {
             // 文本部分直接渲染
-            return <Text key={index}>{part}</Text>;
+            return (
+              <Text className="text-sm text-text-secondary" key={index}>
+                {part}
+              </Text>
+            );
           } else if (typeof part === 'object' && 'url' in part) {
             // 链接部分渲染为可点击的文本
             return (
               <Text
                 key={index}
-                className="text-primary underline"
+                className="text-sm text-primary underline"
                 onPress={() => {
                   Linking.openURL(part.url);
                 }} // 点击打开链接
@@ -41,7 +45,7 @@ function FAQContent(item: FAQItem) {
             return (
               <Text
                 key={index}
-                className="text-primary underline"
+                className="text-sm text-primary underline"
                 onPress={() => {
                   router.push(part.href);
                 }} // 点击跳转页面

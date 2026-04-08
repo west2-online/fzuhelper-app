@@ -1,7 +1,10 @@
 import { useQueries } from '@tanstack/react-query';
 import { Stack, useRouter } from 'expo-router';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
+import { BorderlessButton, Pressable, RefreshControl, ScrollView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import { JwchCourseListResponse_Course } from '@/api/backend';
 import { RejectEnum } from '@/api/enum';
@@ -15,13 +18,15 @@ import Loading from '@/components/loading';
 import MultiStateView, { STATE } from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
+import { queryClient } from '@/components/query-provider';
+import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { CoursePageProvider } from '@/context/course-page';
 import useApiRequest from '@/hooks/useApiRequest';
 import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
-import { EXPIRE_ONE_DAY, FRIEND_LIST_KEY } from '@/lib/constants';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { EXPIRE_ONE_DAY, FRIEND_COURSE_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, type ExtendCourse } from '@/lib/course';
-import { BorderlessButton } from 'react-native-gesture-handler';
 
 function FreeFriendsContent() {
   const router = useRouter();
@@ -34,12 +39,17 @@ function FreeFriendsContent() {
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const [slotInfo, setSlotInfo] = useState<SlotInfo | null>(null);
   const [showParticipantSelector, setShowParticipantSelector] = useState(false);
-  // 'self' represents the user, friend stu_id represents friends
+  // 'self' 表示用户本人，好友则使用各自的 stu_id 表示
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<Set<string>>(new Set(['self']));
+
+  const [hasSelectedInitially, setHasSelectedInitially] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const errorAlertedRef = useRef<Set<string>>(new Set());
+  const { handleError } = useSafeResponseSolve();
 
   const gridRef = useRef<FreeFriendsGridRef>(null);
 
-  // Fetch friend list
+  // 获取好友列表
   const {
     data: friendList,
     isFetching: isFriendListFetching,
@@ -50,37 +60,63 @@ function FreeFriendsContent() {
 
   const totalFriends = friendList?.length ?? 0;
 
-  // Initialize: select all participants by default
+  // 首次加载好友列表后自动弹出选择器
   useEffect(() => {
-    if (friendList && friendList.length > 0) {
-      setSelectedParticipantIds(prev => {
-        const next = new Set(prev);
-        next.add('self');
-        friendList.forEach(f => next.add(f.stu_id));
-        return next;
-      });
+    if (friendList && friendList.length > 0 && !hasSelectedInitially) {
+      setHasSelectedInitially(true);
+      setShowParticipantSelector(true);
     }
-  }, [friendList]);
+  }, [friendList, hasSelectedInitially]);
 
-  // Total participants = selected participants count
+  // 参与者总数
   const totalParticipants = selectedParticipantIds.size;
 
-  // Fetch all friends' courses in parallel
-  const friendCourseQueries = useQueries({
-    queries: (friendList ?? []).map(friend => ({
-      queryKey: ['free_friends_course', friend.stu_id, selectedSemester] as const,
+  // 选中的好友列表
+  const selectedFriends = useMemo(() => {
+    return (friendList ?? []).filter(f => selectedParticipantIds.has(f.stu_id));
+  }, [friendList, selectedParticipantIds]);
+
+  // 构建 queries 配置数组，使用 useMemo 依赖收集，防止 select 等内联函数每次重绘都生成新引用
+  const queriesConfig = useMemo(() => {
+    return selectedFriends.map(friend => ({
+      queryKey: [FRIEND_COURSE_KEY, friend.stu_id, selectedSemester] as const,
       queryFn: async () => {
+        errorAlertedRef.current.delete(friend.stu_id);
         const res = await getApiV1FriendCourse({ student_id: friend.stu_id, term: selectedSemester });
         const courses = res.data.data;
-        if (!Array.isArray(courses)) return {} as Record<number, ExtendCourse[]>;
-        return CourseCache.processFriendCourses(courses as JwchCourseListResponse_Course[]);
+        return Array.isArray(courses) ? (courses as JwchCourseListResponse_Course[]) : [];
       },
       staleTime: EXPIRE_ONE_DAY,
-    })),
+      retry: false,
+      select: (courses: JwchCourseListResponse_Course[]) => CourseCache.processFriendCourses(courses, friend.stu_id),
+    }));
+  }, [selectedFriends, selectedSemester]);
+
+  // 并行获取所有选中好友的课程
+  const friendCourseQueries = useQueries({
+    queries: queriesConfig,
   });
 
   const allLoaded = friendCourseQueries.every(q => q.isSuccess || q.isError);
-  const isFriendCoursesLoading = totalFriends > 0 && !allLoaded;
+  const isFriendCoursesLoading = selectedFriends.length > 0 && !allLoaded;
+
+  // 检查加载失败的好友并统一弹窗提示
+  useEffect(() => {
+    if (!allLoaded) return;
+
+    const errorFriends: string[] = [];
+    friendCourseQueries.forEach((q, index) => {
+      const friend = selectedFriends[index];
+      if (q.isError && friend && !errorAlertedRef.current.has(friend.stu_id)) {
+        errorFriends.push(friend.name);
+        errorAlertedRef.current.add(friend.stu_id);
+      }
+    });
+
+    if (errorFriends.length > 0) {
+      toast.error(`${errorFriends.join('、')} 的课表加载失败，请下拉刷新重试`);
+    }
+  }, [friendCourseQueries, selectedFriends, allLoaded]);
 
   const state = useMemo(() => {
     if (isFriendListFetching || isFriendCoursesLoading) return STATE.LOADING;
@@ -90,7 +126,7 @@ function FreeFriendsContent() {
     return STATE.CONTENT;
   }, [friendListError?.type, isFriendCoursesLoading, isFriendListError, isFriendListFetching]);
 
-  // Helper: collect all busy (week, day, period) slots for a set of schedulesByDays
+  // 辅助方法：从 schedulesByDay 中收集所有忙碌时段（周、天、节次）
   const collectBusySlots = useCallback(
     (schedulesByDay: Record<number, ExtendCourse[]>): string[] => {
       const seen: Record<string, boolean> = {};
@@ -120,15 +156,15 @@ function FreeFriendsContent() {
     [maxWeek],
   );
 
-  // Build the free-count matrix for all weeks
-  // allFreeMatrix[week-1][day][period-1] = number of participants who are free
+  // 构建所有周次的空闲人数矩阵
+  // 矩阵[周序号-1][星期][节次-1] = 当前时段空闲的参与者数量
   const allFreeMatrix = useMemo<number[][][]>(() => {
-    // Initialise: all selected participants are free
+    // 初始化：默认所有选中的参与者都空闲
     const matrix: number[][][] = Array.from({ length: maxWeek }, () =>
       Array.from({ length: 7 }, () => new Array(11).fill(totalParticipants)),
     );
 
-    // Subtract the user's own busy slots if selected
+    // 若已选中本人，则扣除本人忙碌时段
     if (selectedParticipantIds.has('self')) {
       const ownBusy = collectBusySlots(ownSchedulesByDays as Record<number, ExtendCourse[]>);
       for (let i = 0; i < ownBusy.length; i++) {
@@ -139,12 +175,13 @@ function FreeFriendsContent() {
 
     if (!allLoaded || totalFriends === 0) return matrix;
 
-    // Subtract each selected friend's busy slots
+    // 逐个扣除已选中好友的忙碌时段
     friendCourseQueries.forEach((query, index) => {
-      if (!query.data) return;
-      const friend = friendList?.[index];
-      if (!friend || !selectedParticipantIds.has(friend.stu_id)) return;
-      const busySlots = collectBusySlots(query.data as Record<number, ExtendCourse[]>);
+      const coursesData = query.data;
+      if (!coursesData) return;
+      const friend = selectedFriends[index];
+      if (!friend) return;
+      const busySlots = collectBusySlots(coursesData as Record<number, ExtendCourse[]>);
       for (let i = 0; i < busySlots.length; i++) {
         const parts = busySlots[i].split(',').map(Number);
         matrix[parts[0] - 1][parts[1]][parts[2] - 1] = Math.max(0, matrix[parts[0] - 1][parts[1]][parts[2] - 1] - 1);
@@ -161,10 +198,10 @@ function FreeFriendsContent() {
     totalFriends,
     maxWeek,
     selectedParticipantIds,
-    friendList,
+    selectedFriends,
   ]);
 
-  // Check if a specific slot is busy for a given schedulesByDays
+  // 判断在给定 schedulesByDay 下，某个时段是否忙碌
   const isSlotBusy = useCallback(
     (schedulesByDay: Record<number, ExtendCourse[]>, week: number, day: number, period: number): boolean => {
       const courses = schedulesByDay[day];
@@ -180,35 +217,36 @@ function FreeFriendsContent() {
     [maxWeek],
   );
 
-  // Get status of all participants for a specific slot
+  // 获取某个时段下所有参与者的状态
   const getParticipantsStatus = useCallback(
     (week: number, day: number, period: number): ParticipantStatus[] => {
       const participants: ParticipantStatus[] = [];
 
-      // Add self first if selected
+      // 若已选中本人，优先加入本人状态
       if (selectedParticipantIds.has('self')) {
         const isOwnBusy = isSlotBusy(ownSchedulesByDays as Record<number, ExtendCourse[]>, week, day, period);
-        participants.push({ name: '我', college: '', major: '', isBusy: isOwnBusy });
+        participants.push({ stu_id: 'self', name: '我', college: '', major: '', isBusy: isOwnBusy });
       }
 
-      // Add selected friends
-      friendList?.forEach((friend, index) => {
-        if (!selectedParticipantIds.has(friend.stu_id)) return;
-        const query = friendCourseQueries[index];
-        const isBusy = query?.data
-          ? isSlotBusy(query.data as Record<number, ExtendCourse[]>, week, day, period)
+      // 添加已选中的好友状态
+      selectedFriends.forEach((friend, index) => {
+        const coursesData = friendCourseQueries[index]?.data;
+        const isBusy = coursesData
+          ? isSlotBusy(coursesData as Record<number, ExtendCourse[]>, week, day, period)
           : false;
         participants.push({
+          stu_id: friend.stu_id,
           name: friend.name,
           college: friend.college,
           major: friend.major,
           isBusy,
+          isError: friendCourseQueries[index]?.isError ?? false,
         });
       });
 
       return participants;
     },
-    [friendCourseQueries, friendList, isSlotBusy, ownSchedulesByDays, selectedParticipantIds],
+    [friendCourseQueries, selectedFriends, isSlotBusy, ownSchedulesByDays, selectedParticipantIds],
   );
 
   const handleSlotPress = useCallback((week: number, day: number, period: number) => {
@@ -227,11 +265,13 @@ function FreeFriendsContent() {
 
   const headerTitle = useCallback(
     () => (
-      <Pressable onPress={() => setShowWeekSelector(v => !v)} className="flex flex-row items-center">
-        <Text className="mr-1 text-lg">
-          第 {selectedWeek} 周{selectedWeek === currentWeek ? ' (本周)' : ''}
-        </Text>
-        <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+      <Pressable onPress={() => setShowWeekSelector(v => !v)}>
+        <View className="flex flex-row items-center">
+          <Text className="mr-1 text-lg">
+            第 {selectedWeek} 周{selectedWeek === currentWeek ? ' (本周)' : ''}
+          </Text>
+          <Icon name={showWeekSelector ? 'caret-up-outline' : 'caret-down-outline'} size={10} />
+        </View>
       </Pressable>
     ),
     [selectedWeek, currentWeek, showWeekSelector],
@@ -240,7 +280,7 @@ function FreeFriendsContent() {
   const headerRight = useCallback(
     () => (
       <BorderlessButton onPress={() => setShowParticipantSelector(true)}>
-        <View className="flex-row items-center gap-1 py-4">
+        <View className="flex-row items-center gap-1 p-2">
           <Icon name="people-outline" size={20} />
           <Text className="pl-1">
             {selectedParticipantIds.size}/{totalFriends + 1}
@@ -255,61 +295,73 @@ function FreeFriendsContent() {
     setSelectedParticipantIds(new Set(ids));
   }, []);
 
-  const handleRefresh = useCallback(() => {
-    refetchFriendList();
-    friendCourseQueries.forEach(query => {
-      query.refetch();
-    });
-  }, [friendCourseQueries, refetchFriendList]);
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await refetchFriendList();
+      const promises = selectedFriends.map(friend =>
+        queryClient.invalidateQueries({ queryKey: [FRIEND_COURSE_KEY, friend.stu_id, selectedSemester] }),
+      );
+      errorAlertedRef.current.clear();
+      await Promise.all(promises);
+    } catch (error: any) {
+      console.error('Refresh failed:', error);
+      const data = handleError(error) as { code: string; message: string };
+      if (data) {
+        toast.error(data.message ? data.message : '刷新失败，请稍后再试');
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, refetchFriendList, selectedFriends, selectedSemester, handleError]);
 
-  const msvContent =
-    totalFriends === 0 ? (
-      <View className="flex-1 items-center justify-center px-8">
-        <Text className="mb-2 text-center text-lg font-medium">还没有好友</Text>
-        <Text className="text-center text-text-secondary">前往好友管理添加好友后，这里会显示大家都有空的时间段</Text>
-        <Pressable
-          className="mt-6 rounded-lg bg-primary px-6 py-3"
-          onPress={() => router.push('/settings/friend/list')}
-        >
-          <Text className="font-medium text-white">去添加好友</Text>
-        </Pressable>
-      </View>
-    ) : (
-      <>
-        <FreeFriendsGrid
-          ref={gridRef}
-          selectedWeek={selectedWeek}
-          onWeekChange={setSelectedWeek}
-          allFreeMatrix={allFreeMatrix}
-          totalFriends={totalParticipants}
-          maxWeek={maxWeek}
-          currentTerm={currentTerm}
-          onSlotPress={handleSlotPress}
-        />
+  const { bottom } = useSafeAreaInsets();
 
-        <PickerModal
-          visible={showWeekSelector}
-          title="选择周数"
-          data={weekPickerData}
-          value={String(selectedWeek)}
-          onClose={() => setShowWeekSelector(false)}
-          onConfirm={val => {
-            setShowWeekSelector(false);
-            gridRef.current?.scrollToWeek(parseInt(val, 10));
-          }}
-        />
-
-        <SlotDetailModal slotInfo={slotInfo} participants={participantsStatus} onClose={() => setSlotInfo(null)} />
-
-        <ParticipantSelectorModal
-          visible={showParticipantSelector}
-          friendList={friendList}
-          selectedIds={selectedParticipantIds}
-          onConfirm={confirmParticipantSelection}
-          onClose={() => setShowParticipantSelector(false)}
-        />
-      </>
+  const msvContent = useMemo(() => {
+    return (
+      <ScrollView
+        contentContainerClassName="flex-1"
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+      >
+        {totalFriends === 0 ? (
+          <View className="flex-1 items-center justify-center px-8">
+            <Text className="mb-2 text-center text-lg font-medium">还没有好友</Text>
+            <Text className="text-center text-text-secondary">
+              前往好友管理添加好友后，这里会显示大家都有空的时间段
+            </Text>
+            <Button className="mt-10 w-1/2" onPress={() => router.push('/settings/friend/list')}>
+              <Text className="font-medium text-white">去添加好友</Text>
+            </Button>
+          </View>
+        ) : (
+          <FreeFriendsGrid
+            ref={gridRef}
+            style={{ marginBottom: bottom }}
+            selectedWeek={selectedWeek}
+            onWeekChange={setSelectedWeek}
+            allFreeMatrix={allFreeMatrix}
+            totalFriends={totalParticipants}
+            maxWeek={maxWeek}
+            currentTerm={currentTerm}
+            onSlotPress={handleSlotPress}
+          />
+        )}
+      </ScrollView>
     );
+  }, [
+    isRefreshing,
+    handleRefresh,
+    allFreeMatrix,
+    bottom,
+    currentTerm,
+    handleSlotPress,
+    maxWeek,
+    router,
+    selectedWeek,
+    totalFriends,
+    totalParticipants,
+  ]);
 
   return (
     <CoursePageProvider value={{ setting: coursePageData.setting }}>
@@ -322,6 +374,29 @@ function FreeFriendsContent() {
       />
 
       <MultiStateView state={state} className="flex-1" content={msvContent} refresh={handleRefresh} />
+
+      {/* 周数选择器 */}
+      <PickerModal
+        visible={showWeekSelector}
+        title="选择周数"
+        data={weekPickerData}
+        value={String(selectedWeek)}
+        onClose={() => setShowWeekSelector(false)}
+        onConfirm={val => {
+          setShowWeekSelector(false);
+          gridRef.current?.scrollToWeek(parseInt(val, 10));
+        }}
+      />
+      {/* 详情弹窗 */}
+      <SlotDetailModal slotInfo={slotInfo} participants={participantsStatus} onClose={() => setSlotInfo(null)} />
+      {/* 参与者选择 */}
+      <ParticipantSelectorModal
+        visible={showParticipantSelector}
+        friendList={friendList}
+        selectedIds={selectedParticipantIds}
+        onConfirm={confirmParticipantSelection}
+        onClose={() => setShowParticipantSelector(false)}
+      />
     </CoursePageProvider>
   );
 }
