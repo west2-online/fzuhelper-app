@@ -4,7 +4,8 @@ import { Text } from '@/components/ui/text';
 import { ACCESS_TOKEN_KEY, YMT_ACCESS_TOKEN_KEY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, EXAM_TYPE } from '@/lib/course';
 import locateDate from '@/lib/locate-date';
-import { LocalUser } from '@/lib/user';
+import { checkCredentials, setCredentials } from '@/lib/user';
+import { getCredentials } from '@/lib/user-store';
 import UserLogin from '@/lib/user-login';
 import { pushToWebViewJWCH } from '@/lib/webview';
 import NativeBrightnessModule from '@/modules/native-brightness';
@@ -39,10 +40,10 @@ export default function HomePage() {
 
   // 设置过期的 jwch cookie
   const setExpiredCookie = async () => {
-    const credentials = LocalUser.getCredentials();
+    const credentials = getCredentials();
     // 经过验证，每个 cookie 的后几位都是属于 ASP.NET_SessionId 的，删除后 5 个字母，会直接导致 cookie 过期
     const expiredCookie = credentials.cookies?.slice(0, -5);
-    await LocalUser.setCredentials(credentials.identifier, expiredCookie);
+    await setCredentials(credentials.identifier, expiredCookie);
     toast.success('已经设置过期的 cookie');
   };
 
@@ -66,7 +67,7 @@ export default function HomePage() {
 
   // 判断 Cookie 是否有效
   const isCookieValid = async () => {
-    const resp = await LocalUser.checkCredentials();
+    const resp = await checkCredentials();
     toast.info('Cookie 检查结果' + resp);
   };
 

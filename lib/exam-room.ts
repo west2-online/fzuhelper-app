@@ -1,12 +1,13 @@
 import type { JwchClassroomExamResponse as ExamData } from '@/api/backend';
 import type { MergedExamData } from '@/types/academic';
 import dayjs from 'dayjs';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
+import { USER_TYPE_POSTGRADUATE } from './user';
+import { getUserInfo } from './user-store';
 
 // 将日期字符串(xxxx年xx月xx日)转换为 Date 对象，如转换失败返回 undefined
 const parseDate = (dateStr: string): dayjs.Dayjs | undefined => {
   // 研究生的考试日期格式是 2023-12-9 这样的，可以直接转换
-  if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
+  if (getUserInfo().type === USER_TYPE_POSTGRADUATE) {
     if (dateStr === '') return undefined; // 如果没有还是返回 undefined
     const parsedDate = dayjs(dateStr);
     return parsedDate.isValid() ? parsedDate : undefined;

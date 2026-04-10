@@ -14,7 +14,8 @@ import { Text } from '@/components/ui/text';
 import { getApiV1JwchAcademicPlan } from '@/api/generate';
 import { LoadingDialog } from '@/components/loading';
 import useApiRequest from '@/hooks/useApiRequest';
-import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { getUserInfo } from '@/lib/user-store';
 import { pushToWebViewJWCH } from '@/lib/webview';
 import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 
@@ -76,7 +77,7 @@ export default function AcademicPage() {
         {/* 菜单列表 */}
         <View className="mx-4 space-y-4">
           {MENU_ITEMS.filter(
-            item => !item.userTypes || item.userTypes.includes(LocalUser.getUser().type as UserType),
+            item => !item.userTypes || item.userTypes.includes(getUserInfo().type as UserType),
           ).map((item, index) => (
             <LabelIconEntry key={index} icon={item.icon} label={item.name} onPress={() => toolOnPress(item, router)} />
           ))}

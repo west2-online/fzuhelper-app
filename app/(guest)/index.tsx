@@ -33,7 +33,7 @@ import {
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
 import { NotificationManager } from '@/lib/notification';
-import { LocalUser } from '@/lib/user';
+import { getUserInfo } from '@/lib/user-store';
 import { pushToWebViewNormal } from '@/lib/webview';
 import BuglyModule from '@/modules/bugly';
 import fileCache from '@/utils/file-cache';
@@ -100,7 +100,7 @@ export default function SplashScreen() {
       return await Promise.race([
         getApiV1LaunchScreenScreen({
           type: 1,
-          student_id: LocalUser.getUser().userid || '',
+          student_id: getUserInfo().userid || '',
           device: Platform.OS,
         }),
         timeout,
@@ -201,7 +201,7 @@ export default function SplashScreen() {
     // 整个逻辑自动化地实现在了 api/axios.ts 中
 
     if (Platform.OS === 'android') {
-      BuglyModule.setUserId(LocalUser.getUser().userid);
+      BuglyModule.setUserId(getUserInfo().userid);
     }
 
     getSplash(); // 获取开屏页

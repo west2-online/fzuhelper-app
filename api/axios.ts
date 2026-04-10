@@ -3,7 +3,8 @@ import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } f
 
 import { RejectEnum, ResultEnum } from '@/api/enum';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
-import { LocalUser } from '@/lib/user';
+import { performLogin } from '@/lib/user';
+import { getCredentials } from '@/lib/user-store';
 import { type RejectError } from '@/types/reject-error';
 import { isApiData, isHeaders, isNativeLoginError } from '@/types/type-guards';
 import { Platform } from 'react-native';
@@ -119,7 +120,7 @@ request.interceptors.response.use(
         // 尝试重新登录并获取cookies和id
         refreshing = true;
         try {
-          await LocalUser.login();
+          await performLogin();
           queue.forEach(({ config: queuedConfig, resolve }) => {
             resolve(request(queuedConfig));
           });
@@ -178,7 +179,7 @@ request.interceptors.request.use(async config => {
   // 用于 api 鉴权
   const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
   // 用于 本科生/研究生 教务系统
-  const credentials = LocalUser.getCredentials();
+  const credentials = getCredentials();
 
   if (accessToken) {
     config.headers.Authorization = accessToken;

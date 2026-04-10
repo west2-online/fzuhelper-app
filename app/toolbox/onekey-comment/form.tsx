@@ -26,7 +26,8 @@ import { TabFlatList } from '@/components/tab-flatlist';
 
 import Loading from '@/components/loading';
 import OnekeyComment, { CourseInfo } from '@/lib/onekey-comment';
-import { LocalUser } from '@/lib/user';
+import { checkCredentials, performLogin } from '@/lib/user';
+import { getCredentials } from '@/lib/user-store';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 interface CourseCardProps {
@@ -162,17 +163,17 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
 
   const refreshCourses = useCallback(async () => {
     setLoading(true);
-    const cookieValid = await LocalUser.checkCredentials();
+    const cookieValid = await checkCredentials();
     if (!cookieValid) {
       try {
-        await LocalUser.login();
+        await performLogin();
       } catch (error) {
         console.error('教务系统登录失败:', error);
         toast.error('登录失败，请稍后再试');
         return;
       }
     }
-    const { identifier, cookies } = LocalUser.getCredentials();
+    const { identifier, cookies } = getCredentials();
     onekey.setCookies(cookies);
     const data = await onekey.getUncommentTeachers(identifier, tabname === Tab.学期选课 ? 'xqxk' : 'score');
     setCourses(data);
@@ -302,17 +303,17 @@ export default function OnekeyCommentFormPage() {
   const tabs = [Tab.学期选课, Tab.成绩查询];
 
   const refreshCaptcha = useCallback(async () => {
-    const cookieValid = await LocalUser.checkCredentials();
+    const cookieValid = await checkCredentials();
     if (!cookieValid) {
       try {
-        await LocalUser.login();
+        await performLogin();
       } catch (error) {
         console.error('教务系统登录失败:', error);
         toast.error('登录失败，请稍后再试');
         return;
       }
     }
-    const { cookies } = LocalUser.getCredentials();
+    const { cookies } = getCredentials();
     onekey.current.setCookies(cookies);
     let data = await onekey.current.getCaptcha();
     let base64 = fromByteArray(data);

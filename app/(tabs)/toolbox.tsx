@@ -32,7 +32,8 @@ import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { showIgnorableAlert } from '@/lib/common-settings';
 
-import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { getUserInfo } from '@/lib/user-store';
 import { pushToWebViewSSO } from '@/lib/webview';
 import { isToolboxTool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/utils/tools';
 
@@ -388,7 +389,7 @@ const useToolsPageData = (columns: number) => {
     getApiV1LaunchScreenScreen,
     {
       type: 2, // 1为开屏页，2为轮播图
-      student_id: LocalUser.getUser().userid || '',
+      student_id: getUserInfo().userid || '',
       device: Platform.OS,
     },
     { persist: true, queryKey: [TOOLBOX_BANNER_KEY], staleTime: EXPIRE_ONE_DAY },
@@ -397,13 +398,13 @@ const useToolsPageData = (columns: number) => {
     getApiV1ToolboxConfig,
     {
       version: parseInt(DeviceInfo.getBuildNumber(), 10),
-      student_id: LocalUser.getUser().userid || '',
+      student_id: getUserInfo().userid || '',
       platform: Platform.OS,
     },
     { persist: true, queryKey: [TOOLBOX_CONFIG_KEY], staleTime: EXPIRE_ONE_DAY },
   );
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
-  const userType = useMemo(() => LocalUser.getUser().type as UserType, []);
+  const userType = useMemo(() => getUserInfo().type as UserType, []);
 
   const baseTools = useMemo(
     () =>

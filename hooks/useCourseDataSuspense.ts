@@ -22,7 +22,8 @@ import {
 } from '@/lib/course';
 import { formatExamData } from '@/lib/exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from '@/lib/locate-date';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { getUserInfo } from '@/lib/user-store';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 
 export interface CoursePageData {
@@ -120,7 +121,7 @@ export function useCoursePageData() {
 
       // 5. 加载课表数据
       let queryTerm = currentTerm.term;
-      if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
+      if (getUserInfo().type === USER_TYPE_POSTGRADUATE) {
         queryTerm = deConvertSemester(currentTerm.term);
       }
 

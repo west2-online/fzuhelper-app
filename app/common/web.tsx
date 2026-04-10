@@ -24,7 +24,8 @@ import {
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
-import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
+import { USER_TYPE_POSTGRADUATE, checkCookieSSO, checkCredentials, performLogin } from '@/lib/user';
+import { getCredentials, getUserInfo } from '@/lib/user-store';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
@@ -65,17 +66,17 @@ export default function Web() {
       // 上面代码在安卓平台有问题，会导致过期 cookie 也被发送
       await CookieManager.clearAll();
 
-      const cookieValid = await LocalUser.checkCredentials();
+      const cookieValid = await checkCredentials();
       if (!cookieValid) {
         try {
-          await LocalUser.login();
+          await performLogin();
         } catch (error) {
           console.error('教务系统登录失败:', error);
           toast.error('登录失败，请稍后再试');
           return;
         }
       }
-      const credentials = LocalUser.getCredentials();
+      const credentials = getCredentials();
 
       if (!credentials.cookies) {
         toast.error('登录失败，请稍后再试');
@@ -91,7 +92,7 @@ export default function Web() {
         credentials.cookies.split(';').map(c =>
           CookieManager.setFromResponse(
             // 依据用户类型置入不同的域名 Cookie
-            LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? YJSY_COOKIES_DOMAIN : JWCH_COOKIES_DOMAIN,
+            getUserInfo().type === USER_TYPE_POSTGRADUATE ? YJSY_COOKIES_DOMAIN : JWCH_COOKIES_DOMAIN,
             c,
           ),
         ),

@@ -26,7 +26,8 @@ import {
   updateCourseSetting,
 } from '@/lib/course';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { getUserInfo } from '@/lib/user-store';
 import { pushToWebViewNormal } from '@/lib/webview';
 
 export default function CourseSettingPage() {
@@ -80,7 +81,7 @@ export default function CourseSettingPage() {
     setPickerVisible(false);
     // 对于研究生，我们内部存储的是和本科生等价的 202401 等字样
     const newValue =
-      LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? convertSemester(selectedValue) : selectedValue;
+      getUserInfo().type === USER_TYPE_POSTGRADUATE ? convertSemester(selectedValue) : selectedValue;
     setSettings(prevSettings => ({
       ...prevSettings,
       selectedSemester: newValue,
@@ -167,7 +168,7 @@ export default function CourseSettingPage() {
               rightText={
                 isLoadingSemester
                   ? '加载中...'
-                  : LocalUser.getUser().type === USER_TYPE_POSTGRADUATE
+                  : getUserInfo().type === USER_TYPE_POSTGRADUATE
                     ? deConvertSemester(settings.selectedSemester)
                     : settings.selectedSemester
               }
@@ -232,7 +233,7 @@ export default function CourseSettingPage() {
                 label: s,
               }))}
               value={
-                LocalUser.getUser().type === USER_TYPE_POSTGRADUATE
+                getUserInfo().type === USER_TYPE_POSTGRADUATE
                   ? deConvertSemester(settings.selectedSemester)
                   : settings.selectedSemester
               }

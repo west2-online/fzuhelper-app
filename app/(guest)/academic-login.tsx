@@ -13,7 +13,14 @@ import PageContainer from '@/components/page-container';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
-import { LocalUser, USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import {
+  clearUser,
+  getCaptcha,
+  performLogin,
+  setUser,
+  USER_TYPE_POSTGRADUATE,
+  USER_TYPE_UNDERGRADUATE,
+} from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 import BuglyModule from '@/modules/bugly';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
@@ -68,7 +75,7 @@ const LoginPage: React.FC = () => {
   // 刷新验证码
   const refreshCaptcha = useCallback(async () => {
     try {
-      const res = await LocalUser.getCaptcha();
+      const res = await getCaptcha();
       setCaptchaImage(`data:image/png;base64,${btoa(String.fromCharCode(...res))}`);
       setCaptcha(''); // 清空验证码输入框
     } catch (error) {
@@ -106,9 +113,9 @@ const LoginPage: React.FC = () => {
 
     try {
       // 存储登录所需的信息
-      await LocalUser.setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
+      await setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
       // 登录、获取 token、检查串号等逻辑
-      await LocalUser.login(captcha);
+      await performLogin(captcha);
       // 登录成功
       if (Platform.OS === 'android') {
         BuglyModule.setUserId(username);
@@ -122,7 +129,7 @@ const LoginPage: React.FC = () => {
         Alert.alert('请求失败', data.code + ': ' + data.message);
       }
       // 访问令牌获取失败，清除账户信息
-      await LocalUser.clear();
+      await clearUser();
       await refreshCaptcha();
       if (Platform.OS === 'android') {
         await BuglyModule.setUserId('');

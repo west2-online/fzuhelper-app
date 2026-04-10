@@ -30,7 +30,8 @@ import objectHash from 'object-hash';
 import { Platform } from 'react-native';
 import { formatExamData } from './exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from './locate-date';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
+import { USER_TYPE_POSTGRADUATE } from './user';
+import { getUserInfo } from './user-store';
 
 // 注册 dayjs 插件
 dayjs.extend(isBetween);
@@ -583,7 +584,7 @@ export class CourseCache {
 
     /* 到此处我们认为数据是不一致的，开始重新处理课程 */
     this.startID = DEFAULT_STARTID; // 初始化 id
-    const currentUserId = LocalUser.getUser().userid;
+    const currentUserId = getUserInfo().userid;
     clearColorMapping(currentUserId); // 清空颜色映射，重新分配颜色
 
     const schedules = this.parseCourses(tempData); // 解析课程数据
@@ -877,7 +878,7 @@ export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): P
 // 强制刷新数据（即不使用本地缓存）
 export const forceRefreshCourseData = async (queryTerm: string) => {
   // 如果是研究生的话多一层转换
-  if (LocalUser.getUser().type === USER_TYPE_POSTGRADUATE) {
+  if (getUserInfo().type === USER_TYPE_POSTGRADUATE) {
     queryTerm = deConvertSemester(queryTerm);
   }
 

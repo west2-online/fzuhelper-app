@@ -14,6 +14,7 @@ import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
 
 import { LearningCenterContextProvider } from '@/context/learning-center';
+import { UserProvider } from '@/context/user';
 import { getColorScheme } from '@/lib/appearance';
 import { StackNavigatorScreenOptions } from '@/lib/constants';
 import patchTextComponent from '@/utils/patch-text-component';
@@ -50,14 +51,16 @@ export default function RootLayout() {
           <KeyboardProvider>
             <GestureHandlerRootView>
               <LearningCenterContextProvider>
-                <Stack screenOptions={StackNavigatorScreenOptions}>
-                  <Stack.Screen name="+not-found" />
-                </Stack>
+                <UserProvider>
+                  <Stack screenOptions={StackNavigatorScreenOptions}>
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
 
-                <Toaster position="top-center" duration={2500} offset={100} style={toastStyle} />
-                <PortalHost />
-                <StatusBar />
-                <DownloadProgress />
+                  <Toaster position="top-center" duration={2500} offset={100} style={toastStyle} />
+                  <PortalHost />
+                  <StatusBar />
+                  <DownloadProgress />
+                </UserProvider>
               </LearningCenterContextProvider>
             </GestureHandlerRootView>
           </KeyboardProvider>

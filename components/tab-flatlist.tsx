@@ -1,7 +1,8 @@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
 import { convertSemester } from '@/lib/locate-date';
-import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { USER_TYPE_POSTGRADUATE } from '@/lib/user';
+import { getUserInfo } from '@/lib/user-store';
 import { JSXElementConstructor, ReactElement, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   FlatList,
@@ -122,7 +123,7 @@ export function TabFlatList({
             {data.map((item, index) => (
               <TabsTrigger key={index} value={item} className="items-center" style={{ width: tabWidth }}>
                 <Text className="text-center">
-                  {LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? convertSemester(item) : item}
+                  {getUserInfo().type === USER_TYPE_POSTGRADUATE ? convertSemester(item) : item}
                 </Text>
               </TabsTrigger>
             ))}

@@ -1,5 +1,6 @@
 import { Text } from '@/components/ui/text';
-import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { getUserInfo } from '@/lib/user-store';
 import { SemesterSummary } from '@/types/academic';
 import { memo } from 'react';
 import { View } from 'react-native';
@@ -25,7 +26,7 @@ function SemesterSummaryCard({ summary }: SemesterSummaryCardProps) {
           <Text className="text-sm text-text-primary">单科最高</Text>
           <Text className="text-lg font-bold text-text-primary">{summary.maxScore.toFixed(2)}</Text>
         </View>
-        {LocalUser.getUser().type === USER_TYPE_UNDERGRADUATE && (
+        {getUserInfo().type === USER_TYPE_UNDERGRADUATE && (
           <View className="flex flex-col items-start">
             <Text className="text-sm text-text-primary">学期绩点</Text>
             <Text className="text-lg font-bold text-text-primary">{summary.GPA.toFixed(2) + ' #'}</Text>
