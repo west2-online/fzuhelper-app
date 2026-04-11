@@ -107,7 +107,7 @@ export default function Web() {
 
       // 存在ssocookie且cookie有效
       if (isSSOLogin && SSOCookie) {
-        SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+        await Promise.all(SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c)));
       } else if (SSOCookie) {
         // 存在ssocookie但cookie无效,需要自动重登
         const ssoLogin = new SSOLogin();
@@ -123,7 +123,7 @@ export default function Web() {
         });
         // toast.info('登录过期，正在重新登录');
         if (cookieLogin) {
-          cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c));
+          await Promise.all(cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c)));
           await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookieLogin);
         } else {
           // 重登失败，跳转到登录页面
