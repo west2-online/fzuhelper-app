@@ -32,6 +32,7 @@ import {
   URL_PRIVACY_POLICY,
   URL_USER_AGREEMENT,
 } from '@/lib/constants';
+import { FeedbackManager } from '@/lib/feedback';
 import { NotificationManager } from '@/lib/notification';
 import { LocalUser } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
@@ -211,6 +212,7 @@ export default function SplashScreen() {
   const onPrivacyAgree = useCallback(async () => {
     console.log('onPrivacyAgree');
     setShouldShowPrivacyAgree(false);
+    FeedbackManager.getInstance().addAppVersionHistory();
     initThirdParty();
     checkLoginStatus();
   }, [initThirdParty, checkLoginStatus]);
