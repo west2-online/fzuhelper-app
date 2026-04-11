@@ -1,8 +1,8 @@
 import { RejectEnum } from '@/api/enum';
 import { LEARNING_CENTER_TOKEN_KEY } from '@/lib/constants';
 import { get, postJSON } from '@/modules/native-request';
+import { Buffer } from '@craftzdog/react-native-buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Buffer } from 'buffer';
 import { router } from 'expo-router';
 import { toast } from 'sonner-native';
 import { SeatMappingUtil } from './seat-mapping';

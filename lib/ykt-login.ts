@@ -1,7 +1,7 @@
 import { RejectEnum } from '@/api/enum';
 import { get, postJSON } from '@/modules/native-request';
+import { Buffer } from '@craftzdog/react-native-buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Buffer } from 'buffer';
 import forge from 'node-forge';
 import { SSO_LOGIN_COOKIE_KEY, YKT_SYNJONES_AUTH_KEY, YKT_USER_INFO_KEY } from './constants';
 import SSOLogin from './sso-login';

@@ -1,24 +1,22 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Dimensions, PixelRatio } from 'react-native';
+import { Dimensions, PixelRatio } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import ImagePicker from 'react-native-image-crop-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
+import { useTheme } from '@/components/app-theme-provider';
 import LabelEntry from '@/components/label-entry';
-import PageContainer from '@/components/page-container';
-
 import LabelSwitch from '@/components/label-switch';
+import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import {
   deleteBackgroundImage,
-  getColorScheme,
   getDarkenBackground,
   hasCustomBackground,
   setBackgroundImage,
-  setColorScheme,
   setDarkenBackground,
 } from '@/lib/appearance';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -33,7 +31,7 @@ export default function AppearancePage() {
   const [customBackground, setCustomBackground] = useState(false);
   const [darkenBackground, setIsDarkenBackground] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const { themeSetting, setThemeSetting } = useTheme();
   const redirect = useRedirectWithoutHistory();
 
   useEffect(() => {
@@ -44,15 +42,6 @@ export default function AppearancePage() {
       setIsDarkenBackground(darken);
     };
     checkBackground();
-  }, []);
-
-  useEffect(() => {
-    const initTheme = async () => {
-      const storedTheme = await getColorScheme();
-      console.log('storedTheme', storedTheme);
-      setTheme(storedTheme);
-    };
-    initTheme();
   }, []);
 
   const selectPicture = useCallback(async () => {
@@ -105,7 +94,7 @@ export default function AppearancePage() {
           <SafeAreaView edges={['bottom']}>
             <LabelEntry
               leftText={'主题模式'}
-              rightText={THEME_OPTIONS.find(option => option.value === theme)?.label}
+              rightText={THEME_OPTIONS.find(option => option.value === themeSetting)?.label}
               onPress={() => setPickerVisible(true)}
             />
             <LabelEntry leftText={'选择壁纸'} onPress={selectPicture} />
@@ -130,13 +119,12 @@ export default function AppearancePage() {
           title="主题模式"
           visible={pickerVisible}
           data={THEME_OPTIONS}
-          value={theme}
+          value={themeSetting}
           onClose={() => setPickerVisible(false)}
           onConfirm={async value => {
-            setTheme(value);
-            await setColorScheme(value);
-            Alert.alert('需要重启', '设置成功，请手动重启应用以更新主题');
             setPickerVisible(false);
+            await setThemeSetting(value);
+            toast.success('设置成功');
           }}
         />
       </PageContainer>

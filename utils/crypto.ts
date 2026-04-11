@@ -1,4 +1,4 @@
-import { Buffer } from 'buffer';
+import { Buffer } from '@craftzdog/react-native-buffer';
 import * as Crypto from 'expo-crypto';
 
 export async function md5(text: string, bit: 16 | 32) {

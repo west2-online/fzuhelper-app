@@ -51,12 +51,12 @@ const setDarkenBackground = async (value: boolean) => {
   await AsyncStorage.setItem(DARKEN_BACKGROUND_KEY, value ? 'true' : 'false');
 };
 
-export async function getColorScheme(): Promise<'light' | 'dark' | 'system'> {
+export async function getThemePreference(): Promise<'light' | 'dark' | 'system'> {
   const stored = await AsyncStorage.getItem(COLOR_SCHEME_KEY);
   return stored === 'light' || stored === 'dark' ? stored : 'system';
 }
 
-export async function setColorScheme(value: 'light' | 'dark' | 'system'): Promise<void> {
+export async function setThemePreference(value: 'light' | 'dark' | 'system'): Promise<void> {
   await AsyncStorage.setItem(COLOR_SCHEME_KEY, value);
 }
 

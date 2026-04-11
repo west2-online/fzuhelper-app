@@ -1,5 +1,5 @@
-import { memo, useMemo, useState } from 'react';
-import { Pressable, useColorScheme, View } from 'react-native';
+import { memo, useState } from 'react';
+import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 
@@ -7,6 +7,7 @@ import OverlapIcon from '@/assets/images/course/overlap.svg';
 import { SCHEDULE_ITEM_MARGIN, type CourseInfo } from '@/lib/course';
 import { getCourseColor, getTextColor } from '@/utils/random-color';
 
+import { useTheme } from '../app-theme-provider';
 import ScheduleDetailsDialog from './schedule-detail-dialog';
 
 interface ScheduleItemProps {
@@ -19,8 +20,7 @@ interface ScheduleItemProps {
 // ScheduleItem 组件，用于显示课程表中的一节课
 const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color }) => {
   const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const colorScheme = useColorScheme();
-  const isDarkMode = useMemo(() => colorScheme === 'dark', [colorScheme]);
+  const { isDarkTheme } = useTheme();
 
   return (
     <>
@@ -28,19 +28,19 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
         <Pressable
           className="flex flex-1 flex-col items-center justify-center overflow-hidden rounded-lg p-[1px]"
           style={{
-            backgroundColor: getCourseColor(color, isDarkMode),
+            backgroundColor: getCourseColor(color, isDarkTheme),
           }}
           onPress={() => setDetailsDialogOpen(true)}
         >
           <Text
             className={`${span > 1 ? 'line-clamp-3' : 'line-clamp-2'} truncate text-wrap break-all text-center text-[11px]`}
-            style={{ color: getTextColor(color, isDarkMode) }}
+            style={{ color: getTextColor(color, isDarkTheme) }}
           >
             {schedules[0].name}
           </Text>
           <Text
             className="mt-1 text-wrap break-all text-center text-[11px]"
-            style={{ color: getTextColor(color, isDarkMode) }}
+            style={{ color: getTextColor(color, isDarkTheme) }}
           >
             {schedules[0].location}
           </Text>
