@@ -87,7 +87,7 @@ export default function SeatTimeStatusPage() {
   const getTimeBlockStyle = useCallback(
     (item: TimeDiamond) => {
       // 基础样式
-      let baseStyle = 'w-full py-3 rounded-lg items-center justify-center';
+      let baseStyle = 'w-full py-3 rounded-lg items-center justify-center ';
 
       // 已占用
       if (item.occupy === 1) {
