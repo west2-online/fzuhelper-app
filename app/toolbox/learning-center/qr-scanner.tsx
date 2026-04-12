@@ -129,7 +129,7 @@ export default function QrScannerPage() {
             barcodeScannerSettings={{
               barcodeTypes: ['qr'],
             }}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
           <SafeAreaView className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 pt-4" edges={['bottom']}>
             <Text className="mb-4 text-center text-white">将二维码放入框内以进行扫描</Text>

@@ -116,7 +116,7 @@ export default function TabLayout() {
                 intensity={50}
                 tint="light"
                 // eslint-disable-next-line react-native/no-inline-styles
-                style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'transparent', overflow: 'hidden' }}
+                style={{ ...StyleSheet.absoluteFill, backgroundColor: 'transparent', overflow: 'hidden' }}
               />
             ) : (
               // TODO: 目前是使用了 BlurView 来实现毛玻璃效果，但是这个组件在 Android 上会有问题，因此暂时不使用
