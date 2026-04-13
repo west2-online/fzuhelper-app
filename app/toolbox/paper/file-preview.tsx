@@ -23,7 +23,7 @@ export default function FilePreviewPage() {
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const downloadUri = `http://files.w2fzu.com/${encodeURIComponent(filepath.substring(1))}?_upt=78e7a6691739858884`;
+  const downloadUri = `https://files.w2fzu.com/${encodeURIComponent(filepath.substring(1))}?_upt=78e7a6691739858884`;
 
   useEffect(() => {
     // 根据平台设置 localFileUri

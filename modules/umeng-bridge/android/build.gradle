@@ -52,16 +52,16 @@ dependencies {
 //  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getKotlinVersion()}"
 
     // 友盟统计SDK
-    api 'com.umeng.umsdk:common:9.8.8'
+    api 'com.umeng.umsdk:common:9.9.1'
     api 'com.umeng.umsdk:asms:1.8.7.2'
     // 友盟Push相关依赖
-    api 'com.umeng.umsdk:push:6.7.5'
+    api 'com.umeng.umsdk:push:6.7.6'
     // 小米
-    api 'com.umeng.umsdk:xiaomi-umengaccs:2.2.0'
-    api 'com.umeng.umsdk:xiaomi-push:6.0.1'
+    api 'com.umeng.umsdk:xiaomi-umengaccs:2.3.0'
+    api 'com.umeng.umsdk:xiaomi-push:7.9.2'
     // 华为
     api 'com.umeng.umsdk:huawei-umengaccs:2.2.0'
-    api 'com.huawei.hms:push:6.13.0.300'
+    api 'com.huawei.hms:push:6.13.0.301'
     // OPPO
     api 'com.umeng.umsdk:oppo-umengaccs:2.2.0'
     api 'com.umeng.umsdk:oppo-push:3.5.3'

@@ -111,12 +111,15 @@ const config: ExpoConfig = {
           useLegacyPackaging: true,
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
-          usesCleartextTraffic: true,
           extraMavenRepos: ['https://developer.huawei.com/repo/'],
         },
       },
     ],
     './plugins/inject-android-config',
+    [
+      './plugins/inject-android-network-security-config',
+      { networkSecurityConfig: './assets/configs/network_security_config.xml', enable: true },
+    ],
     './plugins/inject-ios-prebuild',
     [
       './modules/umeng-bridge/app.plugin.js',

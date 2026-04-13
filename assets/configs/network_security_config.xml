@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config xmlns:tools="http://schemas.android.com/tools">
+    <!--  学校的一些服务未开启HTTPS，甚至使用IP地址，我们能保证的只有自己的域名使用HTTPS访问  -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">west2.online</domain>
+        <domain includeSubdomains="true">w2fzu.com</domain>
+    </domain-config>
+    <base-config
+        cleartextTrafficPermitted="true"
+        tools:ignore="InsecureBaseConfiguration">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!--  调试版信任用户证书，便于抓包  -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>
