@@ -54,4 +54,15 @@ module.exports = [
     message: '此组件会跟随系统字体大小，请从 @/components/ui/ 导入',
     allowIn: ['components/ui/text.tsx', 'utils/patch-text-component.ts'],
   },
+  {
+    source: 'react-native',
+    names: ['useColorScheme'],
+    message: "import { useTheme } from '@/components/app-theme-provider'",
+    allowIn: ['components/app-theme-provider.tsx'],
+  },
+  {
+    source: 'nativewind',
+    names: ['useColorScheme'],
+    message: "import { useTheme } from '@/components/app-theme-provider'",
+  },
 ];

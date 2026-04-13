@@ -3,9 +3,9 @@ import { ACCESS_TOKEN_KEY } from '@/lib/constants';
 import { get, post } from '@/modules/native-request';
 import { type RejectError } from '@/types/reject-error';
 import { base64, md5 } from '@/utils/crypto';
+import { Buffer } from '@craftzdog/react-native-buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { Buffer } from 'buffer';
 
 // 用于提供类型检查，本文件中所有的 throw 和 Promise.reject 都应该使用这个保证类型安全
 function rejectWith(obj: RejectError) {

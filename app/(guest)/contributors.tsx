@@ -1,8 +1,8 @@
 import { Stack } from 'expo-router';
-import { useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1CommonContributor } from '@/api/generate';
+import { useTheme } from '@/components/app-theme-provider';
 import ContributorsDOMComponent from '@/components/dom/contributors';
 import PageContainer from '@/components/page-container';
 import useApiRequest from '@/hooks/useApiRequest';
@@ -13,7 +13,7 @@ import useApiRequest from '@/hooks/useApiRequest';
 
 export default function Contributors() {
   const { data } = useApiRequest(getApiV1CommonContributor, {});
-  const colorScheme = useColorScheme();
+  const { currentTheme } = useTheme();
 
   return (
     <>
@@ -22,7 +22,7 @@ export default function Contributors() {
       <PageContainer>
         <SafeAreaView className="h-full w-full" edges={['bottom']}>
           {/* 在原生端传入 colorScheme，防止出现闪动 */}
-          {data && <ContributorsDOMComponent data={data} colorScheme={colorScheme} />}
+          {data && <ContributorsDOMComponent data={data} colorScheme={currentTheme} />}
         </SafeAreaView>
       </PageContainer>
     </>
