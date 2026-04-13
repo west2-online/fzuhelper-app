@@ -34,13 +34,7 @@ jobs:
     uses: ./.github/workflows/beta.yml
     secrets: inherit
 
-  release:
-    if: startsWith(github.ref, 'refs/tags/')
-    uses: ./.github/workflows/release.yml
-    secrets: inherit
-
   version:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: release
     uses: ./.github/workflows/version.yml
     secrets: inherit
