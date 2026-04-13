@@ -6,7 +6,7 @@ import { Appearance, type ColorSchemeName, useColorScheme as useSystemColorSchem
 import { getThemePreference, setThemePreference } from '@/lib/appearance';
 
 // RN 0.83 changed undefined/null to 'unspecified'.
-// Nativewind v4 hasn't adapted to it, so patch for old behavior
+// FIXME: Nativewind v4 hasn't adapted to it, so patch for old behavior
 const _getColorScheme = Appearance.getColorScheme.bind(Appearance);
 
 Appearance.getColorScheme = () => {
