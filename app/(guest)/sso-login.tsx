@@ -1,19 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardAwareScrollViewRef } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import PageContainer from '@/components/page-container';
 import SmsVerificationModal from '@/components/sms-verification-modal';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
+import AgreementCheckbox, { AgreementCheckboxRef } from '@/components/agreement-checkbox';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { SSO_LOGIN_COOKIE_KEY, SSO_LOGIN_USER_KEY, URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import { SSO_LOGIN_COOKIE_KEY, SSO_LOGIN_USER_KEY } from '@/lib/constants';
 import SSOLogin, { TwoFactorAuthCallback } from '@/lib/sso-login';
 import { pushToWebViewNormal } from '@/lib/webview';
 
@@ -29,7 +29,6 @@ const UnifiedLoginPage: React.FC = () => {
   const [accountPassword, setAccountPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isBackUpEnabled, setIsBackUpEnabled] = useState(false); // 是否启用备用登录方式
-  const [isAgree, setIsAgree] = useState(false);
   const [smsModalVisible, setSmsModalVisible] = useState(false);
   const [smsPhone, setSmsPhone] = useState('');
   const [smsTip, setSmsTip] = useState('');
@@ -37,8 +36,9 @@ const UnifiedLoginPage: React.FC = () => {
   const { handleError } = useSafeResponseSolve();
   const ssoLogin = useRef<SSOLogin | null>(null);
   const isStoredSSOUser = useRef(false);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<KeyboardAwareScrollViewRef>(null);
   const smsCodeResolve = useRef<((code: string) => void) | null>(null);
+  const agreementRef = useRef<AgreementCheckboxRef>(null);
 
   if (!ssoLogin.current) {
     ssoLogin.current = new SSOLogin();
@@ -113,16 +113,6 @@ const UnifiedLoginPage: React.FC = () => {
     return false;
   }, [account, accountPassword, handleError]);
 
-  // 打开服务协议
-  const openUserAgreement = useCallback(() => {
-    pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
-  }, []);
-
-  // 打开隐私政策
-  const openPrivacyPolicy = useCallback(() => {
-    pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
-  }, []);
-
   // 忘记密码
   const openForgetPassword = useCallback(() => {
     pushToWebViewNormal(URL_FORGET_PASSWORD, '重置密码');
@@ -148,34 +138,31 @@ const UnifiedLoginPage: React.FC = () => {
 
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
-    if (!isAgree) {
-      toast.error('请先阅读并同意服务协议和隐私政策');
-      scrollViewRef.current?.scrollToEnd();
-      return;
-    }
-    if (!account) {
-      toast.error('请输入用户名');
-      return;
-    }
-    if (!accountPassword) {
-      toast.error('请输入密码');
-      return;
-    }
+    agreementRef.current?.checkAgreement(async () => {
+      if (!account) {
+        toast.error('请输入用户名');
+        return;
+      }
+      if (!accountPassword) {
+        toast.error('请输入密码');
+        return;
+      }
 
-    setIsLoggingIn(true); // 禁用按钮
+      setIsLoggingIn(true); // 禁用按钮
 
-    const isSSOLoginSuccess = await handleSSOLogin();
+      const isSSOLoginSuccess = await handleSSOLogin();
 
-    // SSO登录失败，则证明账号密码正确但是SSO登录有问题，引导前往备用登录方式
-    if (!isSSOLoginSuccess) {
-      setIsBackUpEnabled(true); // 启用备用登录方式
-      toast.warning('统一身份认证登录失败，请尝试使用备用方式登录');
-    } else {
-      router.back();
-    }
+      // SSO登录失败，可能是SSO登录有问题，引导前往备用登录方式
+      if (!isSSOLoginSuccess) {
+        setIsBackUpEnabled(true); // 启用备用登录方式
+        toast.warning('统一身份认证登录失败，请尝试使用备用方式登录');
+      } else {
+        router.back();
+      }
 
-    setIsLoggingIn(false);
-  }, [isAgree, account, accountPassword, handleSSOLogin]);
+      setIsLoggingIn(false);
+    });
+  }, [account, accountPassword, handleSSOLogin]);
 
   return (
     <>
@@ -255,36 +242,7 @@ const UnifiedLoginPage: React.FC = () => {
               </View>
 
               {/* 底部协议 */}
-              <TouchableOpacity
-                activeOpacity={0.7}
-                className="mb-4 mt-12 w-full flex-row justify-center py-2"
-                onPress={() => setIsAgree(!isAgree)}
-              >
-                <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-                <Text className="text-center text-text-secondary">
-                  {'  '}
-                  阅读并同意{' '}
-                  <Text
-                    className="text-primary"
-                    onPress={event => {
-                      event.stopPropagation();
-                      openUserAgreement();
-                    }}
-                  >
-                    服务协议
-                  </Text>{' '}
-                  和{' '}
-                  <Text
-                    className="text-primary"
-                    onPress={event => {
-                      event.stopPropagation();
-                      openPrivacyPolicy();
-                    }}
-                  >
-                    隐私政策
-                  </Text>
-                </Text>
-              </TouchableOpacity>
+              <AgreementCheckbox ref={agreementRef} />
             </View>
           </KeyboardAwareScrollView>
         </SafeAreaView>

@@ -1,18 +1,17 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { Alert, Image, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardAwareScrollViewRef } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 
+import AgreementCheckbox, { AgreementCheckboxRef } from '@/components/agreement-checkbox';
 import PageContainer from '@/components/page-container';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { LocalUser, USER_TYPE_POSTGRADUATE, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
 import { pushToWebViewNormal } from '@/lib/webview';
 import BuglyModule from '@/modules/bugly';
@@ -22,7 +21,7 @@ const URL_RESET_PASSWORD_UNDERGRADUATE = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSe
 const URL_RESET_PASSWORD_POSTGRADUATE = 'https://yjsglxt.fzu.edu.cn/ResetPassword.aspx';
 
 const LoginPage: React.FC = () => {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<KeyboardAwareScrollViewRef>(null);
   const redirect = useRedirectWithoutHistory();
 
   const [captchaImage, setCaptchaImage] = useState('');
@@ -30,19 +29,9 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [captcha, setCaptcha] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isAgree, setIsAgree] = useState(false);
   const [isPostGraduate, setIsPostGraduate] = useState(false);
   const { handleError } = useSafeResponseSolve();
-
-  // 打开服务协议
-  const openUserAgreement = useCallback(() => {
-    pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
-  }, []);
-
-  // 打开隐私政策
-  const openPrivacyPolicy = useCallback(() => {
-    pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
-  }, []);
+  const agreementRef = useRef<AgreementCheckboxRef>(null);
 
   // 打开重置密码
   const openResetPassword = useCallback(() => {
@@ -83,55 +72,52 @@ const LoginPage: React.FC = () => {
 
   // 处理登录逻辑
   const handleLogin = useCallback(async () => {
-    if (!isAgree) {
-      toast.error('请先阅读并同意服务协议和隐私政策');
-      scrollViewRef.current?.scrollToEnd();
-      return;
-    }
-    // 研究生不需要输入验证码
-    if (!isPostGraduate && !captcha) {
-      toast.error('请输入验证码');
-      return;
-    }
-    if (!username) {
-      toast.error('请输入学号');
-      return;
-    }
-    if (!password) {
-      toast.error('请输入密码');
-      return;
-    }
-
-    setIsLoggingIn(true); // 禁用按钮
-
-    try {
-      // 存储登录所需的信息
-      await LocalUser.setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
-      // 登录、获取 token、检查串号等逻辑
-      await LocalUser.login(captcha);
-      // 登录成功
-      if (Platform.OS === 'android') {
-        BuglyModule.setUserId(username);
+    agreementRef.current?.checkAgreement(async () => {
+      // 研究生不需要输入验证码
+      if (!isPostGraduate && !captcha) {
+        toast.error('请输入验证码');
+        return;
+      }
+      if (!username) {
+        toast.error('请输入学号');
+        return;
+      }
+      if (!password) {
+        toast.error('请输入密码');
+        return;
       }
 
-      // 跳转到首页
-      redirect('/(tabs)');
-    } catch (error: any) {
-      const data = handleError(error) as { code: string; message: string };
-      if (data) {
-        Alert.alert('请求失败', data.code + ': ' + data.message);
+      setIsLoggingIn(true); // 禁用按钮
+
+      try {
+        // 存储登录所需的信息
+        await LocalUser.setUser(isPostGraduate ? USER_TYPE_POSTGRADUATE : USER_TYPE_UNDERGRADUATE, username, password); // 设置基本信息
+        // 登录、获取 token、检查串号等逻辑
+        await LocalUser.login(captcha);
+        // 登录成功
+        if (Platform.OS === 'android') {
+          BuglyModule.setUserId(username);
+        }
+
+        // 跳转到首页
+        redirect('/(tabs)');
+      } catch (error: any) {
+        const data = handleError(error) as { code: string; message: string };
+        if (data) {
+          Alert.alert('请求失败', data.code + ': ' + data.message);
+        }
+        // 访问令牌获取失败，清除账户信息
+        await LocalUser.clear();
+        await refreshCaptcha();
+        if (Platform.OS === 'android') {
+          await BuglyModule.setUserId('');
+        }
+      } finally {
+        // 恢复按钮状态
+        setIsLoggingIn(false);
       }
-      // 访问令牌获取失败，清除账户信息
-      await LocalUser.clear();
-      await refreshCaptcha();
-      if (Platform.OS === 'android') {
-        await BuglyModule.setUserId('');
-      }
-    } finally {
-      // 恢复按钮状态
-      setIsLoggingIn(false);
-    }
-  }, [isAgree, captcha, username, password, redirect, handleError, refreshCaptcha, isPostGraduate]);
+    });
+  }, [captcha, username, password, redirect, handleError, refreshCaptcha, isPostGraduate]);
 
   useEffect(() => {
     // 安卓检查更新
@@ -257,36 +243,7 @@ const LoginPage: React.FC = () => {
               </View>
 
               {/* 底部协议 */}
-              <TouchableOpacity
-                activeOpacity={0.7}
-                className="mb-4 mt-12 w-full flex-row justify-center py-2"
-                onPress={() => setIsAgree(!isAgree)}
-              >
-                <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-                <Text className="text-center text-text-secondary">
-                  {'  '}
-                  阅读并同意{' '}
-                  <Text
-                    className="text-primary"
-                    onPress={event => {
-                      event.stopPropagation();
-                      openUserAgreement();
-                    }}
-                  >
-                    服务协议
-                  </Text>{' '}
-                  和{' '}
-                  <Text
-                    className="text-primary"
-                    onPress={event => {
-                      event.stopPropagation();
-                      openPrivacyPolicy();
-                    }}
-                  >
-                    隐私政策
-                  </Text>
-                </Text>
-              </TouchableOpacity>
+              <AgreementCheckbox ref={agreementRef} />
             </View>
           </KeyboardAwareScrollView>
         </SafeAreaView>
