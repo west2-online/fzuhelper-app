@@ -30,7 +30,7 @@ jobs:
     secrets: inherit
 
   beta:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
     uses: ./.github/workflows/beta.yml
     secrets: inherit
 
