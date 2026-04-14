@@ -1,9 +1,3 @@
-import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
-import { pushToWebViewNormal } from '@/lib/webview';
-import { useFocusEffect } from 'expo-router';
-import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
-import { KeyboardController } from 'react-native-keyboard-controller';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,9 +7,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from './ui/alert-dialog';
-import { Checkbox } from './ui/checkbox';
-import { Text } from './ui/text';
+} from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Text } from '@/components/ui/text';
+import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
+import { pushToWebViewNormal } from '@/lib/webview';
+import { useFocusEffect } from 'expo-router';
+import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { KeyboardController } from 'react-native-keyboard-controller';
 
 export interface AgreementCheckboxRef {
   checkAgreement: (onAgree: () => void) => void;
@@ -100,21 +100,11 @@ const AgreementCheckbox = forwardRef<AgreementCheckboxRef>((_, ref) => {
             <AlertDialogTitle className="mx-auto mb-2">协议与隐私</AlertDialogTitle>
             <AlertDialogDescription>
               <Text>我已阅读并同意 </Text>
-              <Text
-                className="text-primary"
-                onPress={() => {
-                  pushToWebViewNormal(URL_USER_AGREEMENT, '服务协议');
-                }}
-              >
+              <Text className="text-primary" onPress={openUserAgreement}>
                 服务协议
               </Text>
               <Text> 和 </Text>
-              <Text
-                className="text-primary"
-                onPress={() => {
-                  pushToWebViewNormal(URL_PRIVACY_POLICY, '隐私政策');
-                }}
-              >
+              <Text className="text-primary" onPress={openPrivacyPolicy}>
                 隐私政策
               </Text>
             </AlertDialogDescription>
