@@ -297,6 +297,13 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     href: '/toolbox/free-friends',
   },
   {
+    id: 230,
+    name: '校园网',
+    icon: StudyCenterIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/fzu-network',
+  },
+  {
     id: 9999,
     name: '更多',
     icon: MoreIcon,
