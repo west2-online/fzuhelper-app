@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Image, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { KeyboardAwareScrollView, KeyboardAwareScrollViewRef } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -21,7 +21,6 @@ const URL_RESET_PASSWORD_UNDERGRADUATE = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSe
 const URL_RESET_PASSWORD_POSTGRADUATE = 'https://yjsglxt.fzu.edu.cn/ResetPassword.aspx';
 
 const LoginPage: React.FC = () => {
-  const scrollViewRef = useRef<KeyboardAwareScrollViewRef>(null);
   const redirect = useRedirectWithoutHistory();
 
   const [captchaImage, setCaptchaImage] = useState('');
@@ -146,7 +145,6 @@ const LoginPage: React.FC = () => {
             className="h-full"
             contentContainerStyle={styles.scrollViewContent}
             keyboardShouldPersistTaps="handled"
-            ref={scrollViewRef}
           >
             <View className="flex-1 justify-between px-6 py-3">
               {/* 左上角标题 */}

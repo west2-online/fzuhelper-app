@@ -94,7 +94,7 @@ const AgreementCheckbox = forwardRef<AgreementCheckboxRef>((_, ref) => {
         </Text>
       </TouchableOpacity>
 
-      <AlertDialog open={privacyDialogVisible && isFocus}>
+      <AlertDialog open={privacyDialogVisible && isFocus} className="absolute">
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="mx-auto mb-2">协议与隐私</AlertDialogTitle>
