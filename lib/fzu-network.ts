@@ -144,10 +144,10 @@ export async function loginNetwork(username: string, password: string): Promise<
       }
     }
     if (!redirectUrl) {
-      return { success: false, message: '无法获取认证地址，请确认已连接校园网且尚未登录' };
+      return { success: false, message: '无法获取认证地址，请确认处于校园网环境且尚未登录' };
     }
   } catch {
-    return { success: false, message: '无法连接校园网门户，请检查网络连接' };
+    return { success: false, message: '无法连接校园网门户，请确认处于校园网环境' };
   }
 
   let sessionCookie = '';

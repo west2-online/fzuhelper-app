@@ -235,23 +235,6 @@ const MORE_TOOLS: Tool[] = [
     },
   },
   {
-    name: '校园网报修',
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'http://59.77.227.111:32001/relax/mobile/index.html',
-      title: '校园网报修',
-      sso: true,
-    },
-  },
-  {
-    name: '校园网接入指南',
-    type: ToolType.WEBVIEW,
-    params: {
-      url: 'https://app.fzu.edu.cn/appService/guidance/app/articleCollapse',
-      title: '校园网接入指南',
-    },
-  },
-  {
     name: '集体返校预约',
     type: ToolType.WEBVIEW,
     params: {

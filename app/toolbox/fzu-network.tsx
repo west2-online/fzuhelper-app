@@ -26,7 +26,7 @@ import {
   STATUS_COLOR,
   STATUS_LABEL,
 } from '@/lib/fzu-network';
-import { pushToWebViewNormal } from '@/lib/webview';
+import { pushToWebViewNormal, pushToWebViewSSO } from '@/lib/webview';
 
 export default function FzuNetworkPage() {
   const [status, setStatus] = useState<NetworkStatus | null>(null);
@@ -51,6 +51,7 @@ export default function FzuNetworkPage() {
       setStatus(result);
       statusRef.current = result;
     } catch {
+      toast.error('无法获取校园网状态，请关闭移动数据并确保已连接至校园网');
     } finally {
       isCheckingRef.current = false;
       setIsChecking(false);
@@ -193,6 +194,8 @@ export default function FzuNetworkPage() {
       <PageContainer>
         <ScrollView className="space-y-4 px-8" contentContainerClassName="pt-4">
           <SafeAreaView edges={['bottom']}>
+            <Text className="mb-2 mt-6 text-sm text-text-secondary">连接</Text>
+
             <View className="flex-row items-center justify-between">
               <View>
                 {status === null ? (
@@ -222,7 +225,6 @@ export default function FzuNetworkPage() {
               </Button>
             </View>
 
-            <Text className="mb-2 mt-6 text-sm text-text-secondary">连接设置</Text>
             <LabelSwitch
               label="无感认证"
               description="记住此设备MAC，下次无需手动登录"
@@ -230,13 +232,28 @@ export default function FzuNetworkPage() {
               onValueChange={handleMacToggle}
               disabled={!isOnline || isMacToggling}
             />
-            <LabelEntry leftText="校园网自助服务" onPress={handleSelfService} disabled={isSelfServiceLoading} />
 
-            {/* Tips */}
+            <Text className="mb-2 mt-6 text-sm text-text-secondary">其他</Text>
+
+            <LabelEntry leftText="自助服务" onPress={handleSelfService} disabled={isSelfServiceLoading} />
+
+            <LabelEntry
+              leftText="接入指南"
+              onPress={() =>
+                pushToWebViewNormal('https://app.fzu.edu.cn/appService/guidance/app/articleCollapse', '校园网接入指南')
+              }
+            />
+
+            <LabelEntry
+              leftText="故障报修"
+              onPress={() => pushToWebViewSSO('http://59.77.227.111:32001/relax/mobile/index.html', '校园网报修')}
+            />
+
             <View className="space-y-4">
               <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
-              <Text className="my-2 text-base text-text-secondary">此功能仅在连接校园网时可用</Text>
-              <Text className="my-2 text-base text-text-secondary">无感认证等情况下可能无法正确获取校园网状态</Text>
+              <Text className="my-2 text-base text-text-secondary">连接与自助服务需在校园网环境下使用</Text>
+              <Text className="my-2 text-base text-text-secondary">连接时建议关闭移动数据以防网络冲突</Text>
+              <Text className="my-2 text-base text-text-secondary">无感认证连接时可能无法正确获取校园网状态</Text>
             </View>
           </SafeAreaView>
         </ScrollView>
