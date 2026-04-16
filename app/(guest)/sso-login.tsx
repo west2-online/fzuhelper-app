@@ -180,13 +180,13 @@ const UnifiedLoginPage: React.FC = () => {
               </View>
 
               {/* 页面内容 */}
-              <View className="items-center justify-center">
+              <View className="mt-4 items-center justify-center gap-4">
                 {/* 用户名输入框 */}
                 <Input
                   value={account}
                   onChangeText={setAccount}
                   placeholder="请输入学号"
-                  className="my-4 w-full px-1 py-3"
+                  className="w-full px-1 py-3"
                 />
 
                 {/* 密码输入框 */}
@@ -195,7 +195,7 @@ const UnifiedLoginPage: React.FC = () => {
                   onChangeText={setAccountPassword}
                   placeholder="请输入密码"
                   secureTextEntry
-                  className="mb-12 w-full px-1 py-3"
+                  className="w-full px-1 py-3"
                 />
 
                 {/* 登录按钮 */}
@@ -203,7 +203,7 @@ const UnifiedLoginPage: React.FC = () => {
                   onPress={isLoggingIn ? undefined : handleLogin}
                   activeOpacity={0.7}
                   disabled={isLoggingIn}
-                  className={`mb-6 w-full items-center justify-center rounded-4xl py-3 ${
+                  className={`mb-6 mt-12 w-full items-center justify-center rounded-4xl py-3 ${
                     isLoggingIn ? 'bg-gray-400' : 'bg-primary'
                   }`}
                 >

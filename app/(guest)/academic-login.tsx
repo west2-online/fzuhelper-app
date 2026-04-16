@@ -154,13 +154,13 @@ const LoginPage: React.FC = () => {
               </View>
 
               {/* 页面内容 */}
-              <View className="items-center justify-center">
+              <View className="mt-4 items-center justify-center gap-4">
                 {/* 用户名输入框 */}
                 <Input
                   value={username}
                   onChangeText={setUsername}
                   placeholder="请输入学号"
-                  className="my-4 w-full px-1 py-3"
+                  className="w-full px-1 py-3"
                 />
 
                 {/* 密码输入框 */}
@@ -169,12 +169,12 @@ const LoginPage: React.FC = () => {
                   onChangeText={setPassword}
                   placeholder="请输入密码"
                   secureTextEntry
-                  className="mb-4 w-full px-1 py-3"
+                  className="w-full px-1 py-3"
                 />
 
                 {/* 验证码输入框和图片 */}
                 {!isPostGraduate && (
-                  <View className="mb-12 w-full flex-row items-center justify-between">
+                  <View className="w-full flex-row items-center justify-between">
                     <Input
                       value={captcha}
                       onChangeText={handleTextChange}
@@ -201,7 +201,7 @@ const LoginPage: React.FC = () => {
                   onPress={isLoggingIn ? undefined : handleLogin}
                   activeOpacity={0.7}
                   disabled={isLoggingIn}
-                  className={`mb-6 w-full items-center justify-center rounded-4xl py-3 ${
+                  className={`mb-6 mt-8 w-full items-center justify-center rounded-4xl py-3 ${
                     isLoggingIn ? 'bg-gray-400' : 'bg-primary'
                   }`}
                 >
