@@ -819,20 +819,20 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.28.5"
 
-"@bacons/apple-targets@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@bacons/apple-targets/-/apple-targets-0.2.1.tgz#6800f7b0a3e193f7efad83c52994e6463dbc841f"
-  integrity sha512-ZaTBk6kjgY34BnYjbo2+i4cLyUjd3LxJFodKDQdTaoETgk2CXwfdnsWK4bK3jOYZEy/Z+v/Es3TnWEOWlkg9ag==
+"@bacons/apple-targets@^4.0.6":
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/@bacons/apple-targets/-/apple-targets-4.0.6.tgz#1cca86affa754cd4be0565bbc1d1345a1e97a693"
+  integrity sha512-aDSXI6HPgsroPMOAlNvVyvM2TvU25hgGu/UUWD6XWfWIX4nhGchCSaoEGx7cB3xO+ClQYdzlIAIlZScX6lHBwA==
   dependencies:
-    "@bacons/xcode" "1.0.0-alpha.24"
-    "@react-native/normalize-colors" "^0.76.1"
+    "@bacons/xcode" "1.0.0-alpha.32"
+    "@react-native/normalize-colors" "^0.79.2"
     debug "^4.3.4"
     glob "^10.4.2"
 
-"@bacons/xcode@1.0.0-alpha.24":
-  version "1.0.0-alpha.24"
-  resolved "https://registry.yarnpkg.com/@bacons/xcode/-/xcode-1.0.0-alpha.24.tgz#fb91a6cab6153dfd70d0e0cff1c79471cca10cb0"
-  integrity sha512-RaYUNsGBJVp0t2vgXaT4L668WIvbhtdl1JFJHedPkebIPR6h/+E2Kq32O49t+8f4LUPW9UF4CfXBrDc+XdXUUQ==
+"@bacons/xcode@1.0.0-alpha.32":
+  version "1.0.0-alpha.32"
+  resolved "https://registry.yarnpkg.com/@bacons/xcode/-/xcode-1.0.0-alpha.32.tgz#3b49a711472f433d4ece3f157a523e0db39d8987"
+  integrity sha512-OGpH7+yMbWC2cgYZon5B+VVadH9HsB2V/abtEiplA65XnSuV4GAYAVixOCDc5k182WkfoakfdM0zW6U9cbcsbw==
   dependencies:
     "@expo/plist" "^0.0.18"
     debug "^4.3.4"
@@ -2198,10 +2198,10 @@
   resolved "https://registry.yarnpkg.com/@react-native/normalize-colors/-/normalize-colors-0.74.89.tgz#b8ac17d1bbccd3ef9a1f921665d04d42cff85976"
   integrity sha512-qoMMXddVKVhZ8PA1AbUCk83trpd6N+1nF2A6k1i6LsQObyS92fELuk8kU/lQs6M7BsMHwqyLCpQJ1uFgNvIQXg==
 
-"@react-native/normalize-colors@^0.76.1":
-  version "0.76.9"
-  resolved "https://registry.yarnpkg.com/@react-native/normalize-colors/-/normalize-colors-0.76.9.tgz#1c45ce49871ccea7d6fa9332cb14724adf326d6a"
-  integrity sha512-TUdMG2JGk72M9d8DYbubdOlrzTYjw+YMe/xOnLU4viDgWRHsCbtRS9x0IAxRjs3amj/7zmK3Atm8jUPvdAc8qw==
+"@react-native/normalize-colors@^0.79.2":
+  version "0.79.7"
+  resolved "https://registry.yarnpkg.com/@react-native/normalize-colors/-/normalize-colors-0.79.7.tgz#f7a3680dc81528b19761169cb6177ce64638b9ce"
+  integrity sha512-RrvewhdanEWhlyrHNWGXGZCc6MY0JGpNgRzA8y6OomDz0JmlnlIsbBHbNpPnIrt9Jh2KaV10KTscD1Ry8xU9gQ==
 
 "@react-native/virtualized-lists@0.83.4":
   version "0.83.4"
