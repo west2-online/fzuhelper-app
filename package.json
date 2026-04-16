@@ -21,7 +21,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@bacons/apple-targets": "^0.2.1",
+    "@bacons/apple-targets": "^4.0.6",
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@preeternal/react-native-cookie-manager": "^6.3.1",
     "@quidone/react-native-wheel-picker": "^1.6.4",
