@@ -60,6 +60,7 @@ export async function checkOnlineStatus(): Promise<NetworkStatus> {
   const firstJson = await firstResponse.json();
   const userIndex: string = firstJson.userIndex ?? '';
 
+  // 需要刷新一次，不然拿不到最新状态
   if (userIndex) {
     await fetchWithTimeout(`${PORTAL_BASE}?method=freshOnlineUserInfo`, {
       method: 'POST',
@@ -206,11 +207,7 @@ export async function loginNetwork(username: string, password: string): Promise<
 
 // 登录校园网自助服务系统，返回Cookie供WebView注入
 export async function loginSelfService(userid: string, password: string): Promise<string> {
-  const resp = await post(
-    SELFSERVICE_LOGIN_URL,
-    { 'Content-Type': 'application/x-www-form-urlencoded' },
-    { name: userid, password },
-  );
+  const resp = await post(SELFSERVICE_LOGIN_URL, FORM_HEADERS, { name: userid, password });
   const setCookie = resp.headers['Set-Cookie'] || resp.headers['set-cookie'];
   if (!setCookie) {
     throw new Error('自助服务系统登录失败，未获取到Cookie');
