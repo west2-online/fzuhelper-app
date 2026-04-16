@@ -1,0 +1,100 @@
+diff --git a/node_modules/react-native-css-interop/dist/runtime/native/appearance-observables.js b/node_modules/react-native-css-interop/dist/runtime/native/appearance-observables.js
+index ff931dc..2d93872 100644
+--- a/node_modules/react-native-css-interop/dist/runtime/native/appearance-observables.js
++++ b/node_modules/react-native-css-interop/dist/runtime/native/appearance-observables.js
+@@ -33,7 +33,7 @@ exports.colorScheme = {
+     toggle() {
+         let current = colorSchemeObservable.get();
+         if (current === undefined)
+-            current = appearance.getColorScheme() ?? "light";
++            current = resolveColorScheme(appearance.getColorScheme());
+         exports.colorScheme.set(current === "light" ? "dark" : "light");
+     },
+     [shared_1.INTERNAL_RESET]: (appearance) => {
+@@ -68,6 +68,11 @@ function cssVariableObservable(value, { name } = {}) {
+         },
+     };
+ }
++function resolveColorScheme(scheme) {
++    if (scheme === "light" || scheme === "dark")
++        return scheme;
++    return exports.systemColorScheme.get() ?? "light";
++}
+ let appearance = react_native_1.Appearance;
+ let appearanceListener;
+ let appStateListener;
+@@ -77,13 +82,12 @@ function resetAppearanceListeners($appearance, appState) {
+     appStateListener?.remove();
+     appearanceListener = appearance.addChangeListener((state) => {
+         if (react_native_1.AppState.currentState === "active") {
+-            exports.systemColorScheme.set(state.colorScheme ?? "light");
++            exports.systemColorScheme.set(resolveColorScheme(state.colorScheme));
+         }
+     });
+     appStateListener = appState.addEventListener("change", (type) => {
+         if (type === "active") {
+-            const colorScheme = appearance.getColorScheme() ?? "light";
+-            exports.systemColorScheme.set(colorScheme);
++            exports.systemColorScheme.set(resolveColorScheme(appearance.getColorScheme()));
+         }
+     });
+ }
+diff --git a/node_modules/react-native-css-interop/dist/runtime/native/appearance-observables.js.map b/node_modules/react-native-css-interop/dist/runtime/native/appearance-observables.js.map
+index aad5f62..292e606 100644
+--- a/node_modules/react-native-css-interop/dist/runtime/native/appearance-observables.js.map
++++ b/node_modules/react-native-css-interop/dist/runtime/native/appearance-observables.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"appearance-observables.js","sourceRoot":"","sources":["../../../src/runtime/native/appearance-observables.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"file":"appearance-observables.js","sourceRoot":"","sources":["../../../src/runtime/native/appearance-observables.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-css-interop/src/runtime/native/appearance-observables.ts b/node_modules/react-native-css-interop/src/runtime/native/appearance-observables.ts
+index e0fb8a0..9f0c6fe 100644
+--- a/node_modules/react-native-css-interop/src/runtime/native/appearance-observables.ts
++++ b/node_modules/react-native-css-interop/src/runtime/native/appearance-observables.ts
+@@ -45,7 +45,8 @@ export const colorScheme = {
+   },
+   toggle() {
+     let current = colorSchemeObservable.get();
+-    if (current === undefined) current = appearance.getColorScheme() ?? "light";
++    if (current === undefined)
++      current = resolveColorScheme(appearance.getColorScheme());
+     colorScheme.set(current === "light" ? "dark" : "light");
+   },
+   [INTERNAL_RESET]: (appearance: typeof Appearance) => {
+@@ -90,7 +91,18 @@ export function cssVariableObservable(
+ 
+ /**
+  * Appearance
++ *
++ * On RN 0.82+, Appearance can emit "unspecified" during AppState transitions
++ * (e.g. background→foreground). This is not a valid color scheme for consumers,
++ * so we filter it out and keep the last known valid scheme. (nativewind#1722)
+  */
++function resolveColorScheme(
++  scheme: string | null | undefined,
++): "light" | "dark" {
++  if (scheme === "light" || scheme === "dark") return scheme;
++  return systemColorScheme.get() ?? "light";
++}
++
+ let appearance = Appearance;
+ let appearanceListener: NativeEventSubscription | undefined;
+ let appStateListener: NativeEventSubscription | undefined;
+@@ -105,14 +117,13 @@ function resetAppearanceListeners(
+ 
+   appearanceListener = appearance.addChangeListener((state) => {
+     if (AppState.currentState === "active") {
+-      systemColorScheme.set(state.colorScheme ?? "light");
++      systemColorScheme.set(resolveColorScheme(state.colorScheme));
+     }
+   });
+ 
+   appStateListener = appState.addEventListener("change", (type) => {
+     if (type === "active") {
+-      const colorScheme = appearance.getColorScheme() ?? "light";
+-      systemColorScheme.set(colorScheme);
++      systemColorScheme.set(resolveColorScheme(appearance.getColorScheme()));
+     }
+   });
+ }
