@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { Tabs as ExpoTabs, useFocusEffect } from 'expo-router';
 import QRCodeGenerator from 'qrcode-generator';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, View } from 'react-native';
+import { Alert, AppState, type AppStateStatus, Platform, Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 
@@ -75,10 +75,10 @@ const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' 
     useCallback(() => {
       if (svgXml) {
         NativeBrightnessModule.enableHighBrightness();
-        return () => {
-          NativeBrightnessModule.disableHighBrightness();
-        };
       }
+      return () => {
+        NativeBrightnessModule.disableHighBrightness();
+      };
     }, [svgXml]),
   );
 
@@ -111,6 +111,7 @@ export default function YiMaTongPage() {
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
   const [qrWidth, setQrWidth] = useState(0);
+  const shouldHighBright = useRef(false);
   const redirect = useRedirectWithoutHistory();
 
   const SSOlogoutAndCleanData = useCallback(async () => {
@@ -149,6 +150,34 @@ export default function YiMaTongPage() {
     },
     [loadPayCode],
   );
+
+  useEffect(() => {
+    shouldHighBright.current = payCode !== null || libCodeContent !== undefined;
+  }, [payCode, libCodeContent]);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      // App 退到后台时关闭高亮
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        NativeBrightnessModule.disableHighBrightness();
+      }
+
+      // App 回到前台：需要高亮时（例如二维码已生成），才重新开启
+      if (nextAppState === 'active') {
+        if (shouldHighBright.current) {
+          NativeBrightnessModule.enableHighBrightness();
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+      // 组件卸载时也确保关闭（防御性编程）
+      NativeBrightnessModule.disableHighBrightness();
+    };
+  }, []); // 空依赖数组，确保监听器只注册一次
 
   // 当 synjonesAuth 变更时，自动刷新
   useEffect(() => {
