@@ -174,7 +174,7 @@ export default function YiMaTongPage() {
 
     return () => {
       subscription.remove();
-      // 组件卸载时也确保关闭（防御性编程）
+      // 组件卸载时也确保关闭
       NativeBrightnessModule.disableHighBrightness();
     };
   }, []); // 空依赖数组，确保监听器只注册一次
