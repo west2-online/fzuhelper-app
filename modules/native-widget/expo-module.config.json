@@ -1,17 +1,9 @@
 {
-  "platforms": [
-    "apple",
-    "android",
-    "web"
-  ],
+  "platforms": ["apple", "android", "web"],
   "apple": {
-    "modules": [
-      "NativeWidgetModule"
-    ]
+    "modules": ["NativeWidgetModule"]
   },
   "android": {
-    "modules": [
-      "com.west2online.nativewidget.NativeWidgetModule"
-    ]
+    "modules": ["com.west2online.nativewidget.NativeWidgetModule"]
   }
 }

@@ -23,8 +23,7 @@
       "android": {
         "buildType": "apk"
       },
-      "ios": {
-      }
+      "ios": {}
     }
   },
   "submit": {

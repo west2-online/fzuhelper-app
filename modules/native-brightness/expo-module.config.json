@@ -1,17 +1,9 @@
 {
-  "platforms": [
-    "apple",
-    "android",
-    "web"
-  ],
+  "platforms": ["apple", "android", "web"],
   "apple": {
-    "modules": [
-      "NativeBrightnessModule"
-    ]
+    "modules": ["NativeBrightnessModule"]
   },
   "android": {
-    "modules": [
-      "com.west2online.nativebrightness.NativeBrightnessModule"
-    ]
+    "modules": ["com.west2online.nativebrightness.NativeBrightnessModule"]
   }
 }

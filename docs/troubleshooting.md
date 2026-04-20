@@ -65,5 +65,3 @@
 1. 上架AppStore和ADHoc打包，为生产环境，只能发送正式消息，测试消息发送会返回BadDeviveToken。
 
 2. 其他打包方式或Debug模式，为开发环境，只能发送测试消息，必须添加测试设备，如发送正式消息，会返回BadDeviveToken。
-
-
