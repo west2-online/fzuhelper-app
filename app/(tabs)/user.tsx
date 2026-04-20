@@ -57,9 +57,14 @@ export default function UserPage() {
       link: '/common/help' as Href,
     },
     {
-      icon: EcardIcon,
-      name: '关于我们',
-      link: '/common/about' as Href,
+          icon: EcardIcon,// 等美术画好再换
+          name: '好友管理',
+          link: '/settings/friend/list' as Href,
+    },
+      {
+            icon: EcardIcon,
+            name: '关于我们',
+            link: '/common/about' as Href,
     },
   ];
 
