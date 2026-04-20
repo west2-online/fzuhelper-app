@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { Tabs as ExpoTabs, useFocusEffect } from 'expo-router';
 import QRCodeGenerator from 'qrcode-generator';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, AppState, type AppStateStatus, Platform, Pressable, View } from 'react-native';
+import { Alert, Platform, Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 
@@ -71,17 +71,6 @@ const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' 
     }
   }, [color, size, value]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (svgXml) {
-        NativeBrightnessModule.enableHighBrightness();
-      }
-      return () => {
-        NativeBrightnessModule.disableHighBrightness();
-      };
-    }, [svgXml]),
-  );
-
   return value && svgXml ? (
     <View className="mx-auto bg-white p-4">
       <SvgXml xml={svgXml} width={Math.max(size, 1)} height={Math.max(size, 1)} />
@@ -111,7 +100,6 @@ export default function YiMaTongPage() {
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
   const [qrWidth, setQrWidth] = useState(0);
-  const shouldHighBright = useRef(false);
   const redirect = useRedirectWithoutHistory();
 
   const SSOlogoutAndCleanData = useCallback(async () => {
@@ -151,34 +139,6 @@ export default function YiMaTongPage() {
     [loadPayCode],
   );
 
-  useEffect(() => {
-    shouldHighBright.current = payCode !== null || libCodeContent !== undefined;
-  }, [payCode, libCodeContent]);
-
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      // App 退到后台时关闭高亮
-      if (nextAppState === 'background' || nextAppState === 'inactive') {
-        NativeBrightnessModule.disableHighBrightness();
-      }
-
-      // App 回到前台：需要高亮时（例如二维码已生成），才重新开启
-      if (nextAppState === 'active') {
-        if (shouldHighBright.current) {
-          NativeBrightnessModule.enableHighBrightness();
-        }
-      }
-    };
-
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-    return () => {
-      subscription.remove();
-      // 组件卸载时也确保关闭
-      NativeBrightnessModule.disableHighBrightness();
-    };
-  }, []); // 空依赖数组，确保监听器只注册一次
-
   // 当 synjonesAuth 变更时，自动刷新
   useEffect(() => {
     // 在这里检查账号是否存在是为了规避一个情况：当没有账号登录时，直接通过一码通跳到这个页面（ControlWidget 直接到达）
@@ -209,6 +169,18 @@ export default function YiMaTongPage() {
     useCallback(() => {
       getLocalData();
     }, [getLocalData]),
+  );
+
+  // 任意一个码可用时高亮屏幕，离开页面时恢复亮度
+  useFocusEffect(
+    useCallback(() => {
+      if (payCode || libCodeContent) {
+        NativeBrightnessModule.enableHighBrightness();
+      }
+      return () => {
+        NativeBrightnessModule.disableHighBrightness();
+      };
+    }, [payCode, libCodeContent]),
   );
 
   useFocusEffect(
@@ -298,11 +270,11 @@ export default function YiMaTongPage() {
                             <Text className="text-center text-base text-text-secondary">{payCodeMessage}</Text>
                           </View>
                         ) : (
-                          <QRCodeView size={qrWidth} value={payCode || undefined} />
+                          <QRCodeView key="qrcode-paycode" size={qrWidth} value={payCode || undefined} />
                         )}
                       </TabsContent>
                       <TabsContent value="入馆码">
-                        <QRCodeView size={qrWidth} value={libCodeContent} />
+                        <QRCodeView key="qrcode-libcode" size={qrWidth} value={libCodeContent} />
                       </TabsContent>
 
                       <View className="flex-row gap-4">
