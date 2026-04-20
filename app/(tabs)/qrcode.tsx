@@ -270,11 +270,11 @@ export default function YiMaTongPage() {
                             <Text className="text-center text-base text-text-secondary">{payCodeMessage}</Text>
                           </View>
                         ) : (
-                          <QRCodeView key="qrcode-paycode" size={qrWidth} value={payCode || undefined} />
+                          <QRCodeView size={qrWidth} value={payCode || undefined} />
                         )}
                       </TabsContent>
                       <TabsContent value="入馆码">
-                        <QRCodeView key="qrcode-libcode" size={qrWidth} value={libCodeContent} />
+                        <QRCodeView size={qrWidth} value={libCodeContent} />
                       </TabsContent>
 
                       <View className="flex-row gap-4">
