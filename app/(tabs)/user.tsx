@@ -51,6 +51,12 @@ export default function UserPage() {
       name: '校历',
       link: '/common/academic-calendar' as Href,
     },
+    //图标等美术画好了再换
+    {
+      icon: CalendarIcon,
+      name: '好友管理',
+      link: '/settings/friend/list' as Href,
+    },
     {
       icon: HelpIcon,
       name: '帮助与反馈',
