@@ -8,5 +8,5 @@
         <item>跟随背景不透明度</item>
     </string-array>
 
-    <string name="qrcode_qs_tile_label">福大一码通</string>
+    <string name="qrcode_qs_tile_label">一码通</string>
 </resources>
