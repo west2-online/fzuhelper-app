@@ -176,10 +176,12 @@ export default function YiMaTongPage() {
     useCallback(() => {
       if (payCode || libCodeContent) {
         NativeBrightnessModule.enableHighBrightness();
+        //NativeBrightnessModule.enableHighBrightness();
+        return () => {
+          NativeBrightnessModule.disableHighBrightness();
+          //NativeBrightnessModule.disableHighBrightness();
+        };
       }
-      return () => {
-        NativeBrightnessModule.disableHighBrightness();
-      };
     }, [payCode, libCodeContent]),
   );
 

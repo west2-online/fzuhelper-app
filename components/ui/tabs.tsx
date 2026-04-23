@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { TextClassContext } from '@/components/ui/text';
 import { View } from 'react-native';
 
-const Tabs = ({ ...props }: TabsPrimitive.RootProps) => <TabsPrimitive.Root {...props} />;
+const Tabs = TabsPrimitive.Root;
 
 const TabsList = React.forwardRef<TabsPrimitive.ListRef, TabsPrimitive.ListProps>(
   ({ className, ...props }, ref) => (
