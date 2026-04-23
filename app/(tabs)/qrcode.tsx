@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { Tabs as ExpoTabs, useFocusEffect } from 'expo-router';
+import { Tabs as ExpoTabs, useFocusEffect, usePathname } from 'expo-router';
 import QRCodeGenerator from 'qrcode-generator';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, View } from 'react-native';
@@ -83,6 +83,8 @@ const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' 
 };
 
 export default function YiMaTongPage() {
+  const pathname = usePathname();
+  const isSelfCurrentPage = pathname === '/qrcode';
   const yktLoginRef = useRef<YKTLogin | null>(null);
 
   if (!yktLoginRef.current) {
@@ -172,18 +174,13 @@ export default function YiMaTongPage() {
   );
 
   // 任意一个码可用时高亮屏幕，离开页面时恢复亮度
-  useFocusEffect(
-    useCallback(() => {
-      if (payCode || libCodeContent) {
-        NativeBrightnessModule.enableHighBrightness();
-        //NativeBrightnessModule.enableHighBrightness();
-        return () => {
-          NativeBrightnessModule.disableHighBrightness();
-          //NativeBrightnessModule.disableHighBrightness();
-        };
-      }
-    }, [payCode, libCodeContent]),
-  );
+  useEffect(() => {
+    if (isSelfCurrentPage && (payCode || libCodeContent)) {
+      NativeBrightnessModule.enableHighBrightness();
+    } else if (!isSelfCurrentPage) {
+      NativeBrightnessModule.disableHighBrightness();
+    }
+  }, [isSelfCurrentPage, payCode, libCodeContent]);
 
   useFocusEffect(
     useCallback(() => {
