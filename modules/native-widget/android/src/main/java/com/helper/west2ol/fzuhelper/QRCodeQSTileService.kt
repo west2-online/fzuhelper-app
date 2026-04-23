@@ -12,13 +12,8 @@ class QRCodeQSTileService : TileService() {
         super.onClick()
 
         val intent = Intent().apply {
+            data = "fzuhelper://qrcode".toUri()
             action = Intent.ACTION_VIEW
-            // 需要跳到开屏页初始化
-            data = "(guest)?target=/qrcode".toUri()
-            setClassName(
-                "com.helper.west2ol.fzuhelper",
-                "com.helper.west2ol.fzuhelper.MainActivity"
-            )
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
