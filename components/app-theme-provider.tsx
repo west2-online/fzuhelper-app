@@ -1,9 +1,11 @@
 import { DarkTheme, DefaultTheme, ThemeProvider as ReactNavigationThemeProvider } from '@react-navigation/native';
 import { colorScheme } from 'nativewind';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Appearance, type ColorSchemeName, useColorScheme as useSystemColorScheme } from 'react-native';
+import { Appearance, type ColorSchemeName, useColorScheme as useSystemColorScheme, ImageSourcePropType, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 
-import { getThemePreference, setThemePreference } from '@/lib/appearance';
+import { DARKEN_BACKGROUND_KEY, COLOR_SCHEME_KEY } from '@/lib/constants';
 
 // RN 0.83 changed undefined/null to 'unspecified'.
 // FIXME: Nativewind v4 hasn't adapted to it, so patch for old behavior
@@ -33,6 +35,15 @@ type ThemeContextValue = {
   currentTheme: ResolvedTheme;
   isDarkTheme: boolean;
   setThemeSetting: (theme: ThemeSetting) => Promise<void>;
+  // 背景配置相关
+  hasCustomBackground: boolean;
+  darkenBackground: boolean;
+  setBackgroundImage: (imagePath: string) => Promise<void>;
+  deleteBackgroundImage: () => Promise<void>;
+  setDarkenBackground: (value: boolean) => Promise<void>;
+  getBackgroundImage: (refresh: boolean) => ImageSourcePropType;
+  getBackgroundImagePath: () => string;
+  refreshBackgroundState: () => Promise<void>;
 };
 
 const AppThemeContext = createContext<ThemeContextValue | null>(null);
@@ -44,30 +55,103 @@ const resolveTheme = (setting: ThemeSetting, systemTheme: ColorSchemeName): Reso
   return setting;
 };
 
+// 背景配置工具函数
+const getBackgroundImagePath = (): string => {
+  const path = ReactNativeBlobUtil.fs.dirs.DocumentDir + '/background.png';
+  if (Platform.OS === 'android') {
+    return 'file://' + path;
+  }
+  return path;
+};
+
+const checkCustomBackground = async (): Promise<boolean> => {
+  const path = getBackgroundImagePath();
+  return await ReactNativeBlobUtil.fs.exists(path);
+};
+
+const getThemePreference = async (): Promise<ThemeSetting> => {
+  const stored = await AsyncStorage.getItem(COLOR_SCHEME_KEY);
+  return stored === 'light' || stored === 'dark' ? stored : 'system';
+};
+
+const setThemePreference = async (value: ThemeSetting): Promise<void> => {
+  await AsyncStorage.setItem(COLOR_SCHEME_KEY, value);
+};
+
+const getDarkenBackground = async (): Promise<boolean> => {
+  return (await AsyncStorage.getItem(DARKEN_BACKGROUND_KEY)) === 'true';
+};
+
 export const AppThemeProvider = ({ children }: Props) => {
   const systemTheme = useSystemColorScheme();
   const [themeSetting, setThemeSettingState] = useState<ThemeSetting>('system');
+  const [hasCustomBackground, setHasCustomBackground] = useState(false);
+  const [darkenBackground, setDarkenBackgroundState] = useState(false);
 
   const resolvedTheme = useMemo(() => resolveTheme(themeSetting, systemTheme), [themeSetting, systemTheme]);
 
+  // 主题设置
   const setThemeSetting = useCallback(
     async (nextTheme: ThemeSetting) => {
       setThemeSettingState(nextTheme);
       await setThemePreference(nextTheme);
       colorScheme.set(nextTheme);
     },
-    [setThemeSettingState],
+    [],
   );
 
-  const syncThemeFromStorage = useCallback(async () => {
+  // 背景相关方法
+  const setBackgroundImage = useCallback(async (imagePath: string) => {
+    const path = getBackgroundImagePath();
+    if (await ReactNativeBlobUtil.fs.exists(path)) {
+      await ReactNativeBlobUtil.fs.unlink(path);
+    }
+    await ReactNativeBlobUtil.fs.cp(imagePath, path);
+    await ReactNativeBlobUtil.fs.unlink(imagePath);
+    setHasCustomBackground(true);
+  }, []);
+
+  const deleteBackgroundImage = useCallback(async () => {
+    const path = getBackgroundImagePath();
+    await ReactNativeBlobUtil.fs.unlink(path);
+    setHasCustomBackground(false);
+  }, []);
+
+  const setDarkenBackground = useCallback(async (value: boolean) => {
+    await AsyncStorage.setItem(DARKEN_BACKGROUND_KEY, value ? 'true' : 'false');
+    setDarkenBackgroundState(value);
+  }, []);
+
+  const getBackgroundImage = useCallback((refresh: boolean): ImageSourcePropType => {
+    if (refresh) {
+      return { uri: getBackgroundImagePath(), cache: 'reload' };
+    }
+    return { uri: getBackgroundImagePath(), cache: 'default' };
+  }, []);
+
+  const refreshBackgroundState = useCallback(async () => {
+    const hasBackground = await checkCustomBackground();
+    setHasCustomBackground(hasBackground);
+    const darken = await getDarkenBackground();
+    setDarkenBackgroundState(darken);
+  }, []);
+
+  // 初始化主题和背景配置
+  const initializeSettings = useCallback(async () => {
     const storedTheme = await getThemePreference();
     setThemeSettingState(storedTheme);
     colorScheme.set(storedTheme);
+    
+    const hasBackground = await checkCustomBackground();
+    setHasCustomBackground(hasBackground);
+    
+    const darken = await getDarkenBackground();
+    setDarkenBackgroundState(darken);
   }, []);
 
   useEffect(() => {
-    syncThemeFromStorage().catch(() => undefined);
-  }, [syncThemeFromStorage]);
+    initializeSettings().catch(() => undefined);
+  }, [initializeSettings]);
 
   const contextValue = useMemo<ThemeContextValue>(
     () => ({
@@ -75,8 +159,17 @@ export const AppThemeProvider = ({ children }: Props) => {
       currentTheme: resolvedTheme,
       isDarkTheme: resolvedTheme === 'dark',
       setThemeSetting,
+      hasCustomBackground,
+      darkenBackground,
+      setBackgroundImage,
+      deleteBackgroundImage,
+      setDarkenBackground,
+      getBackgroundImage,
+      getBackgroundImagePath,
+      refreshBackgroundState,
     }),
-    [themeSetting, resolvedTheme, setThemeSetting],
+    [themeSetting, resolvedTheme, hasCustomBackground, darkenBackground, setThemeSetting, 
+     setBackgroundImage, deleteBackgroundImage, setDarkenBackground, getBackgroundImage, refreshBackgroundState],
   );
 
   return (
