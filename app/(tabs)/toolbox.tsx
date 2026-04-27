@@ -297,6 +297,13 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     href: '/toolbox/free-friends',
   },
   {
+    id: 220,
+    name: '招聘会',
+    icon: StudyCenterIcon,
+    type: ToolType.LINK,
+    href: '/toolbox/job-fair',
+  },
+  {
     id: 9999,
     name: '更多',
     icon: MoreIcon,
