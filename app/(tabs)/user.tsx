@@ -15,6 +15,7 @@ import AvatarDefault from '@/assets/images/my/avatar_default.png';
 import CalendarIcon from '@/assets/images/my/ic_calendar.png';
 import EcardIcon from '@/assets/images/my/ic_ecard.png';
 import HelpIcon from '@/assets/images/my/ic_help.png';
+import FriendManageIcon from '@/assets/images/my/ic_friend_manage.png';
 import useApiRequest from '@/hooks/useApiRequest';
 
 const defaultUserInfo: UserInfo = {
@@ -54,6 +55,11 @@ export default function UserPage() {
     //图标等美术画好了再换
     {
       icon: CalendarIcon,
+      name: '好友管理',
+      link: '/settings/friend/list' as Href,
+    },
+    {
+      icon: FriendManageIcon,
       name: '好友管理',
       link: '/settings/friend/list' as Href,
     },
