@@ -1,19 +1,9 @@
 import { DarkTheme, DefaultTheme, ThemeProvider as ReactNavigationThemeProvider } from '@react-navigation/native';
 import { colorScheme } from 'nativewind';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Appearance, type ColorSchemeName, useColorScheme as useSystemColorScheme } from 'react-native';
+import { type ColorSchemeName, useColorScheme as useSystemColorScheme } from 'react-native';
 
 import { getThemePreference, setThemePreference } from '@/lib/appearance';
-
-// RN 0.83 changed undefined/null to 'unspecified'.
-// FIXME: Nativewind v4 hasn't adapted to it, so patch for old behavior
-const _getColorScheme = Appearance.getColorScheme.bind(Appearance);
-
-Appearance.getColorScheme = () => {
-  const scheme = _getColorScheme();
-  if (scheme === 'unspecified') return undefined;
-  return scheme;
-};
 
 type ThemeSetting = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';
