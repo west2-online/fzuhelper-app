@@ -6,6 +6,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 
 import { DARKEN_BACKGROUND_KEY, COLOR_SCHEME_KEY } from '@/lib/constants';
+import {
+  getBackgroundImagePath,
+  checkCustomBackground,
+  getThemePreference,
+  setThemePreference,
+  getDarkenBackground,
+  writeBackgroundImageFromPath,
+  removeBackgroundImageFile,
+  ThemeSetting,
+} from '@/utils/theme';
 
 // RN 0.83 changed undefined/null to 'unspecified'.
 // FIXME: Nativewind v4 hasn't adapted to it, so patch for old behavior
@@ -17,7 +27,6 @@ Appearance.getColorScheme = () => {
   return scheme;
 };
 
-type ThemeSetting = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';
 
 type Props = {
@@ -55,32 +64,7 @@ const resolveTheme = (setting: ThemeSetting, systemTheme: ColorSchemeName): Reso
   return setting;
 };
 
-// 背景配置工具函数
-const getBackgroundImagePath = (): string => {
-  const path = ReactNativeBlobUtil.fs.dirs.DocumentDir + '/background.png';
-  if (Platform.OS === 'android') {
-    return 'file://' + path;
-  }
-  return path;
-};
-
-const checkCustomBackground = async (): Promise<boolean> => {
-  const path = getBackgroundImagePath();
-  return await ReactNativeBlobUtil.fs.exists(path);
-};
-
-const getThemePreference = async (): Promise<ThemeSetting> => {
-  const stored = await AsyncStorage.getItem(COLOR_SCHEME_KEY);
-  return stored === 'light' || stored === 'dark' ? stored : 'system';
-};
-
-const setThemePreference = async (value: ThemeSetting): Promise<void> => {
-  await AsyncStorage.setItem(COLOR_SCHEME_KEY, value);
-};
-
-const getDarkenBackground = async (): Promise<boolean> => {
-  return (await AsyncStorage.getItem(DARKEN_BACKGROUND_KEY)) === 'true';
-};
+// Read/write helpers moved to utils/theme.ts
 
 export const AppThemeProvider = ({ children }: Props) => {
   const systemTheme = useSystemColorScheme();
@@ -102,18 +86,12 @@ export const AppThemeProvider = ({ children }: Props) => {
 
   // 背景相关方法
   const setBackgroundImage = useCallback(async (imagePath: string) => {
-    const path = getBackgroundImagePath();
-    if (await ReactNativeBlobUtil.fs.exists(path)) {
-      await ReactNativeBlobUtil.fs.unlink(path);
-    }
-    await ReactNativeBlobUtil.fs.cp(imagePath, path);
-    await ReactNativeBlobUtil.fs.unlink(imagePath);
+    await writeBackgroundImageFromPath(imagePath);
     setHasCustomBackground(true);
   }, []);
 
   const deleteBackgroundImage = useCallback(async () => {
-    const path = getBackgroundImagePath();
-    await ReactNativeBlobUtil.fs.unlink(path);
+    await removeBackgroundImageFile();
     setHasCustomBackground(false);
   }, []);
 
