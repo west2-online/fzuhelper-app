@@ -41,7 +41,7 @@ export default function AppearancePage() {
       mediaType: 'photo',
     })
       .then(async image => {
-      // https://github.com/ivpusic/react-native-image-crop-picker/issues/1367#issuecomment-841350648
+        // https://github.com/ivpusic/react-native-image-crop-picker/issues/1367#issuecomment-841350648
         let croppedImage = await ImagePicker.openCropper({
           path: image.path,
           width: width * scale,
