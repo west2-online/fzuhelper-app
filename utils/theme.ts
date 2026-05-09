@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 import { Platform } from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 
-import { DARKEN_BACKGROUND_KEY, COLOR_SCHEME_KEY } from '@/lib/constants';
+import { COLOR_SCHEME_KEY, DARKEN_BACKGROUND_KEY } from '@/lib/constants';
 
 export type ThemeSetting = 'light' | 'dark' | 'system';
 
