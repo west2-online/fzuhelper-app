@@ -58,13 +58,13 @@ interface CourseCardRef {
 }
 
 const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCard({ courseName, teacherName }, ref) {
-  const [score, setScore] = useState('100');
-  const [selected, setSelected] = useState<number | 'other'>(0);
+  const [score, setScore] = useState('');
+  const [selected, setSelected] = useState<number | 'other' | null>(null);
   const [customText, setCustomText] = useState('');
 
   useImperativeHandle(ref, () => ({
     getFormData: () => ({
-      comment: selected === 'other' ? customText : DEFAULT_COMMENTS[selected],
+      comment: selected === 'other' ? customText : (selected !== null ? DEFAULT_COMMENTS[selected] : ''),
       score: score,
     }),
   }));
