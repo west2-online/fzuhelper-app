@@ -1,31 +1,20 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme, ThemeProvider as ReactNavigationThemeProvider } from '@react-navigation/native';
 import { colorScheme } from 'nativewind';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Appearance, type ColorSchemeName, useColorScheme as useSystemColorScheme, ImageSourcePropType, Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import ReactNativeBlobUtil from 'react-native-blob-util';
+import { type ColorSchemeName, ImageSourcePropType, useColorScheme as useSystemColorScheme } from 'react-native';
 
-import { DARKEN_BACKGROUND_KEY, COLOR_SCHEME_KEY } from '@/lib/constants';
+import { DARKEN_BACKGROUND_KEY } from '@/lib/constants';
 import {
-  getBackgroundImagePath,
   checkCustomBackground,
-  getThemePreference,
-  setThemePreference,
+  getBackgroundImagePath,
   getDarkenBackground,
-  writeBackgroundImageFromPath,
+  getThemePreference,
   removeBackgroundImageFile,
+  setThemePreference,
   ThemeSetting,
+  writeBackgroundImageFromPath,
 } from '@/utils/theme';
-
-// RN 0.83 changed undefined/null to 'unspecified'.
-// FIXME: Nativewind v4 hasn't adapted to it, so patch for old behavior
-const _getColorScheme = Appearance.getColorScheme.bind(Appearance);
-
-Appearance.getColorScheme = () => {
-  const scheme = _getColorScheme();
-  if (scheme === 'unspecified') return undefined;
-  return scheme;
-};
 
 type ResolvedTheme = 'light' | 'dark';
 
@@ -75,14 +64,11 @@ export const AppThemeProvider = ({ children }: Props) => {
   const resolvedTheme = useMemo(() => resolveTheme(themeSetting, systemTheme), [themeSetting, systemTheme]);
 
   // 主题设置
-  const setThemeSetting = useCallback(
-    async (nextTheme: ThemeSetting) => {
-      setThemeSettingState(nextTheme);
-      await setThemePreference(nextTheme);
-      colorScheme.set(nextTheme);
-    },
-    [],
-  );
+  const setThemeSetting = useCallback(async (nextTheme: ThemeSetting) => {
+    setThemeSettingState(nextTheme);
+    await setThemePreference(nextTheme);
+    colorScheme.set(nextTheme);
+  }, []);
 
   // 背景相关方法
   const setBackgroundImage = useCallback(async (imagePath: string) => {
@@ -119,10 +105,10 @@ export const AppThemeProvider = ({ children }: Props) => {
     const storedTheme = await getThemePreference();
     setThemeSettingState(storedTheme);
     colorScheme.set(storedTheme);
-    
+
     const hasBackground = await checkCustomBackground();
     setHasCustomBackground(hasBackground);
-    
+
     const darken = await getDarkenBackground();
     setDarkenBackgroundState(darken);
   }, []);
@@ -146,8 +132,18 @@ export const AppThemeProvider = ({ children }: Props) => {
       getBackgroundImagePath,
       refreshBackgroundState,
     }),
-    [themeSetting, resolvedTheme, hasCustomBackground, darkenBackground, setThemeSetting, 
-     setBackgroundImage, deleteBackgroundImage, setDarkenBackground, getBackgroundImage, refreshBackgroundState],
+    [
+      themeSetting,
+      resolvedTheme,
+      hasCustomBackground,
+      darkenBackground,
+      setThemeSetting,
+      setBackgroundImage,
+      deleteBackgroundImage,
+      setDarkenBackground,
+      getBackgroundImage,
+      refreshBackgroundState,
+    ],
   );
 
   return (
