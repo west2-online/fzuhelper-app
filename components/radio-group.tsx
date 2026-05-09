@@ -18,7 +18,7 @@ export interface Option {
 
 interface Props {
   options: Option[];
-  selected: number | 'other';
+  selected: number | 'other' | undefined;
   onChange: (value: number | 'other') => void;
   customText?: string;
   onCustomTextChange?: (text: string) => void;
