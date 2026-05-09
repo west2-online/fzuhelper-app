@@ -7,4 +7,6 @@
         <item>自定义不透明度</item>
         <item>跟随背景不透明度</item>
     </string-array>
+
+    <string name="qrcode_qs_tile_label">一码通</string>
 </resources>
