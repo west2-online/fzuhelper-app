@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, useColorScheme, View, type ListRenderItem } from 'react-native';
+import { FlatList, Pressable, RefreshControl, View, type ListRenderItem } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
@@ -17,6 +17,7 @@ import {
   type JobFairItem,
   type JobFairListRow,
 } from '@/lib/job-fair';
+import { useColorScheme } from '@/lib/useColorScheme';
 import { cn } from '@/lib/utils';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { toast } from 'sonner-native';
@@ -90,7 +91,7 @@ const renderItem: ListRenderItem<JobFairListRow> = ({ item }) => {
 };
 
 export default function JobFairPage() {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const { bottom } = useSafeAreaInsets();
   const [selectedMonth, setSelectedMonth] = useState(() => dayjs().startOf('month'));
 
