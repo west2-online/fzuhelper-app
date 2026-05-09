@@ -15,6 +15,13 @@ let config = getDefaultConfig(__dirname);
     ...resolver,
     assetExts: resolver.assetExts.filter(ext => ext !== 'svg'), // 移除默认的 SVG 解析方法
     sourceExts: [...resolver.sourceExts, 'svg'], // 添加 SVG 支持
+    // https://github.com/expo/expo/issues/43614#issuecomment-3992041354
+    resolveRequest: (context, moduleName, platform) => {
+      if (moduleName.includes('MaterialSymbols')) {
+        return { type: 'empty' };
+      }
+      return context.resolveRequest(context, moduleName, platform);
+    },
   };
 }
 
