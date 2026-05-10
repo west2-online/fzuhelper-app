@@ -17,7 +17,6 @@ import {
   type JobFairItem,
   type JobFairListRow,
 } from '@/lib/job-fair';
-import { useColorScheme } from '@/lib/useColorScheme';
 import { cn } from '@/lib/utils';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { toast } from 'sonner-native';
@@ -91,7 +90,6 @@ const renderItem: ListRenderItem<JobFairListRow> = ({ item }) => {
 };
 
 export default function JobFairPage() {
-  const { colorScheme } = useColorScheme();
   const { bottom } = useSafeAreaInsets();
   const [selectedMonth, setSelectedMonth] = useState(() => dayjs().startOf('month'));
 
@@ -155,7 +153,6 @@ export default function JobFairPage() {
                   onRefresh={() => {
                     refetch();
                   }}
-                  tintColor={colorScheme === 'dark' ? '#fff' : '#000'}
                 />
               }
             />
