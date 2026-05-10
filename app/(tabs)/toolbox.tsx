@@ -10,11 +10,9 @@ import ApplicationIcon from '@/assets/images/toolbox/ic_application.svg';
 import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
 import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
 import FileIcon from '@/assets/images/toolbox/ic_file.svg';
-import FreeFriendsIcon from '@/assets/images/toolbox/ic_free_friends.svg';
 import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
 import GraduationIcon from '@/assets/images/toolbox/ic_graduation.svg';
 import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
-import JobFiarIcon from '@/assets/images/toolbox/ic_jobfair.svg';
 import LostFoundIcon from '@/assets/images/toolbox/ic_lostandfound.svg';
 import MoreIcon from '@/assets/images/toolbox/ic_more.svg';
 import NotificationIcon from '@/assets/images/toolbox/ic_notification.svg';
@@ -28,6 +26,7 @@ import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
 import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
 import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
 import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
+import FreeFriendsIcon from '@/assets/images/toolbox/ic_free_friends.svg';
 import Banner, { type BannerContent, BannerType } from '@/components/banner';
 import PageContainer from '@/components/page-container';
 import { Button, ButtonProps } from '@/components/ui/button';
@@ -296,13 +295,6 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     icon: FreeFriendsIcon,
     type: ToolType.LINK,
     href: '/toolbox/free-friends',
-  },
-  {
-    id: 220,
-    name: '招聘会',
-    icon: JobFiarIcon,
-    type: ToolType.LINK,
-    href: '/toolbox/job-fair',
   },
   {
     id: 9999,
