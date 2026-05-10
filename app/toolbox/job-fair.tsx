@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, View, type ListRenderItem } from 'react-native';
+import { FlatList, Pressable, RefreshControl, TouchableOpacity, View, type ListRenderItem } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
@@ -23,10 +23,7 @@ import { toast } from 'sonner-native';
 
 function EventCard({ item, isEnded }: { item: JobFairItem; isEnded?: boolean }) {
   return (
-    <Pressable
-      className={cn('active:opacity-80', isEnded && 'opacity-60')}
-      onPress={() => pushToWebViewNormal(item.detailUrl, '活动详情')}
-    >
+    <TouchableOpacity activeOpacity={0.7} onPress={() => pushToWebViewNormal(item.detailUrl, '活动详情')}>
       <Card className={cn('rounded-2xl px-4 py-4', isEnded && 'bg-muted')}>
         <View className="mb-3">
           <Text className={cn('text-base font-medium leading-6', isEnded && 'text-muted-foreground')}>
@@ -50,7 +47,7 @@ function EventCard({ item, isEnded }: { item: JobFairItem; isEnded?: boolean }) 
           </View>
         ) : null}
       </Card>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 
@@ -146,15 +143,8 @@ export default function JobFairPage() {
               renderItem={renderItem}
               className="flex-1"
               contentContainerStyle={{ paddingBottom: bottom }}
-              contentContainerClassName="mx-4 mt-3 gap-3"
-              refreshControl={
-                <RefreshControl
-                  refreshing={isFetching}
-                  onRefresh={() => {
-                    refetch();
-                  }}
-                />
-              }
+              contentContainerClassName="mx-4 pt-3 gap-3"
+              refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
             />
           }
           refresh={refetch}
