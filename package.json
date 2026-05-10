@@ -61,7 +61,7 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-fast-hoc": "^0.3.2",
-    "react-native": "0.83.4",
+    "react-native": "0.83.9",
     "react-native-animated-spinkit": "^1.5.2",
     "react-native-blob-util": "^0.22.2",
     "react-native-device-info": "^14.0.4",
