@@ -7,7 +7,8 @@
   "apple": {
     "modules": [
       "NativeBrightnessModule"
-    ]
+    ],
+    "appDelegateSubscribers": ["NativeBrightnessAppDelegateSubscriber"]
   },
   "android": {
     "modules": [
