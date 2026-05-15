@@ -15,6 +15,7 @@ import { toast } from 'sonner-native';
 import { JwchCourseListResponse_Course } from '@/api/backend';
 import { getApiV1FriendCourse, getApiV1UserFriendList } from '@/api/generate';
 import { Icon } from '@/components/Icon';
+import { useTheme } from '@/components/app-theme-provider';
 import { CourseErrorBoundary } from '@/components/course/course-error-boundary';
 import CourseWeek from '@/components/course/course-week';
 import { FriendListModal } from '@/components/course/friend-list-modal';
@@ -28,7 +29,6 @@ import { CoursePageProvider } from '@/context/course-page';
 import useApiRequest from '@/hooks/useApiRequest';
 import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
-import { hasCustomBackground } from '@/lib/appearance';
 import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_COURSE_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
 import { getFirstDateByWeek } from '@/lib/locate-date';
@@ -211,17 +211,9 @@ function HomePageContent({
   const [selectedWeek, setSelectedWeek] = useState(currentWeek === -1 ? 1 : Math.min(currentWeek, maxWeek));
   const [showWeekSelector, setShowWeekSelector] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [customBackground, setCustomBackground] = useState(false);
+  const { hasCustomBackground } = useTheme();
 
   const courseGridRef = useRef<{ scrollToWeek: (week: number) => void }>(null);
-
-  useEffect(() => {
-    const checkBackground = async () => {
-      const result = await hasCustomBackground();
-      setCustomBackground(result);
-    };
-    checkBackground();
-  }, []);
 
   const { data: friendList, refetch } = useApiRequest(
     getApiV1UserFriendList,
@@ -236,8 +228,8 @@ function HomePageContent({
   );
 
   const headerBackground = useCallback(() => {
-    return !customBackground ? <View className="flex-1 bg-card" /> : undefined;
-  }, [customBackground]);
+    return !hasCustomBackground ? <View className="flex-1 bg-card" /> : undefined;
+  }, [hasCustomBackground]);
 
   const headerLeft = useCallback(() => {
     const title = selectedFriendId

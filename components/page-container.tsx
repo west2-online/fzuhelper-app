@@ -1,11 +1,10 @@
 import { ImageBackground, View, type ViewProps } from 'react-native';
 
 import { cn } from '@/lib/utils';
-
-import { getBackgroundImage, getDarkenBackground, hasCustomBackground } from '@/lib/appearance';
+import { useTheme } from '@/components/app-theme-provider';
 import { useBottomTabBarHeight as originalUseBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export type ThemedViewProps = { refreshBackground?: boolean } & ViewProps;
 
@@ -26,8 +25,7 @@ export default function PageContainer({ className, refreshBackground, ...otherPr
   const bottomTabBarHeight = useSafeBottomTabBarHeight();
   const headerHeight = useHeaderHeight();
   const lastKnownHeaderHeightRef = useRef(0);
-  const [customBackground, setCustomBackground] = useState(false);
-  const [darkenBackground, setDarkenBackground] = useState(false);
+  const { hasCustomBackground, darkenBackground, getBackgroundImage } = useTheme();
 
   // 修复在新版 React Navigation 中，headerHeight 二次回调为 0 导致 page 高度计算错误的问题
   useEffect(() => {
@@ -37,19 +35,9 @@ export default function PageContainer({ className, refreshBackground, ...otherPr
   }, [headerHeight]);
   const safeHeaderHeight = headerHeight > 0 ? headerHeight : lastKnownHeaderHeightRef.current;
 
-  useEffect(() => {
-    const checkBackground = async () => {
-      const result = await hasCustomBackground();
-      setCustomBackground(result);
-      const darken = await getDarkenBackground();
-      setDarkenBackground(darken);
-    };
-    checkBackground();
-  }, []);
-
   return (
     <>
-      {customBackground ? (
+      {hasCustomBackground ? (
         <ImageBackground source={getBackgroundImage(refreshBackground ?? false)} className="flex-1">
           {darkenBackground && <View className="absolute h-full w-full bg-[#00000050]" />}
           <View

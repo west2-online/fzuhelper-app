@@ -47,6 +47,16 @@
                 android:exported="false"
                 android:permission="android.permission.BIND_REMOTEVIEWS" />
 
+            <service
+                android:name="com.helper.west2ol.fzuhelper.QRCodeQSTileService"
+                android:exported="true"
+                android:label="@string/qrcode_qs_tile_label"
+                android:icon="@drawable/ic_qrcode"
+                android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+                <intent-filter>
+                    <action android:name="android.service.quicksettings.action.QS_TILE" />
+                </intent-filter>
+            </service>
 
         </application>
 

@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  build_ipa:
+  build-ipa:
     runs-on: macos-26
     timeout-minutes: 60
     env:
