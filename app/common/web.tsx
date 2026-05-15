@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CookieManager from '@preeternal/react-native-cookie-manager';
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -47,28 +47,63 @@ export default function Web() {
   const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
-  const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const router = useRouter();
+  const [pendingScanCallback, setPendingScanCallback] = useState<string>('');
+
+  // 拦截自定义协议跳转
+  const handleShouldStartLoadWithRequest = useCallback(
+    (request: { url: string }) => {
+      const requestUrl = request.url;
+
+      if (requestUrl.startsWith('kysk-fdxy-app://')) {
+        console.log('拦截到自定义协议:', requestUrl);
+
+        try {
+          const url = new URL(requestUrl);
+          const type = url.searchParams.get('type');
+          const func = url.searchParams.get('function');
+
+          if (type === 'scan' && func) {
+            setPendingScanCallback(func);
+            router.push({
+              pathname: '/toolbox/learning-center/qr-scanner',
+              params: { callback: func },
+            });
+          }
+        } catch (e) {
+          console.error('解析协议失败:', e);
+        }
+
+        return false;
+      }
+
+      return true;
+    },
+    [router],
+  );
+
+  const { url, jwch, sso, title, scanResult, scanCallback } = useLocalSearchParams<WebParams & UnknownOutputParams>();
   const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
 
   const setCookies = useCallback(async () => {
-    // 教务系统 Cookie
     if (jwch) {
-      // 清除 webview cookies
-      // await CookieManager.get(JWCH_COOKIES_DOMAIN).then(cookies =>
-      //   Promise.all(
-      //     Object.values(cookies).map(c =>
-      //       CookieManager.set(JWCH_COOKIES_DOMAIN, { ...c, value: 'deleted', expires: '1970-01-01T00:00:00.000Z' }),
-      //     ),
-      //   ),
-      // );
-
-      // 上面代码在安卓平台有问题，会导致过期 cookie 也被发送
       await CookieManager.clearAll();
 
       const cookieValid = await LocalUser.checkCredentials();
       if (!cookieValid) {
+        // 教务系统 Cookie
         try {
+          // 清除 webview cookies
+          // await CookieManager.get(JWCH_COOKIES_DOMAIN).then(cookies =>
+          //   Promise.all(
+          //     Object.values(cookies).map(c =>
+          //       CookieManager.set(JWCH_COOKIES_DOMAIN, { ...c, value: 'deleted', expires: '1970-01-01T00:00:00.000Z' }),
+          //     ),
+          //   ),
+          // );
+
+          // 上面代码在安卓平台有问题，会导致过期 cookie 也被发送
           await LocalUser.login();
         } catch (error) {
           console.error('教务系统登录失败:', error);
@@ -159,10 +194,8 @@ export default function Web() {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
           if (canGoBack) {
             webViewRef.current?.goBack();
-
             return true; // 阻止默认行为（退出页面）
           }
-
           return false;
         });
 
@@ -180,10 +213,29 @@ export default function Web() {
     }
   }, []);
 
+  // 处理扫码结果回调
+  useEffect(() => {
+    if (scanResult && scanCallback && webViewRef.current) {
+      const jsCode = `
+        (function() {
+          try {
+            if (typeof window['${scanCallback}'] === 'function') {
+              window['${scanCallback}']('${scanResult}');
+            }
+          } catch(e) {
+            console.error('回调失败:', e);
+          }
+        })();
+        true;
+      `;
+      webViewRef.current.injectJavaScript(jsCode);
+      console.log('扫码结果已回调:', scanCallback, scanResult);
+    }
+  }, [scanResult, scanCallback]);
+
   const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
     const targetUrl = event.nativeEvent.targetUrl; // 获取目标 URL
     console.log('Opening new window with URL:', targetUrl);
-
     // 在当前 WebView 中加载目标 URL
     if (webViewRef.current) {
       setCurrentUrl(targetUrl); // 更新当前 URL
@@ -215,7 +267,6 @@ export default function Web() {
     },
     [title, currentTheme],
   );
-
   // 方案参考：https://stackoverflow.com/questions/74347489/how-to-pass-geolocation-permission-to-react-native-webview
   // 实际上在一些需要定位的站点内，请求没有问题，但是易班的签到仍然提示定位失效。
   // 考虑到其他站点没有问题，暂时保留这部分代码。
@@ -329,6 +380,7 @@ export default function Web() {
                   onNavigationStateChange={handleNavigationStateChange}
                   onMessage={handleOnMessage}
                   // 当脚本未注入完成时隐藏 WebView
+                  onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                   className={injectedScript ? 'flex-1' : 'hidden bg-background'}
                 />
               </KeyboardAvoidingView>
