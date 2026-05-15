@@ -30,20 +30,22 @@ import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
 export interface WebParams {
-  url: string;
-  jwch?: boolean;
-  sso?: boolean;
-  title?: string;
-  [key: string]: any;
+  url: string; // URL 地址
+  jwch?: boolean; // （可选）是否为本科教务系统地址
+  sso?: boolean; // （可选）是否为统一身份认证地址
+  title?: string; // （可选）固定标题
+  [key: string]: any; // 添加字符串索引签名
 }
 
+// 内嵌的网页浏览器，用于显示网页
+// 在 iOS 下，当用户在网页浏览器中点击新的跳转时，会模拟创建一个新的页面，返回时只需要左滑即可
 export default function Web() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [webpageTitle, setWebpageTitle] = useState('');
-  const [currentUrl, setCurrentUrl] = useState('');
-  const [cookiesSet, setCookiesSet] = useState(false);
-  const [needSSOLogin, setNeedSSOLogin] = useState(false);
-  const [injectedScript, setInjectedScript] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState(''); // 当前加载的 URL
+  const [cookiesSet, setCookiesSet] = useState(false); // 用于控制 Cookie 设置先于 WebView 加载
+  const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
+  const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
   const router = useRouter();
   const [pendingScanCallback, setPendingScanCallback] = useState<string>('');
@@ -53,7 +55,7 @@ export default function Web() {
     (request: { url: string }) => {
       const requestUrl = request.url;
 
-      if (requestUrl.startsWith('fzuhelper://native')) {
+      if (requestUrl.startsWith('kysk-fdxy-app://')) {
         console.log('拦截到自定义协议:', requestUrl);
 
         try {
@@ -90,7 +92,18 @@ export default function Web() {
 
       const cookieValid = await LocalUser.checkCredentials();
       if (!cookieValid) {
+        // 教务系统 Cookie
         try {
+          // 清除 webview cookies
+          // await CookieManager.get(JWCH_COOKIES_DOMAIN).then(cookies =>
+          //   Promise.all(
+          //     Object.values(cookies).map(c =>
+          //       CookieManager.set(JWCH_COOKIES_DOMAIN, { ...c, value: 'deleted', expires: '1970-01-01T00:00:00.000Z' }),
+          //     ),
+          //   ),
+          // );
+
+          // 上面代码在安卓平台有问题，会导致过期 cookie 也被发送
           await LocalUser.login();
         } catch (error) {
           console.error('教务系统登录失败:', error);
@@ -105,29 +118,33 @@ export default function Web() {
         return;
       }
 
+      // 根据 URL 是否已有查询参数来决定连接符
       const separator = url.includes('?') ? '&' : '?';
       setCurrentUrl(`${url}${separator}id=${credentials.identifier}`);
 
+      // 设置 JWCH Cookie
       await Promise.all(
-        credentials.cookies
-          .split(';')
-          .map(c =>
-            CookieManager.setFromResponse(
-              LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? YJSY_COOKIES_DOMAIN : JWCH_COOKIES_DOMAIN,
-              c,
-            ),
+        credentials.cookies.split(';').map(c =>
+          CookieManager.setFromResponse(
+            // 依据用户类型置入不同的域名 Cookie
+            LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? YJSY_COOKIES_DOMAIN : JWCH_COOKIES_DOMAIN,
+            c,
           ),
+        ),
       );
     }
 
+    // 统一身份认证 Cookie
     if (sso) {
       await CookieManager.clearAll();
       const SSOCookie = await AsyncStorage.getItem(SSO_LOGIN_COOKIE_KEY);
       const isSSOLogin = SSOCookie ? await checkCookieSSO({ cookies: SSOCookie }) : false;
 
+      // 存在ssocookie且cookie有效
       if (isSSOLogin && SSOCookie) {
         await Promise.all(SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c)));
       } else if (SSOCookie) {
+        // 存在ssocookie但cookie无效,需要自动重登
         const ssoLogin = new SSOLogin();
         const userData = await AsyncStorage.getItem(SSO_LOGIN_USER_KEY);
         if (!userData) {
@@ -139,37 +156,45 @@ export default function Web() {
           console.error('SSO登录获取cookie失败:', error);
           return null;
         });
+        // toast.info('登录过期，正在重新登录');
         if (cookieLogin) {
           await Promise.all(cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c)));
           await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookieLogin);
         } else {
+          // 重登失败，跳转到登录页面
           toast.error('自动重登失败');
           await AsyncStorage.removeItem(SSO_LOGIN_COOKIE_KEY);
           setNeedSSOLogin(true);
         }
       } else {
+        // 不存在ssocookie
         setNeedSSOLogin(true);
       }
     }
     setCookiesSet(true);
   }, [jwch, url, sso]);
 
+  // 在页面获得焦点时执行
   useFocusEffect(
     useCallback(() => {
+      // 重置状态，准备重新加载
       setInjectedScript(false);
       setCookiesSet(false);
       setNeedSSOLogin(false);
+
+      // 执行设置Cookie的逻辑
       setCookies();
     }, [setCookies]),
   );
 
+  // 处理 Android 返回键
   useFocusEffect(
     useCallback(() => {
       if (Platform.OS === 'android') {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
           if (canGoBack) {
             webViewRef.current?.goBack();
-            return true;
+            return true; // 阻止默认行为（退出页面）
           }
           return false;
         });
@@ -181,6 +206,7 @@ export default function Web() {
     }, [canGoBack]),
   );
 
+  // iOS 定位权限申请
   useEffect(() => {
     if (Platform.OS === 'ios') {
       Geolocation.requestAuthorization();
@@ -208,26 +234,30 @@ export default function Web() {
   }, [scanResult, scanCallback]);
 
   const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
-    const targetUrl = event.nativeEvent.targetUrl;
+    const targetUrl = event.nativeEvent.targetUrl; // 获取目标 URL
     console.log('Opening new window with URL:', targetUrl);
-
+    // 在当前 WebView 中加载目标 URL
     if (webViewRef.current) {
-      setCurrentUrl(targetUrl);
+      setCurrentUrl(targetUrl); // 更新当前 URL
     }
   }, []);
 
   const handleNavigationStateChange = useCallback(
     (event: WebViewNavigation) => {
       if (!event.loading) {
+        // 更新当前 URL
         setCurrentUrl(event.url);
 
+        // 更新网页标题
         if (event.title && !title) {
-          setWebpageTitle(event.title);
+          setWebpageTitle(event.title); // 只有在没有传递 title 参数时才更新标题
         }
 
         webViewRef.current?.injectJavaScript(getScriptByURL(event.url, currentTheme));
         if (Platform.OS === 'ios') {
-          webViewRef.current?.injectJavaScript(getGeoLocationJS());
+          webViewRef.current?.injectJavaScript(getGeoLocationJS()); // 注入定位设计
+          // Android 不需要注入这个代码也可以授权，但是即使定位到了，易班也提示定位失败
+          // 基本是易班的问题
         }
 
         setTimeout(() => {
@@ -237,7 +267,9 @@ export default function Web() {
     },
     [title, currentTheme],
   );
-
+  // 方案参考：https://stackoverflow.com/questions/74347489/how-to-pass-geolocation-permission-to-react-native-webview
+  // 实际上在一些需要定位的站点内，请求没有问题，但是易班的签到仍然提示定位失效。
+  // 考虑到其他站点没有问题，暂时保留这部分代码。
   const handleOnMessage = useCallback(
     (event: WebViewMessageEvent) => {
       let data: { event?: string; options?: GeolocationOptions; watchID?: number } = {};
@@ -277,7 +309,7 @@ export default function Web() {
 
   const headerRight = useCallback(() => {
     if (jwch || sso) {
-      return null;
+      return null; // 权限页面不允许分享
     }
     if (currentUrl) {
       return (
@@ -303,6 +335,7 @@ export default function Web() {
 
   return (
     <>
+      {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
       <Stack.Screen
         options={{
           title: title || webpageTitle,
@@ -319,27 +352,34 @@ export default function Web() {
             {cookiesSet && (
               <KeyboardAvoidingView behavior="padding" className="flex-1" keyboardVerticalOffset={headerHeight}>
                 <WebView
-                  source={{ uri: currentUrl || url || '' }}
+                  source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
                   ref={webViewRef}
                   sharedCookiesEnabled
-                  cacheEnabled
-                  cacheMode="LOAD_DEFAULT"
-                  javaScriptEnabled
-                  startInLoadingState={true}
-                  renderLoading={renderLoading}
-                  onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)}
-                  scalesPageToFit
-                  renderToHardwareTextureAndroid
-                  setDisplayZoomControls={false}
-                  setBuiltInZoomControls
-                  geolocationEnabled={true}
-                  overScrollMode="never"
-                  allowsBackForwardNavigationGestures
-                  contentMode="mobile"
-                  allowsInlineMediaPlayback
-                  onOpenWindow={handleOpenWindow}
+                  cacheEnabled // 启用缓存
+                  cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
+                  javaScriptEnabled // 确保启用 JavaScript
+                  startInLoadingState={true} // 启用加载状态
+                  renderLoading={renderLoading} // 加载组件
+                  //
+                  // Android 平台设置
+                  onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回
+                  scalesPageToFit // 启用页面缩放
+                  renderToHardwareTextureAndroid // 启用硬件加速
+                  setDisplayZoomControls={false} // 隐藏缩放控件图标
+                  setBuiltInZoomControls // 启用内置缩放控件
+                  geolocationEnabled={true} // 启用定位
+                  overScrollMode="never" // 禁止过度滚动
+                  //
+                  // iOS 平台设置
+                  allowsBackForwardNavigationGestures // 启用手势返回
+                  contentMode="mobile" // 内容模式设置为移动模式，即可自动调整页面大小
+                  allowsInlineMediaPlayback // 允许内联播放媒体
+                  //
+                  // 事件处理
+                  onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
                   onNavigationStateChange={handleNavigationStateChange}
                   onMessage={handleOnMessage}
+                  // 当脚本未注入完成时隐藏 WebView
                   onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                   className={injectedScript ? 'flex-1' : 'hidden bg-background'}
                 />
