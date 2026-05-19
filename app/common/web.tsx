@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CookieManager from '@preeternal/react-native-cookie-manager';
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +22,8 @@ import {
   SSO_LOGIN_COOKIE_DOMAIN,
   SSO_LOGIN_COOKIE_KEY,
   SSO_LOGIN_USER_KEY,
+  WEBVIEW_FEATURES,
+  WEBVIEW_PROTOCOLS,
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
@@ -47,9 +49,11 @@ export default function Web() {
   const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
-  const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const { url, jwch, sso, title, scanResult, scanCallback } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
+  const router = useRouter();
+  const [pendingScanCallback, setPendingScanCallback] = useState<string>('');
 
   const setCookies = useCallback(async () => {
     // 教务系统 Cookie
@@ -180,6 +184,45 @@ export default function Web() {
     }
   }, []);
 
+  const handleShouldStartLoadWithRequest = useCallback(
+    (request: { url: string }) => {
+      const requestUrl = request.url;
+
+      // 检查是否是我们的自定义协议
+      if (requestUrl.startsWith(WEBVIEW_PROTOCOLS.APP_SCHEME)) {
+        console.log('拦截到自定义协议:', requestUrl);
+
+        try {
+          const url = new URL(requestUrl);
+          const type = url.searchParams.get(WEBVIEW_PROTOCOLS.PARAMS.TYPE);
+          const func = url.searchParams.get(WEBVIEW_PROTOCOLS.PARAMS.FUNCTION);
+
+          // 有效的扫码协议
+          if (WEBVIEW_FEATURES.ENABLE_SCAN_PROTOCOL && type === WEBVIEW_PROTOCOLS.TYPES.SCAN && func) {
+            setPendingScanCallback(func);
+            router.push({
+              pathname: WEBVIEW_PROTOCOLS.ROUTES.SCAN,
+              params: { callback: func },
+            });
+            return false;
+          }
+
+          // 无效协议处理
+          console.warn('无效的自定义协议:', { url: requestUrl, type, func });
+          toast.error('无效链接');
+          return false;
+        } catch (e) {
+          console.error('解析协议失败:', e);
+          toast.error('无效链接');
+          return false;
+        }
+      }
+
+      return true; // 允许正常加载
+    },
+    [router],
+  );
+
   const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
     const targetUrl = event.nativeEvent.targetUrl; // 获取目标 URL
     console.log('Opening new window with URL:', targetUrl);
@@ -256,6 +299,31 @@ export default function Web() {
     [webViewRef],
   );
 
+  // 处理扫码结果回调
+  useEffect(() => {
+    if (scanResult && scanCallback && webViewRef.current) {
+      // 安全转义
+      const safeResult = JSON.stringify(scanResult);
+      const safeCallback = scanCallback.replace(/[^a-zA-Z0-9_]/g, '');
+
+      const jsCode = `
+        (function() {
+          try {
+            if (typeof window['${safeCallback}'] === 'function') {
+              window['${safeCallback}'](${safeResult});
+            }
+          } catch(e) {
+            console.error('扫码回调失败:', e);
+          }
+        })();
+        true;
+      `;
+
+      webViewRef.current.injectJavaScript(jsCode);
+      console.log('扫码结果已回调:', scanCallback, scanResult);
+    }
+  }, [scanResult, scanCallback]);
+
   const headerRight = useCallback(() => {
     if (jwch || sso) {
       return null; // 权限页面不允许分享
@@ -328,6 +396,7 @@ export default function Web() {
                   onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
                   onNavigationStateChange={handleNavigationStateChange}
                   onMessage={handleOnMessage}
+                  onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                   // 当脚本未注入完成时隐藏 WebView
                   className={injectedScript ? 'flex-1' : 'hidden bg-background'}
                 />

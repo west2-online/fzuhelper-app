@@ -19,7 +19,10 @@ dayjs.extend(isSameOrBefore);
 
 export default function QrScannerPage() {
   const router = useRouter();
-  const { appointmentId } = useLocalSearchParams<{ appointmentId: string }>();
+  const { appointmentId, callback } = useLocalSearchParams<{
+    appointmentId: string;
+    callback?: string;
+  }>();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -71,6 +74,15 @@ export default function QrScannerPage() {
   const handleBarcodeScanned = async ({ data }: { type: string; data: string }) => {
     setScanned(true);
     setScanning(true);
+    if (callback) {
+      //将扫码结果返回给 WebView
+      router.push({
+        pathname: '/common/web',
+        params: { scanResult: data, scanCallback: callback },
+      });
+      return;
+    }
+
     if (!appointmentId) {
       toast.error('预约ID丢失，请返回重试');
       setScanning(false);
