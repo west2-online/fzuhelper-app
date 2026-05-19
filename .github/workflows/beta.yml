@@ -6,15 +6,25 @@ on:
 jobs:
   publish-beta:
     runs-on: ubuntu-latest
-    environment: beta
 
     steps:
+      - name: Resolve Release Tag
+        id: resolve-tag
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            RELEASE_TAG="$GITHUB_REF_NAME"
+          else
+            RELEASE_TAG="alpha"
+          fi
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
       - name: Download APK and Extract Version Info
         id: version-info
         shell: bash
         run: |
           mkdir -p "$GITHUB_WORKSPACE/outputs/apk/release"
-          gh release download alpha --repo ${{ github.repository }} --pattern "FzuHelper_*.apk" --dir "$GITHUB_WORKSPACE/outputs/apk/release"
+          gh release download "$RELEASE_TAG" --repo ${{ github.repository }} --pattern "FzuHelper_*.apk" --dir "$GITHUB_WORKSPACE/outputs/apk/release"
 
           APK_PATH=$(ls "$GITHUB_WORKSPACE"/outputs/apk/release/FzuHelper_*.apk | head -n 1)
           APK_FILENAME=$(basename "$APK_PATH")
@@ -25,7 +35,7 @@ jobs:
             echo "Unexpected APK filename format: $APK_FILENAME"
             exit 1
           fi
-          CHANGELOG=$(gh release view alpha --repo ${{ github.repository }} --json body --jq .body)
+          CHANGELOG=$(gh release view "$RELEASE_TAG" --repo ${{ github.repository }} --json body --jq .body)
 
           echo "APK_FILENAME=$APK_FILENAME" >> "$GITHUB_OUTPUT"
           echo "APP_VERSION_NAME=$APP_VERSION_NAME" >> "$GITHUB_OUTPUT"
@@ -37,6 +47,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.resolve-tag.outputs.RELEASE_TAG }}
 
       - name: Get Upload Params
         id: upload-params

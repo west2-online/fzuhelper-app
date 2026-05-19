@@ -14,6 +14,10 @@ export function redirectSystemPath({ path, initial }: { path: string; initial: b
       const target = encodeURIComponent(`/settings/friend/add?code=${code}`);
       // 在闪屏页做账户初始化相关工作并跳转
       return `/(guest)?target=${target}&cold_launch=${initial}`;
+    } else if (hostname === 'qrcode') {
+      // fzuhelper://qrcode
+      const target = encodeURIComponent('/qrcode');
+      return `/(guest)?target=${target}&cold_launch=${initial}`;
     } else if (hostname === null) {
       // 桌面启动
       return path;

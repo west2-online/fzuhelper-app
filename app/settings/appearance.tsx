@@ -12,13 +12,6 @@ import LabelSwitch from '@/components/label-switch';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
 import { useRedirectWithoutHistory } from '@/hooks/useRedirectWithoutHistory';
-import {
-  deleteBackgroundImage,
-  getDarkenBackground,
-  hasCustomBackground,
-  setBackgroundImage,
-  setDarkenBackground,
-} from '@/lib/appearance';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 
 const THEME_OPTIONS: { value: 'light' | 'dark' | 'system'; label: string }[] = [
@@ -28,21 +21,17 @@ const THEME_OPTIONS: { value: 'light' | 'dark' | 'system'; label: string }[] = [
 ];
 
 export default function AppearancePage() {
-  const [customBackground, setCustomBackground] = useState(false);
-  const [darkenBackground, setIsDarkenBackground] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
-  const { themeSetting, setThemeSetting } = useTheme();
+  const { 
+    themeSetting, 
+    setThemeSetting, 
+    hasCustomBackground, 
+    darkenBackground, 
+    setBackgroundImage, 
+    deleteBackgroundImage, 
+    setDarkenBackground 
+  } = useTheme();
   const redirect = useRedirectWithoutHistory();
-
-  useEffect(() => {
-    const checkBackground = async () => {
-      const result = await hasCustomBackground();
-      setCustomBackground(result);
-      const darken = await getDarkenBackground();
-      setIsDarkenBackground(darken);
-    };
-    checkBackground();
-  }, []);
 
   const selectPicture = useCallback(async () => {
     // 获取屏幕宽高
@@ -72,7 +61,7 @@ export default function AppearancePage() {
         }
         toast.error('设置失败：' + err);
       });
-  }, [redirect]);
+  }, [redirect, setBackgroundImage, setDarkenBackground]);
 
   const restoreDefault = useCallback(async () => {
     try {
@@ -83,7 +72,7 @@ export default function AppearancePage() {
       console.log('error', err);
       toast.error('恢复默认失败：' + err);
     }
-  }, [redirect]);
+  }, [redirect, deleteBackgroundImage]);
 
   return (
     <>
@@ -98,7 +87,7 @@ export default function AppearancePage() {
               onPress={() => setPickerVisible(true)}
             />
             <LabelEntry leftText={'选择壁纸'} onPress={selectPicture} />
-            {customBackground && (
+            {hasCustomBackground && (
               <>
                 <LabelEntry leftText={'恢复默认'} onPress={restoreDefault} />
                 <LabelSwitch
@@ -106,7 +95,6 @@ export default function AppearancePage() {
                   value={darkenBackground}
                   onValueChange={async () => {
                     await setDarkenBackground(!darkenBackground);
-                    setIsDarkenBackground(!darkenBackground);
                     toast.success('设置成功，应用将重启');
                     redirect('/(guest)');
                   }}

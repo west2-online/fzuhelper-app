@@ -58,13 +58,13 @@ interface CourseCardRef {
 }
 
 const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCard({ courseName, teacherName }, ref) {
-  const [score, setScore] = useState('100');
-  const [selected, setSelected] = useState<number | 'other'>(0);
+  const [score, setScore] = useState('');
+  const [selected, setSelected] = useState<number | 'other' | undefined>(undefined);
   const [customText, setCustomText] = useState('');
 
   useImperativeHandle(ref, () => ({
     getFormData: () => ({
-      comment: selected === 'other' ? customText : DEFAULT_COMMENTS[selected],
+      comment: selected === 'other' ? customText : selected !== undefined ? DEFAULT_COMMENTS[selected] : '',
       score: score,
     }),
   }));
@@ -94,10 +94,10 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
           value={score}
           onChangeText={handleScoreTextChange}
           keyboardType="number-pad"
-          placeholder="输入评分"
+          placeholder="百分制评分"
           placeholderTextColor="#60a5fa"
           maxLength={3}
-          className="h-14 w-28 rounded-xl bg-text-primary/10 text-center text-lg text-text-primary"
+          className="h-14 w-32 rounded-xl bg-text-primary/10 text-center text-lg text-text-primary"
           style={styles.textInput}
         />
       </View>

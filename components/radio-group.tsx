@@ -18,7 +18,7 @@ export interface Option {
 
 interface Props {
   options: Option[];
-  selected: number | 'other';
+  selected: number | 'other' | undefined;
   onChange: (value: number | 'other') => void;
   customText?: string;
   onCustomTextChange?: (text: string) => void;
@@ -48,10 +48,10 @@ export default function RadioGroup({
               <View
                 className={cn(
                   'h-4 w-4 items-center justify-center rounded-full border-2',
-                  isSelected ? 'border-blue-500' : 'border-gray-400',
+                  isSelected ? 'border-primary' : 'border-gray-400',
                 )}
               >
-                {isSelected && <View className="h-2 w-2 rounded-full bg-blue-500" />}
+                {isSelected && <View className="h-2 w-2 rounded-full bg-primary" />}
               </View>
             </View>
             <Text className="flex-1 flex-wrap text-base leading-6">{option.label}</Text>
@@ -66,8 +66,9 @@ export default function RadioGroup({
             placeholder={customPlaceholder}
             placeholderTextColor="#999"
             value={customText}
+            autoFocus
             onChangeText={onCustomTextChange}
-            className="flex-1 border-b border-blue-500 py-1 text-base"
+            className="flex-1 border-b border-primary py-1 text-base"
           />
         </View>
       )}
