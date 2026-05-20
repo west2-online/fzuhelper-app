@@ -49,11 +49,11 @@ export default function Web() {
   const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
-  const { url, jwch, sso, title, scanResult, scanCallback } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const { url, jwch, sso, title, result, callback } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
   const router = useRouter();
-  const [pendingScanCallback, setPendingScanCallback] = useState<string>('');
+  const [pendingCallback, setPendingCallback] = useState<string>('');
 
   const setCookies = useCallback(async () => {
     // 教务系统 Cookie
@@ -199,7 +199,7 @@ export default function Web() {
 
           // 有效的扫码协议
           if (WEBVIEW_FEATURES.ENABLE_SCAN_PROTOCOL && type === WEBVIEW_PROTOCOLS.TYPES.SCAN && func) {
-            setPendingScanCallback(func);
+            setPendingCallback(func);
             router.push({
               pathname: WEBVIEW_PROTOCOLS.ROUTES.SCAN,
               params: { callback: func },
@@ -301,10 +301,10 @@ export default function Web() {
 
   // 处理扫码结果回调
   useEffect(() => {
-    if (scanResult && scanCallback && webViewRef.current) {
+    if (result && callback && webViewRef.current) {
       // 安全转义
-      const safeResult = JSON.stringify(scanResult);
-      const safeCallback = scanCallback.replace(/[^a-zA-Z0-9_]/g, '');
+      const safeResult = JSON.stringify(result);
+      const safeCallback = callback.replace(/[^a-zA-Z0-9_]/g, '');
 
       const jsCode = `
         (function() {
@@ -320,9 +320,9 @@ export default function Web() {
       `;
 
       webViewRef.current.injectJavaScript(jsCode);
-      console.log('扫码结果已回调:', scanCallback, scanResult);
+      console.log('扫码结果已回调:', callback, result);
     }
-  }, [scanResult, scanCallback]);
+  }, [result, callback]);
 
   const headerRight = useCallback(() => {
     if (jwch || sso) {
