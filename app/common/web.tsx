@@ -36,6 +36,8 @@ export interface WebParams {
   jwch?: boolean; // （可选）是否为本科教务系统地址
   sso?: boolean; // （可选）是否为统一身份认证地址
   title?: string; // （可选）固定标题
+  callbackFunc?: string; // （可选）回调函数名
+  callbackArgs?: string; // （可选）回调参数
   [key: string]: any; // 添加字符串索引签名
 }
 
@@ -49,11 +51,11 @@ export default function Web() {
   const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
-  const { url, jwch, sso, title, result, callback } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const { url, jwch, sso, title, callbackFunc, callbackArgs } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
   const router = useRouter();
-  const [pendingCallback, setPendingCallback] = useState<string>('');
+    const [pendingCallbackFunc, setPendingCallbackFunc] = useState<string>('');
 
   const setCookies = useCallback(async () => {
     // 教务系统 Cookie
@@ -199,10 +201,10 @@ export default function Web() {
 
           // 有效的扫码协议
           if (WEBVIEW_FEATURES.ENABLE_SCAN_PROTOCOL && type === WEBVIEW_PROTOCOLS.TYPES.SCAN && func) {
-            setPendingCallback(func);
+            setPendingCallbackFunc(func);
             router.push({
               pathname: WEBVIEW_PROTOCOLS.ROUTES.SCAN,
-              params: { callback: func },
+              params: { callbackFunc: func },
             });
             return false;
           }
@@ -299,30 +301,30 @@ export default function Web() {
     [webViewRef],
   );
 
-  // 处理扫码结果回调
+  // 处理回调结果
   useEffect(() => {
-    if (result && callback && webViewRef.current) {
+    if (callbackFunc && callbackArgs && webViewRef.current) {
       // 安全转义
-      const safeResult = JSON.stringify(result);
-      const safeCallback = callback.replace(/[^a-zA-Z0-9_]/g, '');
+      const safeArgs = JSON.stringify(callbackArgs);
+      const safeFunc = callbackFunc.replace(/[^a-zA-Z0-9_]/g, '');
 
       const jsCode = `
         (function() {
           try {
-            if (typeof window['${safeCallback}'] === 'function') {
-              window['${safeCallback}'](${safeResult});
+            if (typeof window['${safeFunc}'] === 'function') {
+              window['${safeFunc}'](${safeArgs});
             }
           } catch(e) {
-            console.error('扫码回调失败:', e);
+            console.error('回调失败:', e);
           }
         })();
         true;
       `;
 
       webViewRef.current.injectJavaScript(jsCode);
-      console.log('扫码结果已回调:', callback, result);
+      console.log('回调已执行:', callbackFunc, callbackArgs);
     }
-  }, [result, callback]);
+  }, [callbackFunc, callbackArgs]);
 
   const headerRight = useCallback(() => {
     if (jwch || sso) {
