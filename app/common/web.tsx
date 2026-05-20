@@ -41,6 +41,37 @@ export interface WebParams {
   [key: string]: any; // 添加字符串索引签名
 }
 
+//协议注册表
+type ProtocolContext = {
+  router: any;
+  setPendingCallback: (func: string) => void;
+};
+
+const protocolHandlers: Record<string, (params: {
+  func: string | null;
+  context: ProtocolContext;
+}) => boolean> = {};
+
+// 注册扫码协议
+protocolHandlers.scan = ({ func, context }) => {
+  if (!WEBVIEW_FEATURES.ENABLE_SCAN_PROTOCOL) {
+    toast.error('扫码功能未开启');
+    return false;
+  }
+
+  if (!func) {
+    toast.error('无效链接：缺少回调函数');
+    return false;
+  }
+
+  context.setPendingCallback(func);
+  context.router.push({
+    pathname: WEBVIEW_PROTOCOLS.ROUTES.SCAN,
+    params: { callbackFunc: func },
+  });
+  return true;
+};
+
 // 内嵌的网页浏览器，用于显示网页
 // 在 iOS 下，当用户在网页浏览器中点击新的跳转时，会模拟创建一个新的页面，返回时只需要左滑即可
 export default function Web() {
@@ -190,7 +221,6 @@ export default function Web() {
     (request: { url: string }) => {
       const requestUrl = request.url;
 
-      // 检查是否是我们的自定义协议
       if (requestUrl.startsWith(WEBVIEW_PROTOCOLS.APP_SCHEME)) {
         console.log('拦截到自定义协议:', requestUrl);
 
@@ -199,18 +229,20 @@ export default function Web() {
           const type = url.searchParams.get(WEBVIEW_PROTOCOLS.PARAMS.TYPE);
           const func = url.searchParams.get(WEBVIEW_PROTOCOLS.PARAMS.FUNCTION);
 
-          // 有效的扫码协议
-          if (WEBVIEW_FEATURES.ENABLE_SCAN_PROTOCOL && type === WEBVIEW_PROTOCOLS.TYPES.SCAN && func) {
-            setPendingCallbackFunc(func);
-            router.push({
-              pathname: WEBVIEW_PROTOCOLS.ROUTES.SCAN,
-              params: { callbackFunc: func },
+          // 从注册表查找并执行处理器
+          const handler = protocolHandlers[type || ''];
+          if (handler) {
+            const handled = handler({
+              func,
+              context: {
+                router,
+                setPendingCallback: setPendingCallbackFunc,
+              },
             });
-            return false;
+            if (handled) return false;
           }
 
-          // 无效协议处理
-          console.warn('无效的自定义协议:', { url: requestUrl, type, func });
+          console.warn('未知的协议类型:', { url: requestUrl, type, func });
           toast.error('无效链接');
           return false;
         } catch (e) {
@@ -220,7 +252,7 @@ export default function Web() {
         }
       }
 
-      return true; // 允许正常加载
+      return true;
     },
     [router],
   );
