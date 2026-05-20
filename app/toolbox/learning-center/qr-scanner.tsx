@@ -78,7 +78,7 @@ export default function QrScannerPage() {
       //将扫码结果返回给 WebView
       router.push({
         pathname: '/common/web',
-        params: { result: data, callback: callback }
+        params: { callbackArgs: data, callbackFunc: callback }
       });
       return;
     }
