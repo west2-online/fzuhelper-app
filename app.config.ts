@@ -96,6 +96,7 @@ const config: ExpoConfig = {
     ],
   },
   plugins: [
+    "./plugins/with-keep-resources",
     'expo-router',
     [
       'react-native-permissions',
