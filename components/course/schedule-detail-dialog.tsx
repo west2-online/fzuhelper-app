@@ -91,24 +91,26 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                   </DescriptionListRow>
                   <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
-                      <Text>节数</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text>
-                        {schedule.startClass}-{schedule.endClass} 节
-                      </Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
-                  <DescriptionListRow className="items-start">
-                    <DescriptionListTerm>
                       <Text>周数</Text>
                     </DescriptionListTerm>
                     <DescriptionListDescription>
                       <Text>
-                        {schedule.startWeek}-{schedule.endWeek} 周
-                        {/* 单双周显示，仅在只有单周/双周上课的时候才显示提示 */}
-                        {scheduleIsSingleOnly && ' [单]'}
-                        {scheduleIsDoubleOnly && ' [双]'}
+                        {schedules.map((s, idx) => {
+                          const weekText = s.startWeek === s.endWeek
+                            ? `${s.startWeek}周`
+                            : `${s.startWeek}-${s.endWeek}周`;
+                          const suffix = (() => {
+                            if (!s.double && s.single) return ' [单]';
+                            if (s.double && !s.single) return ' [双]';
+                            return '';
+                          })();
+                          return (
+                            <Text key={idx}>
+                              {weekText}{suffix}
+                              {idx < schedules.length - 1 && '、'}
+                            </Text>
+                          );
+                        })}
                       </Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
