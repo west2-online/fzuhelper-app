@@ -53,7 +53,7 @@ export default function Web() {
   const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
-  const pendingCallbackRef = useRef<ReturnType<typeof consumeWebViewCallback>>(null);
+  const initializedRef = useRef(false); // 是否已完成首次初始化（避免每次 focus 都重置导致 WebView 重新加载）
   const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
@@ -150,6 +150,12 @@ export default function Web() {
   // 在页面获得焦点时执行
   useFocusEffect(
     useCallback(() => {
+      // 仅首次进入时初始化，从子页面（如扫码页）返回时不重置
+      // 否则WebView会被卸载重建，原来window上挂的回调函数会丢失，导致 callback 无法执行
+      // -- @renbaoshuo, 20260528
+      if (initializedRef.current) return;
+      initializedRef.current = true;
+
       // 重置状态，准备重新加载
       setInjectedScript(false);
       setCookiesSet(false);
@@ -236,14 +242,6 @@ export default function Web() {
         setTimeout(() => {
           setInjectedScript(true);
         }, 200);
-
-        // 注入待执行的回调（从 modal 页返回时触发）
-        if (pendingCallbackRef.current) {
-          const { func, args } = pendingCallbackRef.current;
-          pendingCallbackRef.current = null;
-          webViewRef.current?.injectJavaScript(buildCallbackJS(func, args));
-          console.log('回调已执行:', func, args);
-        }
       }
     },
     [title, currentTheme],
@@ -289,13 +287,14 @@ export default function Web() {
     [webViewRef],
   );
 
-  // 从 modal 页返回时，读取待执行的回调（存入 ref，在 WebView 加载完成后注入）
+  // 从 modal 页（如扫码页）返回时，立即向 WebView 注入回调
   useFocusEffect(
     useCallback(() => {
       const callback = consumeWebViewCallback();
-      if (callback) {
-        pendingCallbackRef.current = callback;
-      }
+      if (!callback) return;
+      const { func, args } = callback;
+      webViewRef.current?.injectJavaScript(buildCallbackJS(func, args));
+      console.log('回调已送webview执行:', func, args);
     }, []),
   );
 
