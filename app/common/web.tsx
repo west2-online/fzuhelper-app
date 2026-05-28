@@ -4,12 +4,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CookieManager from '@preeternal/react-native-cookie-manager';
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
-import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
+import type {
+  OnShouldStartLoadWithRequest,
+  WebViewNavigation,
+  WebViewOpenWindowEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
@@ -26,6 +30,8 @@ import {
 } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
 import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
+import { consumeWebViewCallback } from '@/lib/webview-callback';
+import { buildCallbackJS, handleCustomProtocol } from '@/lib/webview-protocols';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
@@ -47,9 +53,11 @@ export default function Web() {
   const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
+  const initializedRef = useRef(false); // 是否已完成首次初始化（避免每次 focus 都重置导致 WebView 重新加载）
   const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
+  const router = useRouter();
 
   const setCookies = useCallback(async () => {
     // 教务系统 Cookie
@@ -142,6 +150,12 @@ export default function Web() {
   // 在页面获得焦点时执行
   useFocusEffect(
     useCallback(() => {
+      // 仅首次进入时初始化，从子页面（如扫码页）返回时不重置
+      // 否则WebView会被卸载重建，原来window上挂的回调函数会丢失，导致 callback 无法执行
+      // -- @renbaoshuo, 20260528
+      if (initializedRef.current) return;
+      initializedRef.current = true;
+
       // 重置状态，准备重新加载
       setInjectedScript(false);
       setCookiesSet(false);
@@ -180,6 +194,22 @@ export default function Web() {
     }
   }, []);
 
+  const handleShouldStartLoadWithRequest: OnShouldStartLoadWithRequest = useCallback(
+    request => {
+      console.log('请求加载 URL:', request.url);
+      if (
+        handleCustomProtocol(request.url, {
+          router,
+          injectJS: code => webViewRef.current?.injectJavaScript(code),
+        })
+      ) {
+        return false;
+      }
+      return true;
+    },
+    [router],
+  );
+
   const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
     const targetUrl = event.nativeEvent.targetUrl; // 获取目标 URL
     console.log('Opening new window with URL:', targetUrl);
@@ -194,6 +224,7 @@ export default function Web() {
     (event: WebViewNavigation) => {
       if (!event.loading) {
         // 更新当前 URL
+        console.log('页面导航到 URL:', event.url);
         setCurrentUrl(event.url);
 
         // 更新网页标题
@@ -254,6 +285,17 @@ export default function Web() {
       }
     },
     [webViewRef],
+  );
+
+  // 从 modal 页（如扫码页）返回时，立即向 WebView 注入回调
+  useFocusEffect(
+    useCallback(() => {
+      const callback = consumeWebViewCallback();
+      if (!callback) return;
+      const { func, args } = callback;
+      webViewRef.current?.injectJavaScript(buildCallbackJS(func, args));
+      console.log('回调已送webview执行:', func, args);
+    }, []),
   );
 
   const headerRight = useCallback(() => {
@@ -328,6 +370,8 @@ export default function Web() {
                   onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
                   onNavigationStateChange={handleNavigationStateChange}
                   onMessage={handleOnMessage}
+                  onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+                  originWhitelist={['*']}
                   // 当脚本未注入完成时隐藏 WebView
                   className={injectedScript ? 'flex-1' : 'hidden bg-background'}
                 />

@@ -59,7 +59,7 @@ const config: ExpoConfig = {
       // 下面这两个定位权限申请缺一不可
       NSLocationWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       NSLocationAlwaysAndWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
-      LSApplicationQueriesSchemes: ['itms-apps'],
+      LSApplicationQueriesSchemes: ['itms-apps', 'kysk-fdxy-app'],
       CFBundleAllowMixedLocalizations: true,
       CFBundleURLName: 'MEWHFZ92DY.FzuHelper.FzuHelper', // URL Scheme，用于跳转到 App，CFBundleURLSchemes Expo 已经帮忙配置好了
       NSAppTransportSecurity: {
