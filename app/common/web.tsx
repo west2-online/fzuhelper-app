@@ -22,12 +22,12 @@ import {
   SSO_LOGIN_COOKIE_DOMAIN,
   SSO_LOGIN_COOKIE_KEY,
   SSO_LOGIN_USER_KEY,
-  WEBVIEW_FEATURES,
-  WEBVIEW_PROTOCOLS,
   YJSY_COOKIES_DOMAIN,
 } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
 import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
+import { consumeWebViewCallback } from '@/lib/webview-callback';
+import { buildCallbackJS, handleCustomProtocol } from '@/lib/webview-protocols';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
@@ -36,38 +36,8 @@ export interface WebParams {
   jwch?: boolean; // （可选）是否为本科教务系统地址
   sso?: boolean; // （可选）是否为统一身份认证地址
   title?: string; // （可选）固定标题
-  callbackFunc?: string; // （可选）回调函数名
-  callbackArgs?: string; // （可选）回调参数
   [key: string]: any; // 添加字符串索引签名
 }
-
-// 协议注册表
-type ProtocolContext = {
-  router: any;
-  setPendingCallback: (func: string) => void;
-};
-
-const protocolHandlers: Record<string, (params: { func: string | null; context: ProtocolContext }) => boolean> = {};
-
-// 注册扫码协议
-protocolHandlers.scan = ({ func, context }) => {
-  if (!WEBVIEW_FEATURES.ENABLE_SCAN_PROTOCOL) {
-    toast.error('扫码功能未开启');
-    return false;
-  }
-
-  if (!func) {
-    toast.error('无效链接：缺少回调函数');
-    return false;
-  }
-
-  context.setPendingCallback(func);
-  context.router.push({
-    pathname: WEBVIEW_PROTOCOLS.ROUTES.SCAN,
-    params: { callbackFunc: func },
-  });
-  return true;
-};
 
 // 内嵌的网页浏览器，用于显示网页
 // 在 iOS 下，当用户在网页浏览器中点击新的跳转时，会模拟创建一个新的页面，返回时只需要左滑即可
@@ -79,11 +49,11 @@ export default function Web() {
   const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
   const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
   const webViewRef = useRef<WebView>(null);
-  const { url, jwch, sso, title, callbackFunc, callbackArgs } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
+  const pendingCallbackRef = useRef<ReturnType<typeof consumeWebViewCallback>>(null);
+  const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
   const router = useRouter();
-  const [, setPendingCallbackFunc] = useState<string>('');
 
   const setCookies = useCallback(async () => {
     // 教务系统 Cookie
@@ -216,40 +186,14 @@ export default function Web() {
 
   const handleShouldStartLoadWithRequest = useCallback(
     (request: { url: string }) => {
-      const requestUrl = request.url;
-
-      console.log('请求加载 URL:', requestUrl);
-      if (requestUrl.startsWith(WEBVIEW_PROTOCOLS.APP_SCHEME)) {
-        console.log('拦截到自定义协议:', requestUrl);
-
-        try {
-          const url = new URL(requestUrl);
-          const type = url.searchParams.get(WEBVIEW_PROTOCOLS.PARAMS.TYPE);
-          const func = url.searchParams.get(WEBVIEW_PROTOCOLS.PARAMS.FUNCTION);
-
-          // 从注册表查找并执行处理器
-          const handler = protocolHandlers[type || ''];
-          if (handler) {
-            const handled = handler({
-              func,
-              context: {
-                router,
-                setPendingCallback: setPendingCallbackFunc,
-              },
-            });
-            if (handled) return false;
-          }
-
-          console.warn('未知的协议类型:', { url: requestUrl, type, func });
-          toast.error('无效链接');
-          return false;
-        } catch (e) {
-          console.error('解析协议失败:', e);
-          toast.error('无效链接');
-          return false;
-        }
+      if (
+        handleCustomProtocol(request.url, {
+          router,
+          injectJS: code => webViewRef.current?.injectJavaScript(code),
+        })
+      ) {
+        return false;
       }
-
       return true;
     },
     [router],
@@ -287,6 +231,14 @@ export default function Web() {
         setTimeout(() => {
           setInjectedScript(true);
         }, 200);
+
+        // 注入待执行的回调（从 modal 页返回时触发）
+        if (pendingCallbackRef.current) {
+          const { func, args } = pendingCallbackRef.current;
+          pendingCallbackRef.current = null;
+          webViewRef.current?.injectJavaScript(buildCallbackJS(func, args));
+          console.log('回调已执行:', func, args);
+        }
       }
     },
     [title, currentTheme],
@@ -332,30 +284,15 @@ export default function Web() {
     [webViewRef],
   );
 
-  // 处理回调结果
-  useEffect(() => {
-    if (callbackFunc && callbackArgs && webViewRef.current) {
-      // 安全转义
-      const safeArgs = JSON.stringify(callbackArgs);
-      const safeFunc = callbackFunc.replace(/[^a-zA-Z0-9_]/g, '');
-
-      const jsCode = `
-        (function() {
-          try {
-            if (typeof window['${safeFunc}'] === 'function') {
-              window['${safeFunc}'](${safeArgs});
-            }
-          } catch(e) {
-            console.error('回调失败:', e);
-          }
-        })();
-        true;
-      `;
-
-      webViewRef.current.injectJavaScript(jsCode);
-      console.log('回调已执行:', callbackFunc, callbackArgs);
-    }
-  }, [callbackFunc, callbackArgs]);
+  // 从 modal 页返回时，读取待执行的回调（存入 ref，在 WebView 加载完成后注入）
+  useFocusEffect(
+    useCallback(() => {
+      const callback = consumeWebViewCallback();
+      if (callback) {
+        pendingCallbackRef.current = callback;
+      }
+    }, []),
+  );
 
   const headerRight = useCallback(() => {
     if (jwch || sso) {

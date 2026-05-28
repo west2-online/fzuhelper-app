@@ -188,22 +188,3 @@ export const DARKEN_BACKGROUND_KEY = 'darken_background';
 
 // 通用设置
 export const COMMON_SETTINGS_KEY = 'common_settings';
-
-// WebView 自定义协议配置
-export const WEBVIEW_PROTOCOLS = {
-  APP_SCHEME: 'kysk-fdxy-app://',
-  TYPES: {
-    SCAN: 'scan',
-  },
-  PARAMS: {
-    TYPE: 'type',
-    FUNCTION: 'function',
-  },
-  ROUTES: {
-    SCAN: '/toolbox/learning-center/qr-scanner',
-  },
-} as const;
-
-export const WEBVIEW_FEATURES = {
-  ENABLE_SCAN_PROTOCOL: true,
-} as const;

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
 import { useLearningCenterApi } from '@/context/learning-center';
+import { setWebViewCallback } from '@/lib/webview-callback';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 dayjs.extend(isSameOrAfter);
@@ -75,11 +76,9 @@ export default function QrScannerPage() {
     setScanned(true);
     setScanning(true);
     if (callback) {
-      // 将扫码结果返回给 WebView
-      router.push({
-        pathname: '/common/web',
-        params: { callbackArgs: data, callbackFunc: callback },
-      });
+      // 将扫码结果存入共享状态，返回 WebView 后会自动注入回调
+      setWebViewCallback({ func: callback, args: data });
+      router.back();
       return;
     }
 

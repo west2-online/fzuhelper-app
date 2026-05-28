@@ -38,6 +38,10 @@ export default function RootLayout() {
               <LearningCenterContextProvider>
                 <Stack screenOptions={StackNavigatorScreenOptions}>
                   <Stack.Screen name="+not-found" />
+                  <Stack.Screen
+                    name="toolbox/learning-center/qr-scanner"
+                    options={{ presentation: 'modal', title: '扫码' }}
+                  />
                 </Stack>
 
                 <Toaster position="top-center" duration={2500} offset={100} style={toastStyle} />
