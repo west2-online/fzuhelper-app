@@ -17,6 +17,20 @@ import { pushToWebViewJWCH } from '@/lib/webview';
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
 import { Link } from 'expo-router';
 
+function groupSchedulesByKey(schedules: CourseInfo[]): CourseInfo[][] {
+  const groups: Record<string, CourseInfo[]> = {};
+
+  for (const s of schedules) {
+    const key = `${s.weekday}|${s.startClass}|${s.endClass}|${s.location}`;
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(s);
+  }
+
+  return Object.values(groups);
+}
+
 interface ScheduleDetailsDialogProps {
   open: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -91,26 +105,43 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                   </DescriptionListRow>
                   <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
+                      <Text>节数</Text>
+                    </DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Text>
+                        {schedule.startClass}-{schedule.endClass} 节
+                      </Text>
+                    </DescriptionListDescription>
+                  </DescriptionListRow>
+                  <DescriptionListRow className="items-start">
+                    <DescriptionListTerm>
                       <Text>周数</Text>
                     </DescriptionListTerm>
                     <DescriptionListDescription>
                       <Text>
-                        {schedules.map((s, idx) => {
-                          const weekText = s.startWeek === s.endWeek
-                            ? `${s.startWeek}周`
-                            : `${s.startWeek}-${s.endWeek}周`;
-                          const suffix = (() => {
-                            if (!s.double && s.single) return ' [单]';
-                            if (s.double && !s.single) return ' [双]';
-                            return '';
-                          })();
-                          return (
-                            <Text key={idx}>
-                              {weekText}{suffix}
-                              {idx < schedules.length - 1 && '、'}
-                            </Text>
-                          );
-                        })}
+                        {(() => {
+                          const filtered = schedules.filter(s => s.weekday === schedule.weekday);
+                          const groups = groupSchedulesByKey(filtered);
+                          return groups.map((group, groupIdx) => {
+                            const weekTexts = group.map(s =>
+                              s.startWeek === s.endWeek ? `${s.startWeek}周` : `${s.startWeek}-${s.endWeek}周`
+                            ).join('、');
+
+                            const suffix = (() => {
+                              const s = group[0];
+                              if (!s.double && s.single) return ' [单]';
+                              if (s.double && !s.single) return ' [双]';
+                              return '';
+                            })();
+
+                            return (
+                              <Text key={groupIdx}>
+                                {weekTexts}{suffix}
+                                {groupIdx < groups.length - 1 && '；'}
+                              </Text>
+                            );
+                          });
+                        })()}
                       </Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
