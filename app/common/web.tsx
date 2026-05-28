@@ -41,16 +41,13 @@ export interface WebParams {
   [key: string]: any; // 添加字符串索引签名
 }
 
-//协议注册表
+// 协议注册表
 type ProtocolContext = {
   router: any;
   setPendingCallback: (func: string) => void;
 };
 
-const protocolHandlers: Record<string, (params: {
-  func: string | null;
-  context: ProtocolContext;
-}) => boolean> = {};
+const protocolHandlers: Record<string, (params: { func: string | null; context: ProtocolContext }) => boolean> = {};
 
 // 注册扫码协议
 protocolHandlers.scan = ({ func, context }) => {
@@ -86,7 +83,7 @@ export default function Web() {
   const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
   const router = useRouter();
-    const [pendingCallbackFunc, setPendingCallbackFunc] = useState<string>('');
+  const [, setPendingCallbackFunc] = useState<string>('');
 
   const setCookies = useCallback(async () => {
     // 教务系统 Cookie
@@ -221,6 +218,7 @@ export default function Web() {
     (request: { url: string }) => {
       const requestUrl = request.url;
 
+      console.log('请求加载 URL:', requestUrl);
       if (requestUrl.startsWith(WEBVIEW_PROTOCOLS.APP_SCHEME)) {
         console.log('拦截到自定义协议:', requestUrl);
 

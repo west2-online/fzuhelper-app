@@ -189,9 +189,9 @@ export const DARKEN_BACKGROUND_KEY = 'darken_background';
 // 通用设置
 export const COMMON_SETTINGS_KEY = 'common_settings';
 
-//WebView 自定义协议配置
+// WebView 自定义协议配置
 export const WEBVIEW_PROTOCOLS = {
-  APP_SCHEME: 'kyk-fdxy-app://',
+  APP_SCHEME: 'kysk-fdxy-app://',
   TYPES: {
     SCAN: 'scan',
   },

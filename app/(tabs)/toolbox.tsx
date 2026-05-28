@@ -177,10 +177,21 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
   },
   {
     id: 150,
-    name: '学习中心',
+    name: '学习中心(旧)',
     icon: StudyCenterIcon,
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
+  },
+  {
+    id: 151,
+    name: '学习中心',
+    icon: StudyCenterIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://aiot.fzu.edu.cn/ibs/#/',
+      title: '学习中心',
+      sso: true,
+    },
   },
   {
     id: 160,
