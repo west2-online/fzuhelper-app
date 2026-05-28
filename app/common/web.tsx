@@ -9,7 +9,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
-import type { WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview/lib/WebViewTypes';
+import type {
+  OnShouldStartLoadWithRequest,
+  WebViewNavigation,
+  WebViewOpenWindowEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import { toast } from 'sonner-native';
 
 import Loading from '@/components/loading';
@@ -184,8 +188,9 @@ export default function Web() {
     }
   }, []);
 
-  const handleShouldStartLoadWithRequest = useCallback(
-    (request: { url: string }) => {
+  const handleShouldStartLoadWithRequest: OnShouldStartLoadWithRequest = useCallback(
+    request => {
+      console.log('请求加载 URL:', request.url);
       if (
         handleCustomProtocol(request.url, {
           router,

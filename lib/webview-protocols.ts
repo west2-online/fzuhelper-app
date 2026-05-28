@@ -34,6 +34,7 @@ export function handleCustomProtocol(url: string, context: ProtocolContext): boo
   for (const item of items) {
     const parsed = item.parse(url);
     if (parsed) {
+      console.log('匹配到协议，参数：', parsed, 'URL:', url);
       return item.handler({ parsed, context });
     }
   }
@@ -68,7 +69,8 @@ function parseFdxyAppScheme(url: string): FdxyAppSchemeParams | null {
   try {
     const parsed = new URL(url);
     if (parsed.protocol !== 'kysk-fdxy-app:') return null;
-    if (parsed.pathname !== '/native') return null;
+    // 学习中心不带这个 native 路径，所以不强制要求这个检测，增强兼容性
+    // if (parsed.pathname !== '/native') return null;
     const type = parsed.searchParams.get('type');
     if (!type) return null;
     const func = parsed.searchParams.get('function');
