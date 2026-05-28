@@ -269,6 +269,7 @@ export default function Web() {
     (event: WebViewNavigation) => {
       if (!event.loading) {
         // 更新当前 URL
+        console.log('页面导航到 URL:', event.url);
         setCurrentUrl(event.url);
 
         // 更新网页标题
@@ -429,6 +430,7 @@ export default function Web() {
                   onNavigationStateChange={handleNavigationStateChange}
                   onMessage={handleOnMessage}
                   onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+                  originWhitelist={['*']}
                   // 当脚本未注入完成时隐藏 WebView
                   className={injectedScript ? 'flex-1' : 'hidden bg-background'}
                 />
