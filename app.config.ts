@@ -9,7 +9,7 @@ const IS_DEV = process.env.APP_VARIANT === 'development';
 // 前三位对应版本名，后三位或更多对应commit次数
 let commitCount = 0;
 try {
-  const stdout = execSync('git rev-list --count HEAD').toString().trim();
+  const stdout = execSync('git rev-list --count master').toString().trim();
   const parsedInt = parseInt(stdout, 10);
   if (!isNaN(parsedInt)) {
     commitCount = parsedInt;
