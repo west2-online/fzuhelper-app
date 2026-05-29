@@ -357,6 +357,7 @@ export default function Web() {
                   startInLoadingState={true} // 启用加载状态
                   renderLoading={renderLoading} // 加载组件
                   applicationNameForUserAgent={appNameForUa} // 设置自定义 User-Agent
+                  webviewDebuggingEnabled={__DEV__} // 开发模式下启用 WebView 调试
                   //
                   // Android 平台设置
                   onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回
