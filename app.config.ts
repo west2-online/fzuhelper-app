@@ -59,7 +59,10 @@ const config: ExpoConfig = {
       // 下面这两个定位权限申请缺一不可
       NSLocationWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       NSLocationAlwaysAndWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
-      LSApplicationQueriesSchemes: ['itms-apps', 'kysk-fdxy-app'],
+      LSApplicationQueriesSchemes: [
+        'itms-apps', // 用于跳转到 App Store
+        'kysk-fdxy-app', // 模拟「智汇福大」，这个字段需要和给 WebView 传递的 User-Agent 的 appScheme 保持一致，否则依赖 appScheme 做解析的网页会出现问题 — @renbaoshuo, 2026.5.29
+      ],
       CFBundleAllowMixedLocalizations: true,
       CFBundleURLName: 'MEWHFZ92DY.FzuHelper.FzuHelper', // URL Scheme，用于跳转到 App，CFBundleURLSchemes Expo 已经帮忙配置好了
       NSAppTransportSecurity: {
