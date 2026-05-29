@@ -111,7 +111,7 @@ const EMPTY_ADDRESS = { city: '', district: '', street: '', streetNumber: '' };
 // 定位协议
 // kysk-fdxy-app://native?type=location&function=nativeCallJsSchemeLocation
 // 成功 → window[func]({ lon: '<经度>', lat: '<纬度>', address: { city:'', district:'', street:'', streetNumber:'' } })
-// 失败/拒绝 → window[func]({ lon: '', lat: '', address: { ...空字段 } })
+// 失败/拒绝 → window[func]({ lon: '', lat: '', address: '' })
 registerProtocol({
   parse: url => {
     const result = parseFdxyAppScheme(url);
@@ -124,7 +124,6 @@ registerProtocol({
       toast.error('无效链接：缺少回调函数');
       return true;
     }
-    const failPayload = { lon: '', lat: '', address: EMPTY_ADDRESS };
 
     const proceed = () => {
       Geolocation.getCurrentPosition(
@@ -139,7 +138,7 @@ registerProtocol({
         },
         err => {
           console.warn('Geolocation.getCurrentPosition failed:', err);
-          context.injectJS(buildCallbackJS(parsed.func, failPayload));
+          context.injectJS(buildCallbackJS(parsed.func, { lon: '', lat: '', address: '' }));
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 1000 },
       );
@@ -155,7 +154,7 @@ registerProtocol({
             if (s === RESULTS.GRANTED) {
               proceed();
             } else {
-              context.injectJS(buildCallbackJS(parsed.func, failPayload));
+              context.injectJS(buildCallbackJS(parsed.func, { lon: '', lat: '', address: '' }));
             }
           });
         }
