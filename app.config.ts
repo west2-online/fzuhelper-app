@@ -96,7 +96,6 @@ const config: ExpoConfig = {
     ],
   },
   plugins: [
-    "./plugins/with-keep-resources",
     'expo-router',
     [
       'react-native-permissions',
@@ -121,6 +120,7 @@ const config: ExpoConfig = {
       './plugins/inject-android-network-security-config',
       { networkSecurityConfig: './assets/configs/network_security_config.xml', enable: true },
     ],
+    './plugins/keep-android-resources',
     './plugins/inject-ios-prebuild',
     [
       './modules/umeng-bridge/app.plugin.js',
