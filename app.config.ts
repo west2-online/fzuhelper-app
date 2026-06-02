@@ -122,6 +122,7 @@ const config: ExpoConfig = {
     ],
     './plugins/keep-android-resources',
     './plugins/inject-ios-prebuild',
+    './modules/safe-area-webview/app.plugin.js',
     [
       './modules/umeng-bridge/app.plugin.js',
       {

@@ -32,6 +32,7 @@ import SSOLogin from '@/lib/sso-login';
 import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
 import { consumeWebViewCallback } from '@/lib/webview-callback';
 import { buildCallbackJS, handleCustomProtocol } from '@/lib/webview-protocols';
+import { SafeAreaWebView } from '@/modules/safe-area-webview';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
@@ -342,7 +343,7 @@ export default function Web() {
           <SafeAreaView className="h-full w-full bg-background" edges={['bottom']}>
             {cookiesSet && (
               <KeyboardAvoidingView behavior="padding" className="flex-1" keyboardVerticalOffset={headerHeight}>
-                <WebView
+                <SafeAreaWebView
                   source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
                   ref={webViewRef}
                   sharedCookiesEnabled
