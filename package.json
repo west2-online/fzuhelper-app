@@ -49,7 +49,7 @@
     "expo-linear-gradient": "~55.0.11",
     "expo-linking": "~55.0.11",
     "expo-navigation-bar": "~55.0.10",
-    "expo-quick-actions": "^4.0.2",
+    "expo-quick-actions": "^6.0.2",
     "expo-router": "~55.0.10",
     "expo-sharing": "~55.0.16",
     "expo-splash-screen": "~55.0.15",
