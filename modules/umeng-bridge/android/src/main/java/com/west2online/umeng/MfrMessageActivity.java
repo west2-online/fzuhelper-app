@@ -15,8 +15,17 @@ public class MfrMessageActivity extends Activity {
   private final UmengNotifyClick mNotificationClick = new UmengNotifyClick() {
     @Override
     public void onMessage(UMessage msg) {
-      Map<String, String> newMsg = msg.extra;
-      newMsg.put("time", String.valueOf(System.currentTimeMillis()));
+      Intent intent = new Intent(Intent.ACTION_VIEW);
+      String deeplink = msg.extra.get("deeplink");
+      if (deeplink == null || deeplink.isEmpty()) {
+          deeplink = "/";
+      }
+      intent.setData(android.net.Uri.parse(deeplink));
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+              | Intent.FLAG_ACTIVITY_CLEAR_TOP
+              | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+      startActivity(intent);
     }
   };
 
@@ -24,9 +33,6 @@ public class MfrMessageActivity extends Activity {
   protected void onCreate(Bundle bundle) {
     super.onCreate(bundle);
     mNotificationClick.onCreate(this, getIntent());
-    Intent intent = new Intent(Intent.ACTION_MAIN);
-    intent.setClassName(getPackageName(), getPackageName() + ".MainActivity");
-    startActivity(intent);
     finish();
   }
 

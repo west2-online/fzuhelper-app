@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_NOTICE } from '@/lib/FAQ';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Linking, RefreshControl, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,7 +29,17 @@ export default function OfficeNoticePage() {
   const [isEnd, setIsEnd] = useState(false);
   const { bottom } = useSafeAreaInsets();
 
+  const { url } = useLocalSearchParams();
+
   const { data, isFetching, isError, error, refetch } = useApiRequest(getApiV1CommonNotice, { pageNum });
+
+  useEffect(() => {
+    if (url && typeof url === 'string') {
+      const decodedUrl = decodeURIComponent(url);
+      console.log('从 DeepLink 打开外部链接:', decodedUrl);
+      Linking.openURL(decodedUrl);
+    }
+  }, [url]);
 
   useEffect(() => {
     if (data) {
