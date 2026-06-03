@@ -15,10 +15,11 @@ interface ScheduleItemProps {
   itemHeight: number;
   span: number;
   color: string; // 课程的颜色
+  week: number;
 }
 
 // ScheduleItem 组件，用于显示课程表中的一节课
-const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color }) => {
+const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color, week }) => {
   const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const { isDarkTheme } = useTheme();
 
@@ -36,6 +37,9 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
             className={`${span > 1 ? 'line-clamp-3' : 'line-clamp-2'} truncate text-wrap break-all text-center text-[11px]`}
             style={{ color: getTextColor(color, isDarkTheme) }}
           >
+            {(schedules[0] as any).weekSegments?.some((w: any) => w.isAdjusted && week >= w.start && week <= w.end)
+              ? '[调课]'
+              : ''}
             {schedules[0].name}
           </Text>
           <Text

@@ -119,29 +119,10 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                     </DescriptionListTerm>
                     <DescriptionListDescription>
                       <Text>
-                        {(() => {
-                          const filtered = schedules.filter(s => s.weekday === schedule.weekday);
-                          const groups = groupSchedulesByKey(filtered);
-                          return groups.map((group, groupIdx) => {
-                            const weekTexts = group.map(s =>
-                              s.startWeek === s.endWeek ? `${s.startWeek}周` : `${s.startWeek}-${s.endWeek}周`
-                            ).join('、');
-
-                            const suffix = (() => {
-                              const s = group[0];
-                              if (!s.double && s.single) return ' [单]';
-                              if (s.double && !s.single) return ' [双]';
-                              return '';
-                            })();
-
-                            return (
-                              <Text key={groupIdx}>
-                                {weekTexts}{suffix}
-                                {groupIdx < groups.length - 1 && '；'}
-                              </Text>
-                            );
-                          });
-                        })()}
+                        {(schedule as any).weekDisplay || `${schedule.startWeek}-${schedule.endWeek} 周`}
+                        {/* 单双周显示，仅在只有单周/双周上课的时候才显示提示 */}
+                        {scheduleIsSingleOnly && ' [单]'}
+                        {scheduleIsDoubleOnly && ' [双]'}
                       </Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>

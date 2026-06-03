@@ -45,8 +45,101 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     // 主要的课程
     const mainCourses: CourseScheduleItemDataBase[] = [];
 
+    // 合并所有课程
+    const mergeMap = new Map<
+      string,
+      CourseInfo & {
+        weekSegments: {
+          start: number;
+          end: number;
+          isAdjusted?: boolean;
+          single?: boolean;
+          double?: boolean;
+        }[];
+      }
+    >();
+
+    schedulesOnDay.forEach(course => {
+      const cleanName = course.name.replace(/^\[调课\]\s*/, '');
+      const key = `${course.weekday}-${cleanName}-${course.startClass}-${course.endClass}-${course.location}`;
+
+      if (!mergeMap.has(key)) {
+        mergeMap.set(key, {
+          ...course,
+          name: cleanName,
+          weekSegments: [
+            {
+              start: course.startWeek,
+              end: course.endWeek,
+              isAdjusted: course.name.startsWith('[调课]'),
+              single: course.single,
+              double: course.double,
+            },
+          ],
+        });
+      } else {
+        mergeMap.get(key)!.weekSegments.push({
+          start: course.startWeek,
+          end: course.endWeek,
+          isAdjusted: course.name.startsWith('[调课]'),
+          single: course.single,
+          double: course.double,
+        });
+      }
+    });
+
+    const mergedSchedules = Array.from(mergeMap.values()).map(course => {
+      const sorted = course.weekSegments.sort((a, b) => a.start - b.start);
+      const merged = [sorted[0]];
+
+      // 合并相邻的周段
+      for (let i = 1; i < sorted.length; i++) {
+        const last = merged[merged.length - 1];
+        const curr = sorted[i];
+        if (curr.start <= last.end + 1) {
+          last.end = Math.max(last.end, curr.end);
+        } else {
+          merged.push(curr);
+        }
+      }
+      // 根据合并后的周段重新计算单双周
+      let hasSingle = false;
+      let hasDouble = false;
+      merged.forEach(seg => {
+        for (let w = seg.start; w <= seg.end; w++) {
+          if (w % 2 === 1 && seg.single !== false) hasSingle = true;
+          if (w % 2 === 0 && seg.double !== false) hasDouble = true;
+        }
+      });
+      const totalSpan = merged.reduce((sum, seg) => sum + (seg.end - seg.start + 1), 0);
+
+      // 如果总周数 <= 2，视为正常课程（不限制单双周）
+      if (totalSpan <= 2) {
+        course.single = true;
+        course.double = true;
+      } else {
+        course.single = hasSingle;
+        course.double = hasDouble;
+      }
+
+      // 生成周数显示文本
+      (course as any).weekDisplay =
+        merged
+          .map(w => {
+            const weekStr = w.start === w.end ? `${w.start}` : `${w.start}-${w.end}`;
+            return weekStr;
+          })
+          .join(', ') + '周';
+
+      // 用合并后的范围覆盖，保证筛选能通过
+      course.startWeek = merged[0].start;
+      course.endWeek = merged[merged.length - 1].end;
+
+      return course;
+    });
+
     // 先按优先级排本周的课和考试，重叠的不管
-    const today = schedulesOnDay
+    const today = mergedSchedules
       .filter(
         s =>
           s.startWeek <= week && // 卡起始时间范围
@@ -105,7 +198,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
 
     // 再按优先级去排非本周课（不含考试等），重叠的也不管
     if (setting.showNonCurrentWeekCourses) {
-      const nonCurrentWeek = schedulesOnDay
+      const nonCurrentWeek = mergedSchedules
         .filter(
           s =>
             !(
@@ -182,6 +275,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
             span={item.span}
             color={item.color}
             schedules={item.schedules}
+            week={week}
           />
         ) : (
           <EmptyScheduleItem key={index} itemHeight={itemHeight} />
