@@ -120,6 +120,10 @@ const config: ExpoConfig = {
       './plugins/inject-android-network-security-config',
       { networkSecurityConfig: './assets/configs/network_security_config.xml', enable: true },
     ],
+    [
+      "./plugins/with-android-maxSdkVersion.js",
+      { "maxSdkVersion": 30 }
+    ]
     './plugins/keep-android-resources',
     './plugins/inject-ios-prebuild',
     [
