@@ -50,18 +50,39 @@ interface ExtendCourseBase extends ParsedCourse {
   priority: number; // 优先级
 }
 
+export enum CourseType {
+  COURSE = 0,
+  EXAM = 1,
+  CUSTOM = 2,
+}
+
 export type ExtendCourse = ExtendCourseBase & {
-  type: 0 | 1 | 2; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
+  type: CourseType; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
 };
 
 export type CustomCourse = ExtendCourseBase & {
-  type: 2;
+  type: CourseType.CUSTOM;
   storageKey: string; // 预留给后端的存储 key
   lastUpdateTime: string; // 最后更新时间
   semester: string; // 学期
 };
 
+export type WeekSegment = {
+  startWeek: number;
+  endWeek: number;
+  isAdjusted: boolean; // 是否为调课课程
+  single: boolean; // 是否单周
+  double: boolean; // 是否双周
+};
+
 export type CourseInfo = ExtendCourse | CustomCourse;
+
+// 同一个课程可能被教务系统分成不同周段，甚至有调课的情况，在展示课程信息前需要先整合
+// 具体逻辑在 calendar-col.tsx 中
+export type CourseInfoMerged = CourseInfo & {
+  weekSegments: WeekSegment[]; // 课程在不同周数的上课情况
+  weekDisplay: string; // 用于显示的周数文本
+};
 
 interface CacheCourseData {
   courseData: Record<number, ExtendCourse[]>; // 课程数据
@@ -81,9 +102,9 @@ export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
 export const LEFT_TIME_COLUMN_WIDTH = 32;
 export const TOP_CALENDAR_HEIGHT = 68;
 
-export const COURSE_TYPE = 0;
-export const EXAM_TYPE = 1;
-export const CUSTOM_TYPE = 2;
+export const COURSE_TYPE = CourseType.COURSE;
+export const EXAM_TYPE = CourseType.EXAM;
+export const CUSTOM_TYPE = CourseType.CUSTOM;
 export const COURSE_WITHOUT_ATTENDANCE = '免听';
 
 const NO_LOADING_MSG = '未加载';
