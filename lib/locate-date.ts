@@ -40,14 +40,21 @@ export default async function locateDate(noCache = false): Promise<LocateDateRes
       const cachedData = await AsyncStorage.getItem(JWCH_LOCATE_DATE_CACHE_KEY);
 
       if (cachedData) {
-        const { date: cachedDate, week, year, term } = JSON.parse(cachedData);
+        const {
+          date: cachedDate,
+          week,
+          year,
+          term,
+        }: { date: string; week: number; year: number; term: number } = JSON.parse(cachedData);
         const semester = `${year}${term.toString().padStart(2, '0')}`;
         // 如果缓存日期是同一周的，直接返回缓存数据；否则先返回计算值，再异步更新
         if (currentDate.isSame(cachedDate, 'isoWeek')) {
           console.log('Using cached locate date:', { date: formattedCurrentDate, week, day: currentDay, semester });
           return { date: formattedCurrentDate, week, day: currentDay, semester };
         } else {
-          const computedWeek = week + currentDate.diff(dayjs(cachedDate), 'week'); // 跨周了，需要计算当前是第几周
+          const cachedDateObj = dayjs(cachedDate);
+          const shift = currentDate.isoWeek() - cachedDateObj.isoWeek(); // 计算周数差
+          const computedWeek = week + shift; // 跨周了，需要计算当前是第几周
           console.log('Cached locate date is outdated, computed data:', {
             date: formattedCurrentDate,
             week: computedWeek,
@@ -96,23 +103,12 @@ export default async function locateDate(noCache = false): Promise<LocateDateRes
 
 // 根据学期开始日期和当前周数获取当前周的第一天日期
 export function getFirstDateByWeek(semesterStart: string, currentWeek: number): string {
-  const startDate = dayjs(semesterStart);
-  const startDayOfWeek = (startDate.day() + 6) % 7; // 将星期日（0）转换为 6，其他天数减 1 对应星期一到星期六
-  const adjustedStartDate = startDate.subtract(startDayOfWeek, 'day');
+  const adjustedStartDate = dayjs(semesterStart).startOf('isoWeek');
 
   // 如果学期开始日期不是星期一，则调整到最近的星期一
   const firstDayOfWeek = adjustedStartDate.add((currentWeek - 1) * 7, 'day');
 
   return firstDayOfWeek.format(DATE_FORMAT_DASH); // 返回日期字符串格式 YYYY-MM-DD
-}
-
-// 根据学期开始日期和当前周数获取当前周的日期（会返回一个完整的一周）
-export function getDatesByWeek(semesterStart: string, currentWeek: number): string[] {
-  const firstDayOfWeek = dayjs(getFirstDateByWeek(semesterStart, currentWeek));
-
-  return Array.from({ length: 7 }, (_, i) => {
-    return firstDayOfWeek.add(i, 'day').format(DATE_FORMAT_DASH); // 返回日期字符串格式 YYYY-MM-DD
-  });
 }
 
 // 根据学期开始日期和结束日期计算一学期一共有多少周
