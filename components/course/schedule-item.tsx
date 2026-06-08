@@ -4,14 +4,14 @@ import { Pressable, View } from 'react-native';
 import { Text } from '@/components/ui/text';
 
 import OverlapIcon from '@/assets/images/course/overlap.svg';
-import { SCHEDULE_ITEM_MARGIN, type CourseInfo } from '@/lib/course';
+import { SCHEDULE_ITEM_MARGIN, type CourseInfoMerged } from '@/lib/course';
 import { getCourseColor, getTextColor } from '@/utils/random-color';
 
 import { useTheme } from '../app-theme-provider';
 import ScheduleDetailsDialog from './schedule-detail-dialog';
 
 interface ScheduleItemProps {
-  schedules: CourseInfo[];
+  schedules: CourseInfoMerged[];
   itemHeight: number;
   span: number;
   color: string; // 课程的颜色
@@ -37,7 +37,7 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
             className={`${span > 1 ? 'line-clamp-3' : 'line-clamp-2'} truncate text-wrap break-all text-center text-[11px]`}
             style={{ color: getTextColor(color, isDarkTheme) }}
           >
-            {(schedules[0] as any).weekSegments?.some((w: any) => w.isAdjusted && week >= w.start && week <= w.end)
+            {schedules[0].weekSegments.some(w => w.isAdjusted && week >= w.startWeek && week <= w.endWeek)
               ? '[调课]'
               : ''}
             {schedules[0].name}

@@ -9,6 +9,7 @@ import {
   COURSE_TYPE,
   COURSE_WITHOUT_ATTENDANCE,
   type CourseInfo,
+  type CourseInfoMerged,
   CUSTOM_TYPE,
   EXAM_TYPE,
   SCHEDULE_ITEM_MIN_HEIGHT,
@@ -16,7 +17,7 @@ import {
 import { nonCurrentWeekCourseColor } from '@/utils/random-color';
 
 interface CourseScheduleItemDataBase {
-  schedules: CourseInfo[];
+  schedules: CourseInfoMerged[];
   span: number;
   color: string; // 课程的颜色
 }
@@ -46,58 +47,42 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     const mainCourses: CourseScheduleItemDataBase[] = [];
 
     // 合并所有课程
-    const mergeMap = new Map<
-      string,
-      CourseInfo & {
-        weekSegments: {
-          start: number;
-          end: number;
-          isAdjusted?: boolean;
-          single?: boolean;
-          double?: boolean;
-        }[];
-      }
-    >();
+    const mergeMap = new Map<string, CourseInfoMerged>();
 
     schedulesOnDay.forEach(course => {
       const cleanName = course.name.replace(/^\[调课\]\s*/, '');
       const key = `${course.weekday}-${cleanName}-${course.startClass}-${course.endClass}-${course.location}`;
 
-      if (!mergeMap.has(key)) {
+      const currentWeekSegment = {
+        startWeek: course.startWeek,
+        endWeek: course.endWeek,
+        isAdjusted: course.name.startsWith('[调课]'),
+        single: course.single,
+        double: course.double,
+      };
+      const lesson = mergeMap.get(key);
+      if (!lesson) {
         mergeMap.set(key, {
           ...course,
           name: cleanName,
-          weekSegments: [
-            {
-              start: course.startWeek,
-              end: course.endWeek,
-              isAdjusted: course.name.startsWith('[调课]'),
-              single: course.single,
-              double: course.double,
-            },
-          ],
+          weekSegments: [currentWeekSegment],
+          weekDisplay: '', // 先占位，后面根据 weekSegments 生成显示文本
         });
       } else {
-        mergeMap.get(key)!.weekSegments.push({
-          start: course.startWeek,
-          end: course.endWeek,
-          isAdjusted: course.name.startsWith('[调课]'),
-          single: course.single,
-          double: course.double,
-        });
+        lesson.weekSegments.push(currentWeekSegment);
       }
     });
 
     const mergedSchedules = Array.from(mergeMap.values()).map(course => {
-      const sorted = course.weekSegments.sort((a, b) => a.start - b.start);
+      const sorted = course.weekSegments.sort((a, b) => a.startWeek - b.startWeek);
       const merged = [sorted[0]];
 
       // 合并相邻的周段
       for (let i = 1; i < sorted.length; i++) {
         const last = merged[merged.length - 1];
         const curr = sorted[i];
-        if (curr.start <= last.end + 1) {
-          last.end = Math.max(last.end, curr.end);
+        if (curr.startWeek <= last.endWeek + 1) {
+          last.endWeek = Math.max(last.endWeek, curr.endWeek);
         } else {
           merged.push(curr);
         }
@@ -106,12 +91,12 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
       let hasSingle = false;
       let hasDouble = false;
       merged.forEach(seg => {
-        for (let w = seg.start; w <= seg.end; w++) {
+        for (let w = seg.startWeek; w <= seg.endWeek; w++) {
           if (w % 2 === 1 && seg.single !== false) hasSingle = true;
           if (w % 2 === 0 && seg.double !== false) hasDouble = true;
         }
       });
-      const totalSpan = merged.reduce((sum, seg) => sum + (seg.end - seg.start + 1), 0);
+      const totalSpan = merged.reduce((sum, seg) => sum + (seg.endWeek - seg.startWeek + 1), 0);
 
       // 如果总周数 <= 2，视为正常课程（不限制单双周）
       if (totalSpan <= 2) {
@@ -123,17 +108,17 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
       }
 
       // 生成周数显示文本
-      (course as any).weekDisplay =
+      course.weekDisplay =
         merged
           .map(w => {
-            const weekStr = w.start === w.end ? `${w.start}` : `${w.start}-${w.end}`;
+            const weekStr = w.startWeek === w.endWeek ? `${w.startWeek}` : `${w.startWeek}-${w.endWeek}`;
             return weekStr;
           })
           .join(', ') + '周';
 
       // 用合并后的范围覆盖，保证筛选能通过
-      course.startWeek = merged[0].start;
-      course.endWeek = merged[merged.length - 1].end;
+      course.startWeek = merged[0].startWeek;
+      course.endWeek = merged[merged.length - 1].endWeek;
 
       return course;
     });
