@@ -17,7 +17,7 @@ public class MfrMessageActivity extends Activity {
   private final UmengNotifyClick mNotificationClick = new UmengNotifyClick() {
     @Override
     public void onMessage(UMessage msg) {
-      Log.i("UMLog", "msg from background:" + msg);
+      Log.i("UMLog", "msg from background:" + (msg.extra != null ? msg.extra : "null"));
       String deeplink = msg.extra.get("deeplink");
       if (deeplink == null || deeplink.isEmpty()) {
           deeplink = "/";

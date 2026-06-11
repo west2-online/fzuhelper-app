@@ -29,17 +29,24 @@ export default function OfficeNoticePage() {
   const [isEnd, setIsEnd] = useState(false);
   const { bottom } = useSafeAreaInsets();
 
-  const { url } = useLocalSearchParams();
-
-  const { data, isFetching, isError, error, refetch } = useApiRequest(getApiV1CommonNotice, { pageNum });
+  const params = useLocalSearchParams();
 
   useEffect(() => {
+    console.log('params:', params);
+    const url = params.url;
     if (url && typeof url === 'string') {
-      const decodedUrl = decodeURIComponent(url);
-      console.log('从 DeepLink 打开外部链接:', decodedUrl);
-      Linking.openURL(decodedUrl);
+      // 过滤掉 url 本身，处理剩余的 query 参数
+      const extraEntries = Object.entries(params).filter(([k]) => k !== 'url')
+        .map(([key, value]) => `&${key}=${value}`)
+        .join('');
+
+      const fullUrl = url + extraEntries;
+      console.log('从 DeepLink 打开外部链接:', fullUrl);
+      Linking.openURL(fullUrl).catch((err) =>Alert.alert('错误', `无法打开链接: ${err}`));
     }
-  }, [url]);
+  }, [JSON.stringify(params)]);
+
+  const { data, isFetching, isError, error, refetch } = useApiRequest(getApiV1CommonNotice, { pageNum });
 
   useEffect(() => {
     if (data) {

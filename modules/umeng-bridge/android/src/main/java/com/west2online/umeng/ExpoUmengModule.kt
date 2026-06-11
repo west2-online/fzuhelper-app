@@ -94,7 +94,7 @@ class ExpoUmengModule : Module() {
                 val notificationClickHandler: UmengNotificationClickHandler =
                     object : UmengNotificationClickHandler() {
                         override fun launchApp(context: Context, msg: UMessage) {
-                            Log.i("UMLog", "msg from foreground:$msg")
+                            Log.i("UMLog", "msg from foreground:${msg.extra?:"null"}")
                             val deeplink = msg.extra?.get("deeplink") ?: "/"
                             val intent = Intent(Intent.ACTION_VIEW).apply {
                                 data = Uri.parse(deeplink)
