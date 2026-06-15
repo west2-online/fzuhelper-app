@@ -1,6 +1,6 @@
 // https://docs.expo.dev/guides/using-eslint/
 const forbiddenRule = require('./tools/checks/forbidden-imports');
-const noRawColorOverride = require('./tools/checks/no-raw-color');
+const restrictedSyntaxWarnings = require('./tools/checks/restricted-syntax-warnings');
 
 /**
  * 深度比较两个值是否相等
@@ -86,7 +86,7 @@ module.exports = {
     ],
   },
   overrides: [
-    noRawColorOverride,
+    restrictedSyntaxWarnings,
     ...forbiddenRule
       .filter(item => item.allowIn?.length)
       .flatMap(item =>
