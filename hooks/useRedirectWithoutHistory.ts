@@ -1,4 +1,4 @@
-import { StackActions } from '@react-navigation/native';
+import { StackActions } from "expo-router/react-navigation";
 import { router, useNavigationContainerRef } from 'expo-router';
 import { useCallback } from 'react';
 
