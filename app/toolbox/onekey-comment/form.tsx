@@ -294,15 +294,15 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
   }, []);
 
   const checkForm = useCallback(() => {
-    const allForm = getAllTeacherFormData();
+    const allTeacherForm = getAllTeacherFormData();
     const allTextbookForm = getAllTextbookFormData();
 
-    for (let i = 0; i < allForm.length; i++) {
-      if (allForm[i].score === '') {
+    for (let i = 0; i < allTeacherForm.length; i++) {
+      if (allTeacherForm[i].score === '') {
         toast.error(`${courses[i].courseName}的评分未填写，请检查后再试！`);
         return false;
       }
-      if (allForm[i].comment === '') {
+      if (allTeacherForm[i].comment === '') {
         toast.error(`${courses[i].courseName}的评语未填写，请检查后再试！`);
         return false;
       }
@@ -340,7 +340,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
     const data = await onekey.getUncommentTeachers(identifier, tabname === Tab.学期选课 ? 'xqxk' : 'score');
     // 只有成绩查询才有教材评议
     if (tabname === Tab.成绩查询) {
-      const textbookData = await onekey.getUncommentTextbook(identifier);
+      const textbookData = await onekey.getUncommentTextbooks(identifier);
       setTextbooks(textbookData);
     } else {
       setTextbooks([]);

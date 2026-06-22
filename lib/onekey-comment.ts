@@ -15,7 +15,7 @@ const ONEKEY_COMMENT_URLS = {
 
 function escapeQueryParams(record: Record<string, string>): string {
   return Object.entries(record)
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .map(([k, v]) => `${k}=${escape(v)}`) // 教务处接口需要使用escape编码参数
     .join('&');
 }
 
@@ -114,7 +114,7 @@ export default class OnekeyComment {
     return info;
   }
 
-  async getUncommentTextbook(id: string): Promise<TextbookInfo[]> {
+  async getUncommentTextbooks(id: string): Promise<TextbookInfo[]> {
     const reqParams = new URLSearchParams({ id, bj: 'score' });
     const url = `${ONEKEY_COMMENT_URLS.TEACHER_LIST}?${reqParams}`;
     const resp = await this.get(url, {});
