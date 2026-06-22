@@ -15,7 +15,7 @@ const ONEKEY_COMMENT_URLS = {
 
 function escapeQueryParams(record: Record<string, string>): string {
   return Object.entries(record)
-    .map(([k, v]) => `${k}=${escape(v)}`)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join('&');
 }
 
