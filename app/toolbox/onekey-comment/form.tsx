@@ -40,16 +40,16 @@ interface TextbookCardProps {
 
 const Divider: React.FC = () => <View className="my-3 h-[2px] bg-secondary" />;
 
-const DEFAULT_TEACHERS_COMMENTS = [
+const DEFAULT_TEACHER_COMMENTS = [
   '学识渊博，品德高尚，思学生所思，为学生而为，是传道授业解惑之良师。',
   '爱岗敬业、严谨治学、为人师表。',
   '课堂结构完整，层次清楚，突出重点，突破难点，各环衔接紧密，时间安排合理。',
 ];
 
 const teacherCommentOptions: Option[] = [
-  { label: DEFAULT_TEACHERS_COMMENTS[0], id: 0 },
-  { label: DEFAULT_TEACHERS_COMMENTS[1], id: 1 },
-  { label: DEFAULT_TEACHERS_COMMENTS[2], id: 2 },
+  { label: DEFAULT_TEACHER_COMMENTS[0], id: 0 },
+  { label: DEFAULT_TEACHER_COMMENTS[1], id: 1 },
+  { label: DEFAULT_TEACHER_COMMENTS[2], id: 2 },
   { label: '自己评价', id: 'other' },
 ];
 
@@ -114,7 +114,7 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
 
   useImperativeHandle(ref, () => ({
     getFormData: () => ({
-      comment: selected === 'other' ? customText : selected !== undefined ? DEFAULT_TEACHERS_COMMENTS[selected] : '',
+      comment: selected === 'other' ? customText : selected !== undefined ? DEFAULT_TEACHER_COMMENTS[selected] : '',
       score: score,
     }),
   }));
