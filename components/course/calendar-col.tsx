@@ -116,10 +116,6 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
           })
           .join(', ') + '周';
 
-      // 用合并后的范围覆盖，保证筛选能通过
-      course.startWeek = merged[0].startWeek;
-      course.endWeek = merged[merged.length - 1].endWeek;
-
       return course;
     });
 
@@ -127,9 +123,12 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     const today = mergedSchedules
       .filter(
         s =>
-          s.startWeek <= week && // 卡起始时间范围
-          s.endWeek >= week && // 卡结束时间范围
-          ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)) && // 检查单双周
+          s.weekSegments.some(
+            seg =>
+              seg.startWeek <= week &&
+              week <= seg.endWeek &&
+              ((seg.single && week % 2 === 1) || (seg.double && week % 2 === 0)),
+          ) && // 检查是否在本周有课（含单双周）
           (s.type === COURSE_TYPE ||
             (setting.exportExamToCourseTable && s.type === EXAM_TYPE) ||
             s.type === CUSTOM_TYPE) && // 判断课程类型
@@ -186,10 +185,11 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
       const nonCurrentWeek = mergedSchedules
         .filter(
           s =>
-            !(
-              s.startWeek <= week &&
-              s.endWeek >= week &&
-              ((s.single && week % 2 === 1) || (s.double && week % 2 === 0))
+            !s.weekSegments.some(
+              seg =>
+                seg.startWeek <= week &&
+                week <= seg.endWeek &&
+                ((seg.single && week % 2 === 1) || (seg.double && week % 2 === 0)),
             ) && s.type === COURSE_TYPE,
         )
         .sort((a, b) => b.priority - a.priority);
