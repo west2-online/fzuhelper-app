@@ -1,7 +1,7 @@
 import { fromByteArray } from 'base64-js';
 import { Stack } from 'expo-router';
 import { RotateCwIcon } from 'lucide-react-native';
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -29,17 +29,6 @@ import OnekeyComment, { CourseInfo, TextbookInfo } from '@/lib/onekey-comment';
 import { LocalUser } from '@/lib/user';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
-interface CourseCardProps {
-  courseName: string;
-  teacherName: string;
-}
-
-interface TextbookCardProps {
-  courseName: string;
-}
-
-const Divider: React.FC = () => <View className="my-3 h-[2px] bg-secondary" />;
-
 const DEFAULT_TEACHER_COMMENTS = [
   '学识渊博，品德高尚，思学生所思，为学生而为，是传道授业解惑之良师。',
   '爱岗敬业、严谨治学、为人师表。',
@@ -52,15 +41,6 @@ const teacherCommentOptions: Option[] = [
   { label: DEFAULT_TEACHER_COMMENTS[2], id: 2 },
   { label: '自己评价', id: 'other' },
 ];
-
-interface CourseFormInfo {
-  comment: string;
-  score: string;
-}
-
-interface CourseCardRef {
-  getFormData: () => CourseFormInfo;
-}
 
 const ratingOptions: Option[] = [
   { id: 0, label: '非常满意' },
@@ -98,40 +78,66 @@ const textbookEvaluations: EvaluationDimension[] = [
   },
 ];
 
-export interface TextbookFormInfo {
-  evaluations: EvaluationDimension[];
+interface CourseState {
+  score: string;
+  selected: number | 'other' | undefined;
+  customText: string;
+}
+
+interface TextbookState {
+  ratings: (number | undefined)[];
   suggestion: string;
 }
 
-interface TextbookCardRef {
-  getFormData: () => TextbookFormInfo;
+const getSatisfactionLabel = (index: number | undefined): string =>
+  index !== undefined ? (ratingOptions[index]?.label ?? '') : '';
+
+const getTeacherComment = (state: CourseState): string => {
+  if (state.selected === 'other') return state.customText;
+  if (state.selected !== undefined) return DEFAULT_TEACHER_COMMENTS[state.selected];
+  return '';
+};
+
+const Divider: React.FC = () => <View className="my-3 h-[2px] bg-secondary" />;
+
+interface CourseCardProps {
+  courseName: string;
+  teacherName: string;
+  score: string;
+  selected: number | 'other' | undefined;
+  customText: string;
+  onScoreChange: (v: string) => void;
+  onSelectedChange: (v: number | 'other' | undefined) => void;
+  onCustomTextChange: (v: string) => void;
 }
 
-const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCard({ courseName, teacherName }, ref) {
-  const [score, setScore] = useState('');
-  const [selected, setSelected] = useState<number | 'other' | undefined>(undefined);
-  const [customText, setCustomText] = useState('');
+const CourseCard = ({
+  courseName,
+  teacherName,
+  score,
+  selected,
+  customText,
+  onScoreChange,
+  onSelectedChange,
+  onCustomTextChange,
+}: CourseCardProps) => {
+  const handleScoreTextChange = useCallback(
+    (text: string) => {
+      // 移除非数字字符
+      const numericText = text.replace(/[^0-9]/g, '');
 
-  useImperativeHandle(ref, () => ({
-    getFormData: () => ({
-      comment: selected === 'other' ? customText : selected !== undefined ? DEFAULT_TEACHER_COMMENTS[selected] : '',
-      score: score,
-    }),
-  }));
-
-  const handleScoreTextChange = useCallback((text: string) => {
-    // 移除非数字字符
-    const numericText = text.replace(/[^0-9]/g, '');
-    const num = parseInt(numericText, 10);
-
-    // 允许空字符串（便于删除），否则限制在 0-100 范围
-    if (numericText === '') {
-      setScore('');
-    } else if (!isNaN(num)) {
-      const clamped = Math.min(Math.max(num, 0), 100);
-      setScore(clamped.toString());
-    }
-  }, []);
+      // 允许空字符串（便于删除），否则限制在 0-100 范围
+      if (numericText === '') {
+        onScoreChange('');
+        return;
+      }
+      const num = parseInt(numericText, 10);
+      if (!isNaN(num)) {
+        onScoreChange(Math.min(Math.max(num, 0), 100).toString());
+      }
+    },
+    [onScoreChange],
+  );
 
   return (
     <View className="mx-4 mt-4 space-y-2 rounded-xl border border-border bg-card p-5">
@@ -156,14 +162,22 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
       <RadioGroup
         options={teacherCommentOptions}
         selected={selected}
-        onChange={setSelected}
+        onChange={onSelectedChange}
         customText={customText}
-        onCustomTextChange={setCustomText}
+        onCustomTextChange={onCustomTextChange}
         customPlaceholder="来评价一下老师吧"
       />
     </View>
   );
-});
+};
+
+interface TextbookCardProps {
+  courseName: string;
+  ratings: (number | undefined)[];
+  suggestion: string;
+  onRatingChange: (dimIndex: number, value: number | undefined) => void;
+  onSuggestionChange: (value: string) => void;
+}
 
 const RatingItem = ({
   title,
@@ -183,71 +197,39 @@ const RatingItem = ({
   </View>
 );
 
-const TextbookCard = forwardRef<TextbookCardRef, TextbookCardProps>(function TextbookCard({ courseName }, ref) {
-  const [ratings, setRatings] = useState<(number | undefined)[]>(new Array(textbookEvaluations.length).fill(undefined));
-  const [suggestion, setSuggestion] = useState('');
-
-  const getSatisfactionLabel = (index: number | undefined): string => {
-    if (index === undefined) return '';
-    const option = ratingOptions[index];
-    return option ? option.label : '';
-  };
-
-  const updateRating = (index: number, value: number | undefined) => {
-    setRatings(prev => {
-      const newRatings = [...prev];
-      newRatings[index] = value;
-      return newRatings;
-    });
-  };
-
-  useImperativeHandle(ref, () => ({
-    getFormData: () => ({
-      evaluations: textbookEvaluations.map((dim, index) => ({
-        ...dim,
-        rating: getSatisfactionLabel(ratings[index]),
-      })),
-      suggestion: suggestion,
-    }),
-  }));
-
-  return (
-    <View className="mx-4 mt-4 rounded-xl border border-border bg-card p-5">
-      <Text className="font-bold text-text-primary">[教材] {courseName}</Text>
-
-      <Divider />
-      <View className="space-y-6">
-        {textbookEvaluations.map((dim, index) => (
-          <React.Fragment key={dim.title}>
-            {index > 0 && <Divider />}
-            <RatingItem
-              title={dim.title}
-              description={dim.description}
-              selected={ratings[index]}
-              onChange={v => updateRating(index, v)}
-            />
-          </React.Fragment>
-        ))}
-      </View>
-
-      <Divider />
-
-      <Text className="mb-2 font-semibold text-text-primary">意见与建议</Text>
-      <TextInput
-        value={suggestion}
-        onChangeText={setSuggestion}
-        keyboardType="default"
-        multiline
-        numberOfLines={3}
-        textAlignVertical="top"
-        placeholder="非必填..."
-        placeholderTextColor="#9ca3af"
-        className="h-24 w-full rounded-lg bg-gray-100 px-4 text-base text-text-primary dark:bg-gray-800"
-        style={styles.textInput}
-      />
+const TextbookCard = ({ courseName, ratings, suggestion, onRatingChange, onSuggestionChange }: TextbookCardProps) => (
+  <View className="mx-4 mt-4 rounded-xl border border-border bg-card p-5">
+    <Text className="font-bold text-text-primary">[教材] {courseName}</Text>
+    <Divider />
+    <View className="space-y-6">
+      {textbookEvaluations.map((dim, index) => (
+        <React.Fragment key={dim.title}>
+          {index > 0 && <Divider />}
+          <RatingItem
+            title={dim.title}
+            description={dim.description}
+            selected={ratings[index]}
+            onChange={v => onRatingChange(index, v)}
+          />
+        </React.Fragment>
+      ))}
     </View>
-  );
-});
+    <Divider />
+    <Text className="mb-2 font-semibold text-text-primary">意见与建议</Text>
+    <TextInput
+      value={suggestion}
+      onChangeText={onSuggestionChange}
+      keyboardType="default"
+      multiline
+      numberOfLines={3}
+      textAlignVertical="top"
+      placeholder="非必填..."
+      placeholderTextColor="#9ca3af"
+      className="h-24 w-full rounded-lg bg-gray-100 px-4 text-base text-text-primary dark:bg-gray-800"
+      style={styles.textInput}
+    />
+  </View>
+);
 
 enum Tab {
   学期选课 = '学期选课',
@@ -268,63 +250,77 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
   const [isLoading, setLoading] = useState(true);
   const [courses, setCourses] = useState<CourseInfo[]>([]);
   const [textbooks, setTextbooks] = useState<TextbookInfo[]>([]);
+  const [courseStates, setCourseStates] = useState<CourseState[]>([]);
+  const [textbookStates, setTextbookStates] = useState<TextbookState[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [recaptchaInput, setCaptchaInput] = useState('');
-  const courseRefs = useRef<(CourseCardRef | null)[]>([]);
-  const textbookRefs = useRef<(TextbookCardRef | null)[]>([]);
 
-  const getAllTeacherFormData = useCallback(() => {
-    const allData: CourseFormInfo[] = [];
-    Object.values(courseRefs.current).forEach(ref => {
-      if (ref && ref.getFormData) {
-        allData.push(ref.getFormData());
-      }
+  const updateCourseScore = useCallback((i: number, v: string) => {
+    setCourseStates(prev => {
+      const next = [...prev];
+      next[i] = { ...next[i], score: v };
+      return next;
     });
-    return allData;
   }, []);
 
-  const getAllTextbookFormData = useCallback(() => {
-    const allData: TextbookFormInfo[] = [];
-    Object.values(textbookRefs.current).forEach(ref => {
-      if (ref && ref.getFormData) {
-        allData.push(ref.getFormData());
-      }
+  const updateCourseSelected = useCallback((i: number, v: number | 'other' | undefined) => {
+    setCourseStates(prev => {
+      const next = [...prev];
+      next[i] = { ...next[i], selected: v };
+      return next;
     });
-    return allData;
+  }, []);
+
+  const updateCourseCustomText = useCallback((i: number, v: string) => {
+    setCourseStates(prev => {
+      const next = [...prev];
+      next[i] = { ...next[i], customText: v };
+      return next;
+    });
+  }, []);
+
+  const updateTextbookRating = useCallback((tbIndex: number, dimIndex: number, value: number | undefined) => {
+    setTextbookStates(prev => {
+      const next = [...prev];
+      const ratings = [...next[tbIndex].ratings];
+      ratings[dimIndex] = value;
+      next[tbIndex] = { ...next[tbIndex], ratings };
+      return next;
+    });
+  }, []);
+
+  const updateTextbookSuggestion = useCallback((tbIndex: number, value: string) => {
+    setTextbookStates(prev => {
+      const next = [...prev];
+      next[tbIndex] = { ...next[tbIndex], suggestion: value };
+      return next;
+    });
   }, []);
 
   const checkForm = useCallback(() => {
-    const allTeacherForm = getAllTeacherFormData();
-    const allTextbookForm = getAllTextbookFormData();
-
-    for (let i = 0; i < allTeacherForm.length; i++) {
-      if (allTeacherForm[i].score === '') {
+    for (let i = 0; i < courses.length; i++) {
+      if (courseStates[i]?.score === '') {
         toast.error(`${courses[i].courseName}的评分未填写，请检查后再试！`);
         return false;
       }
-      if (allTeacherForm[i].comment === '') {
+      if (getTeacherComment(courseStates[i]) === '') {
         toast.error(`${courses[i].courseName}的评语未填写，请检查后再试！`);
         return false;
       }
     }
-
-    for (let i = 0; i < allTextbookForm.length; i++) {
-      const dimensions = allTextbookForm[i].evaluations;
-      for (let j = 0; j < dimensions.length; j++) {
-        if (dimensions[j].rating === '') {
-          toast.error(`${textbooks[i].courseName}的${dimensions[j].title}未填写，请检查后再试！`);
+    for (let i = 0; i < textbooks.length; i++) {
+      for (let j = 0; j < textbookEvaluations.length; j++) {
+        if (textbookStates[i]?.ratings[j] === undefined) {
+          toast.error(`${textbooks[i].courseName}的${textbookEvaluations[j].title}未填写，请检查后再试！`);
           return false;
         }
       }
     }
-
     return true;
-  }, [courses, textbooks, getAllTeacherFormData, getAllTextbookFormData]);
+  }, [courses, courseStates, textbooks, textbookStates]);
 
   const refreshCourses = useCallback(async () => {
     setLoading(true);
-    courseRefs.current = [];
-    textbookRefs.current = [];
     const cookieValid = await LocalUser.checkCredentials();
     if (!cookieValid) {
       try {
@@ -338,25 +334,32 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
     const { identifier, cookies } = LocalUser.getCredentials();
     onekey.setCookies(cookies);
     const data = await onekey.getUncommentTeachers(identifier, tabname === Tab.学期选课 ? 'xqxk' : 'score');
+    setCourses(data);
+    setCourseStates(data.map(() => ({ score: '', selected: undefined, customText: '' })));
     // 只有成绩查询才有教材评议
     if (tabname === Tab.成绩查询) {
       const textbookData = await onekey.getUncommentTextbooks(identifier);
       setTextbooks(textbookData);
+      setTextbookStates(
+        textbookData.map(() => ({
+          ratings: new Array(textbookEvaluations.length).fill(undefined),
+          suggestion: '',
+        })),
+      );
     } else {
       setTextbooks([]);
+      setTextbookStates([]);
     }
-    setCourses(data);
+
     setLoading(false);
   }, [onekey, tabname]);
 
   const submitAllForm = useCallback(async () => {
-    const allTeacherForm = getAllTeacherFormData();
-    const allTextbookForm = getAllTextbookFormData();
-    for (let i = 0; i < allTeacherForm.length; i++) {
+    for (let i = 0; i < courses.length; i++) {
       const result = await onekey.commentTeacher(
         courses[i].params,
-        allTeacherForm[i].score,
-        allTeacherForm[i].comment,
+        courseStates[i].score,
+        getTeacherComment(courseStates[i]),
         recaptchaInput,
       );
       if (!result) {
@@ -366,16 +369,17 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
         return;
       }
     }
-    for (let i = 0; i < allTextbookForm.length; i++) {
-      const dimensions = allTextbookForm[i].evaluations;
+
+    for (let i = 0; i < textbooks.length; i++) {
+      const { ratings, suggestion } = textbookStates[i];
       const result = await onekey.commentTextbook(
         textbooks[i].params,
-        dimensions[0].rating || '',
-        dimensions[1].rating || '',
-        dimensions[2].rating || '',
-        dimensions[3].rating || '',
-        dimensions[4].rating || '',
-        allTextbookForm[i].suggestion,
+        getSatisfactionLabel(ratings[0]),
+        getSatisfactionLabel(ratings[1]),
+        getSatisfactionLabel(ratings[2]),
+        getSatisfactionLabel(ratings[3]),
+        getSatisfactionLabel(ratings[4]),
+        suggestion,
         recaptchaInput,
       );
       if (!result) {
@@ -389,16 +393,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
     refreshCaptcha();
     setCaptchaInput('');
     refreshCourses();
-  }, [
-    courses,
-    getAllTeacherFormData,
-    getAllTextbookFormData,
-    onekey,
-    recaptchaInput,
-    refreshCaptcha,
-    refreshCourses,
-    textbooks,
-  ]);
+  }, [courses, courseStates, textbooks, textbookStates, onekey, recaptchaInput, refreshCaptcha, refreshCourses]);
 
   useEffect(() => {
     refreshCourses();
@@ -430,18 +425,22 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
                   <CourseCard
                     teacherName={item.teacherName}
                     courseName={item.courseName}
-                    ref={ref => {
-                      courseRefs.current[item.index] = ref;
-                    }}
+                    score={courseStates[item.index]?.score ?? ''}
+                    selected={courseStates[item.index]?.selected}
+                    customText={courseStates[item.index]?.customText ?? ''}
+                    onScoreChange={v => updateCourseScore(item.index, v)}
+                    onSelectedChange={v => updateCourseSelected(item.index, v)}
+                    onCustomTextChange={v => updateCourseCustomText(item.index, v)}
                   />
                 );
               }
               return (
                 <TextbookCard
                   courseName={item.courseName}
-                  ref={ref => {
-                    textbookRefs.current[item.index] = ref;
-                  }}
+                  ratings={textbookStates[item.index]?.ratings ?? new Array(textbookEvaluations.length).fill(undefined)}
+                  suggestion={textbookStates[item.index]?.suggestion ?? ''}
+                  onRatingChange={(dimIndex, value) => updateTextbookRating(item.index, dimIndex, value)}
+                  onSuggestionChange={value => updateTextbookSuggestion(item.index, value)}
                 />
               );
             }}
