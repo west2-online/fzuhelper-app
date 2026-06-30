@@ -74,8 +74,8 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     });
 
     const mergedSchedules = Array.from(mergeMap.values()).map(course => {
-      const sorted = course.weekSegments.sort((a, b) => a.startWeek - b.startWeek);
-      const merged = [sorted[0]];
+      const sorted = [...course.weekSegments].sort((a, b) => a.startWeek - b.startWeek);
+      const merged = [{ ...sorted[0] }];
 
       // 合并相邻的周段
       for (let i = 1; i < sorted.length; i++) {
@@ -84,7 +84,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
         if (curr.startWeek <= last.endWeek + 1) {
           last.endWeek = Math.max(last.endWeek, curr.endWeek);
         } else {
-          merged.push(curr);
+          merged.push({ ...curr });
         }
       }
       // 根据合并后的周段重新计算单双周
