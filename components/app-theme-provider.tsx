@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DarkTheme, DefaultTheme, ThemeProvider as ReactNavigationThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as ReactNavigationThemeProvider } from "expo-router/react-navigation";
 import { colorScheme } from 'nativewind';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { type ColorSchemeName, ImageSourcePropType, useColorScheme as useSystemColorScheme } from 'react-native';
