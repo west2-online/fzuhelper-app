@@ -22,14 +22,14 @@ const THEME_OPTIONS: { value: 'light' | 'dark' | 'system'; label: string }[] = [
 
 export default function AppearancePage() {
   const [pickerVisible, setPickerVisible] = useState(false);
-  const { 
-    themeSetting, 
-    setThemeSetting, 
-    hasCustomBackground, 
-    darkenBackground, 
-    setBackgroundImage, 
-    deleteBackgroundImage, 
-    setDarkenBackground 
+  const {
+    themeSetting,
+    setThemeSetting,
+    hasCustomBackground,
+    darkenBackground,
+    setBackgroundImage,
+    deleteBackgroundImage,
+    setDarkenBackground,
   } = useTheme();
   const redirect = useRedirectWithoutHistory();
 

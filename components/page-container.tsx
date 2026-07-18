@@ -1,7 +1,7 @@
 import { ImageBackground, View, type ViewProps } from 'react-native';
 
-import { cn } from '@/lib/utils';
 import { useTheme } from '@/components/app-theme-provider';
+import { cn } from '@/lib/utils';
 import { useBottomTabBarHeight as originalUseBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useEffect, useRef } from 'react';

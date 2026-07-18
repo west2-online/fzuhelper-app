@@ -1,0 +1,3 @@
+api/generate/**
+expo-env.d.ts
+nativewind-env.d.ts
