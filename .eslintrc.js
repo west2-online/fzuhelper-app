@@ -1,6 +1,6 @@
 // https://docs.expo.dev/guides/using-eslint/
 const forbiddenRule = require('./tools/checks/forbidden-imports');
-const restrictedSyntaxWarnings = require('./tools/checks/restricted-syntax-warnings');
+const restrictedSyntaxWarningRules = require('./tools/checks/restricted-syntax-warnings');
 
 /**
  * 深度比较两个值是否相等
@@ -56,6 +56,7 @@ module.exports = {
   extends: ['@react-native', 'expo', 'prettier', 'plugin:react/jsx-runtime'],
   plugins: ['prettier'],
   rules: {
+    ...restrictedSyntaxWarningRules,
     'prettier/prettier': [
       'warn',
       {
@@ -86,7 +87,6 @@ module.exports = {
     ],
   },
   overrides: [
-    restrictedSyntaxWarnings,
     ...forbiddenRule
       .filter(item => item.allowIn?.length)
       .flatMap(item =>

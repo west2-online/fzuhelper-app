@@ -41,7 +41,9 @@ export default function UnifiedExamScorePage() {
               }
             >
               <SafeAreaView className="flex-1" edges={['bottom']}>
-                {unifiedExamData?.map((item, index) => <UnifiedExamCard key={index} item={item} />)}
+                {unifiedExamData?.map((item, index) => (
+                  <UnifiedExamCard key={index} item={item} />
+                ))}
                 {/* 显示最后更新时间 */}
                 <LastUpdateTime lastUpdated={lastUpdated} />
               </SafeAreaView>

@@ -14,7 +14,7 @@
     "prebuild:android": "expo prebuild --platform android --clean",
     "prebuild:ios": "expo prebuild --platform ios --clean",
     "test": "jest --watchAll",
-    "lint": "expo lint",
+    "lint": "expo lint .",
     "openapi": "openapi-ts"
   },
   "jest": {
