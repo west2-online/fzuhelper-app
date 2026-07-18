@@ -3,8 +3,8 @@
  *
  * Defines project-level imports that should not be used directly.
  *
- * Referenced by `.eslintrc.js` and `babel.config.js`.
- * ESLint reports these as errors, and Babel may also block compilation.
+ * Referenced by `.eslintrc.js` and enforced by ESLint's
+ * `no-restricted-imports` rule.
  *
  * @typedef {Object} ForbiddenImportRule
  * @property {string} source Module path, such as 'react-native'.
