@@ -108,6 +108,7 @@ const config: ExpoConfig = {
       {
         android: {
           buildArchs: ['arm64-v8a'],
+          usePrecompiledHeaders: true,
           useLegacyPackaging: true,
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
