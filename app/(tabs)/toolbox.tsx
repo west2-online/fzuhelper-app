@@ -564,8 +564,8 @@ ToolButton.displayName = 'ToolButton';
 
 export default function ToolsPage() {
   const { width: screenWidth } = useWindowDimensions();
-
-  const columns = 5;
+  const isWideScreen = screenWidth >= 550;
+  const columns = Math.floor(screenWidth / (isWideScreen ? 100 : 70));
 
   // 计算缩放值
   const { scaledTextWidth, scaledFontSize } = useMemo(() => {
@@ -597,11 +597,15 @@ export default function ToolsPage() {
   return (
     <PageContainer className="p-6">
       <FlatList
+        // Changing numColumns on the fly is not supported.
+        // Change the key prop on FlatList when changing
+        // the number of columns to force a fresh render of the component
+        key={`tools-${columns}`}
         ListHeaderComponent={
           /* 滚动横幅 */
-          // 42对应上面的padding值，限制最大值避免横屏时过宽
+          // 42对应上面的padding值
           <View className="flex items-center">
-            <Banner contents={bannerList} width={Math.min(screenWidth - 42, 550)} />
+            <Banner contents={bannerList} width={screenWidth - 42} />
           </View>
         }
         ListHeaderComponentClassName="mb-4"
