@@ -194,6 +194,17 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     },
   },
   {
+    id:152,
+    name: '图书馆预约',
+    icon: StudyCenterIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://kjgl.fzu.edu.cn/libseat',
+      title: '图书馆预约',
+      sso: true
+    }
+  },
+  {
     id: 160,
     name: '公寓报修',
     icon: ApartmentIcon,
