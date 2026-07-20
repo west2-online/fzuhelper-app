@@ -93,7 +93,7 @@ const getSatisfactionLabel = (index: number | undefined): string =>
   index !== undefined ? (ratingOptions[index]?.label ?? '') : '';
 
 const getTeacherComment = (state: CourseState): string => {
-  if (state.selected === 'other') return state.customText;
+  if (state.selected === 'other') return state.customText.trim();
   if (state.selected !== undefined) return DEFAULT_TEACHER_COMMENTS[state.selected];
   return '';
 };
@@ -304,7 +304,7 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
         return false;
       }
       if (getTeacherComment(courseStates[i]) === '') {
-        toast.error(`${courses[i].courseName}的评语未填写，请检查后再试！`);
+        toast.error(`${courses[i].courseName}的评语为空，请检查后再试！`);
         return false;
       }
       if (getTeacherComment(courseStates[i]).length < 20) {
