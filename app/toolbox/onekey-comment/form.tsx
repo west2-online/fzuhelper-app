@@ -31,7 +31,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 const DEFAULT_TEACHER_COMMENTS = [
   '学识渊博，品德高尚，思学生所思，为学生而为，是传道授业解惑之良师。',
-  '爱岗敬业、严谨治学、为人师表。',
+  '爱岗敬业，严谨治学，为人师表，恪守师道，以德立教，以行化人。',
   '课堂结构完整，层次清楚，突出重点，突破难点，各环衔接紧密，时间安排合理。',
 ];
 
@@ -165,7 +165,7 @@ const CourseCard = ({
         onChange={onSelectedChange}
         customText={customText}
         onCustomTextChange={onCustomTextChange}
-        customPlaceholder="来评价一下老师吧"
+        customPlaceholder="来评价一下老师吧（不少于20字）"
       />
     </View>
   );
@@ -307,6 +307,10 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
         toast.error(`${courses[i].courseName}的评语未填写，请检查后再试！`);
         return false;
       }
+      if (getTeacherComment(courseStates[i]).length < 20) {
+        toast.error(`${courses[i].courseName}的评语少于20字，请检查后再试！`);
+        return false;
+      }
     }
     for (let i = 0; i < textbooks.length; i++) {
       for (let j = 0; j < textbookEvaluations.length; j++) {
@@ -355,24 +359,28 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
   }, [onekey, tabname]);
 
   const submitAllForm = useCallback(async () => {
+    let errorMsg = '';
     for (let i = 0; i < courses.length; i++) {
-      const result = await onekey.commentTeacher(
+      const error = await onekey.commentTeacher(
         courses[i].params,
         courseStates[i].score,
         getTeacherComment(courseStates[i]),
         recaptchaInput,
       );
-      if (!result) {
+      if (!error) continue;
+      if (error.includes('验证码校验错误')) {
+        // 所有请求共用一个验证码，第一个错了就不用继续了
         toast.error('验证码错误');
         refreshCaptcha();
         setCaptchaInput('');
         return;
       }
+      errorMsg += `${courses[i].courseName}评议失败：${error}\n`;
     }
 
     for (let i = 0; i < textbooks.length; i++) {
       const { ratings, suggestion } = textbookStates[i];
-      const result = await onekey.commentTextbook(
+      const error = await onekey.commentTextbook(
         textbooks[i].params,
         getSatisfactionLabel(ratings[0]),
         getSatisfactionLabel(ratings[1]),
@@ -382,14 +390,21 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
         suggestion,
         recaptchaInput,
       );
-      if (!result) {
+      if (!error) continue;
+      if (error.includes('验证码校验错误')) {
+        // 所有请求共用一个验证码，第一个错了就不用继续了
         toast.error('验证码错误');
         refreshCaptcha();
         setCaptchaInput('');
         return;
       }
+      errorMsg += `[教材] ${textbooks[i].courseName}评议失败：${error}\n`;
     }
-    toast.success('评议成功！');
+    if (errorMsg) {
+      toast.error(errorMsg.trim());
+    } else {
+      toast.success('评议成功！');
+    }
     refreshCaptcha();
     setCaptchaInput('');
     refreshCourses();
