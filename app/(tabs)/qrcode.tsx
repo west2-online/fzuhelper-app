@@ -261,7 +261,9 @@ export default function YiMaTongPage() {
 
                     <CardContent
                       className="flex-col items-center justify-center gap-4"
-                      onLayout={event => setQrWidth(event.nativeEvent.layout.width * 0.75)}
+                      onLayout={event =>
+                        setQrWidth(Math.min(event.nativeEvent.layout.width, event.nativeEvent.layout.height) * 0.75)
+                      }
                     >
                       <TabsContent value="消费码">
                         {payCodeMessage ? (
