@@ -18,6 +18,22 @@ export function redirectSystemPath({ path, initial }: { path: string; initial: b
       // fzuhelper://qrcode
       const target = encodeURIComponent('/qrcode');
       return `/(guest)?target=${target}&cold_launch=${initial}`;
+    } else if (hostname === 'grade') {
+      // fzuhelper://grade
+      const target = encodeURIComponent('/toolbox/academic/grades');
+      return `/(guest)?target=${target}&cold_launch=${initial}`;
+    } else if (hostname === 'exam-room') {
+      // fzuhelper://exam-room
+      const target = encodeURIComponent('/toolbox/exam-room');
+      return `/(guest)?target=${target}&cold_launch=${initial}`;
+    } else if (hostname === 'office_notice') {
+      // fzuhelper://office_notice
+      const noticeUrl = queryParams?.url;
+      let target = encodeURIComponent('/toolbox/office-notice');
+      if (noticeUrl && typeof noticeUrl === 'string') {
+        target = encodeURIComponent(`/toolbox/office-notice?url=${noticeUrl}`);
+      }
+      return `/(guest)?target=${target}&cold_launch=${initial}`;
     } else if (hostname === null) {
       // 桌面启动
       return path;

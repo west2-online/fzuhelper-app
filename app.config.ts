@@ -121,6 +121,7 @@ const config: ExpoConfig = {
       './plugins/inject-android-network-security-config',
       { networkSecurityConfig: './assets/configs/network_security_config.xml', enable: true },
     ],
+    "./plugins/with-android-maxSdkVersion.js",
     './plugins/keep-android-resources',
     './plugins/inject-ios-prebuild',
     './modules/safe-area-webview/app.plugin.js',
