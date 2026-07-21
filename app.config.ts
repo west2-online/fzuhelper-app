@@ -9,7 +9,7 @@ const IS_DEV = process.env.APP_VARIANT === 'development';
 // 前三位对应版本名，后三位或更多对应commit次数
 let commitCount = 0;
 try {
-  const stdout = execSync('git rev-list --count HEAD').toString().trim();
+  const stdout = execSync('git rev-list --count master').toString().trim();
   const parsedInt = parseInt(stdout, 10);
   if (!isNaN(parsedInt)) {
     commitCount = parsedInt;
@@ -59,7 +59,7 @@ const config: ExpoConfig = {
       // 下面这两个定位权限申请缺一不可
       NSLocationWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       NSLocationAlwaysAndWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
-      LSApplicationQueriesSchemes: ['itms-apps'],
+      LSApplicationQueriesSchemes: ['itms-apps', 'kysk-fdxy-app'],
       CFBundleAllowMixedLocalizations: true,
       CFBundleURLName: 'MEWHFZ92DY.FzuHelper.FzuHelper', // URL Scheme，用于跳转到 App，CFBundleURLSchemes Expo 已经帮忙配置好了
       NSAppTransportSecurity: {
@@ -108,6 +108,7 @@ const config: ExpoConfig = {
       {
         android: {
           buildArchs: ['arm64-v8a'],
+          usePrecompiledHeaders: true,
           useLegacyPackaging: true,
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
@@ -120,7 +121,9 @@ const config: ExpoConfig = {
       './plugins/inject-android-network-security-config',
       { networkSecurityConfig: './assets/configs/network_security_config.xml', enable: true },
     ],
+    './plugins/keep-android-resources',
     './plugins/inject-ios-prebuild',
+    './modules/safe-area-webview/app.plugin.js',
     [
       './modules/umeng-bridge/app.plugin.js',
       {

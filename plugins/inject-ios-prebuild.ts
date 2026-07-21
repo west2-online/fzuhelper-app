@@ -1,3 +1,4 @@
+// https://github.com/expo/expo/issues/36591#issuecomment-2849092926
 import configPlugins from '@expo/config-plugins';
 import { ExpoConfig } from 'expo/config';
 import { promises as fs } from 'fs';

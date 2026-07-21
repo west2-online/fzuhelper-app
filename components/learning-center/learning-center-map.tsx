@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { REMOTE_MAP_URL } from '@/lib/constants';
 import { getCachedFile } from '@/utils/file-cache';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import Ionicons from '@react-native-vector-icons/ionicons';
 import { memo, useEffect, useState } from 'react';
 import { Image, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import ImageZoom from 'react-native-image-zoom-viewer';

@@ -183,6 +183,17 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     href: '/toolbox/learning-center',
   },
   {
+    id: 151,
+    name: '综合预约',
+    icon: StudyCenterIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://aiot.fzu.edu.cn/ibs/#/',
+      title: '综合预约',
+      sso: true,
+    },
+  },
+  {
     id: 160,
     name: '公寓报修',
     icon: ApartmentIcon,
