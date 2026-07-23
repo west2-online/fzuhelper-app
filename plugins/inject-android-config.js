@@ -1,15 +1,12 @@
 // https://github.com/expo/expo/issues/36591#issuecomment-2849092926
-import configPlugins from '@expo/config-plugins';
-import { type ExpoConfig } from 'expo/config';
+const { withAppBuildGradle, withGradleProperties } = require('@expo/config-plugins');
 
-const { withAppBuildGradle, withGradleProperties } = configPlugins;
-
-function insertAfter(s: string, searchString: string, content: string): string {
+function insertAfter(s, searchString, content) {
   const index = s.indexOf(searchString);
   return s.slice(0, index) + searchString + content + s.slice(index + searchString.length);
 }
 
-function withAppBuildGradleConfig(config: ExpoConfig): ExpoConfig {
+function withAppBuildGradleConfig(config) {
   return withAppBuildGradle(config, appBuildGradleConfig => {
     let contents = appBuildGradleConfig.modResults.contents;
     // 签名配置
@@ -80,7 +77,7 @@ tasks.withType(JavaCompile).configureEach {
   });
 }
 
-function withGradlePropertiesConfig(config: ExpoConfig): ExpoConfig {
+function withGradlePropertiesConfig(config) {
   return withGradleProperties(config, gradlePropertiesConfig => {
     // 启用按需配置
     gradlePropertiesConfig.modResults.push({
@@ -115,10 +112,8 @@ function withGradlePropertiesConfig(config: ExpoConfig): ExpoConfig {
   });
 }
 
-function withAndroidBuildConfig(config: ExpoConfig): ExpoConfig {
+module.exports = function withAndroidBuildConfig(config) {
   config = withAppBuildGradleConfig(config);
   config = withGradlePropertiesConfig(config);
   return config;
-}
-
-export default withAndroidBuildConfig;
+};

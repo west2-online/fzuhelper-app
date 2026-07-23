@@ -1,12 +1,8 @@
-// https://github.com/expo/expo/issues/36591#issuecomment-2849092926
-import configPlugins from '@expo/config-plugins';
-import { ExpoConfig } from 'expo/config';
-import { promises as fs } from 'fs';
-import { join, resolve } from 'path';
+const { withDangerousMod } = require('@expo/config-plugins');
+const fs = require('fs/promises');
+const { join, resolve } = require('path');
 
-const { withDangerousMod } = configPlugins;
-
-function withIOSInject(config: ExpoConfig): ExpoConfig {
+module.exports = function withIOSInject(config) {
   // 修改 Info.plist 文件可以直接通过 app.config.ts 完成
   // 通过 withDangerousMod 注入 iOS 脚本
   config = withDangerousMod(config, [
@@ -32,7 +28,7 @@ function withIOSInject(config: ExpoConfig): ExpoConfig {
           await fs.copyFile(sourcePath, targetPath);
           console.log(`Copied Prebuild Script from ${sourcePath} to ${targetPath}`);
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error(`Failed to copy Prebuild Scripts: ${error.message}`);
         throw error;
       }
@@ -47,7 +43,7 @@ function withIOSInject(config: ExpoConfig): ExpoConfig {
   // /**
   //  * 查找 PBXFileSystemSynchronizedRootGroup 的条目
   //  */
-  // const findRootGroupByPath = (xcodeProject: XcodeProject, path: string) => {
+  // const findRootGroupByPath = (xcodeProject, path) => {
   //   const rootGroups = xcodeProject.hash.project.objects['PBXFileSystemSynchronizedRootGroup'];
   //   return Object.entries(rootGroups).find(([key, value]) => value.path === path);
   // };
@@ -93,6 +89,4 @@ function withIOSInject(config: ExpoConfig): ExpoConfig {
   // });
 
   return config;
-}
-
-export default withIOSInject;
+};
