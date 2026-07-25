@@ -1,4 +1,5 @@
 #!/bin/zsh
+
 set -e
 echo "Running ci_post_clone.sh"
 
