@@ -13,7 +13,7 @@ module.exports = function withIOSInject(config) {
 
       // 定义需要复制的脚本文件
       const scripts = [
-        { source: './scripts/ci_post_clone.sh', target: 'ci_scripts/ci_post_clone.sh' },
+        { source: './scripts/ci_pre_xcodebuild.sh', target: 'ci_scripts/ci_pre_xcodebuild.sh' },
         { source: './scripts/ci_post_xcodebuild.sh', target: 'ci_scripts/ci_post_xcodebuild.sh' },
       ];
 
