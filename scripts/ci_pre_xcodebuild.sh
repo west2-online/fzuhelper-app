@@ -10,6 +10,10 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
+if git rev-parse --is-shallow-repository | grep -q true; then
+    git fetch --unshallow --no-tags origin
+fi
+
 commitCount=$(git rev-list --count HEAD)
 version=$(jq -r '.version' package.json)
 versionCodePrefix=$(printf "%s" "$version" | sed 's/\.//g')
