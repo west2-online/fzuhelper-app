@@ -2,7 +2,7 @@
 set -e
 
 # Xcode Cloud runs ci_scripts from ios/ci_scripts/, so navigate to project root first
-cd "$(dirname "$0")/../../"
+cd ../../
 
 # This script requires 'jq' to parse version information from package.json.
 if ! command -v jq >/dev/null 2>&1; then
