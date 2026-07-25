@@ -9,7 +9,7 @@ if [[ -d "$CI_APP_STORE_SIGNED_APP_PATH" ]]; then
     TESTFLIGHT_DIR_PATH=../TestFlight
     [[ ! -d $TESTFLIGHT_DIR_PATH ]] && mkdir $TESTFLIGHT_DIR_PATH
     git fetch --deepen 3 || { echo "Failed to fetch git history"; exit 1; }
-    GIT_LOG=$(git log -3 --pretty=format:"%s%n%b") || { echo "Failed to get git log"; exit 1; }
+    GIT_LOG=$(git log -3 --pretty=format:"%s") || { echo "Failed to get git log"; exit 1; }
 
     # 翻译提交信息到中文
     GIT_LOG_EN=$(echo "$GIT_LOG" | trans -brief -t en)
@@ -36,4 +36,3 @@ fi
 # 这样可以在 TestFlight 显示 "What to Test" 信息，方便测试人员了解本次构建的改动
 
 # 来源：https://developer.apple.com/forums/thread/711208
-# 这个文件放置在 /scripts 的原因是做备份，如果需要修改脚本内容，需要同步修改 ios/ci_scripts/ci_post_clone.sh 里的文件
