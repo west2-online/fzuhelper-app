@@ -1,6 +1,6 @@
 #!/bin/zsh
-# save as ci_scripts/ci_post_xcodebuild.sh in your project root
 
+set -e
 
 # 安装 translate-shell 为了多语言支持
 brew install translate-shell
