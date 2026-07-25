@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/zsh
 set -e
 
 # Xcode Cloud runs ci_scripts from ios/ci_scripts/, so navigate to project root first
