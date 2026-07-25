@@ -21,6 +21,7 @@ const versionCodePrefix = version.replace(/\./g, '');
 const versionCodeSuffix = String(commitCount).padStart(3, '0');
 // iOS
 const buildNumber = versionCodePrefix + versionCodeSuffix;
+console.log(`版本号: ${buildNumber}`);
 // Android
 const versionCode = parseInt(buildNumber, 10);
 
