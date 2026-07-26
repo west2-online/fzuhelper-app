@@ -16,6 +16,9 @@ version=$(jq -r '.version' package.json)
 versionCodePrefix=$(printf "%s" "$version" | sed 's/\.//g')
 buildNumber="${versionCodePrefix}$(printf "%03d" "$commitCount")"
 
+export CI_BUILD_NUMBER=${buildNumber}
+export CURRENT_PROJECT_VERSION=${buildNumber}
+
 echo "Setting build number to ${buildNumber}"
 cd ios
 agvtool new-version -all "${buildNumber}"
