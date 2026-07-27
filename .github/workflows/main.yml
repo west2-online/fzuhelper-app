@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   ios:
-    # if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/ios.yml
     secrets: inherit
 

@@ -34,19 +34,38 @@ jobs:
       - name: Install Dependencies
         run: yarn install --frozen-lockfile --prefer-offline
 
-      - name: Download EAS CLI
+      - name: Checkout EAS CLI
         run: |
-          mkdir -p eas-cli
-          gh release download --repo west2-online/eas-cli --pattern eas-cli_new.tar.gz
-          tar -xzf eas-cli_new.tar.gz -C eas-cli
+          git clone --branch feat/submit-by-local-machine --depth 1 https://github.com/west2-online/eas-cli.git
+
+      - name: Cache EAS CLI Dependencies
+        uses: actions/cache@v5
+        with:
+          path: eas-cli/node_modules
+          key: ${{ runner.os }}-eas-cli-${{ hashFiles('eas-cli/yarn.lock') }}
+
+      - name: Build EAS CLI
+        run: |
+          cd eas-cli
+          corepack yarn install --frozen-lockfile
+          corepack yarn build
         env:
           GH_TOKEN: ${{ github.token }}
+      
+      # EAS 本地构建会开很多奇怪的容器，这个环境变量保证 commit 正常计数
+      - name: Get commit count
+        id: commit_count
+        run: |
+          COUNT=$(git rev-list --count HEAD)
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Commit count: $COUNT"  
 
       - name: EAS Build iOS
         run: |
-          node ./eas-cli/eas/bin/run build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
+          ./eas-cli/packages/eas-cli/bin/run build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
         env:
           EAS_SKIP_AUTO_FINGERPRINT: 1
+          GIT_COMMIT_COUNT: ${{ steps.commit_count.outputs.count }}
 
       - name: Generate Changelog
         id: changelog
@@ -60,5 +79,5 @@ jobs:
 
       - name: EAS Submit iOS
         run: |
-          node ./eas-cli/eas/bin/run submit --platform ios --profile production --non-interactive --local --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}" \
+          ./eas-cli/packages/eas-cli/bin/run submit --platform ios --profile production --non-interactive --local --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}" \
           --fastlane-args="--distribute_external --reject_build_waiting_for_review"
