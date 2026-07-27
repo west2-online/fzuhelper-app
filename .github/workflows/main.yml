@@ -13,10 +13,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ios:
-    if: github.ref == 'refs/heads/master'
-    uses: ./.github/workflows/ios.yml
-    secrets: inherit
+  # ios:
+  #   if: github.ref == 'refs/heads/master'
+  #   uses: ./.github/workflows/ios.yml
+  #   secrets: inherit
 
   android:
     if: github.ref == 'refs/heads/master'

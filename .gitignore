@@ -25,9 +25,8 @@ nativewind-env.d.ts
 
 # Build generated files
 /ios/*
-/android/
-!/ios/ci_scripts/ci_post_clone.sh
-!/ios/ci_scripts/ci_post_xcodebuild.sh
+!/ios/ci_scripts/
+
 
 # yarn
 yarn-error.log

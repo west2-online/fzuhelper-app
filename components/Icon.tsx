@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import Ionicons from '@react-native-vector-icons/ionicons';
 import { Href, router } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
@@ -6,7 +6,7 @@ import { BorderlessButton } from 'react-native-gesture-handler';
 import { useTheme } from './app-theme-provider';
 
 interface IconProps {
-  name: keyof typeof Ionicons.glyphMap; // 限制为 Ionicons 支持的图标名称
+  name: React.ComponentProps<typeof Ionicons>['name']; // 限制为 Ionicons 支持的图标名称
   size?: number; // 图标大小，默认为 24
   color?: string; // 自定义颜色（优先级高于自适应颜色）
   className?: string; // 用于支持 Tailwind/NativeWind 的样式

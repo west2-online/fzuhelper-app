@@ -1,11 +1,24 @@
 import dayjs from 'dayjs';
 import { memo, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 import { CLASS_SCHEDULES, TIME_FORMAT } from '@/lib/constants';
 import { SCHEDULE_ITEM_MIN_HEIGHT } from '@/lib/course';
 import { cn } from '@/lib/utils';
+
+const styles = StyleSheet.create({
+  titleText: {
+    fontFamily: 'Roboto-Regular',
+    fontSize: 12,
+    lineHeight: 12 * 1.2,
+  },
+  timeText: {
+    fontFamily: 'Roboto-Regular',
+    fontSize: 8,
+    lineHeight: 8 * 1.1,
+  },
+});
 
 // 判断当前时间是否在指定时间段内
 const isTimeInRange = (currentTime: string, startTime: string, endTime: string): boolean => {
@@ -60,17 +73,26 @@ const TimeCol: React.FC<TimeColProps> = ({ height, minItemHeight = SCHEDULE_ITEM
             style={{ height: displayHeight }}
           >
             <Text
-              className={cn('text-[12px] font-bold', isActive ? 'text-primary' : 'text-text-secondary')}
+              className={cn('font-bold', isActive ? 'text-primary' : 'text-text-secondary')}
               numberOfLines={1}
+              adjustsFontSizeToFit
+              style={styles.titleText}
             >
               {index + 1}
             </Text>
-            <Text className={cn('text-[8px]', isActive ? 'text-primary' : 'text-text-secondary')} numberOfLines={1}>
+            <Text
+              className={cn(isActive ? 'text-primary' : 'text-text-secondary')}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={styles.timeText}
+            >
               {time[0]}
             </Text>
             <Text
-              className={cn('overflow-clip text-[8px]', isActive ? 'text-primary' : 'text-text-secondary')}
+              className={cn(isActive ? 'text-primary' : 'text-text-secondary')}
               numberOfLines={1}
+              adjustsFontSizeToFit
+              style={styles.timeText}
             >
               {time[1]}
             </Text>

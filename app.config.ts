@@ -21,6 +21,7 @@ const versionCodePrefix = version.replace(/\./g, '');
 const versionCodeSuffix = String(commitCount).padStart(3, '0');
 // iOS
 const buildNumber = versionCodePrefix + versionCodeSuffix;
+console.log(`版本号: ${buildNumber}`);
 // Android
 const versionCode = parseInt(buildNumber, 10);
 
@@ -111,6 +112,7 @@ const config: ExpoConfig = {
       {
         android: {
           buildArchs: ['arm64-v8a'],
+          usePrecompiledHeaders: true,
           useLegacyPackaging: true,
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
@@ -123,7 +125,9 @@ const config: ExpoConfig = {
       './plugins/inject-android-network-security-config',
       { networkSecurityConfig: './assets/configs/network_security_config.xml', enable: true },
     ],
+    './plugins/keep-android-resources',
     './plugins/inject-ios-prebuild',
+    './modules/safe-area-webview/app.plugin.js',
     [
       './modules/umeng-bridge/app.plugin.js',
       {

@@ -46,15 +46,15 @@ const SlotDetailModal: React.FC<SlotDetailModalProps> = ({ slotInfo, participant
                     : 'border-green-500 bg-green-50 dark:bg-green-950/20'
               }`}
             >
-              <View>
+              <View className="mr-3 min-w-0 flex-1">
                 <Text className="font-medium">{participant.name}</Text>
                 {participant.college && (
-                  <Text className="text-xs text-text-secondary">
+                  <Text className="text-xs text-text-secondary" numberOfLines={1} ellipsizeMode="tail">
                     {participant.college} · {participant.major}
                   </Text>
                 )}
               </View>
-              <View>
+              <View className="flex-shrink-0">
                 <Text
                   className={`text-sm font-bold ${
                     participant.isError
