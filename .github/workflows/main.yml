@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - chore/ci-eas
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
@@ -13,10 +14,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ios:
-  #   if: github.ref == 'refs/heads/master'
-  #   uses: ./.github/workflows/ios.yml
-  #   secrets: inherit
+  ios:
+    # if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/ios.yml
+    secrets: inherit
 
   android:
     if: github.ref == 'refs/heads/master'
