@@ -316,6 +316,17 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     href: '/toolbox/job-fair',
   },
   {
+    id: 230,
+    name: '晚点名签到',
+    icon: LostFoundIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://yzsxg.fzu.edu.cn/livecloud/project/fzu/attn/oauth2/authorize.action',
+      title: '晚点名签到',
+      sso: true,
+    },
+  },
+  {
     id: 9999,
     name: '更多',
     icon: MoreIcon,
