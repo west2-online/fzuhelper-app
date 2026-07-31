@@ -43,7 +43,7 @@ export default function PushSettingsPage() {
           .then(() => NotificationManager.register())
           .then(() => resolve())
           .catch((error: any) => {
-            toast.error('设置失败，请稍后重试：' + (error.data.message || error.message || '未知错误'));
+            toast.error('设置失败，请稍后重试：' + (error.data?.message || error.message || '未知错误'));
             // 回滚 UI 和本地存储
             setSettings(prevSettings);
             saveSettingsToStorage(prevSettings);
