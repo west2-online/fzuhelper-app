@@ -15,7 +15,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
-const projectDir = path.dirname(__dirname);
+const projectDir = path.resolve(__dirname, '../..');
 const reanimatedHar = path.join(
   projectDir,
   'node_modules',
