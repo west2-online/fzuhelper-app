@@ -94,7 +94,7 @@ const LoginPage: React.FC = () => {
         // 登录、获取 token、检查串号等逻辑
         await LocalUser.login(captcha);
         // 登录成功
-        if (Platform.OS === 'android') {
+        if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
           BuglyModule.setUserId(username);
         }
 
@@ -108,7 +108,7 @@ const LoginPage: React.FC = () => {
         // 访问令牌获取失败，清除账户信息
         await LocalUser.clear();
         await refreshCaptcha();
-        if (Platform.OS === 'android') {
+        if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
           await BuglyModule.setUserId('');
         }
       } finally {

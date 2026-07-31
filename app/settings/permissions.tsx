@@ -10,6 +10,7 @@ import {
   checkNotifications,
   openSettings,
   request,
+  requestMultiple,
   requestNotifications,
 } from 'react-native-permissions';
 
@@ -21,6 +22,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
+
+const HARMONY_PERMISSIONS = {
+  CAMERA: 'ohos.permission.CAMERA' as Permission,
+  LOCATION: 'ohos.permission.LOCATION' as Permission,
+  READ_CALENDAR: 'ohos.permission.READ_CALENDAR' as Permission,
+  WRITE_CALENDAR: 'ohos.permission.WRITE_CALENDAR' as Permission,
+};
 
 export default function AcademicPage() {
   const [isAllowNotification, setAllowNotification] = useState(false); // 通知权限
@@ -73,6 +81,20 @@ export default function AcademicPage() {
         setAllowNotification(status === RESULTS.GRANTED); // 通知权限
         setNotificationSettings(settings);
       });
+    } else if ((Platform.OS as string) === 'harmony') {
+      setAllowNotification(ExpoUmengModule.hasPermission());
+      const statuses = await checkMultiple([
+        HARMONY_PERMISSIONS.READ_CALENDAR,
+        HARMONY_PERMISSIONS.WRITE_CALENDAR,
+        HARMONY_PERMISSIONS.CAMERA,
+        HARMONY_PERMISSIONS.LOCATION,
+      ]);
+      setAllowCalendar(
+        statuses[HARMONY_PERMISSIONS.READ_CALENDAR] === RESULTS.GRANTED &&
+          statuses[HARMONY_PERMISSIONS.WRITE_CALENDAR] === RESULTS.GRANTED,
+      );
+      setAllowCamera(statuses[HARMONY_PERMISSIONS.CAMERA] === RESULTS.GRANTED);
+      setAllowLocation(statuses[HARMONY_PERMISSIONS.LOCATION] === RESULTS.GRANTED);
     }
   }, []);
 
@@ -97,7 +119,7 @@ export default function AcademicPage() {
   const handleNotificationPermission = () => {
     if (Platform.OS === 'android') {
       openNotificationSettings();
-    } else if (Platform.OS === 'ios') {
+    } else if (Platform.OS === 'ios' || (Platform.OS as string) === 'harmony') {
       if (isAllowNotification) {
         openNotificationSettings();
         return;
@@ -191,15 +213,38 @@ export default function AcademicPage() {
   );
 
   const handleCalendarPermission = () => {
+    if ((Platform.OS as string) === 'harmony') {
+      if (isAllowCalendar) {
+        openApplicationSettings();
+        return;
+      }
+      requestMultiple([HARMONY_PERMISSIONS.READ_CALENDAR, HARMONY_PERMISSIONS.WRITE_CALENDAR]).then(statuses => {
+        setAllowCalendar(
+          statuses[HARMONY_PERMISSIONS.READ_CALENDAR] === RESULTS.GRANTED &&
+            statuses[HARMONY_PERMISSIONS.WRITE_CALENDAR] === RESULTS.GRANTED,
+        );
+      });
+      return;
+    }
     handleStandardPermission(PERMISSIONS.IOS.CALENDARS, '日历', isAllowCalendar, setAllowCalendar);
   };
 
   const handleCameraPermission = () => {
-    handleStandardPermission(PERMISSIONS.IOS.CAMERA, '相机', isAllowCamera, setAllowCamera);
+    handleStandardPermission(
+      (Platform.OS as string) === 'harmony' ? HARMONY_PERMISSIONS.CAMERA : PERMISSIONS.IOS.CAMERA,
+      '相机',
+      isAllowCamera,
+      setAllowCamera,
+    );
   };
 
   const handleLocationPermission = () => {
-    handleStandardPermission(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE, '定位', isAllowLocation, setAllowLocation);
+    handleStandardPermission(
+      (Platform.OS as string) === 'harmony' ? HARMONY_PERMISSIONS.LOCATION : PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+      '定位',
+      isAllowLocation,
+      setAllowLocation,
+    );
   };
 
   return (

@@ -64,7 +64,7 @@ export default function SplashScreen() {
   const initThirdParty = useCallback(async () => {
     console.log('init ThirdParty Libraries');
     await NotificationManager.init();
-    if (Platform.OS === 'android') {
+    if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
       // 崩溃上报
       BuglyModule.initBugly();
     }

@@ -38,6 +38,8 @@ export default function AboutPage() {
     console.log('check update');
     if (Platform.OS === 'ios') {
       Linking.openURL('itms-apps://itunes.apple.com/app/id866768101');
+    } else if ((Platform.OS as string) === 'harmony') {
+      setUpdateCheckState('请通过应用市场检查更新');
     } else {
       setUpdateCheckState('正在检查更新');
 
