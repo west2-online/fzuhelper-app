@@ -26,6 +26,10 @@ nativewind-env.d.ts
 # Build generated files
 /ios/*
 /android/
+/harmony/
+/__harmony__/expo-config.generated.json
+/.harmony-local/
+/.harmony-prebuild-*
 !/ios/ci_scripts/ci_post_clone.sh
 !/ios/ci_scripts/ci_post_xcodebuild.sh
 
