@@ -150,6 +150,21 @@ const EXAM_PRIORITY = 20002; // 考试优先级，我们取巧一下，比最大
 export const DEFAULT_PRIORITY = 1; // 默认优先级
 const DEFAULT_STARTID = 0; // 默认 ID 起始值
 
+// 云端自定义课程 storageKey 前缀
+// 约定：以该前缀开头的 storageKey 表示课程来自云端，需与服务端同步
+// 纯本地课程则使用随机 UUID 作为 storageKey，不触发同步逻辑
+const CLOUD_COURSE_STORAGE_PREFIX = 'cloud_';
+
+// 判断 storageKey 是否为云端课程
+const isCloudCourse = (key: string): boolean => key.startsWith(CLOUD_COURSE_STORAGE_PREFIX);
+
+// 根据云端 courseId 生成 storageKey
+const buildCloudStorageKey = (courseId: string): string => `${CLOUD_COURSE_STORAGE_PREFIX}${courseId}`;
+
+// 从 storageKey 中提取云端 courseId（若非云端 key，返回空字符串）
+const extractCloudCourseId = (key: string): string =>
+  isCloudCourse(key) ? key.slice(CLOUD_COURSE_STORAGE_PREFIX.length) : '';
+
 // 云端同步辅助函数：新增/更新自定义课程
 export async function upsertCustomCourse(term: string, course: UpsertCustomCourseParams['course']): Promise<string> {
   try {
@@ -324,7 +339,7 @@ export class CourseCache {
       for (const [day, courses] of Object.entries(this.cachedCustomData)) {
         for (const course of courses) {
           // 只迁移本地课程（storageKey 不以 cloud_ 开头）
-          if (!course.storageKey.startsWith('cloud_')) {
+          if (!isCloudCourse(course.storageKey)) {
             hasLocalCourses = true;
             try {
               const cloudCourseId = await upsertCustomCourse(term, {
@@ -343,7 +358,7 @@ export class CourseCache {
 
               // 更新 storageKey 为云端格式
               if (cloudCourseId) {
-                course.storageKey = `cloud_${cloudCourseId}`;
+                course.storageKey = buildCloudStorageKey(cloudCourseId);
               }
             } catch (error) {
               console.error(`Failed to migrate course ${course.name}:`, error);
@@ -801,7 +816,7 @@ export class CourseCache {
     // 清空旧的云端课程（以 cloud_ 开头的 storageKey）
     for (const day of Object.keys(this.cachedCustomData)) {
       this.cachedCustomData[+day] = this.cachedCustomData[+day].filter(
-        c => !c.storageKey.startsWith('cloud_')
+        c => !isCloudCourse(c.storageKey)
       );
     }
 
@@ -828,7 +843,7 @@ export class CourseCache {
         remark: course.remark || '',
         priority: DEFAULT_PRIORITY,
         type: CourseType.CUSTOM,
-        storageKey: `cloud_${course.id}`,
+        storageKey: buildCloudStorageKey(course.id),
         lastUpdateTime: dayjs().toISOString(),
         semester: '', // 将在 load 时设置正确的学期
       };
@@ -917,7 +932,7 @@ export class CourseCache {
       ...course,
       id: this.allocateID(),
       // 如果有云端 courseId，则使用 cloud_ 前缀的 storageKey
-      storageKey: cloudCourseId ? `cloud_${cloudCourseId}` : randomUUID(),
+      storageKey: cloudCourseId ? buildCloudStorageKey(cloudCourseId) : randomUUID(),
       lastUpdateTime: dayjs().toISOString(),
     };
 
@@ -960,10 +975,10 @@ export class CourseCache {
     }
 
     // 如果是云端课程，上传更新到服务器
-    if (key.startsWith('cloud_')) {
+    if (isCloudCourse(key)) {
       try {
         const term = (await getCourseSetting()).selectedSemester;
-        const courseId = key.replace('cloud_', '');
+        const courseId = extractCloudCourseId(key);
         await upsertCustomCourse(term, {
           id: courseId,
           name: course.name,
@@ -1010,10 +1025,10 @@ export class CourseCache {
     }
 
     // 如果是云端课程，从服务器删除
-    if (key.startsWith('cloud_')) {
+    if (isCloudCourse(key)) {
       try {
         const term = (await getCourseSetting()).selectedSemester;
-        const courseId = key.replace('cloud_', '');
+        const courseId = extractCloudCourseId(key);
         await deleteCustomCourse(term, courseId);
       } catch (error) {
         console.error('Failed to delete custom course from server:', error);
