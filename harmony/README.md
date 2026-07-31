@@ -1,0 +1,85 @@
+# fzuhelper HarmonyOS shell
+
+This project hosts the RNOH 0.82.30 build of the Expo/React Native application.
+The Android and iOS build keep using the React Native version selected by Expo;
+Metro redirects only the `harmony` bundle to RNOH and Harmony-specific ports.
+
+## Requirements
+
+- DevEco Studio with HarmonyOS SDK 20 or newer
+- Node.js and Yarn 1
+- `ohpm` and `hvigorw` on `PATH`
+- a DevEco signing configuration for the `default` product
+
+## Development
+
+```sh
+yarn install
+yarn oh:install
+yarn oh
+```
+
+Harmony-only npm packages are declared as optional so Android/iOS-only
+environments can use `yarn install --ignore-optional`.
+
+Open this `harmony/` directory in DevEco Studio, configure signing, then run the
+`entry` module. Metro listens on port 8082. RNOH's `RNAbility` forwards cold and
+warm `fzuhelper://` wants to React Native `Linking`.
+
+## Offline debug build
+
+```sh
+yarn oh:build
+```
+
+The command updates `versionCode`, generates the Expo constants and launcher
+shortcut resources, prepares the published reanimated HAR,
+installs HAR dependencies, creates `bundle.harmony.js`, copies Metro assets,
+and asks hvigor for a debug HAP.
+
+The checked-in `prepare_dependencies.js` removes reanimated 4.0.1's invalid
+`file:../worklets` manifest entry. The application already declares and
+registers worklets separately, so this does not remove the native dependency.
+The script uses Node.js and the system `tar` executable; Python is not required.
+Without a DevEco signing profile, the build still produces
+`entry/build/default/outputs/default/entry-default-unsigned.hap` for compile
+verification, but that artifact cannot be installed.
+
+## Quick actions
+
+`../config/quick-actions.json` is the only application-owned quick-action
+catalogue. Android's config plugin, the shared React code, and HarmonyOS resource
+generation all read that file. Do not hand-edit the generated
+`entry/src/main/resources/base/{element,media,profile}/expo_quick_actions*`
+files.
+
+The `expo_quick_actions` HAR contains only reusable platform mechanics: cold and
+warm launch delivery, the Expo event bridge, and visibility changes. Routes,
+titles, parameters, and icons remain application configuration. HarmonyOS
+launcher shortcuts are declared at build time; API 20 can change the visibility
+of declared entries, but cannot create or mutate them at runtime.
+
+## Native coverage
+
+The Harmony build uses native ArkTS TurboModules for HTTP, brightness, system
+sharing, system bars, cryptographic digests and random bytes, Push Kit, quick
+actions, widgets, fonts, file operations, splash coordination, and Bugly.
+`expo-crypto` retains Expo's complete digest/random/AES-GCM surface; AES-GCM is
+implemented with the already-used `node-forge` dependency.
+
+RNOH ports are also registered for AsyncStorage, WebView, cookies, geolocation,
+blob-util, SVG, safe areas, gestures, reanimated/worklets, device-info, linear
+gradients, blur, camera scanning, clipboard, image crop picker, image zoom,
+keyboard controller, permissions, screens, and the splash screen. Harmony-only
+npm packages live in `optionalDependencies`.
+
+The only Metro mock left is `react-native-screens/experimental`, because the
+current RNOH screens package does not publish that subpath. Platform-only
+features that have no equivalent are rejected explicitly instead of reporting
+fake success: this includes Android SAF, incoming-share payloads, resumable
+downloads, font unloading, and local Push Kit tag mutation. Push Kit token
+registration is native, but delivery for the existing business tags still
+needs server-side Push Kit integration. Bugly initialization requires the
+Harmony product credentials in
+`entry/src/main/resources/base/element/string.json`. Launcher cards must be
+added through the system's manual widget picker.

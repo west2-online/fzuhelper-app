@@ -18,5 +18,6 @@
     "expo-env.d.ts",
     "nativewind-env.d.ts",
     "metro.config.js"
-  ]
+  ],
+  "exclude": ["harmony"]
 }

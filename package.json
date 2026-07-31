@@ -13,6 +13,10 @@
     "ios": "expo run:ios",
     "prebuild:android": "expo prebuild --platform android --clean",
     "prebuild:ios": "expo prebuild --platform ios --clean",
+    "oh": "react-native start --config metro.harmony.config.js --port 8082",
+    "oh:install": "node harmony/prepare_dependencies.js && cd harmony && ohpm install --all",
+    "oh:bundle": "bash harmony/bundle.sh",
+    "oh:build": "node harmony/pre_build.js && yarn oh:install && yarn oh:bundle && cd harmony && hvigorw assembleHap --mode module -p product=default -p buildMode=debug --no-daemon",
     "test": "jest --watchAll",
     "lint": "expo lint",
     "openapi": "openapi-ts"
@@ -57,6 +61,7 @@
     "htmlparser2": "^10.0.0",
     "lucide-react-native": "^0.525.0",
     "nativewind": "^4.2.4",
+    "node-forge": "^1.3.3",
     "qrcode-generator": "^2.0.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -84,6 +89,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.6",
+    "@react-native-community/cli": "20.0.0",
     "@react-native/eslint-config": "^0.79.7",
     "@types/node": "^26.1.1",
     "@types/node-forge": "^1.3.14",
@@ -103,6 +109,31 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "typescript": "~6.0.3"
+  },
+  "optionalDependencies": {
+    "@react-native-oh-tpl/react-native-linear-gradient": "3.0.0-0.5.0",
+    "@react-native-oh/react-native-harmony": "0.82.30",
+    "@react-native-oh/react-native-harmony-cli": "0.82.30",
+    "@react-native-ohos/async-storage": "2.2.2-beta.1",
+    "@react-native-ohos/blur": "4.5.0",
+    "@react-native-ohos/clipboard": "1.16.3",
+    "@react-native-ohos/cookies": "6.3.1-beta.1",
+    "@react-native-ohos/geolocation": "3.5.0-beta.2",
+    "@react-native-ohos/react-native-blob-util": "0.22.3-beta.1",
+    "@react-native-ohos/react-native-camera-kit": "15.1.2",
+    "@react-native-ohos/react-native-device-info": "14.1.2-beta.3",
+    "@react-native-ohos/react-native-gesture-handler": "2.30.1",
+    "@react-native-ohos/react-native-image-crop-picker": "0.51.2",
+    "@react-native-ohos/react-native-image-zoom-viewer": "3.0.2",
+    "@react-native-ohos/react-native-keyboard-controller": "1.16.7",
+    "@react-native-ohos/react-native-permissions": "5.3.2",
+    "@react-native-ohos/react-native-reanimated": "4.0.1",
+    "@react-native-ohos/react-native-safe-area-context": "5.6.3",
+    "@react-native-ohos/react-native-screens": "4.9.0-rc.11",
+    "@react-native-ohos/react-native-splash-screen": "3.4.0",
+    "@react-native-ohos/react-native-svg": "15.13.0",
+    "@react-native-ohos/react-native-webview": "13.16.1",
+    "@react-native-ohos/react-native-worklets": "1.0.0"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
