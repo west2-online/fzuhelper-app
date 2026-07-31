@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import { type ExpoConfig } from 'expo/config';
 import 'ts-node/register';
+import quickActionsConfig from './config/quick-actions.json';
 import { version } from './package.json';
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
@@ -23,6 +24,15 @@ const versionCodeSuffix = String(commitCount).padStart(3, '0');
 const buildNumber = versionCodePrefix + versionCodeSuffix;
 // Android
 const versionCode = parseInt(buildNumber, 10);
+const androidQuickActionIcons = Object.fromEntries(
+  quickActionsConfig.items.map(item => [
+    item.platforms.android.icon,
+    {
+      foregroundImage: item.platforms.android.foregroundImage,
+      backgroundColor: item.platforms.android.backgroundColor,
+    },
+  ]),
+);
 
 const config: ExpoConfig = {
   name: 'fzuhelper',
@@ -166,12 +176,7 @@ const config: ExpoConfig = {
     [
       'expo-quick-actions',
       {
-        androidIcons: {
-          qrcode: {
-            foregroundImage: './assets/images/qr_action.png',
-            backgroundColor: '#FFFFFF',
-          },
-        },
+        androidIcons: androidQuickActionIcons,
       },
     ],
     './plugins/with-android-theme',
