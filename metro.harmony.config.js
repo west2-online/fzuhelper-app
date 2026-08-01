@@ -8,6 +8,7 @@ const { withNativeWind } = require('nativewind/metro');
 
 const projectRoot = __dirname;
 const projectImportRoots = new Set(['api', 'app', 'components', 'context', 'hooks', 'lib', 'modules', 'utils']);
+const harmonyReactPackage = 'react-harmony';
 const adapter = name => path.join(projectRoot, '__harmony_adapters__', name);
 const mock = name => path.join(projectRoot, '__mocks__', name);
 const expoNavigationBarAndroid = path.join(
@@ -25,6 +26,12 @@ const expoSplashScreenNative = path.join(
   'build',
   'SplashScreen.native.js',
 );
+const harmonyWorkletsPackageJson = path.join(
+  path.dirname(require.resolve('@react-native-ohos/react-native-worklets/package.json')),
+  'node_modules',
+  'react-native-worklets',
+  'package.json',
+);
 
 const packageRedirects = new Map([
   ['expo-blur', adapter('expo-blur.harmony.js')],
@@ -35,7 +42,13 @@ const packageRedirects = new Map([
   ['expo-navigation-bar', expoNavigationBarAndroid],
   ['expo-status-bar', adapter('expo-status-bar.harmony.js')],
   ['@preeternal/react-native-cookie-manager', adapter('cookie-manager.harmony.js')],
+  ['react-native-keyboard-controller', adapter('react-native-keyboard-controller.harmony.js')],
+  ['react-native-safe-area-context', adapter('react-native-safe-area-context.harmony.js')],
   ['react-native-screens/experimental', mock('react-native-screens-experimental.harmony.js')],
+  // Reanimated 4.2.1 checks this subpath at runtime. The Harmony wrapper is
+  // versioned 1.0.0, but the JS implementation it embeds (and its native HAR)
+  // is Worklets 0.7.1. Point the check at that implementation's manifest.
+  ['react-native-worklets/package.json', harmonyWorkletsPackageJson],
 ]);
 
 const expoConfig = getDefaultConfig(projectRoot);
@@ -76,6 +89,20 @@ config.resolver = {
 
     if (projectImportRoots.has(moduleName.split('/')[0])) {
       return context.resolveRequest(context, path.join(projectRoot, moduleName), platform);
+    }
+
+    // RNOH 0.82's renderer is built against React 19.1.1, whereas the main
+    // RN 0.85 app uses React 19.2.3. Keep one platform-specific React instance
+    // and redirect its JSX/compiler runtime subpaths along with the root import.
+    if (moduleName === 'react' || moduleName.startsWith('react/')) {
+      return context.resolveRequest(context, moduleName.replace(/^react(?=\/|$)/u, harmonyReactPackage), platform);
+    }
+
+    if (/^react-native-safe-area-context\/src\/+InitialWindow$/u.test(moduleName)) {
+      return {
+        type: 'sourceFile',
+        filePath: adapter('react-native-safe-area-context-initial-window.harmony.js'),
+      };
     }
 
     const redirected = packageRedirects.get(moduleName);
