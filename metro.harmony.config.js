@@ -67,6 +67,7 @@ config.transformer = {
 config.resolver = {
   ...config.resolver,
   assetExts: config.resolver.assetExts.filter(extension => extension !== 'svg'),
+  platforms: [...new Set([...(config.resolver.platforms ?? []), 'harmony'])],
   sourceExts: [...new Set([...config.resolver.sourceExts, 'svg'])],
   unstable_conditionsByPlatform: {
     ...config.resolver.unstable_conditionsByPlatform,
@@ -81,6 +82,13 @@ config.resolver = {
 
     if (moduleName.includes('MaterialSymbols')) {
       return { type: 'empty' };
+    }
+
+    if (moduleName === '@/components/toolbox-icons') {
+      return {
+        type: 'sourceFile',
+        filePath: path.join(projectRoot, 'components', 'toolbox-icons.harmony.tsx'),
+      };
     }
 
     if (moduleName.startsWith('@/')) {
