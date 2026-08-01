@@ -35,8 +35,11 @@ add_subdirectory("${OH_MODULES}/@react-native-ohos/react-native-webview/src/main
 
 add_library(rnoh_app SHARED
   "./PackageProvider.cpp"
+  "./turboModules/FzuHelperTurboModules.cpp"
   "${RNOH_CPP_DIR}/RNOHAppNapiBridge.cpp"
 )
+
+target_include_directories(rnoh_app PRIVATE "${RNOH_APP_DIR}")
 
 target_link_libraries(rnoh_app PUBLIC
   rnoh

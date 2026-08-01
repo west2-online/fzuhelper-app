@@ -6,6 +6,7 @@
 #include "CameraKitPackage.h"
 #include "ClipboardPackage.h"
 #include "CookiesPackage.h"
+#include "FzuHelperPackage.h"
 #include "GeoLocationPackage.h"
 #include "GestureHandlerPackage.h"
 #include "ImageCropPickerPackage.h"
@@ -45,5 +46,6 @@ std::vector<std::shared_ptr<Package>> PackageProvider::getPackages(Package::Cont
       std::make_shared<SplashScreenPackage>(ctx),
       std::make_shared<SVGPackage>(ctx),
       std::make_shared<WebViewPackage>(ctx),
+      std::make_shared<FzuHelperPackage>(ctx),
   };
 }
