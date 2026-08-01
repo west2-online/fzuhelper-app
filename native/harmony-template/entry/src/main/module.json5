@@ -12,6 +12,9 @@
     "pages": "$profile:main_pages",
     "requestPermissions": [
       {
+        "name": "ohos.permission.ACCELEROMETER"
+      },
+      {
         "name": "ohos.permission.INTERNET"
       },
       {

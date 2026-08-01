@@ -22,12 +22,21 @@ function StatusBar({ style, hideTransitionAnimation, animated, hidden }) {
   const colorScheme = useColorScheme();
   const barStyle = React.useMemo(() => styleToBarStyle(style, colorScheme), [style, colorScheme]);
 
-  return React.createElement(NativeStatusBar, {
-    animated,
-    hidden,
-    barStyle,
-    showHideTransition: hideTransitionAnimation === 'none' ? undefined : hideTransitionAnimation,
-  });
+  React.useEffect(() => {
+    NativeStatusBar.setBarStyle(barStyle, animated);
+  }, [animated, barStyle]);
+
+  React.useEffect(() => {
+    if (hidden !== undefined) {
+      NativeStatusBar.setHidden(hidden, hideTransitionAnimation === 'none' ? undefined : hideTransitionAnimation);
+    }
+  }, [hidden, hideTransitionAnimation]);
+
+  // Mounting React Native's StatusBar component also syncs Android-only
+  // background/translucent properties. RNOH already renders the status bar as
+  // translucent and logs those updates as unsupported, so use only the two
+  // supported imperative operations above.
+  return null;
 }
 
 StatusBar.setStyle = (style, animated) => {

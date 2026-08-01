@@ -110,6 +110,12 @@ yarn oh:install
 yarn oh
 ```
 
+After react native dev server and simulator started, you should forward the port 8082 to the device:
+
+```bash
+hdc rport tcp:8082 tcp:8082
+```
+
 Open the generated `harmony/` directory in DevEco Studio to configure signing
 and run the `entry` module. Use `yarn oh:build` for a clean offline debug HAP
 build; it regenerates the native project before compiling.

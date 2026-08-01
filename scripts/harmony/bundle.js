@@ -4,12 +4,12 @@ const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 
 const projectDir = path.resolve(__dirname, '..', '..');
-const yarnCommand = process.platform === 'win32' ? 'yarn.cmd' : 'yarn';
+const reactNativeCli = require.resolve('@react-native-community/cli/build/bin.js');
 
 const result = spawnSync(
-  yarnCommand,
+  process.execPath,
   [
-    'react-native',
+    reactNativeCli,
     'bundle-harmony',
     '--dev',
     'false',
@@ -33,7 +33,7 @@ const result = spawnSync(
       ...process.env,
       RNOH_C_API_ARCH: '1',
     },
-  }
+  },
 );
 
 if (result.error) {
