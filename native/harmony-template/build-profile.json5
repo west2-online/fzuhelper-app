@@ -8,7 +8,10 @@
         "targetSdkVersion": "6.0.0(20)",
         "runtimeOS": "HarmonyOS",
         "buildOption": {
-          "nativeCompiler": "BiSheng"
+          "nativeCompiler": "BiSheng",
+          "strictMode": {
+            "useNormalizedOHMUrl": true
+          }
         }
       }
     ],

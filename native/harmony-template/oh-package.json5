@@ -26,7 +26,11 @@
     "@react-native-ohos/react-native-worklets": "file:../node_modules/@react-native-ohos/react-native-worklets/harmony/worklets.har",
     "bugly": "0.4.1",
     "@react-native-ohos/geolocation": "file:../node_modules/@react-native-ohos/geolocation/harmony/geolocation.har",
-    "@react-native-ohos/react-native-device-info": "file:../node_modules/@react-native-ohos/react-native-device-info/harmony/device_info.har"
+    "@react-native-ohos/react-native-device-info": "file:../node_modules/@react-native-ohos/react-native-device-info/harmony/device_info.har",
+    "@umeng/analytics": "1.2.12",
+    "@umeng/common": "1.1.12",
+    "@umeng/push": "2.0.4",
+    "@umeng/utunnel": "1.2.5"
   },
   "devDependencies": {
     "@ohos/hypium": "1.0.11"

@@ -9,6 +9,11 @@ edit generated files directly. Make persistent native changes in
 `native/harmony-template/` or in the configuration generators under
 `scripts/harmony/`, then regenerate the project.
 
+Umeng credentials and vendor channel identifiers are maintained in the root
+`config/umeng.json`. The Harmony prebuild generates the ArkTS constants and
+`AppScope/resources/rawfile/umconfig.json` from that file; do not add Umeng
+values directly to the Harmony template.
+
 ## Requirements
 
 - DevEco Studio with HarmonyOS SDK 20 or newer
@@ -74,7 +79,7 @@ of declared entries, but cannot create or mutate them at runtime.
 ## Native coverage
 
 The Harmony build uses native ArkTS TurboModules for HTTP, brightness, system
-sharing, system bars, cryptographic digests and random bytes, Push Kit, quick
+sharing, system bars, cryptographic digests and random bytes, Umeng Push, quick
 actions, widgets, fonts, file operations, splash coordination, and Bugly.
 `expo-crypto` retains Expo's complete digest/random/AES-GCM surface; AES-GCM is
 implemented with the already-used `node-forge` dependency.
@@ -89,9 +94,10 @@ The only Metro mock left is `react-native-screens/experimental`, because the
 current RNOH screens package does not publish that subpath. Platform-only
 features that have no equivalent are rejected explicitly instead of reporting
 fake success: this includes Android SAF, incoming-share payloads, resumable
-downloads, font unloading, and local Push Kit tag mutation. Push Kit token
-registration is native, but delivery for the existing business tags still
-needs server-side Push Kit integration. Bugly initialization requires the
+downloads, font unloading, and other platform-only features. Umeng tag
+operations and token registration are native, so HarmonyOS reuses the existing
+Umeng server-side audience path instead of requiring a separate Push Kit
+integration. Bugly initialization requires the
 Harmony product credentials in
 `entry/src/main/resources/base/element/string.json`. Launcher cards must be
 added through the system's manual widget picker.
