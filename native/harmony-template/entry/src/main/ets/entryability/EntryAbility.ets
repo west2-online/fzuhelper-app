@@ -1,11 +1,16 @@
 import { AbilityConstant, Want } from '@kit.AbilityKit';
 import { window } from '@kit.ArkUI';
 import { ExpoQuickActionsLaunchState } from 'expo_quick_actions';
+import { PushAgent } from '@umeng/push';
 import { RNAbility } from '@rnoh/react-native-openharmony';
 import { HarmonySplashScreen } from '../splash/HarmonySplashScreen';
+import { HarmonyPushTurboModule } from '../turboModules/HarmonyPushTurboModule';
 
 export default class EntryAbility extends RNAbility {
   override onCreate(want: Want, launchParam?: AbilityConstant.LaunchParam): void {
+    PushAgent.initCallback((data: Record<string, string>) => {
+      HarmonyPushTurboModule.onInitCallback(data);
+    });
     ExpoQuickActionsLaunchState.recordInitial(want);
     super.onCreate(want, launchParam);
   }

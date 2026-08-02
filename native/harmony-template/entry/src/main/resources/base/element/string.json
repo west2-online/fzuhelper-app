@@ -25,6 +25,10 @@
       "value": "用于将课表和考场安排导出到系统日历"
     },
     {
+      "name": "permission_tracking",
+      "value": "用于统计和改进消息推送服务"
+    },
+    {
       "name": "widget_display_name",
       "value": "下节课上什么"
     },

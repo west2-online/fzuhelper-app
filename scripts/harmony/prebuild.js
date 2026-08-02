@@ -5,12 +5,14 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { syncHarmonyConstants } = require('../../modules/expo-constants/scripts/sync-harmony-config');
 const { syncHarmonyQuickActions } = require('../../modules/expo-quick-actions/scripts/sync-harmony-resources');
+const { syncHarmonyUmengConfig } = require('../../modules/umeng-bridge/scripts/sync-harmony-umeng-config');
 
 const projectDir = path.resolve(__dirname, '../..');
 const harmonyTemplateDir = path.join(projectDir, 'native', 'harmony-template');
 const harmonyDir = path.join(projectDir, 'harmony');
 const localOverlayDir = path.join(projectDir, '.harmony-local');
 const quickActionsConfigPath = path.join(projectDir, 'config', 'quick-actions.json');
+const umengConfigPath = path.join(projectDir, 'config', 'umeng.json');
 const expoConfigOutputPath = path.join(projectDir, '__harmony__', 'expo-config.generated.json');
 
 function commitCount() {
@@ -106,6 +108,11 @@ function prebuildHarmony() {
     if (existsSync(localOverlayDir)) {
       cpSync(localOverlayDir, generatedHarmonyDir, { force: true, recursive: true });
     }
+
+    syncHarmonyUmengConfig({
+      configPath: umengConfigPath,
+      harmonyDir: generatedHarmonyDir,
+    });
 
     replaceGeneratedProject(generatedHarmonyDir, stagingRoot);
     rmSync(expoConfigOutputPath, { force: true });
