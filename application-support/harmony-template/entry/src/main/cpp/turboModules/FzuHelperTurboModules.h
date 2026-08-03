@@ -6,12 +6,6 @@
 
 namespace rnoh {
 
-// C++ proxies for the ArkTS TurboModules implemented in
-// entry/src/main/ets/turboModules and expo_quick_actions. RNOH resolves a
-// TurboModule on the ArkTS side first, then requires a matching C++ delegate to
-// describe its method signatures; a module missing from this file fails at
-// runtime with "Couldn't find Turbo Module on the ArkTs side".
-
 class JSI_EXPORT BuglyTurboModule : public ArkTSTurboModule {
  public:
   BuglyTurboModule(const ArkTSTurboModule::Context ctx, const std::string name);

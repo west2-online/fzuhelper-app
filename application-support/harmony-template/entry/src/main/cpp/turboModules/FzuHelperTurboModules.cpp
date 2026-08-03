@@ -2,10 +2,6 @@
 
 namespace rnoh {
 
-// ARK_METHOD_METADATA describes an ArkTS method that returns a value directly;
-// ARK_ASYNC_METHOD_METADATA describes one that returns a Promise. The second
-// argument is the parameter count. Both must match the ArkTS implementation.
-
 BuglyTurboModule::BuglyTurboModule(
     const ArkTSTurboModule::Context ctx,
     const std::string name)

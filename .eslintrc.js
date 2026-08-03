@@ -52,7 +52,7 @@ function normalizeToRecursiveGlob(input) {
 
 module.exports = {
   root: true,
-  ignorePatterns: ['harmony/**', 'native/harmony-template/**'],
+  ignorePatterns: ['harmony/**', 'application-support/harmony-template/**'],
   extends: ['@react-native', 'expo', 'prettier', 'plugin:react/jsx-runtime'],
   plugins: ['prettier'],
   rules: {

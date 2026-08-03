@@ -1,7 +1,7 @@
 'use strict';
 
 const { UnavailabilityError } = require('expo-modules-core');
-const NativeSystem = require('../../../__harmony__/native-system.harmony');
+const NativeSystem = require('../../../application-support/harmony-polyfill/native-system.harmony');
 
 const EXPO_MODULE_NAME = 'ExpoSharing';
 let warnedAboutDialogTitle = false;

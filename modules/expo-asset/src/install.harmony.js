@@ -1,7 +1,7 @@
 'use strict';
 
 const ReactNativeBlobUtilModule = require('react-native-blob-util');
-const NativeSystem = require('../../../__harmony__/native-system.harmony');
+const NativeSystem = require('../../../application-support/harmony-polyfill/native-system.harmony');
 
 const ReactNativeBlobUtil = ReactNativeBlobUtilModule.default ?? ReactNativeBlobUtilModule;
 const EXPO_MODULE_NAME = 'ExpoAsset';

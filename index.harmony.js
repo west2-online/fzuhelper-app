@@ -8,12 +8,12 @@ process.env.EXPO_PUBLIC_USE_RN_FETCH = '1';
 
 // Keep these requires ordered. Static imports are hoisted and can evaluate Expo
 // before the JS implementation of globalThis.expo has been installed.
-require('./__harmony__/install-expo-polyfill.harmony');
+require('./application-support/harmony-polyfill/install-expo-polyfill.harmony');
 
 const { installExpoAsset } = require('./modules/expo-asset/src/install.harmony');
 installExpoAsset();
 
-const harmonyExpoConfig = require('./__harmony__/expo-config.generated.json');
+const harmonyExpoConfig = require('./application-support/harmony-polyfill/expo-config.generated.json');
 const { installExpoConstants } = require('./modules/expo-constants/src/install.harmony');
 installExpoConstants(harmonyExpoConfig);
 
