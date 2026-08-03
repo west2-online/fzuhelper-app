@@ -8,12 +8,17 @@ const { syncHarmonyQuickActions } = require('../../modules/expo-quick-actions/sc
 const { syncHarmonyUmengConfig } = require('../../modules/umeng-bridge/scripts/sync-harmony-umeng-config');
 
 const projectDir = path.resolve(__dirname, '../..');
-const harmonyTemplateDir = path.join(projectDir, 'native', 'harmony-template');
+const harmonyTemplateDir = path.join(projectDir, 'application-support', 'harmony-template');
 const harmonyDir = path.join(projectDir, 'harmony');
 const localOverlayDir = path.join(projectDir, '.harmony-local');
 const quickActionsConfigPath = path.join(projectDir, 'config', 'quick-actions.json');
 const umengConfigPath = path.join(projectDir, 'config', 'umeng.json');
-const expoConfigOutputPath = path.join(projectDir, '__harmony__', 'expo-config.generated.json');
+const expoConfigOutputPath = path.join(
+  projectDir,
+  'application-support',
+  'harmony-polyfill',
+  'expo-config.generated.json',
+);
 
 function commitCount() {
   for (const revision of ['master', 'HEAD']) {

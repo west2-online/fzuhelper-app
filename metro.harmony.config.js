@@ -9,8 +9,8 @@ const { withNativeWind } = require('nativewind/metro');
 const projectRoot = __dirname;
 const projectImportRoots = new Set(['api', 'app', 'components', 'context', 'hooks', 'lib', 'modules', 'utils']);
 const harmonyReactPackage = 'react-harmony';
-const adapter = name => path.join(projectRoot, '__harmony_adapters__', name);
-const mock = name => path.join(projectRoot, '__mocks__', name);
+const adapter = name => path.join(projectRoot, 'application-support', 'harmony-adapters', name);
+const mock = name => path.join(projectRoot, 'application-support', 'harmony-mocks', name);
 const expoNavigationBarAndroid = path.join(
   path.dirname(require.resolve('expo-navigation-bar/package.json')),
   'build',

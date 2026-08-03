@@ -27,7 +27,7 @@ nativewind-env.d.ts
 /ios/*
 /android/
 /harmony/
-/__harmony__/expo-config.generated.json
+/application-support/harmony-polyfill/expo-config.generated.json
 /.harmony-local/
 /.harmony-prebuild-*
 !/ios/ci_scripts/ci_post_clone.sh

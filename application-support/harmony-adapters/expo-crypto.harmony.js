@@ -5,7 +5,7 @@
 const { Buffer } = require('@craftzdog/react-native-buffer');
 const forgeModule = require('node-forge');
 
-const NativeSystem = require('../__harmony__/native-system.harmony');
+const NativeSystem = require('../harmony-polyfill/native-system.harmony');
 
 const forge = forgeModule.default ?? forgeModule;
 const CryptoDigestAlgorithm = Object.freeze({

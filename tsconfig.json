@@ -10,5 +10,5 @@
     "types": ["node"]
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "nativewind-env.d.ts", "metro.config.js"],
-  "exclude": ["harmony", "native/harmony-template"]
+  "exclude": ["harmony", "application-support/harmony-template"]
 }
