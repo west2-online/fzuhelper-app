@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - chore/harmonyos-ci
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
@@ -22,6 +23,12 @@ jobs:
     if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/android.yml
     secrets: inherit
+
+  harmony:
+    # if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/harmony.yml
+    secrets: inherit
+  
 
   alpha:
     if: github.ref == 'refs/heads/master'

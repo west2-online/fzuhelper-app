@@ -1,0 +1,79 @@
+name: Build HAR
+
+on:
+  workflow_call:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Restore Cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Install libgl1-mesa-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev
+
+      - name: Setup HarmonyOS CLI tools
+        uses: ErBWs/setup-ohos@v2
+        with:
+          version: 6.1.1.280
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - name: Install Dependencies
+        run: |
+          yarn install --frozen-lockfile --prefer-offline
+          rm -rf node_modules/react-native-css-interop/.cache
+
+      - name: Prebuild
+        run: |
+          yarn prebuild:harmony
+
+      - name: Build Release HAR
+        run: |
+          yarn oh:build
+
+      - name: Extract Version Info
+        shell: bash
+        run: |
+          echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
+          echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
+          git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}' > android/app/build/outputs/changelog
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: outputs
+          path: android/app/build/outputs
+          retention-days: 0
