@@ -6,7 +6,7 @@ const path = require('node:path');
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('metro-config');
 const { createHarmonyMetroConfig } = require('@react-native-oh/react-native-harmony/metro.config');
-const { withNativeWind } = require('nativewind/metro');
+const { withNativeWind } = require('@react-native-ohos/nativewind/metro');
 
 const projectRoot = __dirname;
 const projectImportRoots = new Set(['api', 'app', 'components', 'context', 'hooks', 'lib', 'modules', 'utils']);
