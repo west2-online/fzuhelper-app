@@ -1,4 +1,5 @@
 import { AbilityConstant, Want } from '@kit.AbilityKit';
+import { webview } from '@kit.ArkWeb';
 import { window } from '@kit.ArkUI';
 import { ExpoQuickActionsLaunchState } from 'expo_quick_actions';
 import { PushAgent } from '@umeng/push';
@@ -8,6 +9,15 @@ import { HarmonyPushTurboModule } from '../turboModules/HarmonyPushTurboModule';
 
 export default class EntryAbility extends RNAbility {
   override onCreate(want: Want, launchParam?: AbilityConstant.LaunchParam): void {
+    // CookieManager is invoked before the first Web component on several
+    // routes. Pre-initialize ArkWeb on the UI thread so that the cookie Turbo
+    // Module cannot make CEF bind itself to the RNOH worker thread first.
+    try {
+      webview.WebviewController.initializeWebEngine();
+    } catch (error) {
+      console.error(`[FzuHelper] Failed to pre-initialize ArkWeb: ${error}`);
+    }
+
     PushAgent.initCallback((data: Record<string, string>) => {
       HarmonyPushTurboModule.onInitCallback(data);
     });

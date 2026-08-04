@@ -9,7 +9,9 @@
  * application, so the invalid nested dependency must be removed from the HAR
  * manifest. The published safe-area port also reads window properties while
  * EntryAbility's window can still be under construction, so its synchronous
- * initial-metrics lookup needs a zero-metrics fallback.
+ * initial-metrics lookup needs a zero-metrics fallback. The cookies port
+ * always emits a Domain attribute, but ArkWeb expects host-only cookies to
+ * derive their domain from configCookieSync's URL argument.
  */
 
 const { existsSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } = require('node:fs');
@@ -33,6 +35,14 @@ const safeAreaHar = path.join(
   'react-native-safe-area-context',
   'harmony',
   'safe_area.har',
+);
+const cookiesHar = path.join(
+  projectDir,
+  'node_modules',
+  '@react-native-ohos',
+  'cookies',
+  'harmony',
+  'rn_cookies.har',
 );
 const workletsDependency = '@react-native-ohos/react-native-worklets';
 
@@ -175,5 +185,62 @@ function patchSafeAreaHar() {
   }
 }
 
+function patchCookiesHar() {
+  if (!existsSync(cookiesHar)) {
+    throw new Error(`${cookiesHar} is missing; run \`yarn install\` before preparing Harmony dependencies`);
+  }
+
+  const temporaryDir = mkdtempSync(path.join(os.tmpdir(), 'fzuhelper-cookies-'));
+  const replacement = `${cookiesHar}.tmp`;
+  const hostOnlyMarker = 'Host-only cookies must omit Domain';
+
+  try {
+    inspectArchive(cookiesHar, 'cookies');
+    runTar(['-xzf', cookiesHar, '-C', temporaryDir]);
+
+    const modulePath = path.join(temporaryDir, 'package', 'src', 'main', 'ets', 'CookiesModule.ts');
+    const source = readFileSync(modulePath, 'utf8');
+    if (source.includes(hostOnlyMarker)) {
+      console.log('Cookies HAR is already prepared');
+      return;
+    }
+
+    const defaultDomainBlock = / {4}let domain: string;\r?\n {4}if \(!this\.isEmpty\(cookie\.domain\)\) \{\r?\n([\s\S]*?)\r?\n {4}\} else \{\r?\n {6}domain = topLevelDomain;\r?\n {4}\}\r?\n {4}cookieBuilder \+= `; domain=\$\{domain\}`;/u;
+    const match = source.match(defaultDomainBlock);
+    if (!match) {
+      throw new Error('Cookies HAR no longer contains the expected default-domain block');
+    }
+
+    const explicitDomainLines = match[1].split(/\r?\n/u);
+    if (explicitDomainLines.shift()?.trim() !== 'domain = cookie.domain!;') {
+      throw new Error('Cookies HAR default-domain assignment has an unexpected shape');
+    }
+    const explicitDomainBody = explicitDomainLines
+      .map(line => `  ${line}`)
+      .join('\n');
+    const patchedSource = source.replace(
+      defaultDomainBlock,
+      [
+        `    // ${hostOnlyMarker}; ArkWeb derives it from the URL argument.`,
+        '    if (!this.isEmpty(cookie.domain)) {',
+        '      let domain: string = cookie.domain!;',
+        explicitDomainBody,
+        '      cookieBuilder += `; domain=${domain}`;',
+        '    }',
+      ].join('\n'),
+    );
+    writeFileSync(modulePath, patchedSource, 'utf8');
+
+    rmSync(replacement, { force: true });
+    runTar(['-czf', replacement, '-C', temporaryDir, 'package']);
+    renameSync(replacement, cookiesHar);
+    console.log('Preserved host-only cookies in cookies HAR');
+  } finally {
+    rmSync(replacement, { force: true });
+    rmSync(temporaryDir, { force: true, recursive: true });
+  }
+}
+
 patchReanimatedHar();
 patchSafeAreaHar();
+patchCookiesHar();

@@ -1,9 +1,11 @@
 import {
+  ComponentBuilderContext,
   RNOHPackage,
   UITurboModule,
   UITurboModuleContext,
   UITurboModuleFactory,
 } from '@rnoh/react-native-openharmony';
+import { WebView, WEB_VIEW } from '@react-native-ohos/react-native-webview';
 import { BuglyTurboModule } from './turboModules/BuglyTurboModule';
 import { ExpoFileSystemHarmonyTurboModule } from './turboModules/ExpoFileSystemHarmonyTurboModule';
 import { ExpoFontLoaderTurboModule } from './turboModules/ExpoFontLoaderTurboModule';
@@ -13,6 +15,14 @@ import { HarmonySystemTurboModule } from './turboModules/HarmonySystemTurboModul
 import { NativeBrightnessTurboModule } from './turboModules/NativeBrightnessTurboModule';
 import { NativeRequestTurboModule } from './turboModules/NativeRequestTurboModule';
 import { NativeWidgetTurboModule } from './turboModules/NativeWidgetTurboModule';
+
+@Builder
+function buildWebView(ctx: ComponentBuilderContext) {
+  WebView({
+    ctx: ctx.rnComponentContext,
+    tag: ctx.tag,
+  })
+}
 
 class FzuHelperTurboModuleFactory extends UITurboModuleFactory {
   createTurboModule(name: string): UITurboModule | null {
@@ -60,6 +70,12 @@ class FzuHelperTurboModuleFactory extends UITurboModuleFactory {
 }
 
 export class FzuHelperPackage extends RNOHPackage {
+  // WebView 13.16.1 registers its descriptor and TurboModule, but omits the
+  // ArkTS component builder required by RNOH 0.82's custom-node dispatcher.
+  override createWrappedCustomRNComponentBuilderByComponentNameMap(): Map<string, WrappedBuilder<[ComponentBuilderContext]>> {
+    return new Map().set(WEB_VIEW, wrapBuilder(buildWebView));
+  }
+
   createUITurboModuleFactory(ctx: UITurboModuleContext): UITurboModuleFactory {
     return new FzuHelperTurboModuleFactory(ctx);
   }
