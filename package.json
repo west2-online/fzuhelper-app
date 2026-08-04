@@ -121,6 +121,7 @@
     "@react-native-ohos/clipboard": "1.16.3",
     "@react-native-ohos/cookies": "6.3.1-beta.1",
     "@react-native-ohos/geolocation": "3.5.0-beta.2",
+    "@react-native-ohos/nativewind": "^4.1.24",
     "@react-native-ohos/react-native-blob-util": "0.22.3-beta.1",
     "@react-native-ohos/react-native-camera-kit": "15.1.2",
     "@react-native-ohos/react-native-device-info": "14.1.2-beta.3",

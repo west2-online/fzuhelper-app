@@ -1,5 +1,7 @@
 'use strict';
 
+process.env.IS_HARMONY = 'true';
+
 const path = require('node:path');
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('metro-config');
