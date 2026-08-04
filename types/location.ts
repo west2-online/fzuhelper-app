@@ -16,23 +16,23 @@ export interface GetSignedLocationApiUrlResponse {
   headers: Record<string, string>;
 }
 
-// 高德反解响应
+// 高德周边搜索响应
 export interface AMapRegeoResponse {
   status: string; // "1" 表示成功
   info: string;
-  regeocode: {
-    formatted_address: string;
-    addressComponent: {
-      province: string;
-      city: string;
-      district: string;
-      township: string;
-      street: string;
-      streetNumber: string;
-      citycode: string;
-      adcode: string;
-    };
-  };
+  infocode: string;
+  count: string;
+  pois?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    address: string;
+    location: string;
+    pname: string;
+    cityname: string;
+    adname: string;
+    distance: string;
+  }>;
 }
 
 // 传给 injectJS 的数据格式

@@ -2,28 +2,27 @@ import { getSignedLocationApiUrl } from '@/api/location';
 import type { AMapRegeoResponse, LocationInfo } from '@/types/location';
 import { LocationError } from '@/types/location';
 
-//获取定位反解信息
+// 获取定位反解信息
 export const fetchReverseGeocode = async (
   latitude: number,
   longitude: number,
-  signal?: AbortSignal, // 用于取消请求
+  signal?: AbortSignal,
 ): Promise<AMapRegeoResponse | null> => {
   try {
-    // 调用后端获取签名URL
     const response = await getSignedLocationApiUrl(latitude, longitude);
     const signedResult = response.data;
 
-    // 检查后端是否返回成功
-    if (signedResult.base.code !== 0) {
-      throw new LocationError(signedResult.base.message, 'API_ERROR');
+    // 检查后端是否返回成功 (code: "10000" 表示成功)
+    if (signedResult.code !== '10000') {
+      throw new LocationError(signedResult.message, 'API_ERROR');
     }
 
-    const headers: Record<string, string> = signedResult.headers;
+    const data = signedResult.data;
+    const headers: Record<string, string> = data.headers;
 
-    // 用签名URL去请求高德API
-    const fetchResponse = await fetch(signedResult.signed_url, {
+    const fetchResponse = await fetch(data.signed_url, {
       headers: headers,
-      signal, // 支持取消请求
+      signal,
     });
 
     if (!fetchResponse.ok) {
@@ -38,7 +37,6 @@ export const fetchReverseGeocode = async (
 
     return amapData;
   } catch (error) {
-    // 如果是用户主动取消的请求，静默返回
     if (error instanceof Error && error.name === 'AbortError') {
       return null;
     }
@@ -47,14 +45,13 @@ export const fetchReverseGeocode = async (
   }
 };
 
-//构建定位信息对象
+// 构建定位信息对象
 export const buildLocationInfo = (
   amapData: AMapRegeoResponse | null,
   latitude: number,
   longitude: number,
   error?: string,
 ): LocationInfo => {
-  // 如果有错误或没有数据，返回带错误信息的空对象
   if (error || !amapData) {
     return {
       formattedAddress: '',
@@ -72,91 +69,42 @@ export const buildLocationInfo = (
     };
   }
 
+  // 从 pois 中取第一个 POI
+  const firstPoi = amapData.pois?.[0] || null;
+
   return {
-    formattedAddress: amapData.regeocode.formatted_address,
-    province: amapData.regeocode.addressComponent.province,
-    city: amapData.regeocode.addressComponent.city,
-    district: amapData.regeocode.addressComponent.district,
-    township: amapData.regeocode.addressComponent.township,
-    street: amapData.regeocode.addressComponent.street,
-    streetNumber: amapData.regeocode.addressComponent.streetNumber,
-    cityCode: amapData.regeocode.addressComponent.citycode,
-    adCode: amapData.regeocode.addressComponent.adcode,
+    formattedAddress: firstPoi?.address || '',
+    province: firstPoi?.pname || '',
+    city: firstPoi?.cityname || '',
+    district: firstPoi?.adname || '',
+    township: '',
+    street: firstPoi?.address || '',
+    streetNumber: '',
+    cityCode: '',
+    adCode: '',
     latitude,
     longitude,
   };
 };
 
-//发送定位信息给 WebView 的 injectJS
-export const sendLocationToWebView = (locationInfo: LocationInfo, webViewRef: any) => {
-  // 兼容两种传法：ref对象 或 直接传webview实例
-  const webView = webViewRef?.current || webViewRef;
-
-  if (!webView) {
-    console.warn('WebView ref 为空');
-    return;
-  }
-
-  if (typeof webView.injectJavaScript !== 'function') {
-    console.warn('WebView 不支持 injectJavaScript');
-    return;
-  }
-
-  // 构造要执行的JS代码
-  const jsCode = `
-    if (typeof window.injectJS === 'function') {
-      window.injectJS(${JSON.stringify(locationInfo)});
-    } else {
-      console.warn('injectJS 函数不存在');
-    }
-  `;
-
-  webView.injectJavaScript(jsCode);
-};
-
-//完整的定位反解流程
-export const fetchAndSendLocation = async (
+// 只获取定位信息（不注入），供外部调用
+export const fetchLocationInfo = async (
   latitude: number,
   longitude: number,
-  webViewRef?: any,
   signal?: AbortSignal,
-) => {
+): Promise<LocationInfo> => {
   try {
-    // 获取反解数据，传入 signal 用于取消请求
     const amapData = await fetchReverseGeocode(latitude, longitude, signal);
-
-    // 构建定位信息
-    if (!amapData) {
-      const locationInfo = buildLocationInfo(null, latitude, longitude, '获取定位信息失败');
-      if (webViewRef) sendLocationToWebView(locationInfo, webViewRef);
-      return locationInfo;
-    }
-
-    const locationInfo = buildLocationInfo(amapData, latitude, longitude);
-
-    // 发给 WebView
-    if (webViewRef) sendLocationToWebView(locationInfo, webViewRef);
-
-    return locationInfo;
+    return buildLocationInfo(amapData, latitude, longitude);
   } catch (error) {
-    console.error('定位流程失败:', error);
-    const locationInfo = buildLocationInfo(
-      null,
-      latitude,
-      longitude,
-      error instanceof Error ? error.message : '未知错误',
-    );
-    if (webViewRef) sendLocationToWebView(locationInfo, webViewRef);
-    return locationInfo;
+    console.error('获取定位信息失败:', error);
+    return buildLocationInfo(null, latitude, longitude, error instanceof Error ? error.message : '未知错误');
   }
 };
 
 // 使用 Haversine 公式，计算两点之间的距离（米）
-// 判断用户是否在签到范围内
 export const getDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371000; // 地球平均半径（米）
-
-  // 将角度转为弧度
+  const R = 6371000;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
   const a =
