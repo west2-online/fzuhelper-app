@@ -4,6 +4,18 @@ const HarmonyCookieModule = require('@react-native-ohos/cookies');
 
 const HarmonyCookieManager = HarmonyCookieModule.default ?? HarmonyCookieModule;
 
+function normalizeCookieUrl(url) {
+  try {
+    const parsed = new URL(url);
+    // Cookies are scoped to hosts, not ports. The Harmony package otherwise
+    // emits an invalid Domain for endpoints such as jwcjwxt2.fzu.edu.cn:81.
+    parsed.port = '';
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 function unsupported(method) {
   const error = new Error(`CookieManager.${method} is not supported by the HarmonyOS cookie store`);
   error.code = 'not_supported';
@@ -100,11 +112,11 @@ const CookieManager = {
   },
 
   set(url, cookie, useWebKit = false) {
-    return HarmonyCookieManager.set(url, cookie, useWebKit);
+    return HarmonyCookieManager.set(normalizeCookieUrl(url), cookie, useWebKit);
   },
 
   clearByName(url, name, useWebKit = false) {
-    return HarmonyCookieManager.clearByName(url, name, useWebKit);
+    return HarmonyCookieManager.clearByName(normalizeCookieUrl(url), name, useWebKit);
   },
 
   async flush() {
@@ -120,7 +132,7 @@ const CookieManager = {
       invalidCookie('CookieManager.setFromResponse requires a non-empty URL');
     }
 
-    const wasSet = await HarmonyCookieManager.set(url, parseSetCookieHeader(header), false);
+    const wasSet = await HarmonyCookieManager.set(normalizeCookieUrl(url), parseSetCookieHeader(header), false);
     if (!wasSet) {
       const error = new Error('HarmonyOS failed to store the Set-Cookie header');
       error.code = 'cookie_set_error';
