@@ -585,7 +585,6 @@ export default function Web() {
                   originWhitelist={['*']}
                   // opacity 不影响原生 WebView 挂载，避免 display:none 阻断鸿蒙加载事件。
                   className="flex-1 bg-background"
-                  style={webViewState === 'ready' ? styles.webViewReady : styles.webViewConcealed}
                 />
                 {webViewState === 'loading' && (
                   <View className="absolute h-full w-full items-center justify-center bg-background">
@@ -608,12 +607,3 @@ export default function Web() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  webViewConcealed: {
-    opacity: 0,
-  },
-  webViewReady: {
-    opacity: 1,
-  },
-});
