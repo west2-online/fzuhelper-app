@@ -202,7 +202,7 @@ export default function Web() {
         handleCustomProtocol(request.url, {
           router,
           injectJS: code => webViewRef.current?.injectJavaScript(code),
-          webViewRef: webViewRef,
+          webViewRef,
         })
       ) {
         return false;
