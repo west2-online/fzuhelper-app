@@ -6,7 +6,7 @@ const path = require('node:path');
 const projectDir = path.resolve(__dirname, '..', '..');
 const reactNativeCli = require.resolve('@react-native-community/cli/build/bin.js');
 
-// 占位
+// react-native-css-interop 不会给 "harmony" 主动生成 .cache/harmony.js，这里建一个占位
 const fs = require('node:fs');
 const cacheDir = path.join(projectDir, 'node_modules/react-native-css-interop/.cache');
 fs.mkdirSync(cacheDir, { recursive: true });
