@@ -24,7 +24,7 @@ module.exports = function (api) {
           ...(isHarmony && { worklets: false, reanimated: false }),
         },
       ],
-      'nativewind/babel',
+      isHarmony ? '@react-native-ohos/nativewind/babel' : 'nativewind/babel',
     ],
     plugins: [
       './babel-plugin-forbidden-imports.js',
