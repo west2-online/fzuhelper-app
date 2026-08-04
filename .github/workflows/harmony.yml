@@ -54,16 +54,19 @@ jobs:
       - name: Install Dependencies
         run: |
           yarn install --frozen-lockfile --prefer-offline
-          rm -rf node_modules/react-native-css-interop/.cache
 
       - name: Prebuild
         run: |
           yarn prebuild:harmony
+          yarn oh:install
+          rm -rf node_modules/react-native-css-interop/.cache
+          yarn oh:bundle
 
       - name: Build Release HAR
         run: |
-          yarn oh:build
-
+          cd harmony
+          hvigorw assembleHap --mode module -p product=default -p buildMode=release --no-daemon
+    
       - name: Extract Version Info
         shell: bash
         run: |

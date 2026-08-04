@@ -6,6 +6,15 @@ const path = require('node:path');
 const projectDir = path.resolve(__dirname, '..', '..');
 const reactNativeCli = require.resolve('@react-native-community/cli/build/bin.js');
 
+// 占位
+const fs = require('node:fs');
+const cacheDir = path.join(projectDir, 'node_modules/react-native-css-interop/.cache');
+fs.mkdirSync(cacheDir, { recursive: true });
+const harmonyCacheFile = path.join(cacheDir, 'harmony.js');
+if (!fs.existsSync(harmonyCacheFile)) {
+  fs.writeFileSync(harmonyCacheFile, '');
+}
+
 const result = spawnSync(
   process.execPath,
   [
