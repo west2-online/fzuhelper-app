@@ -9,7 +9,7 @@ const IS_DEV = process.env.APP_VARIANT === 'development';
 // 前三位对应版本名，后三位或更多对应commit次数
 let commitCount = 0;
 try {
-  const stdout = execSync('git rev-list --count master').toString().trim();
+  const stdout = process.env.GIT_COMMIT_COUNT ?? execSync('git rev-list --count HEAD').toString().trim();
   const parsedInt = parseInt(stdout, 10);
   if (!isNaN(parsedInt)) {
     commitCount = parsedInt;
@@ -21,6 +21,7 @@ const versionCodePrefix = version.replace(/\./g, '');
 const versionCodeSuffix = String(commitCount).padStart(3, '0');
 // iOS
 const buildNumber = versionCodePrefix + versionCodeSuffix;
+console.log(`版本号: ${buildNumber}`);
 // Android
 const versionCode = parseInt(buildNumber, 10);
 
@@ -108,6 +109,7 @@ const config: ExpoConfig = {
       {
         android: {
           buildArchs: ['arm64-v8a'],
+          usePrecompiledHeaders: true,
           useLegacyPackaging: true,
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
@@ -122,6 +124,7 @@ const config: ExpoConfig = {
     ],
     './plugins/keep-android-resources',
     './plugins/inject-ios-prebuild',
+    './modules/safe-area-webview/app.plugin.js',
     [
       './modules/umeng-bridge/app.plugin.js',
       {

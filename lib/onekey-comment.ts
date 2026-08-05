@@ -10,11 +10,12 @@ const ONEKEY_COMMENT_URLS = {
   CAPTCHA: ONEKEY_COMMENT_PREFIX + '/student/jscp/ValidNums.aspx',
   TEACHER_LIST: ONEKEY_COMMENT_PREFIX + '/student/jscp/TeaList.aspx',
   COMMENT_TEACHER: ONEKEY_COMMENT_PREFIX + '/student/jscp/TeaEvaluation.aspx',
+  COMMENT_TEXTBOOK: ONEKEY_COMMENT_PREFIX + '/student/jscp/JCEvaluation.aspx',
 } as const;
 
 function escapeQueryParams(record: Record<string, string>): string {
   return Object.entries(record)
-    .map(([k, v]) => `${k}=${escape(v)}`)
+    .map(([k, v]) => `${k}=${escape(v)}`) // 教务处接口需要使用escape编码参数
     .join('&');
 }
 
@@ -31,9 +32,25 @@ interface CommentTeacherForm extends ASPNET_Form {
   ctl00$ContentPlaceHolder1$Button_xk: string;
 }
 
+interface CommentTextbookForm extends ASPNET_Form {
+  ctl00$ContentPlaceHolder1$RadioButtonList1: string;
+  ctl00$ContentPlaceHolder1$RadioButtonList2: string;
+  ctl00$ContentPlaceHolder1$RadioButtonList3: string;
+  ctl00$ContentPlaceHolder1$RadioButtonList4: string;
+  ctl00$ContentPlaceHolder1$RadioButtonList5: string;
+  ctl00$ContentPlaceHolder1$TB_pj: string;
+  ctl00$ContentPlaceHolder1$verifycode: string;
+  ctl00$ContentPlaceHolder1$Button_xk: string;
+}
+
 export interface CourseInfo {
   courseName: string;
   teacherName: string;
+  params: Record<string, string>;
+}
+
+export interface TextbookInfo {
+  courseName: string;
   params: Record<string, string>;
 }
 
@@ -97,8 +114,33 @@ export default class OnekeyComment {
     return info;
   }
 
-  async getCommentForm(params: Record<string, string>): Promise<ASPNET_Form> {
-    const url = `${ONEKEY_COMMENT_URLS.COMMENT_TEACHER}?${escapeQueryParams(params)}`;
+  async getUncommentTextbooks(id: string): Promise<TextbookInfo[]> {
+    const reqParams = new URLSearchParams({ id, bj: 'score' });
+    const url = `${ONEKEY_COMMENT_URLS.TEACHER_LIST}?${reqParams}`;
+    const resp = await this.get(url, {});
+    const text = Buffer.from(resp).toString('utf-8');
+
+    const dom = parseDocument(text);
+    const anchors = selectAll('a[href^="JCEvaluation.aspx"]', dom);
+
+    const info: TextbookInfo[] = [];
+
+    for (const a of anchors) {
+      const href = getAttributeValue(a as any, 'href');
+      if (!href) continue;
+
+      const fullUrl = new URL(href, ONEKEY_COMMENT_PREFIX + '/');
+      const params = new URLSearchParams(fullUrl.search);
+      const courseName = params.get('kcmc') || '';
+      const paramsRecord = Object.fromEntries(params.entries());
+      info.push({ courseName, params: paramsRecord });
+    }
+
+    return info;
+  }
+
+  async getCommentForm(params: Record<string, string>, type: 'teacher' | 'text_book'): Promise<ASPNET_Form> {
+    const url = `${type === 'teacher' ? ONEKEY_COMMENT_URLS.COMMENT_TEACHER : ONEKEY_COMMENT_URLS.COMMENT_TEXTBOOK}?${escapeQueryParams(params)}`;
     const resp = await this.get(url, {});
     const text = Buffer.from(resp).toString('utf-8');
     const dom = parseDocument(text);
@@ -115,9 +157,18 @@ export default class OnekeyComment {
     };
   }
 
+  parseErrors(data: string): string | null {
+    const alertRegex = /alert\s*\(\s*['"]([^'"]*)['"]\s*\)/;
+    const match = data.match(alertRegex);
+    if (match) {
+      return match[1];
+    }
+    return null;
+  }
+
   async commentTeacher(params: Record<string, string>, score: string, comment: string, recaptcha: string) {
     const url = `${ONEKEY_COMMENT_URLS.COMMENT_TEACHER}?${escapeQueryParams(params)}`;
-    const aspnetForm = await this.getCommentForm(params);
+    const aspnetForm = await this.getCommentForm(params, 'teacher');
     const fullForm: CommentTeacherForm = {
       ...aspnetForm,
       ...{
@@ -130,6 +181,37 @@ export default class OnekeyComment {
 
     const resp = await this.post(url, {}, { ...fullForm });
     const text = Buffer.from(resp.data).toString('utf-8');
-    return !text.includes('验证码校验错误');
+    return this.parseErrors(text);
+  }
+
+  async commentTextbook(
+    params: Record<string, string>,
+    contentCompatibility: string, // 内容适配性
+    contentApplicability: string, // 内容适用性
+    editingQuality: string, // 编校质量
+    priceReasonableness: string, // 价格合理性
+    overallSatisfaction: string, // 整体满意度
+    suggestion: string,
+    recaptcha: string,
+  ) {
+    const url = `${ONEKEY_COMMENT_URLS.COMMENT_TEXTBOOK}?${escapeQueryParams(params)}`;
+    const aspnetForm = await this.getCommentForm(params, 'text_book');
+    const fullForm: CommentTextbookForm = {
+      ...aspnetForm,
+      ...{
+        ctl00$ContentPlaceHolder1$RadioButtonList1: contentCompatibility,
+        ctl00$ContentPlaceHolder1$RadioButtonList2: contentApplicability,
+        ctl00$ContentPlaceHolder1$RadioButtonList3: editingQuality,
+        ctl00$ContentPlaceHolder1$RadioButtonList4: priceReasonableness,
+        ctl00$ContentPlaceHolder1$RadioButtonList5: overallSatisfaction,
+        ctl00$ContentPlaceHolder1$TB_pj: suggestion,
+        ctl00$ContentPlaceHolder1$verifycode: recaptcha,
+        ctl00$ContentPlaceHolder1$Button_xk: '确定',
+      },
+    };
+
+    const resp = await this.post(url, {}, { ...fullForm });
+    const text = Buffer.from(resp.data).toString('utf-8');
+    return this.parseErrors(text);
   }
 }
