@@ -120,12 +120,14 @@ export const FRIEND_INVITATION_CODE_LEN = 6;
 export const FRIEND_COURSE_KEY = 'friend_course';
 
 // 成绩颜色对照
+/* eslint-disable no-restricted-syntax */
 export const GRADE_COLOR_EXCELLENT = '#9310FF'; // >90 优秀
 export const GRADE_COLOR_GOOD = '#1089FF'; // 80-89 良好
 export const GRADE_COLOR_MEDIUM = '#10CEFF'; // 70-79 中等
 export const GRADE_COLOR_PASS = '#FFA710'; // 60-69 及格
 export const GRADE_COLOR_FAIL = '#FF0000'; // <60 不及格
 export const GRADE_COLOR_UNKNOWN = '#BBBBBB'; // 成绩未录入 缺考
+/* eslint-enable no-restricted-syntax */
 
 // 课程类型映射，目前适用于考场查询
 export const COURSE_SYMBOLS_MAP = {
@@ -139,6 +141,7 @@ export const EMPTY_ROOM_SELECTED_CAMPUS_KEY = 'empty_room_selected_campus';
 
 // for RNR
 // please sync it with values in `global.css`
+/* eslint-disable no-restricted-syntax */
 export const NAV_THEME = {
   light: {
     background: 'hsl(0 0% 100%)', // background
@@ -157,6 +160,7 @@ export const NAV_THEME = {
     text: 'hsl(0 0% 98%)', // foreground
   },
 };
+/* eslint-enable no-restricted-syntax */
 
 // Stack Navigator Options
 export const StackNavigatorScreenOptions = {
