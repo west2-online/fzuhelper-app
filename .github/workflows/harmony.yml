@@ -64,7 +64,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/harmony/.ohpm
-          key: ${{ runner.os }}-ohpm-${{ hashFiles('**/oh-package-lock.json5') }}
+          key: ${{ runner.os }}-ohpm-${{ hashFiles('**/oh-package.json5') }}
           restore-keys: |
             ${{ runner.os }}-ohpm-
 
