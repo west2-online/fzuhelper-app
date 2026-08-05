@@ -87,7 +87,7 @@ jobs:
           echo "$PROFILE_BASE64" | base64 -d > "./release.p7b"
           echo "$CERT_BASE64" | base64 -d > "./release.cer"
 
-          java \ 
+          java \
             -jar $HOS_SDK_HOME/default/openharmony/toolchains/lib/hap-sign-tool.jar sign-app \
             -keyAlias "$KEY_ALIAS" \
             -signAlg "SHA256withECDSA" \
