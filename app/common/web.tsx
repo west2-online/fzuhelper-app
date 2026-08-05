@@ -556,6 +556,7 @@ export default function Web() {
                   source={{ uri: sourceUrl || url || '' }}
                   ref={webViewRef}
                   sharedCookiesEnabled
+                  domStorageEnabled
                   cacheEnabled // 启用缓存
                   cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
                   javaScriptEnabled // 确保启用 JavaScript
