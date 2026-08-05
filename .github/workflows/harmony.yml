@@ -110,6 +110,7 @@ jobs:
       
       - name: Pack APP
         run: |
+          cd harmony
           java \
             -jar $HOS_SDK_HOME/default/openharmony/toolchains/lib/app_packing_tool.jar \
             --mode app \
