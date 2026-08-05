@@ -131,7 +131,7 @@ jobs:
           echo "APP_FILENAME=$APP_FILENAME" >> "$GITHUB_OUTPUT"
 
       - name: Deploy to Huawei App Gallery
-        uses: ACaiCat/huawei-appgallery-deploy@v1.2.1
+        uses: ACaiCat/huawei-appgallery-deploy@v1.3.0
         with:
           credentials:  ${{secrets.HUAWEI_CREDENTIALS}}
           app-id: ${{secrets.HUAWEI_APP_ID}}
