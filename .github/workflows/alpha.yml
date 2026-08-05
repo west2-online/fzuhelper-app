@@ -28,11 +28,8 @@ jobs:
             echo "BSEOF"
           } >> "$GITHUB_OUTPUT"
           APK_FILENAME="FzuHelper_${APP_VERSION_NAME}.${APP_VERSION_CODE}.apk"
-          HAP_FILENAME="FzuHelper_${APP_VERSION_NAME}.${APP_VERSION_CODE}.hap"
           echo "APK_FILENAME=$APK_FILENAME" >> "$GITHUB_OUTPUT"
-          echo "HAP_FILENAME=$HAP_FILENAME" >> "$GITHUB_OUTPUT"
           mv $GITHUB_WORKSPACE/outputs/apk/release/app-arm64-v8a-release.apk $APK_FILENAME
-          mv $GITHUB_WORKSPACE/outputs/app.hap $HAP_FILENAME
 
       - name: Delete alpha by GitHub CLI
         run: |
@@ -52,4 +49,3 @@ jobs:
           prerelease: true
           files: |
             ${{ steps.version-info.outputs.APK_FILENAME }}
-            ${{ steps.version-info.outputs.HAP_FILENAME }}
