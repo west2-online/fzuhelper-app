@@ -76,7 +76,7 @@ jobs:
         run: |
           yarn oh:bundle
           cd harmony
-          hvigorw assembleApp --mode module -p product=default -p buildMode=release --no-daemon
+          hvigorw assembleApp --mode project -p product=default -p buildMode=release --no-daemon
 
       - name: Sign APP
         run: |
