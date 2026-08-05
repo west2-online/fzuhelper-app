@@ -108,6 +108,16 @@ jobs:
           CERT_BASE64: ${{secrets.OH_CERT_BASE64}}
           PROFILE_BASE64: ${{secrets.OH_PROFILE_BASE64}}
       
+      - name: Pack APP
+        run: |
+          java \
+            -jar $HOS_SDK_HOME/default/openharmony/toolchains/lib/app_packing_tool.jar \
+            --mode app \
+            --hap-path ./output/app.hap \
+            --out-path ./output/release.app \
+            --pack-info-path ./entry/build/default/outputs/default/pack.info \
+            --force true
+
       - name: Extract Version Info
         id: version-info
         shell: bash
@@ -120,16 +130,15 @@ jobs:
           echo "HAP_FILENAME=$HAP_FILENAME" >> "$GITHUB_OUTPUT"
 
       - name: Deploy to Huawei App Gallery
-        uses: muhamedzeema/appgallery-deply-action@main
+        uses: ACaiCat/huawei-appgallery-deploy@v1.1.1
         with:
-          client-id: ${{secrets.HUAWEI_CLIENT_ID}}
-          client-key: ${{secrets.HUAWEI_CLIENT_KEY}}
+          credentials:  ${{secrets.HUAWEI_CREDENTIALS}}
           app-id: ${{secrets.HUAWEI_APP_ID}}
-          file-extension: "hap"
-          file-path: "./harmony/output/app.hap"
+          file-path: "./harmony/output/release.app"
           file-name: ${{ steps.version-info.outputs.HAP_FILENAME }}
-          submit: true
+          submit: false
 
+      
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
         with:
