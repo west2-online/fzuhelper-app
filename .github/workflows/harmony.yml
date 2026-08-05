@@ -1,10 +1,10 @@
-name: Build HAP
+name: Build APP
 
 on:
   workflow_call:
 
 jobs:
-  build-hap:
+  build-app:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -115,9 +115,36 @@ jobs:
             -jar $HOS_SDK_HOME/default/openharmony/toolchains/lib/app_packing_tool.jar \
             --mode app \
             --hap-path ./output/app.hap \
-            --out-path ./output/release.app \
+            --out-path ./output/release-unsigned.app \
             --pack-info-path ./entry/build/default/outputs/default/pack.info \
             --force true
+      
+      - name: Sign APP
+        run: |
+          cd harmony
+
+          java \
+            -jar $HOS_SDK_HOME/default/openharmony/toolchains/lib/hap-sign-tool.jar sign-app \
+            -keyAlias "$KEY_ALIAS" \
+            -signAlg "SHA256withECDSA" \
+            -mode "localSign" \
+            -appCertFile "./release.cer" \
+            -profileFile "./release.p7b" \
+            -inFile "./output/release-unsigned.app" \
+            -keystoreFile "./release.p12" \
+            -outFile "./output/release.app" \
+            -keyPwd "$KEY_PASSWORD" \
+            -keystorePwd "$KEYSTORE_PASSWORD"
+          
+          rm -f ./output/release-unsigned.app
+
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.OH_SIGN_STORE_PWD }}
+          KEY_ALIAS: ${{ secrets.OH_SIGN_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.OH_KEY_PWD }}
+          SIGN_KEYSTORE_BASE64: ${{ secrets.OH_SIGN_STORE_BASE64 }}
+          CERT_BASE64: ${{secrets.OH_CERT_BASE64}}
+          PROFILE_BASE64: ${{secrets.OH_PROFILE_BASE64}}
 
       - name: Extract Version Info
         id: version-info
