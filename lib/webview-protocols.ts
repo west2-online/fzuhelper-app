@@ -1,3 +1,4 @@
+import { buildLocationInfo, fetchReverseGeocode } from '@/utils/location';
 import Geolocation from '@react-native-community/geolocation';
 import { Platform } from 'react-native';
 import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
@@ -127,14 +128,38 @@ registerProtocol({
 
     const proceed = () => {
       Geolocation.getCurrentPosition(
-        position => {
-          context.injectJS(
-            buildCallbackJS(parsed.func, {
-              lon: String(position.coords.longitude),
-              lat: String(position.coords.latitude),
-              address: EMPTY_ADDRESS,
-            }),
-          );
+        async position => {
+          try {
+            const { latitude, longitude } = position.coords;
+
+            // 调用地址反解
+            const amapData = await fetchReverseGeocode(latitude, longitude);
+            const locationInfo = buildLocationInfo(amapData, latitude, longitude);
+
+            context.injectJS(
+              buildCallbackJS(parsed.func, {
+                lon: String(longitude),
+                lat: String(latitude),
+                address: {
+                  city: locationInfo.city || '',
+                  district: locationInfo.district || '',
+                  street: locationInfo.street || '',
+                  streetNumber: locationInfo.streetNumber || '',
+                },
+                formattedAddress: locationInfo.formattedAddress || '',
+              }),
+            );
+          } catch (error) {
+            console.warn('地址反解失败:', error);
+            // 反解失败也返回坐标
+            context.injectJS(
+              buildCallbackJS(parsed.func, {
+                lon: String(position.coords.longitude),
+                lat: String(position.coords.latitude),
+                address: EMPTY_ADDRESS,
+              }),
+            );
+          }
         },
         err => {
           console.warn('Geolocation.getCurrentPosition failed:', err);
