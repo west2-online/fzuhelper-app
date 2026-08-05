@@ -28,6 +28,7 @@ export default function Root({ children }: PropsWithChildren) {
   );
 }
 
+/* eslint-disable no-restricted-syntax */
 const responsiveBackground = `
 body {
   background-color: #fff;
@@ -37,3 +38,4 @@ body {
     background-color: #000;
   }
 }`;
+/* eslint-enable no-restricted-syntax */

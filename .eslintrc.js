@@ -1,5 +1,6 @@
 // https://docs.expo.dev/guides/using-eslint/
-const forbiddenRule = require('./forbidden-rule');
+const forbiddenRule = require('./tools/checks/forbidden-imports');
+const restrictedSyntaxWarningRules = require('./tools/checks/restricted-syntax-warnings');
 
 /**
  * 深度比较两个值是否相等
@@ -55,6 +56,7 @@ module.exports = {
   extends: ['@react-native', 'expo', 'prettier', 'plugin:react/jsx-runtime'],
   plugins: ['prettier'],
   rules: {
+    ...restrictedSyntaxWarningRules,
     'prettier/prettier': [
       'warn',
       {
@@ -84,27 +86,29 @@ module.exports = {
       },
     ],
   },
-  overrides: forbiddenRule
-    .filter(item => item.allowIn?.length)
-    .flatMap(item =>
-      item.allowIn.map(allowPath => ({
-        files: normalizeToRecursiveGlob(allowPath),
-        rules: {
-          'no-restricted-imports': [
-            'error',
-            {
-              patterns: forbiddenRule
-                .filter(rule => !deepEqual(rule, item)) // 排除当前规则，保留其他规则
-                .flatMap(rule =>
-                  rule.names.map(name => ({
-                    group: [rule.source],
-                    importNames: [name],
-                    message: rule.message,
-                  })),
-                ),
-            },
-          ],
-        },
-      })),
-    ),
+  overrides: [
+    ...forbiddenRule
+      .filter(item => item.allowIn?.length)
+      .flatMap(item =>
+        item.allowIn.map(allowPath => ({
+          files: normalizeToRecursiveGlob(allowPath),
+          rules: {
+            'no-restricted-imports': [
+              'error',
+              {
+                patterns: forbiddenRule
+                  .filter(rule => !deepEqual(rule, item)) // 排除当前规则，保留其他规则
+                  .flatMap(rule =>
+                    rule.names.map(name => ({
+                      group: [rule.source],
+                      importNames: [name],
+                      message: rule.message,
+                    })),
+                  ),
+              },
+            ],
+          },
+        })),
+      ),
+  ],
 };

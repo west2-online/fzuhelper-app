@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import CookieManager from '@preeternal/react-native-cookie-manager';
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
-import { useHeaderHeight } from "expo-router/react-navigation";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter, type UnknownOutputParams } from 'expo-router';
+import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

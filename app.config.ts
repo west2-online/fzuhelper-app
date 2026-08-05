@@ -85,6 +85,7 @@ const config: ExpoConfig = {
     adaptiveIcon: {
       foregroundImage: './assets/images/ic_launcher_foreground.png',
       monochromeImage: './assets/images/ic_launcher_foreground.png',
+      // eslint-disable-next-line no-restricted-syntax
       backgroundColor: '#FFFFFF',
     },
     permissions: [
@@ -159,6 +160,7 @@ const config: ExpoConfig = {
         image: './assets/images/ic_launcher_foreground.png',
         // 不设置默认的 backgroundColor，会导致 logo 透明背景被改变
         dark: {
+          // eslint-disable-next-line no-restricted-syntax
           backgroundColor: '#000000',
         },
         imageWidth: 200,
@@ -170,6 +172,7 @@ const config: ExpoConfig = {
         androidIcons: {
           qrcode: {
             foregroundImage: './assets/images/qr_action.png',
+            // eslint-disable-next-line no-restricted-syntax
             backgroundColor: '#FFFFFF',
           },
         },
