@@ -72,13 +72,13 @@ jobs:
         run: |
           yarn oh:install
 
-      - name: Build Release HAP
+      - name: Build Release APP
         run: |
           yarn oh:bundle
           cd harmony
-          hvigorw assembleHap --mode module -p product=default -p buildMode=release --no-daemon
+          hvigorw assembleApp --mode module -p product=default -p buildMode=release --no-daemon
 
-      - name: Sign HAP
+      - name: Sign APP
         run: |
           cd harmony
           mkdir output
@@ -94,49 +94,11 @@ jobs:
             -mode "localSign" \
             -appCertFile "./release.cer" \
             -profileFile "./release.p7b" \
-            -inFile "./entry/build/default/outputs/default/entry-default-unsigned.hap" \
-            -keystoreFile "./release.p12" \
-            -outFile "./output/app.hap" \
-            -keyPwd "$KEY_PASSWORD" \
-            -keystorePwd "$KEYSTORE_PASSWORD"
-
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.OH_SIGN_STORE_PWD }}
-          KEY_ALIAS: ${{ secrets.OH_SIGN_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.OH_KEY_PWD }}
-          SIGN_KEYSTORE_BASE64: ${{ secrets.OH_SIGN_STORE_BASE64 }}
-          CERT_BASE64: ${{secrets.OH_CERT_BASE64}}
-          PROFILE_BASE64: ${{secrets.OH_PROFILE_BASE64}}
-      
-      - name: Pack APP
-        run: |
-          cd harmony
-          java \
-            -jar $HOS_SDK_HOME/default/openharmony/toolchains/lib/app_packing_tool.jar \
-            --mode app \
-            --hap-path ./output/app.hap \
-            --out-path ./output/release-unsigned.app \
-            --pack-info-path ./entry/build/default/outputs/default/pack.info \
-            --force true
-      
-      - name: Sign APP
-        run: |
-          cd harmony
-
-          java \
-            -jar $HOS_SDK_HOME/default/openharmony/toolchains/lib/hap-sign-tool.jar sign-app \
-            -keyAlias "$KEY_ALIAS" \
-            -signAlg "SHA256withECDSA" \
-            -mode "localSign" \
-            -appCertFile "./release.cer" \
-            -profileFile "./release.p7b" \
-            -inFile "./output/release-unsigned.app" \
+            -inFile "./build/outputs/default/harmony-default-unsigned.app" \
             -keystoreFile "./release.p12" \
             -outFile "./output/release.app" \
             -keyPwd "$KEY_PASSWORD" \
             -keystorePwd "$KEYSTORE_PASSWORD"
-          
-          rm -f ./output/release-unsigned.app
 
         env:
           KEYSTORE_PASSWORD: ${{ secrets.OH_SIGN_STORE_PWD }}
@@ -145,6 +107,7 @@ jobs:
           SIGN_KEYSTORE_BASE64: ${{ secrets.OH_SIGN_STORE_BASE64 }}
           CERT_BASE64: ${{secrets.OH_CERT_BASE64}}
           PROFILE_BASE64: ${{secrets.OH_PROFILE_BASE64}}
+
 
       - name: Extract Version Info
         id: version-info
