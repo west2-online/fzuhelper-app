@@ -1,10 +1,10 @@
-name: Build HAR
+name: Build HAP
 
 on:
   workflow_call:
 
 jobs:
-  build-apk:
+  build-hap:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -62,14 +62,63 @@ jobs:
           rm -rf node_modules/react-native-css-interop/.cache
           yarn oh:bundle
 
-      - name: Build Release HAR
+      - name: Build Release HAP
         run: |
           cd harmony
           hvigorw assembleHap --mode module -p product=default -p buildMode=release --no-daemon
-    
+        
+      - name: Sign HAP
+        run: |
+          cd harmony
+          mkdir output
+
+          echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./release.p12"
+          echo "$PROFILE_BASE64" | base64 -d > "./release.p7b"
+          echo "$CERT_BASE64" | base64 -d > "./release.cer"
+
+          java -jar hap-sign-tool.jar sign-app \
+            -keyAlias "$KEY_ALIAS" \
+            -signAlg "SHA256withECDSA" \
+            -mode "localSign" \
+            -appCertFile "./release.cer" \
+            -profileFile "./release.p7b" \
+            -inFile "./entry/build/default/outputs/default/entry-default-signed.hap" \
+            -keystoreFile "./release.p12" \
+            -outFile "./output/app.hap" \
+            -keyPwd "$KEY_PASSWORD" \
+            -keystorePwd "$KEYSTORE_PASSWORD"
+
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.OH_SIGN_STORE_PWD }}
+          KEY_ALIAS: ${{ secrets.OH_SIGN_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.OH_KEY_PWD }}
+          SIGN_KEYSTORE_BASE64: ${{ secrets.OH_SIGN_STORE_BASE64 }}
+          CERT_BASE64: ${{secrets.OH_CERT_BASE64}}
+          PROFILE_BASE64: ${{secrets.OH_PROFILE_BASE64}}
+      
+      - name: Extre Version Info
+        id: version-info
+        run:
+          VERSION_CODE=$(jq -r '.app.versionCode' ./AppScope/app.json5)
+          VERSION_NAME=$(jq -r '.app.versionName' ./AppScope/app.json5)
+          HAP_FILENAME="FzuHelper_${VERSION_NAME}.${VERSION_CODE}.hap"
+
+          echo "HAP_FILENAME=$HAP_FILENAME" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Huawei App Gallery
+        uses: muhamedzeema/appgallery-deply-action@main
+        with:
+          client-id: ${{secrets.HUAWEI_CLIENT_ID}}
+          client-key: ${{secrets.HUAWEI_CLIENT_KEY}}
+          app-id: ${{secrets.HUAWEI_APP_ID}}
+          file-extension: "hap"
+          file-path: "./outputs/app.hap"
+          file-name: ${{ steps.version-info.outputs.HAP_FILENAME }}
+          submit: true
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: outputs
-          path: android/app/build/outputs
+          path: harmony/output
           retention-days: 0

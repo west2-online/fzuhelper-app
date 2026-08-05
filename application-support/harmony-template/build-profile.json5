@@ -1,64 +1,54 @@
 {
-  app: {
-    products: [
+  "app": {
+    "products": [
       {
-        name: 'default',
-        signingConfig: 'default',
-        compatibleSdkVersion: '5.0.0(12)',
-        targetSdkVersion: '6.0.0(20)',
-        runtimeOS: 'HarmonyOS',
-        buildOption: {
-          nativeCompiler: 'BiSheng',
-          strictMode: {
-            useNormalizedOHMUrl: true,
-          },
-        },
-      },
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "5.0.0(12)",
+        "targetSdkVersion": "6.0.0(20)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "nativeCompiler": "BiSheng",
+          "strictMode": {
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
     ],
-    buildModeSet: [
+    "buildModeSet": [
       {
-        name: 'debug',
+        "name": "debug"
       },
       {
-        name: 'release',
-      },
+        "name": "release"
+      }
     ],
-    signingConfigs: [
-      {
-        name: 'release',
-        type: 'HarmonyOS',
-        material: {
-          storeFile: 'release.p12',
-          storePassword: '${env.RELEASE_STORE_PWD}',
-          keyAlias: '${env.RELEASE_KEY_ALIAS}',
-          keyPassword: '${env.RELEASE_KEY_PWD}',
-          signAlg: 'SHA256withECDSA',
-          profile: 'release.p7b',
-          certpath: 'release.cer',
-        },
-      },
-    ],
+    "signingConfigs": []
   },
-  modules: [
+  "modules": [
     {
-      name: 'entry',
-      srcPath: './entry',
-      targets: [
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
         {
-          name: 'default',
-          applyToProducts: ['default'],
-        },
-      ],
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
     },
     {
-      name: 'expo_quick_actions',
-      srcPath: './expo_quick_actions',
-      targets: [
+      "name": "expo_quick_actions",
+      "srcPath": "./expo_quick_actions",
+      "targets": [
         {
-          name: 'default',
-          applyToProducts: ['default'],
-        },
-      ],
-    },
-  ],
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
 }
