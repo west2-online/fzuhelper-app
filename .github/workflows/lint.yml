@@ -1,14 +1,12 @@
 name: Lint
 
 on:
-  pull_request:
+  push:
+    branches:
+      - pre-commit-check
 
 permissions:
   contents: read
-
-concurrency:
-  group: lint-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
 
 jobs:
   lint:
