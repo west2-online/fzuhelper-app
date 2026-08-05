@@ -58,15 +58,26 @@ jobs:
       - name: Prebuild
         run: |
           yarn prebuild:harmony
+      
+      - name: Restore OpenHarmony Cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ github.workspace }}/harmony/.ohpm
+          key: ${{ runner.os }}-ohpm-${{ hashFiles('**/oh-package-lock.json5') }}
+          restore-keys: |
+            ${{ runner.os }}-ohpm-
+      
+      - name: Install OpenHarmony Dependencies
+        run: |
           yarn oh:install
-          rm -rf node_modules/react-native-css-interop/.cache
-          yarn oh:bundle
 
       - name: Build Release HAP
         run: |
+          yarn oh:bundle
           cd harmony
           hvigorw assembleHap --mode module -p product=default -p buildMode=release --no-daemon
-        
+
       - name: Sign HAP
         run: |
           cd harmony
@@ -76,7 +87,8 @@ jobs:
           echo "$PROFILE_BASE64" | base64 -d > "./release.p7b"
           echo "$CERT_BASE64" | base64 -d > "./release.cer"
 
-          java -jar hap-sign-tool.jar sign-app \
+          java \ 
+            -jar $HOS_SDK_HOME/default/openharmony/toolchains/lib/hap-sign-tool.jar sign-app \
             -keyAlias "$KEY_ALIAS" \
             -signAlg "SHA256withECDSA" \
             -mode "localSign" \
