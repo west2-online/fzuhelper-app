@@ -42,7 +42,9 @@ struct Index {
           appKey: 'main',
           jsBundleProvider: new TraceJSBundleProviderDecorator(
             new AnyJSBundleProvider([
-              new MetroJSBundleProvider('http://localhost:8082/index.bundle?platform=harmony&dev=true&minify=false'),
+              // Expo CLI resolves the bundle entry from the URL path. Keep the
+              // Harmony bootstrap before expo-router/entry in development too.
+              new MetroJSBundleProvider('http://localhost:8082/index.harmony.bundle?platform=harmony&dev=true&minify=false'),
               new FileJSBundleProvider('/data/storage/el2/base/files/bundle.harmony.js'),
               new ResourceJSBundleProvider(
                 this.rnohCoreContext.uiAbilityContext.resourceManager,
