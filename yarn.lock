@@ -1232,6 +1232,11 @@
   resolved "https://registry.yarnpkg.com/@expo-google-fonts/material-symbols/-/material-symbols-0.4.28.tgz#86673684ef2963d51483adf20f029c2ab9a4b7bc"
   integrity sha512-59qFO6w4W/wUZ6VuYfN1wtgyk4zFJspbKOdHYISMeDa2H4apZKY0Ab7K5ouee+C+s3/VfAp6tLK7ov+PsENhKw==
 
+"@expo-harmony/metro-config@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@expo-harmony/metro-config/-/metro-config-0.0.1.tgz#c85080ae29c25154b790667c6af4bdc405d0d9a3"
+  integrity sha512-qkzJYZTYvb/0b0dLeOBDZsvGMqIh2xyLxwvg7ZiRvNdLbQyerlTdVlWwWH6s6eoQHEgvVV9kG3L55bie2D7kIg==
+
 "@expo/cli@^56.1.16":
   version "56.1.16"
   resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-56.1.16.tgz#136ff7d9020053b5ea836dbb3d95156ea193d3f2"

@@ -20,7 +20,7 @@ const result = spawnSync(
     '--entry-file',
     'index.harmony.js',
     '--config',
-    'metro.harmony.config.js',
+    'metro.config.js',
     '--bundle-output',
     'harmony/entry/src/main/resources/rawfile/bundle.harmony.js',
     '--assets-dest',
@@ -31,6 +31,7 @@ const result = spawnSync(
     stdio: 'inherit',
     env: {
       ...process.env,
+      EXPO_METRO_TARGET: 'harmony',
       RNOH_C_API_ARCH: '1',
     },
   },
