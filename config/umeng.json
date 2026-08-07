@@ -24,5 +24,9 @@
   },
   "ios": {
     "appKey": "679132946d8fdd4ad83ab20e"
+  },
+  "harmony": {
+    "appKey": "6a7357ac4410067461c886b6",
+    "messageSecret": "d19a505810984b245a08bd1af379f56f"
   }
 }

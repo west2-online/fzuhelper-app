@@ -12,9 +12,9 @@ function requireString(value, field) {
 
 function syncHarmonyUmengConfig({ configPath, harmonyDir }) {
   const config = JSON.parse(readFileSync(configPath, 'utf8'));
-  const appKey = requireString(config.android?.appKey, 'android.appKey');
+  const appKey = requireString(config.harmony?.appKey, 'harmony.appKey');
   const channel = requireString(config.channel, 'channel');
-  const messageSecret = requireString(config.android?.messageSecret, 'android.messageSecret');
+  const messageSecret = requireString(config.harmony?.messageSecret, 'harmony.messageSecret');
 
   const etsConfigPath = path.join(harmonyDir, 'entry', 'src', 'main', 'ets', 'config', 'UmengConfig.ets');
   mkdirSync(path.dirname(etsConfigPath), { recursive: true });
