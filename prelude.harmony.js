@@ -5,6 +5,8 @@
 
 require('./application-support/harmony-polyfill/install-expo-polyfill.harmony');
 
+require('./application-support/harmony-polyfill/install-quick-base64.harmony');
+
 const { installExpoAsset } = require('./modules/expo-asset/src/install.harmony');
 installExpoAsset();
 
