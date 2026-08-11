@@ -51,14 +51,3 @@ export interface LocationInfo {
   error?: string;
   raw?: any;
 }
-
-// 自定义错误类
-export class LocationError extends Error {
-  constructor(
-    message: string,
-    public code: 'PERMISSION_DENIED' | 'TIMEOUT' | 'API_ERROR' | 'NETWORK_ERROR' | 'UNKNOWN',
-  ) {
-    super(message);
-    this.name = 'LocationError';
-  }
-}
