@@ -37,7 +37,3 @@ if (typeof cryptoObject.getRandomValues !== 'function') {
 }
 
 globalThis.crypto = cryptoObject;
-
-const { installExpoGlobalPolyfill } = require('expo-modules-core/src/polyfill/dangerous-internal');
-
-installExpoGlobalPolyfill();

@@ -1134,6 +1134,11 @@
   dependencies:
     tslib "^2.4.0"
 
+"@epic-web/invariant@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@epic-web/invariant/-/invariant-1.0.0.tgz#1073e5dee6dd540410784990eb73e4acd25c9813"
+  integrity sha512-lrTPqgvfFQtR/eY/qkIzp98OGdNJu0m5ji3q/nJI8v3SXkRKEnWiOxMmbvcSoAIzv/cGiuvRy57k4suKQSAdwA==
+
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.4.0", "@eslint-community/eslint-utils@^4.8.0", "@eslint-community/eslint-utils@^4.9.1":
   version "4.9.1"
   resolved "https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.9.1.tgz#4e90af67bc51ddee6cdef5284edf572ec376b595"
@@ -1231,6 +1236,16 @@
   version "0.4.28"
   resolved "https://registry.yarnpkg.com/@expo-google-fonts/material-symbols/-/material-symbols-0.4.28.tgz#86673684ef2963d51483adf20f029c2ab9a4b7bc"
   integrity sha512-59qFO6w4W/wUZ6VuYfN1wtgyk4zFJspbKOdHYISMeDa2H4apZKY0Ab7K5ouee+C+s3/VfAp6tLK7ov+PsENhKw==
+
+"@expo-harmony/entry@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@expo-harmony/entry/-/entry-0.0.1.tgz#894289bf39eb2ad189338978c5a5e85a5b13967c"
+  integrity sha512-lQVRvGfznTXPR07UEJ/V/yQ0wtfsp508XnToQuWPWfpBZhMFh/D5KmH6cI0D8QLAR2cCvYjT8i+KDSSUnqrfIw==
+
+"@expo-harmony/metro-config@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@expo-harmony/metro-config/-/metro-config-0.0.2.tgz#16a7555769d5011f2d23240c8d4dd8f27df3e89e"
+  integrity sha512-FSL2V82lZARknG5P+00r/GRQy/kESucWcImM3/dqbTTzW8ACjZn/OTPfM50E3sKOBuQlHVdZ9S9kQyaSN7jPsg==
 
 "@expo/cli@^56.1.16":
   version "56.1.16"
@@ -5415,6 +5430,14 @@ create-require@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/create-require/-/create-require-1.1.1.tgz#c1d7e8f1e5f6cfc9ff65f9cd352d37348756c333"
   integrity sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==
+
+cross-env@^10.1.0:
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-10.1.0.tgz#cfd2a6200df9ed75bfb9cb3d7ce609c13ea21783"
+  integrity sha512-GsYosgnACZTADcmEyJctkJIoqAhHjttw7RsFrVoJNXbsWWqaq6Ym+7kZjq6mS45O0jij6vtiReppKQEtqWy6Dw==
+  dependencies:
+    "@epic-web/invariant" "^1.0.0"
+    cross-spawn "^7.0.6"
 
 cross-fetch@^3.1.5:
   version "3.2.0"

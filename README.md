@@ -110,7 +110,7 @@ yarn oh:install
 yarn oh
 ```
 
-After react native dev server and simulator started, you should forward the port 8082 to the device:
+After the Expo dev server is running, you should forward port 8082 to the device:
 
 ```bash
 hdc rport tcp:8082 tcp:8082

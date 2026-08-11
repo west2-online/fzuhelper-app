@@ -33,6 +33,7 @@ export default function AboutPage() {
   const { handleError } = useSafeResponseSolve();
   const [updateCheckState, setUpdateCheckState] = useState('点击检查更新');
   const buildNumber = DeviceInfo.getBuildNumber();
+  const isHarmony = (Platform.OS as string) === 'harmony';
 
   const handleCheckUpdate = useCallback(async () => {
     console.log('check update');
@@ -136,7 +137,16 @@ export default function AboutPage() {
                 隐私政策
               </Text>
               <Text className="mx-2 text-primary">|</Text>
-              <Link href="/contributors" asChild>
+              <Link
+                href="/contributors"
+                asChild
+                onPress={e => {
+                  if (isHarmony) {
+                    e.preventDefault();
+                    toast.info('该功能鸿蒙版暂未适配，敬请期待');
+                  }
+                }}
+              >
                 <Text className="text-primary">贡献名录</Text>
               </Link>
               <Text className="mx-2 text-primary">|</Text>

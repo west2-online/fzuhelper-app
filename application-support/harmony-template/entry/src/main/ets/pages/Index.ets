@@ -42,12 +42,9 @@ struct Index {
           appKey: 'main',
           jsBundleProvider: new TraceJSBundleProviderDecorator(
             new AnyJSBundleProvider([
-              new MetroJSBundleProvider('http://localhost:8082/index.bundle?platform=harmony&dev=true&minify=false'),
+              new MetroJSBundleProvider('http://localhost:8082/.expo/.virtual-metro-entry.bundle?platform=harmony&dev=true&minify=false&modulesOnly=false&runModule=true'),
               new FileJSBundleProvider('/data/storage/el2/base/files/bundle.harmony.js'),
-              new ResourceJSBundleProvider(
-                this.rnohCoreContext.uiAbilityContext.resourceManager,
-                'bundle.harmony.js',
-              ),
+              new ResourceJSBundleProvider(this.rnohCoreContext.uiAbilityContext.resourceManager, 'bundle.harmony.js'),
             ]),
             this.rnohCoreContext.logger,
           ),

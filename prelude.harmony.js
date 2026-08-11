@@ -1,14 +1,11 @@
 'use strict';
 
-// Expo 56 replaces React Native's fetch with ExpoFetchModule by default. That
-// native Expo module is not available in RNOH, while RNOH's Networking module
-// already provides the standard React Native fetch implementation. This must
-// run before any Expo import because Expo.fx installs the fetch polyfill eagerly.
-process.env.EXPO_PUBLIC_USE_RN_FETCH = '1';
-
 // Keep these requires ordered. Static imports are hoisted and can evaluate Expo
 // before the JS implementation of globalThis.expo has been installed.
+
 require('./application-support/harmony-polyfill/install-expo-polyfill.harmony');
+
+require('./application-support/harmony-polyfill/install-quick-base64.harmony');
 
 const { installExpoAsset } = require('./modules/expo-asset/src/install.harmony');
 installExpoAsset();
@@ -35,6 +32,3 @@ installExpoQuickActions(getQuickActionItems('harmony'));
 
 const { enableScreens } = require('react-native-screens');
 enableScreens(false);
-
-require('@expo/metro-runtime');
-require('expo-router/entry');

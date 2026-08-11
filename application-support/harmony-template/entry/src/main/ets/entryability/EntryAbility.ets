@@ -1,6 +1,6 @@
 import { AbilityConstant, Want } from '@kit.AbilityKit';
 import { webview } from '@kit.ArkWeb';
-import { window } from '@kit.ArkUI';
+import { KeyboardAvoidMode, window } from '@kit.ArkUI';
 import { ExpoQuickActionsLaunchState } from 'expo_quick_actions';
 import { PushAgent } from '@umeng/push';
 import { RNAbility } from '@rnoh/react-native-openharmony';
@@ -41,12 +41,14 @@ export default class EntryAbility extends RNAbility {
       $r('app.media.start_icon'),
       '#FFFFFF',
       'pages/SplashScreenPage',
-    ).then(() => {
+    ).catch(() => {
+      // The React Native surface must still be created if the optional splash
+      // subwindow cannot be shown on a particular device.
+    }).then(() => {
       super.onWindowStageCreate(windowStage);
-    }).catch(() => {
-      // The React Native surface must still be created if the optional
-      // splash subwindow cannot be shown on a particular device.
-      super.onWindowStageCreate(windowStage);
+      // Match Android's adjustResize behavior: shrink the RN surface when the
+      // keyboard opens so a focused input near the bottom remains visible.
+      windowStage.getMainWindowSync().getUIContext().setKeyboardAvoidMode(KeyboardAvoidMode.RESIZE);
     });
   }
 
