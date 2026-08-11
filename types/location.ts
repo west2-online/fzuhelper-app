@@ -3,18 +3,18 @@ export interface GetSignedLocationApiUrlRequest {
   location: string; // 格式: "经度,纬度"
 }
 
-// 基础响应
-export interface BaseResp {
-  code: number;
+// 通用响应（与 api/axios.ts 中的 isApiData 约定一致）
+export interface ApiResp<T> {
+  code: string;
   message: string;
+  data: T;
 }
 
 // 签名URL响应
-export interface GetSignedLocationApiUrlResponse {
-  base: BaseResp;
+export type GetSignedLocationApiUrlResponse = ApiResp<{
   signed_url: string;
   headers: Record<string, string>;
-}
+}>;
 
 // 高德周边搜索响应
 export interface AMapRegeoResponse {
@@ -48,8 +48,8 @@ export interface LocationInfo {
   adCode: string;
   latitude: number;
   longitude: number;
-  error?: string; // 错误信息
-  raw?: any; // 原始数据
+  error?: string;
+  raw?: any;
 }
 
 // 自定义错误类
