@@ -22,6 +22,7 @@ import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
 import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
 import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
 import UtilityPaymentIcon from '@/assets/images/toolbox/ic_shuidian.svg';
+import SignIcon from '@/assets/images/toolbox/ic_sign.svg';
 import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
 import StudyCenterIcon from '@/assets/images/toolbox/ic_studycenter.svg';
 import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
@@ -318,7 +319,7 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
   {
     id: 230,
     name: '晚点名签到',
-    icon: LostFoundIcon,
+    icon: SignIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://yzsxg.fzu.edu.cn/livecloud/project/fzu/attn/oauth2/authorize.action',
