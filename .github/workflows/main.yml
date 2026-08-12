@@ -23,6 +23,11 @@ jobs:
     uses: ./.github/workflows/android.yml
     secrets: inherit
 
+  harmony:
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/harmony.yml
+    secrets: inherit
+
   alpha:
     if: github.ref == 'refs/heads/master'
     needs: android

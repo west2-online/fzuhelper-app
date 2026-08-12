@@ -1,0 +1,135 @@
+name: Build APP
+
+on:
+  workflow_call:
+
+jobs:
+  build-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Restore Cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Install libgl1-mesa-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev
+
+      - name: Setup HarmonyOS CLI tools
+        uses: ErBWs/setup-ohos@v2
+        with:
+          version: 6.1.1.280
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - name: Install Dependencies
+        run: |
+          yarn install --frozen-lockfile --prefer-offline
+
+      - name: Prebuild
+        run: |
+          yarn prebuild:harmony
+
+      - name: Restore OpenHarmony Cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ github.workspace }}/harmony/oh_modules
+          key: ${{ runner.os }}-ohpm-${{ hashFiles('**/oh-package.json5') }}
+          restore-keys: |
+            ${{ runner.os }}-ohpm-
+
+      - name: Install OpenHarmony Dependencies
+        run: |
+          yarn oh:install
+
+      - name: Build Release APP
+        run: |
+          yarn oh:bundle
+          cd harmony
+          hvigorw assembleApp --mode project -p product=default -p buildMode=release --no-daemon
+
+      - name: Sign APP
+        run: |
+          cd harmony
+          mkdir output
+
+          echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./release.p12"
+          echo "$PROFILE_BASE64" | base64 -d > "./release.p7b"
+          echo "$CERT_BASE64" | base64 -d > "./release.cer"
+
+          java \
+            -jar $HOS_SDK_HOME/default/openharmony/toolchains/lib/hap-sign-tool.jar sign-app \
+            -keyAlias "$KEY_ALIAS" \
+            -signAlg "SHA256withECDSA" \
+            -mode "localSign" \
+            -appCertFile "./release.cer" \
+            -profileFile "./release.p7b" \
+            -inFile "./build/outputs/default/harmony-default-unsigned.app" \
+            -keystoreFile "./release.p12" \
+            -outFile "./output/release.app" \
+            -keyPwd "$KEY_PASSWORD" \
+            -keystorePwd "$KEYSTORE_PASSWORD"
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.OH_SIGN_STORE_PWD }}
+          KEY_ALIAS: ${{ secrets.OH_SIGN_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.OH_KEY_PWD }}
+          SIGN_KEYSTORE_BASE64: ${{ secrets.OH_SIGN_STORE_BASE64 }}
+          CERT_BASE64: ${{secrets.OH_CERT_BASE64}}
+          PROFILE_BASE64: ${{secrets.OH_PROFILE_BASE64}}
+
+      - name: Extract Version Info
+        id: version-info
+        shell: bash
+        run: |
+          cd harmony
+          VERSION_CODE=$(jq -r '.app.versionCode' ./AppScope/app.json5)
+          VERSION_NAME=$(jq -r '.app.versionName' ./AppScope/app.json5)
+          APP_FILENAME="FzuHelper_${VERSION_NAME}.${VERSION_CODE}.app"
+
+          echo "APP_FILENAME=$APP_FILENAME" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Huawei App Gallery
+        uses: ACaiCat/huawei-appgallery-deploy@v1.3.0
+        with:
+          credentials: ${{secrets.HUAWEI_CREDENTIALS}}
+          app-id: ${{secrets.HUAWEI_APP_ID}}
+          file-path: './harmony/output/release.app'
+          file-name: ${{ steps.version-info.outputs.APP_FILENAME }}
+          submit: false
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: harmony-outputs
+          path: harmony/output
+          retention-days: 0
