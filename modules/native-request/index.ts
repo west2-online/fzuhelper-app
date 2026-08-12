@@ -8,6 +8,22 @@ interface NativeRequestResponse {
   headers: Record<string, string>;
 }
 
+function normalizeResponse(response: any): NativeRequestResponse {
+  let data: Uint8Array<ArrayBuffer>;
+  if (response.data instanceof Uint8Array) {
+    data = response.data;
+  } else if (response.data instanceof ArrayBuffer) {
+    data = new Uint8Array(response.data);
+  } else {
+    data = Uint8Array.from(response.data ?? []);
+  }
+  return {
+    status: response.status,
+    data,
+    headers: response.headers ?? {},
+  };
+}
+
 // 返回格式为 { status: number, data: Uint8Array, headers: Record<string, string> }
 // iOS 原始响应格式为 { status: Int, data: Data, headers: Record<string, string>, error: String? }
 // Android 原始响应格式为 { status: Int, data: ByteArray, headers: Map<String, List<String>>, error: String? }
@@ -16,11 +32,7 @@ export async function get(url: string, headers: Record<string, string>): Promise
   if (response.error) {
     throw new Error(response.error);
   }
-  return {
-    status: response.status,
-    data: response.data,
-    headers: response.headers,
-  };
+  return normalizeResponse(response);
 }
 
 // 返回格式为 { status: number, data: Uint8Array, headers: Record<string, string> }
@@ -35,11 +47,7 @@ export async function post(
   if (response.error) {
     throw new Error(response.error);
   }
-  return {
-    status: response.status,
-    data: response.data,
-    headers: response.headers,
-  };
+  return normalizeResponse(response);
 }
 
 // 返回格式为 { status: number, data: Uint8Array, headers: Record<string, string> }
@@ -55,9 +63,5 @@ export async function postJSON(
   if (response.error) {
     throw new Error(response.error);
   }
-  return {
-    status: response.status,
-    data: response.data,
-    headers: response.headers,
-  };
+  return normalizeResponse(response);
 }

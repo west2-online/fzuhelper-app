@@ -1,0 +1,42 @@
+{
+  "name": "fzuhelper-harmony",
+  "version": "7.2.6",
+  "description": "HarmonyOS shell for fzuhelper",
+  "modelVersion": "5.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "@rnoh/react-native-openharmony": "file:../node_modules/@react-native-oh/react-native-harmony/react_native_openharmony.har",
+    "@react-native-oh-tpl/react-native-linear-gradient": "file:../node_modules/@react-native-oh-tpl/react-native-linear-gradient/harmony/linear_gradient.har",
+    "@react-native-ohos/async-storage": "file:../node_modules/@react-native-ohos/async-storage/harmony/async_storage.har",
+    "@react-native-ohos/blur": "file:../node_modules/@react-native-ohos/blur/harmony/blur.har",
+    "@react-native-ohos/clipboard": "file:../node_modules/@react-native-ohos/clipboard/harmony/clipboard.har",
+    "@react-native-ohos/cookies": "file:../node_modules/@react-native-ohos/cookies/harmony/rn_cookies.har",
+    "@react-native-ohos/react-native-camera-kit": "file:../node_modules/@react-native-ohos/react-native-camera-kit/harmony/camera_kit.har",
+    "@react-native-ohos/react-native-blob-util": "file:../node_modules/@react-native-ohos/react-native-blob-util/harmony/blobUtil.har",
+    "@react-native-ohos/react-native-gesture-handler": "file:../node_modules/@react-native-ohos/react-native-gesture-handler/harmony/gesture_handler.har",
+    "@react-native-ohos/react-native-image-crop-picker": "file:../node_modules/@react-native-ohos/react-native-image-crop-picker/harmony/image_crop_picker.har",
+    "@react-native-ohos/react-native-keyboard-controller": "file:../node_modules/@react-native-ohos/react-native-keyboard-controller/harmony/keyboard_controller.har",
+    "@react-native-ohos/react-native-permissions": "file:../node_modules/@react-native-ohos/react-native-permissions/harmony/permissions.har",
+    "@react-native-ohos/react-native-reanimated": "file:../node_modules/@react-native-ohos/react-native-reanimated/harmony/reanimated.har",
+    "@react-native-ohos/react-native-safe-area-context": "file:../node_modules/@react-native-ohos/react-native-safe-area-context/harmony/safe_area.har",
+    "@react-native-ohos/react-native-screens": "file:../node_modules/@react-native-ohos/react-native-screens/harmony/screens.har",
+    "@react-native-ohos/react-native-splash-screen": "file:../node_modules/@react-native-ohos/react-native-splash-screen/harmony/splash_screen.har",
+    "@react-native-ohos/react-native-svg": "file:../node_modules/@react-native-ohos/react-native-svg/harmony/svg.har",
+    "@react-native-ohos/react-native-webview": "file:../node_modules/@react-native-ohos/react-native-webview/harmony/rn_webview.har",
+    "@react-native-ohos/react-native-worklets": "file:../node_modules/@react-native-ohos/react-native-worklets/harmony/worklets.har",
+    "bugly": "0.4.1",
+    "@react-native-ohos/geolocation": "file:../node_modules/@react-native-ohos/geolocation/harmony/geolocation.har",
+    "@react-native-ohos/react-native-device-info": "file:../node_modules/@react-native-ohos/react-native-device-info/harmony/device_info.har",
+    "@umeng/analytics": "1.2.12",
+    "@umeng/common": "1.1.12",
+    "@umeng/push": "2.0.4",
+    "@umeng/utunnel": "1.2.5"
+  },
+  "devDependencies": {
+    "@ohos/hypium": "1.0.11"
+  },
+  "overrides": {
+    "@rnoh/react-native-openharmony": "file:../node_modules/@react-native-oh/react-native-harmony/react_native_openharmony.har"
+  },
+  "dynamicDependencies": {}
+}
