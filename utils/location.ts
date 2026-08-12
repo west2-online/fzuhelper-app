@@ -1,4 +1,4 @@
-import { getSignedLocationApiUrl } from '@/api/location';
+import { postApiV1CommonSignedLocationApiUrl } from '@/api/generate/common';
 import type { AMapRegeoResponse, LocationInfo } from '@/types/location';
 import { LocationError } from '@/types/location';
 
@@ -9,7 +9,9 @@ export const fetchReverseGeocode = async (
   signal?: AbortSignal,
 ): Promise<AMapRegeoResponse | null> => {
   try {
-    const response = await getSignedLocationApiUrl(latitude, longitude);
+    const response = await postApiV1CommonSignedLocationApiUrl({
+      location: `${longitude},${latitude}`,
+    });
     const signedResult = response.data;
 
     // 检查后端是否返回成功 (code: "10000" 表示成功)
