@@ -1,22 +1,16 @@
-> WARNING(Chinese only): 本项目受福州大学统一指导，由福州大学计算机与大数据学院、福州大学网络安全与信息化办公室管理（以上单位合称"官方"）。这份源代码使用了宽松开源协议，但源码仅供学习参考，不允许该项目直接或间接性使用/修改后使用在任何非官方和 west2-online 外的应用、网站、app 及任何可以与用户产生交互的互联网信息媒介中。该警告具备行政约束效力。
-
 <div align="center">
   <img src="assets/images/icon.png" alt="FzuHelper" width="128"/>
   <h1 style="display: inline-block; vertical-align: middle;">fzuhelper-app</h1>
 </div>
 
-<div align="center">
-  <a href="#overview">English</a> | <a href="docs/README.zh.md">中文</a>
-</div>
+## 概述
 
-## Overview
+fzuhelper-app 是一个使用 React Native 跨平台技术开发的客户端应用，每天为福州大学超 3 万名学生提供服务<sup>（[福uu数据来源与介绍](https://west2-online.feishu.cn/wiki/RG3UwWGqPig8lHk0mYsccKWRnrd)）</sup>。
 
-fzuhelper-app is a client app that uses React Native cross-end technology. It supports about 20,000 to 30,000 students at Fuzhou University every day. ([Data source and introduction to fzuhelper](https://west2-online.feishu.cn/wiki/RG3UwWGqPig8lHk0mYsccKWRnrd)).
-
-> fzuhelper was launched in 2015, developed from scratch by west2-online and continuously operated, providing students with industrial-grade practice as much as possible on campus and offering robust support for student employment.
+> 福uu 于 2015 年上线，由福州大学西二在线工作室从零开始开发并持续运营，为校内学生提供工业级软件开发实践平台。
 
 <details>
-<summary><b>App Previews [click to expand]</b></summary>
+<summary><b>App 预览图 <small>[点击展开]</small></b></summary>
 <div style="display: flex; overflow-x: auto;">
   <img src="./docs/images/preview/calendar.jpeg" alt="课表" style="width: 200px; margin-right: 10px;">
   <img src="./docs/images/preview/toolbox.jpeg" alt="工具箱" style="width: 200px; margin-right: 10px;">
@@ -29,59 +23,27 @@ fzuhelper-app is a client app that uses React Native cross-end technology. It su
 </div>
 </details>
 
-## Quick Start
+## 快速开始
 
-This project based on the [Node.js](https://nodejs.org/), [Yarn](https://yarnpkg.com/), make sure to install these software first. It is recommended to use nvm to manage the node version. This project supports running under node v22.
+本项目使用 React Native。
 
-### iOS
-
-> You need at least **a computer with macOS installed**. Recommended configuration: MacBook Pro 2021 or later, 32G memory and equipped with M1/M2/M3/M4 Pro/Max/Ultra
-
-Before start, make sure you have installed [Xcode from App Store](https://apps.apple.com/us/app/xcode/id497799835) and [CocoaPods](https://cocoapods.org/), all use latest version.
-
-Then follow the steps below in Terminal (iTerm2 is recommended):
-
-```bash
-# install Xcode commnd line tools
-xcode-select --install
-
-# clone repo
-git clone https://github.com/west2-online/fzuhelper-app
-
-# install package
-yarn install
-
-# prebuild iOS engineering projects
-yarn prebuild:ios --clean
-
-# running the dev version on the simulator
-yarn ios
-
-# (options) if you need to run on the real device
-yarn ios --device
-```
-
-**NOTE: You DO NOT NEED to open Xcode for developer unless you are responsible for native related development**, for business implementation, you can develop in vscode throughout the process
+在启动开发环境之前，需要准备一台安装了 Windows 10 或更高版本的 PC，或者运行 macOS 15 或更高版本的 Mac。还需要安装好 [Node.js](https://nodejs.org) 和 [Yarn](https://yarnpkg.com)。如果需要进行 iOS 开发，则必须使用 Mac 电脑。
 
 ### Android
 
-> You need at least **a computer with Windows 10 installed**. Recommended configuration: Windows 11 Pro, Intel 13th generation or later i5 standard voltage or desktop processor, with at least 32G memory.
+在开始之前，请确保配置好以下环境：
 
-Before start, make sure you have installed/created:
+1. [Android Studio](https://developer.android.com/studio) 和 Android SDK（版本为 36，可以通过 Android Studio 安装）
+2. OpenJDK 17
+   - 在 Windows 上可以 [使用 winget 安装](https://learn.microsoft.com/en-us/java/openjdk/install?tabs=winget%2Chomebrew%2Cubuntu#install-on-windows)，执行 `winget install Microsoft.OpenJDK.17` 即可。
+   - 在 macOS 上可以使用 Homebrew 安装，执行 `brew install openjdk@17` 即可。
+3. Android Studio Emulator，可以参考 [Expo 文档](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=development-build&buildEnv=local#set-up-an-emulator) 中的说明进行设置。
 
-1. [Android Studio](https://developer.android.com/studio) and Android SDK (Version 35, you can install it from Android Studio)
-2. [OpenJDK (17 or above，winget, Microsoft.OpenJDK.17)](https://learn.microsoft.com/en-us/java/openjdk/install)
-3. an Android Studio emulator, you can follow the instructions in the [Expo documentation](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated).
+> [!TIP]
+>
+> <small>为了方便，可以设置环境变量 `APP_VARIANT=development`。这一步是可选的。这将使用与发布版本不同的应用标识符，从而允许开发版和发布版共存。如果未设置环境变量或设置了其他值，则仅使用应用的发布版本标识符。</small>
 
-For convenience, you can set environment variable `APP_VARIANT=development`. This is optional.
-
-This will use a different application identifier than the release, which allows for the coexistence of dev and release versions.
-
-If the environment variable is not set or set to a different value, only the release version of the application identifier will be used.
-
-After you have installed the required software, you can start developing the app.
-
-Clone the repository and install dependencies:
+克隆仓库并安装依赖：
 
 ```bash
 git clone https://github.com/west2-online/fzuhelper-app.git
@@ -89,39 +51,78 @@ cd fzuhelper-app
 yarn install
 ```
 
-Start the app:
+预构建 Android 工程项目：
+
+```bash
+yarn prebuild:android
+```
+
+启动应用：
 
 ```bash
 yarn android
 ```
 
-This will start the Metro bundler and launch the app in the emulator.
+这将启动 Android 模拟器并在开发模式下运行应用。
 
-### HarmonyOS
+### iOS
 
-The HarmonyOS native project is generated and is not committed directly. After
-installing the optional RNOH dependencies, create it from the checked-in
-template and configuration:
+需要安装最新 [App Store 版 Xcode](https://apps.apple.com/us/app/xcode/id497799835) 和 [CocoaPods](https://cocoapods.org/)。
+
+在终端中按照以下步骤操作：
 
 ```bash
+# 安装 Xcode 命令行工具
+xcode-select --install
+
+# 克隆仓库
+git clone https://github.com/west2-online/fzuhelper-app
+
+# 安装依赖包
 yarn install
-yarn prebuild:harmony
-yarn oh:install
-yarn oh
+
+# 预构建 iOS 工程项目
+yarn prebuild:ios
+npx pod-install
+
+# 在模拟器中运行开发版本
+yarn ios
+# 或（可选）在真机上运行
+yarn ios --device
 ```
 
-After the Expo dev server is running, you should forward port 8082 to the device:
+## HarmonyOS NEXT
+
+需要先安装 [DevEco Studio](https://developer.huawei.com/consumer/cn/deveco-studio/) 和 [Command Line Tools](https://developer.huawei.com/consumer/cn/download/)，并手动配置好 SDK、模拟器、相关 PATH（Command Line Tools 的 bin；DevEco Studio 的 OpenHarmony SDK Toolchains）。
 
 ```bash
-hdc rport tcp:8082 tcp:8082
+# 克隆仓库
+git clone https://github.com/west2-online/fzuhelper-app
+
+# 安装依赖包
+yarn install
+
+# 预构建 HarmonyOS 工程项目
+yarn prebuild:harmony
+
+# 安装 ohpm 依赖
+yarn oh:install
+
+# 启动 Expo dev server
+yarn oh
+
+# 转发端口（需要先启动模拟器）
+yarn oh:forward
 ```
 
-Open the generated `harmony/` directory in DevEco Studio to configure signing
-and run the `entry` module. Use `yarn oh:build` for a clean offline debug HAP
-build; it regenerates the native project before compiling.
+然后在 DevEco Studio 中打开生成的 `harmony/` 目录，运行 `entry` 模块。
 
-## Contributors
+## 参与贡献
 
-<img src="./docs/images/logo(en).svg" width="400">
+<img src="docs/images/logo(en).svg" width="400">
 
-If you are interested in joining the maintenance of fzuhelper-app, please contact us on our [official website](https://site.west2.online)
+如果您有兴趣加入 fzuhelper-app 的维护工作，请通过我们的 [官网](https://site.west2.online) 联系我们。
+
+> [!WARNING]
+>
+> <small>本项目受福州大学统一指导，由福州大学计算机与大数据学院、福州大学网络安全与信息化办公室管理（以上单位合称「官方」）。本项目源代码使用宽松开源协议，但仅供学习参考，不允许直接或间接性使用/修改后使用在任何非官方和西二在线外的应用、网站、App 及任何可以与用户产生交互的互联网信息媒介中。本警告具备行政约束效力。</small>
