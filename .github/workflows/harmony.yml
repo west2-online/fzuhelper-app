@@ -29,9 +29,9 @@ jobs:
           sudo apt-get install -y libgl1-mesa-dev
 
       - name: Setup HarmonyOS CLI tools
-        uses: ErBWs/setup-ohos@v2
+        uses: west2-online/setup-ohos@v2
         with:
-          version: 6.1.1.280
+          version: 6.1.1.300
           cache: true
 
       - name: Setup Node.js
