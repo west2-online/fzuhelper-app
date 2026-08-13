@@ -138,9 +138,9 @@ jobs:
           submit: false
           test-submit: true
           test-desc: |
-            期待已久的福uu 的原生 Harmony NEXT（纯血鸿蒙）支持终于来了～
+            期待已久的福uu原生HarmonyOS NEXT版本终于来了～
 
-            请加入内测群1104072785了解详情&反馈问题。
+            请加入内测QQ群1104072785了解详情&反馈问题。
 
             ${{ steps.changelog.outputs.CHANGELOG }}
 
