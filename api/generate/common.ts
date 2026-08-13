@@ -3,7 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 获取贡献者列表 GET /api/v1/common/contributor */
+/** 获取贡献者列表 GET /api/v1/common/contributor https://app.apifox.com/web/project/3275694/apis/api-267250927-run */
 export async function getApiV1CommonContributor(options?: {
   [key: string]: unknown;
 }) {
@@ -42,7 +42,7 @@ export async function getApiV1CommonContributor(options?: {
   });
 }
 
-/** 获取教务处通知 教务处教学通知查询接口 GET /api/v1/common/notice */
+/** 获取教务处通知 教务处教学通知查询接口 GET /api/v1/common/notice https://app.apifox.com/web/project/3275694/apis/api-109631164-run */
 export async function getApiV1CommonNotice(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1CommonNoticeParams,
@@ -64,7 +64,7 @@ export async function getApiV1CommonNotice(
   });
 }
 
-/** 获取签名位置 API URL POST /api/v1/common/signed-location-api-url */
+/** 获取签名位置 API URL POST /api/v1/common/signed-location-api-url https://app.apifox.com/web/project/3275694/apis/api-495323834-run */
 export async function postApiV1CommonSignedLocationApiUrl(
   body: {
     /** 经度,纬度 */
@@ -86,7 +86,7 @@ export async function postApiV1CommonSignedLocationApiUrl(
   });
 }
 
-/** 学期信息 GET /api/v1/terms/info */
+/** 学期信息 GET /api/v1/terms/info https://app.apifox.com/web/project/3275694/apis/api-227251089-run */
 export async function getApiV1TermsInfo(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1TermsInfoParams,
@@ -110,7 +110,7 @@ export async function getApiV1TermsInfo(
   });
 }
 
-/** 学期列表 GET /api/v1/terms/list */
+/** 学期列表 GET /api/v1/terms/list https://app.apifox.com/web/project/3275694/apis/api-227251088-run */
 export async function getApiV1TermsList(options?: { [key: string]: unknown }) {
   return request<{
     code: string;
@@ -131,7 +131,7 @@ export async function getApiV1TermsList(options?: { [key: string]: unknown }) {
   });
 }
 
-/** 获取安卓版本更新信息 GET /api/v2/version/android */
+/** 获取安卓版本更新信息 GET /api/v2/version/android https://app.apifox.com/web/project/3275694/apis/api-262439432-run */
 export async function getApiV2VersionAndroid(options?: {
   [key: string]: unknown;
 }) {
