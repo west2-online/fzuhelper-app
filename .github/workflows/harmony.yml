@@ -129,7 +129,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Deploy to Huawei App Gallery
-        uses: ACaiCat/huawei-appgallery-deploy@v1.4.0
+        uses: ACaiCat/huawei-appgallery-deploy@v1.5.0
         with:
           credentials: ${{secrets.HUAWEI_CREDENTIALS}}
           app-id: ${{secrets.HUAWEI_APP_ID}}
@@ -137,7 +137,9 @@ jobs:
           file-name: ${{ steps.version-info.outputs.APP_FILENAME }}
           submit: false
           test-submit: true
-          test-desc: |
+          test-group-ids: 3bd3c58f77f844a7abeb2b4deadfa94a
+          test-desc: 工作流自动发布 - ${{ steps.version-info.outputs.APP_FILENAME }}
+          version-desc: |
             期待已久的福uu原生HarmonyOS NEXT版本终于来了～
 
             请加入内测QQ群1104072785了解详情&反馈问题。
