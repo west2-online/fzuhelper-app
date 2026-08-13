@@ -1,3 +1,4 @@
+import { CourseTabBarIcon, QRCodeTabBarIcon, ToolboxTabBarIcon, UserTabBarIcon } from '@/components/TabBarIcon';
 import { BlurView } from 'expo-blur';
 import * as QuickActions from 'expo-quick-actions';
 import { useQuickActionRouting } from 'expo-quick-actions/router';
@@ -5,10 +6,10 @@ import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
 
-import { TabBarIcon } from '@/components/TabBarIcon';
 import { getQuickActionItems, type QuickActionPlatform } from '@/config/quick-actions';
 
 import { getApiV1JwchPing } from '@/api/generate';
+import { useTheme } from '@/components/app-theme-provider';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 import fileCache from '@/utils/file-cache';
@@ -18,7 +19,7 @@ const NAVIGATION_TITLE = '首页';
 // 进入这个 Layout，我们视为进入 app 主页面，因此会设置一些额外逻辑，比如关于 app 状态的一些信息
 export default function TabLayout() {
   useQuickActionRouting();
-
+  const { isDarkTheme } = useTheme();
   const navigation = useNavigation();
   const appState = useRef(AppState.currentState);
   const { handleError } = useSafeResponseSolve();
@@ -124,9 +125,7 @@ export default function TabLayout() {
             title: '课程',
             href: '/',
             // eslint-disable-next-line react/no-unstable-nested-components
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
-            ),
+            tabBarIcon: ({ focused }) => <CourseTabBarIcon isSelected={focused} isDark={isDarkTheme} />,
           }}
         />
         <Tabs.Screen
@@ -135,9 +134,7 @@ export default function TabLayout() {
             title: '工具箱',
             href: '/toolbox',
             // eslint-disable-next-line react/no-unstable-nested-components
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />
-            ),
+            tabBarIcon: ({ focused }) => <ToolboxTabBarIcon isSelected={focused} isDark={isDarkTheme} />,
           }}
         />
         <Tabs.Screen
@@ -146,9 +143,7 @@ export default function TabLayout() {
             title: '一码通',
             href: '/qrcode',
             // eslint-disable-next-line react/no-unstable-nested-components
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'qr-code' : 'qr-code-outline'} color={color} />
-            ),
+            tabBarIcon: ({ focused }) => <QRCodeTabBarIcon isSelected={focused} isDark={isDarkTheme} />,
           }}
         />
         <Tabs.Screen
@@ -157,9 +152,7 @@ export default function TabLayout() {
             title: '我的',
             href: '/user',
             // eslint-disable-next-line react/no-unstable-nested-components
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} />
-            ),
+            tabBarIcon: ({ focused }) => <UserTabBarIcon isSelected={focused} isDark={isDarkTheme} />,
           }}
         />
       </Tabs>
