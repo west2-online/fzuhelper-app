@@ -118,14 +118,31 @@ jobs:
 
           echo "APP_FILENAME=$APP_FILENAME" >> "$GITHUB_OUTPUT"
 
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          GIT_LOG=$(git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}') || { echo "Failed to get git log"; exit 1; }
+          {
+            echo "CHANGELOG<<BSEOF"
+            echo -e "同步自 GitHub 最近三条提交记录:\n$GIT_LOG"
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Deploy to Huawei App Gallery
-        uses: ACaiCat/huawei-appgallery-deploy@v1.3.0
+        uses: ACaiCat/huawei-appgallery-deploy@v1.4.0
         with:
           credentials: ${{secrets.HUAWEI_CREDENTIALS}}
           app-id: ${{secrets.HUAWEI_APP_ID}}
           file-path: './harmony/output/release.app'
           file-name: ${{ steps.version-info.outputs.APP_FILENAME }}
           submit: false
+          test-submit: true
+          test-desc: |
+            期待已久的福uu 的原生 Harmony NEXT（纯血鸿蒙）支持终于来了～
+
+            请加入内测群1104072785了解详情&反馈问题。
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
