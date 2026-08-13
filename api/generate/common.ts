@@ -3,7 +3,7 @@
 import * as API from './types';
 import request from '../axios';
 
-/** 获取贡献者列表 GET /api/v1/common/contributor https://apifox.com/web/project/3275694/apis/api-267250927-run */
+/** 获取贡献者列表 GET /api/v1/common/contributor */
 export async function getApiV1CommonContributor(options?: {
   [key: string]: unknown;
 }) {
@@ -42,7 +42,7 @@ export async function getApiV1CommonContributor(options?: {
   });
 }
 
-/** 获取教务处通知 教务处教学通知查询接口 GET /api/v1/common/notice https://apifox.com/web/project/3275694/apis/api-109631164-run */
+/** 获取教务处通知 教务处教学通知查询接口 GET /api/v1/common/notice */
 export async function getApiV1CommonNotice(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1CommonNoticeParams,
@@ -64,7 +64,29 @@ export async function getApiV1CommonNotice(
   });
 }
 
-/** 学期信息 GET /api/v1/terms/info https://apifox.com/web/project/3275694/apis/api-227251089-run */
+/** 获取签名位置 API URL POST /api/v1/common/signed-location-api-url */
+export async function postApiV1CommonSignedLocationApiUrl(
+  body: {
+    /** 经度,纬度 */
+    location: string;
+  },
+  options?: { [key: string]: unknown }
+) {
+  return request<{
+    code: string;
+    message: string;
+    data: { signed_url: string; headers: { 'User-Agent': string } };
+  }>('/api/v1/common/signed-location-api-url', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 学期信息 GET /api/v1/terms/info */
 export async function getApiV1TermsInfo(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
   params: API.getApiV1TermsInfoParams,
@@ -88,7 +110,7 @@ export async function getApiV1TermsInfo(
   });
 }
 
-/** 学期列表 GET /api/v1/terms/list https://apifox.com/web/project/3275694/apis/api-227251088-run */
+/** 学期列表 GET /api/v1/terms/list */
 export async function getApiV1TermsList(options?: { [key: string]: unknown }) {
   return request<{
     code: string;
@@ -109,7 +131,7 @@ export async function getApiV1TermsList(options?: { [key: string]: unknown }) {
   });
 }
 
-/** 获取安卓版本更新信息 GET /api/v2/version/android https://apifox.com/web/project/3275694/apis/api-262439432-run */
+/** 获取安卓版本更新信息 GET /api/v2/version/android */
 export async function getApiV2VersionAndroid(options?: {
   [key: string]: unknown;
 }) {
