@@ -1,6 +1,5 @@
 import { postApiV1CommonSignedLocationApiUrl } from '@/api/generate/common';
 import type { AMapRegeoResponse, LocationInfo } from '@/types/location';
-import { LocationError } from '@/types/location';
 
 // 获取定位反解信息
 export const fetchReverseGeocode = async (
@@ -16,7 +15,7 @@ export const fetchReverseGeocode = async (
 
     // 检查后端是否返回成功 (code: "10000" 表示成功)
     if (signedResult.code !== '10000') {
-      throw new LocationError(signedResult.message, 'API_ERROR');
+      throw new Error(signedResult.message);
     }
 
     const data = signedResult.data;
@@ -28,13 +27,13 @@ export const fetchReverseGeocode = async (
     });
 
     if (!fetchResponse.ok) {
-      throw new LocationError(`HTTP ${fetchResponse.status}`, 'NETWORK_ERROR');
+      throw new Error(`HTTP ${fetchResponse.status}`);
     }
 
     const amapData: AMapRegeoResponse = await fetchResponse.json();
 
     if (amapData.status !== '1') {
-      throw new LocationError(amapData.info, 'API_ERROR');
+      throw new Error(amapData.info);
     }
 
     return amapData;
