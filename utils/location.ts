@@ -1,12 +1,18 @@
 import { postApiV1CommonSignedLocationApiUrl } from '@/api/generate/common';
 import type { AMapRegeoResponse, LocationInfo } from '@/types/location';
 
+const reverseGeocodeCache = new Map<string, AMapRegeoResponse>();
+
 // 获取定位反解信息
 export const fetchReverseGeocode = async (
   latitude: number,
   longitude: number,
   signal?: AbortSignal,
 ): Promise<AMapRegeoResponse | null> => {
+  const cacheKey = `${latitude.toFixed(5)},${longitude.toFixed(5)}`;
+  const cached = reverseGeocodeCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
     const response = await postApiV1CommonSignedLocationApiUrl({
       location: `${longitude},${latitude}`,
@@ -35,6 +41,8 @@ export const fetchReverseGeocode = async (
     if (amapData.status !== '1') {
       throw new Error(amapData.info);
     }
+
+    reverseGeocodeCache.set(cacheKey, amapData);
 
     return amapData;
   } catch (error) {
