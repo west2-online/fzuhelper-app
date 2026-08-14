@@ -16,6 +16,7 @@ export { default as RoomIcon } from '@/assets/images/toolbox/ic_room.svg';
 export { default as FZURunIcon } from '@/assets/images/toolbox/ic_run.svg';
 export { default as UtilityPaymentIcon } from '@/assets/images/toolbox/ic_shuidian.svg';
 export { default as IDCardIcon } from '@/assets/images/toolbox/ic_studentcard.svg';
+export { default as SignIcon } from '@/assets/images/toolbox/ic_sign.svg';
 export { default as StudyCenterIcon } from '@/assets/images/toolbox/ic_studycenter.svg';
 export { default as WikiIcon } from '@/assets/images/toolbox/ic_wiki.svg';
 export { default as XiaoBenIcon } from '@/assets/images/toolbox/ic_xiaobenhua.svg';

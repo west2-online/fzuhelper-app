@@ -25,6 +25,7 @@ import {
   NotificationIcon,
   OneKeyIcon,
   RoomIcon,
+  SignIcon,
   StudyCenterIcon,
   UtilityPaymentIcon,
   WikiIcon,
@@ -316,6 +317,17 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     icon: JobFiarIcon,
     type: ToolType.LINK,
     href: '/toolbox/job-fair',
+  },
+  {
+    id: 230,
+    name: '晚点名签到',
+    icon: SignIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://yzsxg.fzu.edu.cn/livecloud/project/fzu/attn/oauth2/authorize.action',
+      title: '晚点名签到',
+      sso: true,
+    },
   },
   {
     id: 9999,
