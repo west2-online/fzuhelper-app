@@ -31,7 +31,7 @@ export default function FriendManagePage() {
   const apiResult = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
   const { data: friendList, refetch, isFetching } = apiResult;
 
-  const { data: maxNumData } = useApiRequest(getApiV1UserFriendMaxNum, {});
+  const { data: maxNumData } = useApiRequest(getApiV1UserFriendMaxNum, {}, { queryKey: ['user-friend-max-num'] });
 
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,

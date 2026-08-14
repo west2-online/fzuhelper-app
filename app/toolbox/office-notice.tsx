@@ -29,7 +29,11 @@ export default function OfficeNoticePage() {
   const [isEnd, setIsEnd] = useState(false);
   const { bottom } = useSafeAreaInsets();
 
-  const { data, isFetching, isError, error, refetch } = useApiRequest(getApiV1CommonNotice, { pageNum });
+  const { data, isFetching, isError, error, refetch } = useApiRequest(
+    getApiV1CommonNotice,
+    { pageNum },
+    { queryKey: ['common-notice', pageNum] },
+  );
 
   useEffect(() => {
     if (data) {
