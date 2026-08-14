@@ -294,8 +294,8 @@ export class CourseCache {
           }),
         ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
         ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-      } else if (Platform.OS === 'android') {
-        setWidgetData(
+      } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
+        await setWidgetData(
           JSON.stringify({
             courseData: this.cachedData,
             examData: this.cachedExamData,
@@ -335,8 +335,8 @@ export class CourseCache {
       const storage = new ExtensionStorage(IOS_APP_GROUP);
       storage.set(COURSE_CURRENT_CACHE_KEY, '');
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-    } else if (Platform.OS === 'android') {
-      setWidgetData('', Constants.expoConfig?.android?.package);
+    } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
+      await setWidgetData('', Constants.expoConfig?.android?.package);
     }
   }
 

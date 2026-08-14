@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "id": "1",
+      "title": "一码通",
+      "subtitle": "一键跳转一码通",
+      "params": {
+        "href": "/qrcode"
+      },
+      "platforms": {
+        "ios": {
+          "icon": "symbol:qrcode"
+        },
+        "android": {
+          "icon": "qrcode",
+          "foregroundImage": "./assets/images/qr_action.png",
+          "backgroundColor": "#FFFFFF"
+        },
+        "harmony": {
+          "icon": "qrcode",
+          "image": "./assets/images/qr_action.png"
+        }
+      }
+    }
+  ]
+}

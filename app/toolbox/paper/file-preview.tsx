@@ -22,17 +22,19 @@ export default function FilePreviewPage() {
   const [localFileUri, setLocalFileUri] = useState<string>('');
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharingAvailable, setIsSharingAvailable] = useState(false);
   const [progress, setProgress] = useState(0);
   const downloadUri = `https://files.w2fzu.com/${encodeURIComponent(filepath.substring(1))}?_upt=78e7a6691739858884`;
 
   useEffect(() => {
     // 根据平台设置 localFileUri
     let uri = '';
-    switch (Platform.OS) {
+    switch (Platform.OS as string) {
       case 'android':
         uri = ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir + '/fzuPaper/' + filepath;
         break;
       case 'ios':
+      case 'harmony':
         uri = FileSystem.cacheDirectory + 'paper' + filepath;
         break;
     }
@@ -40,18 +42,20 @@ export default function FilePreviewPage() {
 
     // 检查文件是否存在
     const checkFile = async () => {
-      switch (Platform.OS) {
+      switch (Platform.OS as string) {
         case 'android':
           const exists = await ReactNativeBlobUtil.fs.exists(uri);
           setIsDownloaded(exists);
           break;
         case 'ios':
+        case 'harmony':
           const fileInfo = await FileSystem.getInfoAsync(uri);
           setIsDownloaded(fileInfo.exists);
           break;
       }
     };
     checkFile();
+    Sharing.isAvailableAsync().then(setIsSharingAvailable);
   }, [filepath]);
 
   const handleDownload = async () => {
@@ -59,7 +63,7 @@ export default function FilePreviewPage() {
     setProgress(0);
 
     try {
-      switch (Platform.OS) {
+      switch (Platform.OS as string) {
         case 'android': {
           const downloadTask = ReactNativeBlobUtil.config({
             fileCache: true,
@@ -87,7 +91,8 @@ export default function FilePreviewPage() {
           handleOpenFile();
           break;
         }
-        case 'ios': {
+        case 'ios':
+        case 'harmony': {
           const parentDir = localFileUri.substring(0, localFileUri.lastIndexOf('/') + 1);
           const parentDirInfo = await FileSystem.getInfoAsync(parentDir);
           if (!parentDirInfo.exists) await FileSystem.makeDirectoryAsync(parentDir, { intermediates: true });
@@ -103,7 +108,9 @@ export default function FilePreviewPage() {
           await downloadResumable.downloadAsync();
           setIsDownloaded(true);
           toast.success('下载成功');
-          handleOpenFile();
+          if ((Platform.OS as string) === 'ios') {
+            handleOpenFile();
+          }
           break;
         }
       }
@@ -116,7 +123,7 @@ export default function FilePreviewPage() {
   };
 
   const handleOpenFile = async () => {
-    switch (Platform.OS) {
+    switch (Platform.OS as string) {
       case 'android': {
         ReactNativeBlobUtil.android.actionViewIntent(
           localFileUri,
@@ -128,12 +135,16 @@ export default function FilePreviewPage() {
         await handleShareFile();
         break;
       }
+      case 'harmony': {
+        await handleShareFile();
+        break;
+      }
     }
   };
 
   const handleShareFile = async () => {
     if (await Sharing.isAvailableAsync()) {
-      switch (Platform.OS) {
+      switch (Platform.OS as string) {
         case 'android':
           const tempUri = FileSystem.cacheDirectory + filename;
           // Sharing 无法读到公有目录下App写入的文件，复制到缓存目录处理
@@ -143,6 +154,7 @@ export default function FilePreviewPage() {
           ReactNativeBlobUtil.fs.unlink(tempUri);
           break;
         case 'ios':
+        case 'harmony':
           await Sharing.shareAsync(localFileUri);
           break;
       }
@@ -181,7 +193,7 @@ export default function FilePreviewPage() {
           )}
 
           {/* 已下载，展示分享文件按钮 */}
-          {isDownloaded && (
+          {isDownloaded && isSharingAvailable && (
             <TouchableOpacity
               onPress={handleShareFile}
               activeOpacity={0.7}

@@ -1,11 +1,12 @@
 import { BlurView } from 'expo-blur';
 import * as QuickActions from 'expo-quick-actions';
-import { useQuickActionRouting, type RouterAction } from 'expo-quick-actions/router';
+import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { Stack, Tabs, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Alert, AppState, Platform, StyleSheet, View } from 'react-native';
 
 import { TabBarIcon } from '@/components/TabBarIcon';
+import { getQuickActionItems, type QuickActionPlatform } from '@/config/quick-actions';
 
 import { getApiV1JwchPing } from '@/api/generate';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
@@ -75,15 +76,8 @@ export default function TabLayout() {
 
   // 设置快捷操作（Android，iOS 需要同步配置config，详见 @/app.config.ts ）
   useEffect(() => {
-    QuickActions.setItems<RouterAction>([
-      {
-        id: '1',
-        title: '一码通',
-        subtitle: '一键跳转一码通',
-        icon: Platform.OS === 'ios' ? 'symbol:qrcode' : 'qrcode',
-        params: { href: '/qrcode' },
-      },
-    ]);
+    const platform: QuickActionPlatform = Platform.OS === 'android' || Platform.OS === 'ios' ? Platform.OS : 'harmony';
+    QuickActions.setItems(getQuickActionItems(platform));
   }, []);
 
   // 应用启动时触发一次过期缓存清理
