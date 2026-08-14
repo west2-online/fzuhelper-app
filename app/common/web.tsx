@@ -1,12 +1,11 @@
-import { Icon } from '@/components/Icon';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import CookieManager from '@preeternal/react-native-cookie-manager';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
+import Constants from 'expo-constants';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter, type UnknownOutputParams } from 'expo-router';
 import { useHeaderHeight } from 'expo-router/react-navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform, Share, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type {
@@ -19,6 +18,7 @@ import type {
 } from 'react-native-webview/lib/WebViewTypes';
 import { toast } from 'sonner-native';
 
+import { Icon } from '@/components/Icon';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
@@ -531,6 +531,11 @@ export default function Web() {
     }
   }, [currentUrl, jwch, sso, title, webpageTitle]);
 
+  const appNameForUa = useMemo(() => {
+    if (sso) return 'appId/cn.edu.fzu.fdxypa appScheme/kysk-fdxy-app hengfeng/fdxyappzs appType/2 ruijie-facecamera';
+    return `fzuhelper/${Constants.expoConfig?.version ?? 'dev'}`;
+  }, [sso]);
+
   return (
     <>
       {/* 如果传递了 title 参数，则使用它；否则使用网页标题 */}
@@ -561,6 +566,8 @@ export default function Web() {
                   cacheEnabled // 启用缓存
                   cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
                   javaScriptEnabled // 确保启用 JavaScript
+                  applicationNameForUserAgent={appNameForUa} // 设置自定义 User-Agent
+                  webviewDebuggingEnabled={__DEV__} // 开发模式下启用 WebView 调试
                   //
                   // Android 平台设置
                   onLoadProgress={handleLoadProgress}
