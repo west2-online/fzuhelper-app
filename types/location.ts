@@ -1,21 +1,3 @@
-// 请求参数
-export interface GetSignedLocationApiUrlRequest {
-  location: string; // 格式: "经度,纬度"
-}
-
-// 基础响应
-export interface BaseResp {
-  code: number;
-  message: string;
-}
-
-// 签名URL响应
-export interface GetSignedLocationApiUrlResponse {
-  base: BaseResp;
-  signed_url: string;
-  headers: Record<string, string>;
-}
-
 // 高德周边搜索响应
 export interface AMapRegeoResponse {
   status: string; // "1" 表示成功
@@ -48,17 +30,6 @@ export interface LocationInfo {
   adCode: string;
   latitude: number;
   longitude: number;
-  error?: string; // 错误信息
-  raw?: any; // 原始数据
-}
-
-// 自定义错误类
-export class LocationError extends Error {
-  constructor(
-    message: string,
-    public code: 'PERMISSION_DENIED' | 'TIMEOUT' | 'API_ERROR' | 'NETWORK_ERROR' | 'UNKNOWN',
-  ) {
-    super(message);
-    this.name = 'LocationError';
-  }
+  error?: string;
+  raw?: any;
 }
