@@ -25,8 +25,13 @@ nativewind-env.d.ts
 
 # Build generated files
 /ios/*
-!/ios/ci_scripts/
-
+/android/
+/harmony/
+/application-support/harmony-polyfill/expo-config.generated.json
+/.harmony-local/
+/.harmony-prebuild-*
+!/ios/ci_scripts/ci_post_clone.sh
+!/ios/ci_scripts/ci_post_xcodebuild.sh
 
 # yarn
 yarn-error.log

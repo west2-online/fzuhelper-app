@@ -5,32 +5,34 @@ import { FlatList, Image, Platform, Pressable, useWindowDimensions, View } from 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
-import ApartmentIcon from '@/assets/images/toolbox/ic_apartment.svg';
-import ApplicationIcon from '@/assets/images/toolbox/ic_application.svg';
-import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
-import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
-import FileIcon from '@/assets/images/toolbox/ic_file.svg';
-import FreeFriendsIcon from '@/assets/images/toolbox/ic_free_friends.svg';
-import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
-import GraduationIcon from '@/assets/images/toolbox/ic_graduation.svg';
-import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
-import JobFiarIcon from '@/assets/images/toolbox/ic_jobfair.svg';
-import LostFoundIcon from '@/assets/images/toolbox/ic_lostandfound.svg';
-import MoreIcon from '@/assets/images/toolbox/ic_more.svg';
-import NotificationIcon from '@/assets/images/toolbox/ic_notification.svg';
-import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
-import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
-import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
-import UtilityPaymentIcon from '@/assets/images/toolbox/ic_shuidian.svg';
-import SignIcon from '@/assets/images/toolbox/ic_sign.svg';
-import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
-import StudyCenterIcon from '@/assets/images/toolbox/ic_studycenter.svg';
-import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
-import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
-import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
-import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
 import Banner, { type BannerContent, BannerType } from '@/components/banner';
 import PageContainer from '@/components/page-container';
+import {
+  ApartmentIcon,
+  ApplicationIcon,
+  ElectroCarIcon,
+  ExamRoomIcon,
+  FileIcon,
+  FreeFriendsIcon,
+  FZURunIcon,
+  GradeIcon,
+  GraduationIcon,
+  IDCardIcon,
+  JiaXiIcon,
+  JobFiarIcon,
+  LostFoundIcon,
+  MoreIcon,
+  NotificationIcon,
+  OneKeyIcon,
+  RoomIcon,
+  SignIcon,
+  StudyCenterIcon,
+  UtilityPaymentIcon,
+  WikiIcon,
+  XiaoBenIcon,
+  XuankeIcon,
+  ZHCTIcon,
+} from '@/components/toolbox-icons';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { showIgnorableAlert } from '@/lib/common-settings';

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Platform, View } from 'react-native';
-import { PERMISSIONS, RESULTS, check } from 'react-native-permissions';
+import { PERMISSIONS, Permission, RESULTS, check } from 'react-native-permissions';
 import { toast } from 'sonner-native';
 
 import { Button } from '@/components/ui/button';
@@ -110,6 +110,9 @@ export default function HistoryAppointmentCard({
       } else {
         return false;
       }
+    } else if ((Platform.OS as string) === 'harmony') {
+      const result = await check('ohos.permission.CAMERA' as Permission);
+      return result === RESULTS.GRANTED;
     }
   };
 
