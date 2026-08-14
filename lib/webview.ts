@@ -1,6 +1,11 @@
+import { Asset } from 'expo-asset';
 import { router, type Href } from 'expo-router';
 
 import type { WebParams } from '@/app/common/web';
+
+export function getWebViewNativeTestUri(): string {
+  return Asset.fromModule(require('@/assets/dev/native-interface-test.html')).uri;
+}
 
 export function getWebViewHref(params: WebParams): Href {
   return {

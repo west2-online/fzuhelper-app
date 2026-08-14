@@ -2,7 +2,7 @@ import PageContainer from '@/components/page-container';
 import RadioButton from '@/components/radio-button';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { pushToWebViewJWCH, pushToWebViewNormal, pushToWebViewSSO } from '@/lib/webview';
+import { getWebViewNativeTestUri, pushToWebViewJWCH, pushToWebViewNormal, pushToWebViewSSO } from '@/lib/webview';
 import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
@@ -78,6 +78,12 @@ export default function WebViewToolsPage() {
                 <Text>{item.label}</Text>
               </Button>
             ))}
+
+            <Text style={styles.sectionTitle}>Embedded Links</Text>
+            {/* 智汇福大 Scheme 拦截测试 */}
+            <Button onPress={() => pushToWebViewNormal(getWebViewNativeTestUri(), '智汇福大 Scheme 拦截测试')}>
+              <Text>智汇福大 Scheme 拦截测试</Text>
+            </Button>
 
             {/* 自定义 URL */}
             <Text style={styles.sectionTitle}>Custom URL</Text>

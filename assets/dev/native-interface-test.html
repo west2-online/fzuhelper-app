@@ -1,0 +1,228 @@
+<!doctype html>
+<!--
+  用于在福uu App 内嵌 WebView 中验证 kysk-fdxy-app:// 原生协议回调。
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>智汇福大 Scheme 拦截测试</title>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- 扫码 -->
+      <div class="card">
+        <div class="head">
+          <div class="title">扫码回调</div>
+          <span class="pill idle" id="scanPill">待测试</span>
+        </div>
+        <p class="desc">调起原生扫码页，扫描后返回本页并回传结果</p>
+        <p class="url">kysk-fdxy-app://native?type=scan&amp;function=fdxyNativeScan</p>
+        <button onclick="fireScan()">测试扫码</button>
+        <pre class="result" id="scanResult"></pre>
+      </div>
+
+      <!-- 定位 -->
+      <div class="card">
+        <div class="head">
+          <div class="title">定位回调</div>
+          <span class="pill idle" id="locPill">待测试</span>
+        </div>
+        <p class="desc">获取当前定位并反解出地址</p>
+        <p class="url">kysk-fdxy-app://native?type=location&amp;function=fdxyNativeLocation</p>
+        <button onclick="fireLocation()">获取定位</button>
+        <pre class="result" id="locResult"></pre>
+      </div>
+
+      <!-- 定位权限 -->
+      <div class="card">
+        <div class="head">
+          <div class="title">定位权限回调（permission）</div>
+          <span class="pill idle" id="permPill">待测试</span>
+        </div>
+        <p class="desc">查询或申请定位权限</p>
+        <p class="url">
+          kysk-fdxy-app://native?type=permission&amp;biz=location&amp;action=0|1&amp;function=fdxyNativePermission
+        </p>
+        <button onclick="firePermission('0')">查询权限</button>
+        <button class="secondary" onclick="firePermission('1')">申请权限</button>
+        <pre class="result" id="permResult"></pre>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        function setPill(id, state, text) {
+          var el = document.getElementById(id);
+          el.className = 'pill ' + state;
+          el.textContent = text;
+        }
+        function setResult(id, text, ok) {
+          var el = document.getElementById(id);
+          el.textContent = text || '';
+          el.className = 'result' + (ok === true ? ' ok' : ok === false ? ' err' : '');
+        }
+
+        // ---- 扫码：走页面导航，原生拦截后跳转扫码页，返回时注入回调 ----
+        window.fdxyNativeScan = function (data) {
+          setPill('scanPill', 'done', '成功');
+          setResult('scanResult', '回调返回：' + data, true);
+        };
+        window.fireScan = function () {
+          setPill('scanPill', 'pending', '已触发，请扫描二维码');
+          setResult('scanResult', '', null);
+          window.location.href = 'kysk-fdxy-app://native?type=scan&function=fdxyNativeScan';
+        };
+
+        // ---- 定位：原生获取坐标 + 反解地址，就地注入回调（无需跳页） ----
+        window.fdxyNativeLocation = function (data) {
+          var ok = !!data && data.lon !== '' && data.lat !== '';
+          setPill('locPill', ok ? 'done' : 'error', ok ? '成功' : '失败');
+          setResult('locResult', JSON.stringify(data, null, 2), ok);
+        };
+        window.fireLocation = function () {
+          setPill('locPill', 'pending', '定位中…');
+          setResult('locResult', '', null);
+          window.location.href = 'kysk-fdxy-app://native?type=location&function=fdxyNativeLocation';
+        };
+
+        // ---- 权限：action=0 查询 / action=1 申请，回调 boolean ----
+        window.fdxyNativePermission = function (granted) {
+          setPill('permPill', granted ? 'done' : 'error', granted ? '已授权' : '未授权');
+          setResult('permResult', '回调返回：' + granted);
+        };
+        window.firePermission = function (action) {
+          setPill('permPill', action === '1' ? 'pending' : 'idle', action === '1' ? '申请中…' : '待测试');
+          setResult('permResult', '', null);
+          window.location.href =
+            'kysk-fdxy-app://native?type=permission&biz=location&action=' + action + '&function=fdxyNativePermission';
+        };
+      })();
+    </script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        font:
+          15px/1.6 system-ui,
+          -apple-system,
+          'PingFang SC',
+          'Microsoft YaHei',
+          sans-serif;
+        background: Canvas;
+        color: CanvasText;
+        padding: 16px 14px 40px;
+      }
+      .wrap {
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      .card {
+        background: color-mix(in srgb, CanvasText 3%, Canvas);
+        border: 1px solid color-mix(in srgb, CanvasText 12%, Canvas);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+      }
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .title {
+        font-weight: 600;
+      }
+      .desc {
+        color: GrayText;
+        font-size: 13px;
+        margin: 4px 0 8px;
+      }
+      .url {
+        font-size: 12px;
+        color: GrayText;
+        margin-bottom: 10px;
+        word-break: break-all;
+      }
+      code {
+        font:
+          12.5px ui-monospace,
+          Consolas,
+          monospace;
+        background: color-mix(in srgb, CanvasText 8%, Canvas);
+        border-radius: 6px;
+        padding: 1px 6px;
+        word-break: break-all;
+      }
+      .pill {
+        flex-shrink: 0;
+        font-size: 12px;
+        padding: 2px 10px;
+        border: 1px solid color-mix(in srgb, CanvasText 12%, Canvas);
+        border-radius: 20px;
+        color: GrayText;
+        white-space: nowrap;
+      }
+      .pill.pending {
+        color: #3d84f6;
+        border-color: #3d84f6;
+      }
+      .pill.done {
+        color: #16a34a;
+        border-color: #16a34a;
+      }
+      .pill.error {
+        color: #dc2626;
+        border-color: #dc2626;
+      }
+      button {
+        width: 100%;
+        margin-top: 8px;
+        padding: 11px 16px;
+        border: none;
+        border-radius: 10px;
+        background: #3d84f6;
+        color: white;
+        font: inherit;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      button:active {
+        opacity: 0.85;
+      }
+      button.secondary {
+        background: color-mix(in srgb, CanvasText 8%, Canvas);
+        color: CanvasText;
+        border: 1px solid color-mix(in srgb, CanvasText 12%, Canvas);
+      }
+      .result {
+        font:
+          12.5px ui-monospace,
+          Consolas,
+          monospace;
+        background: color-mix(in srgb, CanvasText 8%, Canvas);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-top: 10px;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .result:empty {
+        display: none;
+      }
+      .result.ok {
+        border: 1px solid #16a34a;
+      }
+      .result.err {
+        border: 1px solid #dc2626;
+      }
+    </style>
+  </body>
+</html>
