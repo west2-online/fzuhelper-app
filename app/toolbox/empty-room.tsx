@@ -98,7 +98,16 @@ export default function EmptyRoomPage() {
       startTime: selectedRange.start.toString(),
       endTime: selectedRange.end.toString(),
     },
-    { enabled: !!selectedCampus },
+    {
+      enabled: !!selectedCampus,
+      queryKey: [
+        'common-classroom-empty',
+        selectedDate.format(DATE_FMT),
+        selectedCampus,
+        selectedRange.start,
+        selectedRange.end,
+      ],
+    },
   );
   const { data: roomData, refetch } = apiResult;
 

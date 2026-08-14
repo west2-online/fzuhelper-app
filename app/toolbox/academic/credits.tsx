@@ -47,7 +47,7 @@ const TabContent = React.memo<TabContentProps>(({ group, dataUpdatedAt, onRefres
 TabContent.displayName = 'TabContent';
 
 export default function CreditsPage() {
-  const apiResult = useApiRequest(getApiV2JwchAcademicCredit);
+  const apiResult = useApiRequest(getApiV2JwchAcademicCredit, {}, { queryKey: ['jwch-academic-credit-v2'] });
   const { data: creditData, dataUpdatedAt, refetch } = apiResult;
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,

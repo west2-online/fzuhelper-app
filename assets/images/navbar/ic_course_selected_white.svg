@@ -1,0 +1,19 @@
+<svg id="vector" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+    <path fill="#FFF"
+        d="M7,5L24,5A1,1 0,0 1,25 6L25,7A1,1 0,0 1,24 8L7,8A1,1 0,0 1,6 7L6,6A1,1 0,0 1,7 5z"
+        fill-opacity="0.4" stroke="#000000" stroke-opacity="0" stroke-width="1" fill-rule="nonzero"
+        id="path_0" />
+    <path fill="#000000"
+        d="M5,3L23,3A2,2 0,0 1,25 5L25,23A2,2 0,0 1,23 25L5,25A2,2 0,0 1,3 23L3,5A2,2 0,0 1,5 3z"
+        fill-opacity="0" stroke="#fff" stroke-width="2" fill-rule="nonzero" id="path_1" />
+    <path fill="#fff" d="M3,7h22v2h-22z" stroke="#000000" stroke-opacity="0" stroke-width="1"
+        fill-rule="nonzero" id="path_2" />
+    <path fill="#fff" d="M7,8h2v16h-2z" stroke="#000000" stroke-opacity="0" stroke-width="1"
+        fill-rule="nonzero" id="path_3" />
+    <path fill="#fff" d="M11.5915,11l2,0l0,7.526l-2,0z" stroke="#000000" stroke-opacity="0"
+        stroke-width="1" fill-rule="nonzero" id="path_4" />
+    <path fill="#fff" d="M15.5915,11h2v5h-2z" stroke="#000000" stroke-opacity="0" stroke-width="1"
+        fill-rule="nonzero" id="path_5" />
+    <path fill="#fff" d="M19.5915,13.5564l2,0l0,7.7812l-2,0z" stroke="#000000" stroke-opacity="0"
+        stroke-width="1" fill-rule="nonzero" id="path_6" />
+</svg>

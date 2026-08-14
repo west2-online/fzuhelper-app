@@ -1,0 +1,7 @@
+<svg id="vector" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+    <path fill="#000000" d="M14,10.5m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" fill-opacity="0"
+        stroke="#C4C7CE" stroke-width="2" fill-rule="nonzero" id="path_0" />
+    <path fill="#000000"
+        d="M3.1091,24.5L24.8909,24.5C22.9575,20.3283 18.7462,17.5476 14,17.5476C9.2538,17.5476 5.0425,20.3283 3.1091,24.5Z"
+        fill-opacity="0" stroke="#C4C7CE" stroke-width="2" fill-rule="nonzero" id="path_1" />
+</svg>
