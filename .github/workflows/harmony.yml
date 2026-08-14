@@ -115,21 +115,11 @@ jobs:
           VERSION_CODE=$(jq -r '.app.versionCode' ./AppScope/app.json5)
           VERSION_NAME=$(jq -r '.app.versionName' ./AppScope/app.json5)
           APP_FILENAME="FzuHelper_${VERSION_NAME}.${VERSION_CODE}.app"
-
+          echo "APP_VERSION=v${VERSION_NAME}.${VERSION_CODE}" >> "$GITHUB_OUTPUT"
           echo "APP_FILENAME=$APP_FILENAME" >> "$GITHUB_OUTPUT"
 
-      - name: Generate Changelog
-        id: changelog
-        run: |
-          GIT_LOG=$(git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}') || { echo "Failed to get git log"; exit 1; }
-          {
-            echo "CHANGELOG<<BSEOF"
-            echo -e "同步自 GitHub 最近三条提交记录:\n$GIT_LOG"
-            echo "BSEOF"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Deploy to Huawei App Gallery
-        uses: ACaiCat/huawei-appgallery-deploy@v1.5.0
+        uses: ACaiCat/huawei-appgallery-deploy@v1.7.0
         with:
           credentials: ${{secrets.HUAWEI_CREDENTIALS}}
           app-id: ${{secrets.HUAWEI_APP_ID}}
@@ -138,13 +128,8 @@ jobs:
           submit: false
           test-submit: true
           test-group-ids: 3bd3c58f77f844a7abeb2b4deadfa94a,5750d1361e784f699b4113f72a98d3fa
-          test-desc: 工作流自动发布 - ${{ steps.version-info.outputs.APP_FILENAME }}
-          version-desc: |
-            期待已久的福uu原生HarmonyOS NEXT版本终于来了～
-
-            请加入内测QQ群1104072785了解详情&反馈问题。
-
-            ${{ steps.changelog.outputs.CHANGELOG }}
+          test-desc: 工作流自动发布
+          version-desc: ${{ steps.version-info.outputs.APP_VERSION }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
