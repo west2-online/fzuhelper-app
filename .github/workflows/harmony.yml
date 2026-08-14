@@ -137,7 +137,7 @@ jobs:
           file-name: ${{ steps.version-info.outputs.APP_FILENAME }}
           submit: false
           test-submit: true
-          test-group-ids: 3bd3c58f77f844a7abeb2b4deadfa94a
+          test-group-ids: 3bd3c58f77f844a7abeb2b4deadfa94a,5750d1361e784f699b4113f72a98d3fa
           test-desc: 工作流自动发布 - ${{ steps.version-info.outputs.APP_FILENAME }}
           version-desc: |
             期待已久的福uu原生HarmonyOS NEXT版本终于来了～
