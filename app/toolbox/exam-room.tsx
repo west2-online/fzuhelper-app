@@ -28,7 +28,7 @@ interface TermContentProps {
 
 const TermContent = React.memo<TermContentProps>(({ term }) => {
   const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
-  const apiResult = useApiRequest(getApiV1JwchClassroomExam, { term }, { queryKey: [EXAM_ROOM_KEY, 'toolbox', term] });
+  const apiResult = useApiRequest(getApiV1JwchClassroomExam, { term }, { queryKey: [EXAM_ROOM_KEY, term] });
   const { data, dataUpdatedAt, isFetching, refetch } = apiResult;
 
   const { state } = useMultiStateRequest(apiResult, {

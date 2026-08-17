@@ -918,13 +918,13 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
   if ((await getCourseSetting()).exportExamToCourseTable) {
     const examData = await fetchWithCache(
       [EXAM_ROOM_KEY, queryTerm],
-      () => getApiV1JwchClassroomExam({ term: queryTerm }),
+      () => getApiV1JwchClassroomExam({ term: queryTerm }).then(r => r.data.data),
       {
         staleTime: 0,
       },
     );
 
-    const formattedExamData = formatExamData(examData.data.data);
+    const formattedExamData = formatExamData(examData);
     const termsList = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), {
       staleTime: 0,
     });
