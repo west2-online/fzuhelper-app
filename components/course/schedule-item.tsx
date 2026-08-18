@@ -39,7 +39,7 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
             style={{ color: getTextColor(color, isDarkTheme) }}
           >
             {schedules[0].weekSegments.some(segment => segment.isAdjusted && isWeekInSegment(segment, week))
-              ? '[调课]'
+              ? '[调课] '
               : ''}
             {schedules[0].name}
           </Text>
