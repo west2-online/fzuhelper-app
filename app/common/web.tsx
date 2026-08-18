@@ -290,10 +290,10 @@ export default function Web() {
     return clearWebViewTimers;
   }, [clearWebViewTimers, cookiesSet, scheduleLoadTimeout, sourceUrl, webViewKey]);
 
-  // 处理 Android 返回键
+  // 处理 Android 和 HarmonyOS 返回键
   useFocusEffect(
     useCallback(() => {
-      if (Platform.OS === 'android') {
+      if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
           if (canGoBack) {
             webViewRef.current?.goBack();
