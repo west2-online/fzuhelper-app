@@ -6,7 +6,7 @@ import DayItem from '@/components/course/day-item';
 import HeaderContainer from '@/components/course/header-container';
 import { Text } from '@/components/ui/text';
 
-import { LEFT_TIME_COLUMN_WIDTH, TOP_CALENDAR_HEIGHT, type CourseInfo } from '@/lib/course';
+import { LEFT_TIME_COLUMN_WIDTH, TOP_CALENDAR_HEIGHT, type CourseInfoMerged } from '@/lib/course';
 
 import { DATE_FORMAT_FULL } from '@/lib/constants';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -16,7 +16,7 @@ import TimeCol from './time-col';
 interface CourseWeekProps {
   week: number; // 当前周数
   startDate: string; // 当前周的开始日期
-  schedulesByDays: Record<number, CourseInfo[]>; // 当天课程数据
+  schedulesByDays: Record<number, CourseInfoMerged[]>; // 当天课程数据
   flatListLayout: LayoutRectangle;
 }
 
