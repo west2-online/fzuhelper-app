@@ -8,6 +8,7 @@ import {
   WIDGET_FORM_IDS_KEY,
   WIDGET_STORE_NAME,
 } from '../widget/WidgetData';
+import { readWidgetConfig } from '../widget/WidgetConfig';
 
 export class NativeWidgetTurboModule extends EtsUITurboModule {
   static readonly NAME: string = 'NativeWidget';
@@ -29,12 +30,15 @@ export class NativeWidgetTurboModule extends EtsUITurboModule {
     await store.put(WIDGET_DATA_KEY, json);
     await store.flush();
     const formIds = await store.get(WIDGET_FORM_IDS_KEY, []) as string[];
-    const data = formBindingData.createFormBindingData(buildWidgetBindingData(json));
     const retainedFormIds: string[] = [];
     const updateErrors: string[] = [];
     for (let index = 0; index < formIds.length; index += 1) {
       const formId = formIds[index];
       try {
+        const config = readWidgetConfig(store, formId);
+        const data = formBindingData.createFormBindingData(
+          buildWidgetBindingData(json, config.showLastUpdateTime, config.verticalInset),
+        );
         await formProvider.updateForm(formId, data);
         retainedFormIds.push(formId);
       } catch (error) {

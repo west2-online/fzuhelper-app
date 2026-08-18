@@ -1,6 +1,7 @@
 {
   "src": [
     "pages/Index",
-    "pages/SplashScreenPage"
+    "pages/SplashScreenPage",
+    "pages/WidgetConfigurationPage"
   ]
 }

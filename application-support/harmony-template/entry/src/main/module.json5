@@ -134,6 +134,14 @@
             ]
           }
         ]
+      },
+      {
+        "name": "WidgetConfigurationAbility",
+        "srcEntry": "./ets/widget/WidgetConfigurationAbility.ets",
+        "label": "$string:widget_config_label",
+        "startWindowIcon": "$media:start_icon",
+        "startWindowBackground": "$color:start_window_background",
+        "exported": true
       }
     ],
     "extensionAbilities": [
