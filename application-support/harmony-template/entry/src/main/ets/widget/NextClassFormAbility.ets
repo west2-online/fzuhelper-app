@@ -8,6 +8,11 @@ import {
   WIDGET_FORM_IDS_KEY,
   WIDGET_STORE_NAME,
 } from './WidgetData';
+import {
+  deleteWidgetConfig,
+  putFormMetrics,
+  readWidgetConfig,
+} from './WidgetConfig';
 
 export default class NextClassFormAbility extends FormExtensionAbility {
   private static readonly FORM_ID_NOT_EXIST_ERROR_CODE: number = 16501001;
@@ -16,6 +21,12 @@ export default class NextClassFormAbility extends FormExtensionAbility {
     const store = preferences.getPreferencesSync(this.context, { name: WIDGET_STORE_NAME });
     const formIdValue = want.parameters?.[formInfo.FormParam.IDENTITY_KEY];
     const formId = formIdValue === undefined ? '' : `${formIdValue}`;
+    putFormMetrics(
+      store,
+      formId,
+      this.numberParameter(want.parameters?.[formInfo.FormParam.WIDTH_KEY]),
+      this.numberParameter(want.parameters?.[formInfo.FormParam.HEIGHT_KEY]),
+    );
     const formIds = store.getSync(WIDGET_FORM_IDS_KEY, []) as string[];
     if (formId.length > 0 && !formIds.includes(formId)) {
       formIds.push(formId);
@@ -26,10 +37,29 @@ export default class NextClassFormAbility extends FormExtensionAbility {
     }
     const value = store.getSync(WIDGET_DATA_KEY, '');
     const json = typeof value === 'string' ? value : '';
-    return formBindingData.createFormBindingData(buildWidgetBindingData(json));
+    const config = readWidgetConfig(store, formId);
+    return formBindingData.createFormBindingData(
+      buildWidgetBindingData(json, config.showLastUpdateTime, config.verticalInset),
+    );
   }
 
-  onUpdateForm(formId: string): void {
+  onUpdateForm(formId: string, wantParams?: Record<string, Object>): void {
+    if (wantParams !== undefined) {
+      const store = preferences.getPreferencesSync(this.context, { name: WIDGET_STORE_NAME });
+      putFormMetrics(
+        store,
+        formId,
+        this.numberParameter(wantParams[formInfo.FormParam.WIDTH_KEY]),
+        this.numberParameter(wantParams[formInfo.FormParam.HEIGHT_KEY]),
+      );
+      store.flush().catch((error: BusinessError) => {
+        console.error(`Failed to save HarmonyOS widget metrics ${formId}: ${error.message}`);
+      });
+    }
+    this.updateForm(formId);
+  }
+
+  onFormEvent(formId: string, message: string): void {
     this.updateForm(formId);
   }
 
@@ -45,10 +75,13 @@ export default class NextClassFormAbility extends FormExtensionAbility {
     const store = preferences.getPreferencesSync(this.context, { name: WIDGET_STORE_NAME });
     const value = store.getSync(WIDGET_DATA_KEY, '');
     const json = typeof value === 'string' ? value : '';
+    const config = readWidgetConfig(store, formId);
     try {
       await formProvider.updateForm(
         formId,
-        formBindingData.createFormBindingData(buildWidgetBindingData(json)),
+        formBindingData.createFormBindingData(
+          buildWidgetBindingData(json, config.showLastUpdateTime, config.verticalInset),
+        ),
       );
     } catch (error) {
       const businessError = error as BusinessError;
@@ -63,6 +96,7 @@ export default class NextClassFormAbility extends FormExtensionAbility {
 
   private removeStoredFormId(formId: string): void {
     const store = preferences.getPreferencesSync(this.context, { name: WIDGET_STORE_NAME });
+    deleteWidgetConfig(store, formId);
     const formIds = store.getSync(WIDGET_FORM_IDS_KEY, []) as string[];
     const retained: string[] = [];
     for (let index = 0; index < formIds.length; index += 1) {
@@ -74,5 +108,9 @@ export default class NextClassFormAbility extends FormExtensionAbility {
     store.flush().catch((error: Error) => {
       console.error(`Failed to remove HarmonyOS widget ID ${formId}: ${error.message}`);
     });
+  }
+
+  private numberParameter(value: Object | undefined): number | undefined {
+    return typeof value === 'number' ? value : undefined;
   }
 }

@@ -1,0 +1,16 @@
+{
+  "color": [
+    {
+      "name": "widget_foreground",
+      "value": "#E9E9E9"
+    },
+    {
+      "name": "widget_background",
+      "value": "#1A1A1B"
+    },
+    {
+      "name": "widget_unnecessary_foreground",
+      "value": "#C1C1C1"
+    }
+  ]
+}

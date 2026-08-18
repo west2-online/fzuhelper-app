@@ -18,9 +18,9 @@ interface WidgetCourse {
 }
 
 interface WidgetCourseCache {
-  courseData?: Record<string, WidgetCourse[]>;
-  examData?: Record<string, WidgetCourse[]>;
-  customData?: Record<string, WidgetCourse[]>;
+  courseData?: Record<string, WidgetCourse[]> | null;
+  examData?: Record<string, WidgetCourse[]> | null;
+  customData?: Record<string, WidgetCourse[]> | null;
   startDate: string;
   maxWeek: number;
   hiddenCoursesWithoutAttendances?: boolean;
@@ -31,34 +31,42 @@ interface ClassTime {
   section: number;
 }
 
-export interface WidgetBindingData {
-  courseName: string;
-  courseLocation: string;
-  courseSection: string;
-  courseWeek: string;
-  courseWeekday: string;
-  statusText: string;
-}
-
 interface NextClass {
   week: number;
   course: WidgetCourse;
 }
 
-export function buildWidgetBindingData(json: string): WidgetBindingData {
+export interface WidgetBindingData {
+  courseName: string;
+  courseNameSize: number;
+  courseLocation: string;
+  courseSection: string;
+  courseWeek: string;
+  courseWeekday: string;
+  showLastUpdateTime: boolean;
+  lastUpdateTime: string;
+  verticalInset: number;
+}
+
+export function buildWidgetBindingData(
+  json: string,
+  showLastUpdateTime: boolean = false,
+  verticalInset: number = 0,
+): WidgetBindingData {
   if (json.length === 0) {
-    return emptyWidgetData('本地没有数据', '请打开课表设置刷新');
+    return noLocalData(showLastUpdateTime, verticalInset);
   }
 
   try {
     const cache = JSON.parse(json) as WidgetCourseCache;
     const nextClass = findNextClass(cache);
     if (nextClass === undefined) {
-      return emptyWidgetData('放假啦', '当前学期没有后续课程');
+      return noFutureClass(showLastUpdateTime, verticalInset);
     }
     const course = nextClass.course;
     return {
       courseName: truncate(course.name, 13),
+      courseNameSize: 20,
       courseLocation: truncate(course.location, 10),
       courseSection: truncate(
         course.remark.length > 0 ? course.remark : `${course.startClass}-${course.endClass}节`,
@@ -66,11 +74,42 @@ export function buildWidgetBindingData(json: string): WidgetBindingData {
       ),
       courseWeek: `第${nextClass.week}周`,
       courseWeekday: `周${weekChinese(course.weekday)}`,
-      statusText: '',
+      showLastUpdateTime,
+      lastUpdateTime: currentUpdateTime(),
+      verticalInset,
     };
   } catch (error) {
-    return emptyWidgetData('课程数据异常', '请在应用内重新刷新课表');
+    // Match Android: malformed local data is treated as a semester with no future classes.
+    return noFutureClass(showLastUpdateTime, verticalInset);
   }
+}
+
+function noLocalData(showLastUpdateTime: boolean, verticalInset: number): WidgetBindingData {
+  return {
+    courseName: '本地没有数据',
+    courseNameSize: 20,
+    courseLocation: '请打开课表设置刷新',
+    courseSection: '',
+    courseWeek: '',
+    courseWeekday: '',
+    showLastUpdateTime,
+    lastUpdateTime: currentUpdateTime(),
+    verticalInset,
+  };
+}
+
+function noFutureClass(showLastUpdateTime: boolean, verticalInset: number): WidgetBindingData {
+  return {
+    courseName: '放假啦',
+    courseNameSize: 30,
+    courseLocation: '',
+    courseSection: '',
+    courseWeek: '',
+    courseWeekday: '',
+    showLastUpdateTime,
+    lastUpdateTime: currentUpdateTime(),
+    verticalInset,
+  };
 }
 
 function findNextClass(cache: WidgetCourseCache): NextClass | undefined {
@@ -79,9 +118,7 @@ function findNextClass(cache: WidgetCourseCache): NextClass | undefined {
     return undefined;
   }
   const now = new Date();
-  let week = now.getTime() < startTime
-    ? 1
-    : Math.max(1, Math.floor((now.getTime() - startTime) / 604_800_000) + 1);
+  let week = getWeeks(startTime, now.getTime());
   const classTime = getNextClassTime(now, startTime);
   let weekday = classTime.weekday;
   let section = classTime.section;
@@ -126,9 +163,28 @@ function parseLocalDate(value: string): number {
   return new Date(year, month - 1, day).getTime();
 }
 
+function getWeeks(startTime: number, endTime: number): number {
+  if (endTime < startTime) {
+    return 1;
+  }
+  const result = Math.floor((endTime - startTime) / 604_800_000) + 1;
+  return result <= 0 ? 1 : result;
+}
+
 function getCourses(cache: WidgetCourseCache): WidgetCourse[] {
   const result: WidgetCourse[] = [];
-  appendCourseRecord(result, cache.courseData, cache.hiddenCoursesWithoutAttendances === true);
+  const courseData: WidgetCourse[] = [];
+  appendCourseRecord(courseData, cache.courseData, cache.hiddenCoursesWithoutAttendances === true);
+  if (cache.hiddenCoursesWithoutAttendances !== true) {
+    courseData.sort((left: WidgetCourse, right: WidgetCourse) => {
+      const leftWithoutAttendance = left.examType?.includes('免听') === true ? 1 : 0;
+      const rightWithoutAttendance = right.examType?.includes('免听') === true ? 1 : 0;
+      return leftWithoutAttendance - rightWithoutAttendance;
+    });
+  }
+  for (let index = 0; index < courseData.length; index += 1) {
+    result.push(courseData[index]);
+  }
   appendCourseRecord(result, cache.examData, false);
   appendCourseRecord(result, cache.customData, false);
   result.sort((left: WidgetCourse, right: WidgetCourse) => right.priority - left.priority);
@@ -137,10 +193,10 @@ function getCourses(cache: WidgetCourseCache): WidgetCourse[] {
 
 function appendCourseRecord(
   result: WidgetCourse[],
-  record: Record<string, WidgetCourse[]> | undefined,
+  record: Record<string, WidgetCourse[]> | null | undefined,
   hideWithoutAttendance: boolean,
 ): void {
-  if (record === undefined) {
+  if (record === undefined || record === null) {
     return;
   }
   const keys = Object.keys(record);
@@ -150,8 +206,7 @@ function appendCourseRecord(
       const course = courses[courseIndex];
       if (
         !hideWithoutAttendance
-        || course.examType === undefined
-        || !course.examType.includes('免听')
+        || (course.examType !== undefined && !course.examType.includes('免听'))
       ) {
         result.push(course);
       }
@@ -193,15 +248,14 @@ function getNextClassTime(now: Date, startTime: number): ClassTime {
   return { weekday, section };
 }
 
-function emptyWidgetData(courseName: string, statusText: string): WidgetBindingData {
-  return {
-    courseName,
-    courseLocation: '',
-    courseSection: '',
-    courseWeek: '',
-    courseWeekday: '',
-    statusText,
-  };
+function currentUpdateTime(): string {
+  const date = new Date();
+  return `更新于 ${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())} `
+    + `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+}
+
+function twoDigits(value: number): string {
+  return value < 10 ? `0${value}` : `${value}`;
 }
 
 function truncate(value: string, limit: number): string {

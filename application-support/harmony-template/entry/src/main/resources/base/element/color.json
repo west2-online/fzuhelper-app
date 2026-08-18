@@ -11,6 +11,18 @@
     {
       "name": "accent",
       "value": "#1089FF"
+    },
+    {
+      "name": "widget_foreground",
+      "value": "#000000"
+    },
+    {
+      "name": "widget_background",
+      "value": "#F5F5F5"
+    },
+    {
+      "name": "widget_unnecessary_foreground",
+      "value": "#66000000"
     }
   ]
 }

@@ -37,6 +37,10 @@
       "value": "显示当前学期的下一节课程"
     },
     {
+      "name": "widget_config_label",
+      "value": "下一节课设置"
+    },
+    {
       "name": "bugly_app_id",
       "value": ""
     },

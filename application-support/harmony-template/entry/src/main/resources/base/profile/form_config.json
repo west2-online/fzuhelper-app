@@ -13,6 +13,7 @@
       "colorMode": "auto",
       "isDynamic": false,
       "isDefault": true,
+      "formConfigAbility": "ability://WidgetConfigurationAbility",
       "updateEnabled": true,
       "updateDuration": 1,
       "defaultDimension": "2*2",
