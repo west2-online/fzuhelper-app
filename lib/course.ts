@@ -78,10 +78,10 @@ export type WeekSegment = {
 export type CourseInfo = ExtendCourse | CustomCourse;
 
 // 同一个课程可能被教务系统分成不同周段，甚至有调课的情况，在展示课程信息前需要先整合
-// 具体逻辑在 calendar-col.tsx 中
+// 具体逻辑在 course-schedule.ts 中
 export type CourseInfoMerged = CourseInfo & {
-  weekSegments: WeekSegment[]; // 课程在不同周数的上课情况
-  weekDisplay: string; // 用于显示的周数文本
+  weekSegments: WeekSegment[]; // 合并前各排课规则对应的周段
+  weekDisplay: string; // 已包含单双周信息的完整周数显示文本
 };
 
 interface CacheCourseData {
