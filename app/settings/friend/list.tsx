@@ -167,7 +167,7 @@ export default function FriendManagePage() {
   // 返回键如果是manage态，则先退出manage态
   useFocusEffect(
     useCallback(() => {
-      if (Platform.OS === 'android') {
+      if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
           if (isManage) {
             exitManage();
