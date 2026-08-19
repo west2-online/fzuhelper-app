@@ -202,7 +202,7 @@ const DEFAULT_TOOLS: DefaultToolboxTool[] = [
     },
   },
   {
-    id:152,
+    id: 152,
     name: '图书馆预约',
     icon: StudyCenterIcon,
     type: ToolType.WEBVIEW,
