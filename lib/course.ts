@@ -78,10 +78,10 @@ export type WeekSegment = {
 export type CourseInfo = ExtendCourse | CustomCourse;
 
 // 同一个课程可能被教务系统分成不同周段，甚至有调课的情况，在展示课程信息前需要先整合
-// 具体逻辑在 calendar-col.tsx 中
+// 具体逻辑在 course-schedule.ts 中
 export type CourseInfoMerged = CourseInfo & {
-  weekSegments: WeekSegment[]; // 课程在不同周数的上课情况
-  weekDisplay: string; // 用于显示的周数文本
+  weekSegments: WeekSegment[]; // 合并前各排课规则对应的周段
+  weekDisplay: string; // 已包含单双周信息的完整周数显示文本
 };
 
 interface CacheCourseData {
@@ -294,8 +294,8 @@ export class CourseCache {
           }),
         ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
         ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-      } else if (Platform.OS === 'android') {
-        setWidgetData(
+      } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
+        await setWidgetData(
           JSON.stringify({
             courseData: this.cachedData,
             examData: this.cachedExamData,
@@ -335,8 +335,8 @@ export class CourseCache {
       const storage = new ExtensionStorage(IOS_APP_GROUP);
       storage.set(COURSE_CURRENT_CACHE_KEY, '');
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-    } else if (Platform.OS === 'android') {
-      setWidgetData('', Constants.expoConfig?.android?.package);
+    } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
+      await setWidgetData('', Constants.expoConfig?.android?.package);
     }
   }
 
@@ -918,13 +918,13 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
   if ((await getCourseSetting()).exportExamToCourseTable) {
     const examData = await fetchWithCache(
       [EXAM_ROOM_KEY, queryTerm],
-      () => getApiV1JwchClassroomExam({ term: queryTerm }),
+      () => getApiV1JwchClassroomExam({ term: queryTerm }).then(r => r.data.data),
       {
         staleTime: 0,
       },
     );
 
-    const formattedExamData = formatExamData(examData.data.data);
+    const formattedExamData = formatExamData(examData);
     const termsList = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), {
       staleTime: 0,
     });

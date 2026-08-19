@@ -157,6 +157,15 @@ export default class OnekeyComment {
     };
   }
 
+  parseErrors(data: string): string | null {
+    const alertRegex = /alert\s*\(\s*['"]([^'"]*)['"]\s*\)/;
+    const match = data.match(alertRegex);
+    if (match) {
+      return match[1];
+    }
+    return null;
+  }
+
   async commentTeacher(params: Record<string, string>, score: string, comment: string, recaptcha: string) {
     const url = `${ONEKEY_COMMENT_URLS.COMMENT_TEACHER}?${escapeQueryParams(params)}`;
     const aspnetForm = await this.getCommentForm(params, 'teacher');
@@ -172,7 +181,7 @@ export default class OnekeyComment {
 
     const resp = await this.post(url, {}, { ...fullForm });
     const text = Buffer.from(resp.data).toString('utf-8');
-    return !text.includes('验证码校验错误');
+    return this.parseErrors(text);
   }
 
   async commentTextbook(
@@ -203,6 +212,6 @@ export default class OnekeyComment {
 
     const resp = await this.post(url, {}, { ...fullForm });
     const text = Buffer.from(resp.data).toString('utf-8');
-    return !text.includes('验证码校验错误');
+    return this.parseErrors(text);
   }
 }

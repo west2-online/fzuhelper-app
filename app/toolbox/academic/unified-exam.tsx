@@ -14,7 +14,7 @@ import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 
 export default function UnifiedExamScorePage() {
   // 获取统考成绩数据
-  const apiResult = useApiRequest(getApiV1JwchAcademicUnifiedExam);
+  const apiResult = useApiRequest(getApiV1JwchAcademicUnifiedExam, {}, { queryKey: ['jwch-academic-unified-exam'] });
   const { data: unifiedExamData, dataUpdatedAt, isFetching, refetch } = apiResult;
   const lastUpdated = dayjs(dataUpdatedAt).toDate();
 

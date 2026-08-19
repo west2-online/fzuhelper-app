@@ -31,7 +31,7 @@ export default function FriendManagePage() {
   const apiResult = useApiRequest(getApiV1UserFriendList, {}, { persist: true, queryKey: [FRIEND_LIST_KEY] });
   const { data: friendList, refetch, isFetching } = apiResult;
 
-  const { data: maxNumData } = useApiRequest(getApiV1UserFriendMaxNum, {});
+  const { data: maxNumData } = useApiRequest(getApiV1UserFriendMaxNum, {}, { queryKey: ['user-friend-max-num'] });
 
   const { state } = useMultiStateRequest(apiResult, {
     emptyCondition: data => !data || data.length === 0,
@@ -167,7 +167,7 @@ export default function FriendManagePage() {
   // 返回键如果是manage态，则先退出manage态
   useFocusEffect(
     useCallback(() => {
-      if (Platform.OS === 'android') {
+      if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
           if (isManage) {
             exitManage();

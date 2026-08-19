@@ -1,0 +1,52 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "福州大学校园服务"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "福uu"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "福uu"
+    },
+    {
+      "name": "permission_camera",
+      "value": "用于扫码签到等需要相机的功能"
+    },
+    {
+      "name": "permission_location",
+      "value": "用于校本化签到定位"
+    },
+    {
+      "name": "permission_calendar",
+      "value": "用于将课表和考场安排导出到系统日历"
+    },
+    {
+      "name": "permission_tracking",
+      "value": "用于统计和改进消息推送服务"
+    },
+    {
+      "name": "widget_display_name",
+      "value": "下节课上什么"
+    },
+    {
+      "name": "widget_desc",
+      "value": "显示当前学期的下一节课程"
+    },
+    {
+      "name": "widget_config_label",
+      "value": "下一节课设置"
+    },
+    {
+      "name": "bugly_app_id",
+      "value": ""
+    },
+    {
+      "name": "bugly_app_key",
+      "value": ""
+    }
+  ]
+}

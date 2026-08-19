@@ -29,7 +29,11 @@ export default function OfficeNoticePage() {
   const [isEnd, setIsEnd] = useState(false);
   const { bottom } = useSafeAreaInsets();
 
-  const { data, isFetching, isError, error, refetch } = useApiRequest(getApiV1CommonNotice, { pageNum });
+  const { data, isFetching, isError, error, refetch } = useApiRequest(
+    getApiV1CommonNotice,
+    { pageNum },
+    { queryKey: ['common-notice', pageNum] },
+  );
 
   useEffect(() => {
     if (data) {
@@ -107,7 +111,7 @@ export default function OfficeNoticePage() {
   }, []);
 
   const headerRight = useCallback(
-    () => <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />,
+    () => <Icon name="help-circle-outline" size={26} onPress={handleModalVisible} />,
     [handleModalVisible],
   );
 

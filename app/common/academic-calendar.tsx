@@ -26,7 +26,7 @@ interface CourseContentProps {
 const AcademicContent = React.memo<CourseContentProps>(({ term }) => {
   const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
   // 获取学期数据
-  const apiResult = useApiRequest(getApiV1TermsInfo, { term });
+  const apiResult = useApiRequest(getApiV1TermsInfo, { term }, { queryKey: ['terms-info', term] });
   const { data, dataUpdatedAt, isFetching, refetch } = apiResult;
 
   const { state } = useMultiStateRequest(apiResult, {

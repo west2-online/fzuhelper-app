@@ -19,6 +19,7 @@ import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-upd
 
 const URL_RESET_PASSWORD_UNDERGRADUATE = 'https://jwcjwxt2.fzu.edu.cn/Login/ReSetPassWord';
 const URL_RESET_PASSWORD_POSTGRADUATE = 'https://yjsglxt.fzu.edu.cn/ResetPassword.aspx';
+const isHarmony = (Platform.OS as string) === 'harmony';
 
 const LoginPage: React.FC = () => {
   const redirect = useRedirectWithoutHistory();
@@ -94,7 +95,7 @@ const LoginPage: React.FC = () => {
         // 登录、获取 token、检查串号等逻辑
         await LocalUser.login(captcha);
         // 登录成功
-        if (Platform.OS === 'android') {
+        if (Platform.OS === 'android' || isHarmony) {
           BuglyModule.setUserId(username);
         }
 
@@ -108,7 +109,7 @@ const LoginPage: React.FC = () => {
         // 访问令牌获取失败，清除账户信息
         await LocalUser.clear();
         await refreshCaptcha();
-        if (Platform.OS === 'android') {
+        if (Platform.OS === 'android' || isHarmony) {
           await BuglyModule.setUserId('');
         }
       } finally {
@@ -140,9 +141,10 @@ const LoginPage: React.FC = () => {
       <Stack.Screen options={{ title: '登录', headerShown: false }} />
 
       <PageContainer>
-        <SafeAreaView>
+        <SafeAreaView style={styles.flex}>
           <KeyboardAwareScrollView
             className="h-full"
+            style={styles.flex}
             contentContainerStyle={styles.scrollViewContent}
             keyboardShouldPersistTaps="handled"
           >
@@ -205,7 +207,7 @@ const LoginPage: React.FC = () => {
                     isLoggingIn ? 'bg-gray-400' : 'bg-primary'
                   }`}
                 >
-                  <Text className="text-lg font-bold text-white">{isLoggingIn ? '登录中...' : '登 录'}</Text>
+                  <Text className="text-lg font-bold text-white">{isLoggingIn ? '登录中...' : '登录'}</Text>
                 </TouchableOpacity>
 
                 {/* 其他操作 */}
@@ -221,7 +223,7 @@ const LoginPage: React.FC = () => {
                 {/* 公告栏 */}
                 <View className="mt-10 w-full px-1">
                   <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
-                  {Platform.OS === 'android' && (
+                  {(Platform.OS === 'android' || isHarmony) && (
                     <Text className="text-base text-text-secondary">
                       如登录异常，可能是教务系统正在维护，可稍后再试或连接校园网后尝试登录。
                     </Text>
@@ -251,6 +253,9 @@ const LoginPage: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   scrollViewContent: {
     flexGrow: 1,
   },

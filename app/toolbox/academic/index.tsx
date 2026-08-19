@@ -21,7 +21,14 @@ import { ToolType, UserType, toolOnPress, type Tool } from '@/utils/tools';
 export default function AcademicPage() {
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false); // 按钮是否禁用
-  const { refetch } = useApiRequest(getApiV1JwchAcademicPlan, {}, { enabled: false });
+  const { refetch } = useApiRequest(
+    getApiV1JwchAcademicPlan,
+    {},
+    {
+      enabled: false,
+      queryKey: ['jwch-academic-plan'],
+    },
+  );
 
   // 菜单项数据
   const MENU_ITEMS: Tool[] = [

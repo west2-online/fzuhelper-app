@@ -27,10 +27,11 @@ import { queryClient } from '@/components/query-provider';
 import { Text } from '@/components/ui/text';
 import { CoursePageProvider } from '@/context/course-page';
 import useApiRequest from '@/hooks/useApiRequest';
-import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
+import { useCoursePageData, type CoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_COURSE_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
+import { mergeCourseSchedulesByDay } from '@/lib/course-schedule';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
 
@@ -43,7 +44,7 @@ const CourseGrid = forwardRef(
       onWeekChange,
     }: {
       selectedFriendId: string | undefined;
-      coursePageData: any;
+      coursePageData: CoursePageData;
       selectedWeek: number;
       onWeekChange: (week: number) => void;
     },
@@ -52,6 +53,7 @@ const CourseGrid = forwardRef(
     const { handleError } = useSafeResponseSolve();
     const { currentTerm, maxWeek } = coursePageData;
     const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
+    const mergedSchedulesByDays = useMemo(() => mergeCourseSchedulesByDay(schedulesByDays), [schedulesByDays]);
 
     // 好友课表数据
     const {
@@ -153,11 +155,11 @@ const CourseGrid = forwardRef(
           key={item.week}
           week={item.week}
           startDate={item.firstDate}
-          schedulesByDays={schedulesByDays}
+          schedulesByDays={mergedSchedulesByDays}
           flatListLayout={flatListLayout}
         />
       ),
-      [schedulesByDays, flatListLayout],
+      [mergedSchedulesByDays, flatListLayout],
     );
 
     const onLayout = useCallback(({ nativeEvent }: { nativeEvent: { layout: LayoutRectangle } }) => {
@@ -273,10 +275,8 @@ function HomePageContent({
   const headerRight = useCallback(
     () => (
       <>
-        {selectedFriendId === undefined && (
-          <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
-        )}
-        <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
+        {selectedFriendId === undefined && <Icon href="/settings/custom-course" name="add-circle-outline" size={24} />}
+        <Icon href="/settings/course" name="settings-outline" size={24} />
       </>
     ),
     [selectedFriendId],

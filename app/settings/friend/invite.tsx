@@ -20,7 +20,11 @@ export default function InviteFriendPage() {
   const { handleError } = useSafeResponseSolve();
   const [isRefresh, setIsRefresh] = useState(false);
 
-  const apiResult = useApiRequest(getApiV1UserFriendInvite, { isRefresh: isRefresh }, {});
+  const apiResult = useApiRequest(
+    getApiV1UserFriendInvite,
+    { isRefresh: isRefresh },
+    { queryKey: ['user-friend-invite', isRefresh] },
+  );
   const { data: inviteInfo, refetch } = apiResult;
 
   const { state } = useMultiStateRequest(apiResult);

@@ -4,7 +4,7 @@ const { hairlineWidth } = require('nativewind/theme');
 module.exports = {
   darkMode: 'class',
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
-  presets: [require('nativewind/preset')],
+  presets: [require(process.env.IS_HARMONY === 'true' ? '@react-native-ohos/nativewind/preset' : 'nativewind/preset')],
   theme: {
     extend: {
       colors: {
