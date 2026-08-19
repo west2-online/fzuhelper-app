@@ -137,19 +137,14 @@ export default function AboutPage() {
                 隐私政策
               </Text>
               <Text className="mx-2 text-primary">|</Text>
-              <Link
-                href="/contributors"
-                asChild
-                onPress={e => {
-                  if (isHarmony) {
-                    e.preventDefault();
-                    toast.info('该功能鸿蒙版暂未适配，敬请期待');
-                  }
-                }}
-              >
-                <Text className="text-primary">贡献名录</Text>
-              </Link>
-              <Text className="mx-2 text-primary">|</Text>
+              {!isHarmony && (
+                <>
+                  <Link href="/contributors" asChild>
+                    <Text className="text-primary">贡献名录</Text>
+                  </Link>
+                  <Text className="mx-2 text-primary">|</Text>
+                </>
+              )}
               <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_JOIN_US, '加入我们')}>
                 加入我们
               </Text>
