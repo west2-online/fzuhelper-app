@@ -9,9 +9,9 @@ import { pushToWebViewNormal } from '@/lib/webview';
 import { useSharedValue } from 'react-native-reanimated';
 
 export enum BannerType {
-  URL = 'URL',
-  Activity = 'Activity',
-  NULL = 'NULL',
+  URL = 'URL', // 打开网页
+  Activity = 'Activity', // 跳转 activity
+  NULL = 'NULL', // 无操作
 }
 
 export type BannerContent = {
