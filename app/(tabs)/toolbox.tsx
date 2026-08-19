@@ -60,7 +60,11 @@ const DEFAULT_BANNERS: BannerContent[] = [
 
 // 工具id手写而不采用数组下标，是为了避免版本迭代功能增删后特定功能的下标发生改变导致配置不对应
 // 后续新增功能时，id不得使用已存在或曾经存在的功能id
-const DEFAULT_TOOLS: ToolboxTool[] = [
+type DefaultToolboxTool = ToolboxTool & {
+  defaultVisible?: boolean;
+};
+
+const DEFAULT_TOOLS: DefaultToolboxTool[] = [
   {
     id: 10,
     name: '学业状况',
@@ -184,6 +188,7 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     icon: StudyCenterIcon,
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
+    defaultVisible: false,
   },
   {
     id: 151,
@@ -446,18 +451,20 @@ const useToolsPageData = (columns: number) => {
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
   const userType = useMemo(() => LocalUser.getUser().type as UserType, []);
 
-  const baseTools = useMemo(
+  const allBaseTools = useMemo(
     () =>
       DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(userType)).map(tool => ({
         ...tool,
       })),
     [userType],
   );
+  const baseTools = useMemo(() => allBaseTools.filter(tool => tool.defaultVisible !== false), [allBaseTools]);
 
   const [toolList, setToolList] = useState<ToolboxTool[]>(baseTools);
 
   useEffect(() => {
     if (configData) {
+      const defaultToolMap = new Map<number, ToolboxTool>(allBaseTools.map(tool => [tool.id, { ...tool }]));
       const toolMap = new Map<number, ToolboxTool>(baseTools.map(tool => [tool.id, { ...tool }]));
 
       configData.forEach(item => {
@@ -468,7 +475,9 @@ const useToolsPageData = (columns: number) => {
           return;
         }
 
-        const existingTool = toolMap.get(item.tool_id);
+        // 默认隐藏的内置工具只在云控明确开启后加入，同时复用本地的名称、图标和跳转配置。
+        const existingTool =
+          toolMap.get(item.tool_id) ?? (item.visible === true ? defaultToolMap.get(item.tool_id) : undefined);
 
         if (existingTool) {
           // 修改已存在的工具
@@ -506,7 +515,7 @@ const useToolsPageData = (columns: number) => {
       // 本地的已经有序
       setToolList(baseTools);
     }
-  }, [configData, baseTools]);
+  }, [configData, allBaseTools, baseTools]);
 
   const processedTools = useMemo(() => {
     return processTools(toolList, columns);
