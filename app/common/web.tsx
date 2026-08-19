@@ -520,6 +520,7 @@ export default function Web() {
     if (currentUrl) {
       return (
         <Icon
+          accessibilityLabel="分享当前网页"
           name="share-outline"
           onPress={() => {
             Share.share({

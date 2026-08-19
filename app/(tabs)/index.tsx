@@ -275,10 +275,8 @@ function HomePageContent({
   const headerRight = useCallback(
     () => (
       <>
-        {selectedFriendId === undefined && (
-          <Icon href="/settings/custom-course" name="add-circle-outline" size={24} className="mr-6" />
-        )}
-        <Icon href="/settings/course" name="settings-outline" size={24} className="mr-4" />
+        {selectedFriendId === undefined && <Icon href="/settings/custom-course" name="add-circle-outline" size={24} />}
+        <Icon href="/settings/course" name="settings-outline" size={24} />
       </>
     ),
     [selectedFriendId],

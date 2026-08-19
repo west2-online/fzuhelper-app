@@ -1,7 +1,7 @@
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { Href, router } from 'expo-router';
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { useTheme } from './app-theme-provider';
 
@@ -12,9 +12,10 @@ interface IconProps {
   className?: string; // 用于支持 Tailwind/NativeWind 的样式
   href?: Href; // router 跳转
   onPress?: () => void; // 点击事件，和上面二选一
+  accessibilityLabel?: string;
 }
 
-export const Icon: React.FC<IconProps> = ({ name, size = 24, color, className, href, onPress }) => {
+export const Icon: React.FC<IconProps> = ({ name, size = 24, color, className, href, onPress, accessibilityLabel }) => {
   const { isDarkTheme } = useTheme();
 
   // 根据系统主题动态设置默认颜色
@@ -25,7 +26,14 @@ export const Icon: React.FC<IconProps> = ({ name, size = 24, color, className, h
   if (href) {
     return (
       <View className={className}>
-        <BorderlessButton onPress={() => router.push(href)}>{IconComponent}</BorderlessButton>
+        <BorderlessButton
+          accessibilityLabel={accessibilityLabel}
+          accessibilityRole="button"
+          onPress={() => router.push(href)}
+          style={styles.button}
+        >
+          {IconComponent}
+        </BorderlessButton>
       </View>
     );
   }
@@ -33,10 +41,26 @@ export const Icon: React.FC<IconProps> = ({ name, size = 24, color, className, h
   if (onPress) {
     return (
       <View className={className}>
-        <BorderlessButton onPress={onPress}>{IconComponent}</BorderlessButton>
+        <BorderlessButton
+          accessibilityLabel={accessibilityLabel}
+          accessibilityRole="button"
+          onPress={onPress}
+          style={styles.button}
+        >
+          {IconComponent}
+        </BorderlessButton>
       </View>
     );
   }
 
   return <View className={className}>{IconComponent}</View>;
 };
+
+const styles = StyleSheet.create({
+  button: {
+    minWidth: 40,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

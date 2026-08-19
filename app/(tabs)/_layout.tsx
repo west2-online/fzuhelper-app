@@ -11,6 +11,7 @@ import { getQuickActionItems, type QuickActionPlatform } from '@/config/quick-ac
 import { getApiV1JwchPing } from '@/api/generate';
 import { useTheme } from '@/components/app-theme-provider';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
+import { HARMONY_HEADER_RIGHT_CONTAINER_STYLE } from '@/lib/constants';
 import { checkAndroidUpdate, showAndroidUpdateDialog } from '@/utils/android-update';
 import fileCache from '@/utils/file-cache';
 
@@ -101,6 +102,8 @@ export default function TabLayout() {
           headerTitleAlign: 'center',
           headerShadowVisible: false,
           headerTransparent: true,
+          headerRightContainerStyle:
+            (Platform.OS as string) === 'harmony' ? HARMONY_HEADER_RIGHT_CONTAINER_STYLE : undefined,
           tabBarAllowFontScaling: false,
           tabBarPosition: 'bottom',
           tabBarStyle: { position: 'absolute', elevation: 0 },
