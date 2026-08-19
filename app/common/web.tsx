@@ -5,7 +5,7 @@ import Constants from 'expo-constants';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter, type UnknownOutputParams } from 'expo-router';
 import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, Platform, Share, TouchableOpacity, View } from 'react-native';
+import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type {
@@ -519,19 +519,15 @@ export default function Web() {
     }
     if (currentUrl) {
       return (
-        <TouchableOpacity
+        <Icon
           accessibilityLabel="分享当前网页"
-          accessibilityRole="button"
-          activeOpacity={0.6}
-          className="mr-1 h-11 w-11 items-center justify-center"
+          name="share-outline"
           onPress={() => {
             Share.share({
               message: (title || webpageTitle || '来自福uu的分享') + '\n' + currentUrl,
             });
           }}
-        >
-          <Icon name="share-outline" />
-        </TouchableOpacity>
+        />
       );
     }
   }, [currentUrl, jwch, sso, title, webpageTitle]);

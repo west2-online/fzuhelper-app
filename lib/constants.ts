@@ -159,6 +159,8 @@ export const NAV_THEME = {
 };
 
 // Stack Navigator Options
+export const HARMONY_HEADER_RIGHT_CONTAINER_STYLE = { paddingRight: 8 } as const;
+
 export const StackNavigatorScreenOptions = {
   animation: 'ios_from_right',
   headerTitleAlign: 'center',

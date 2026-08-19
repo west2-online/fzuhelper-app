@@ -14,7 +14,7 @@ import { DownloadProgress } from '@/components/download-progress';
 import { QueryProvider } from '@/components/query-provider';
 
 import { LearningCenterContextProvider } from '@/context/learning-center';
-import { StackNavigatorScreenOptions } from '@/lib/constants';
+import { HARMONY_HEADER_RIGHT_CONTAINER_STYLE, StackNavigatorScreenOptions } from '@/lib/constants';
 import patchTextComponent from '@/utils/patch-text-component';
 
 import '../global.css';
@@ -81,6 +81,7 @@ const toastStyle = {
 const harmonyStackScreenOptions = {
   ...StackNavigatorScreenOptions,
   animation: 'slide_from_right',
+  headerRightContainerStyle: HARMONY_HEADER_RIGHT_CONTAINER_STYLE,
 } as const;
 
 const styles = StyleSheet.create({

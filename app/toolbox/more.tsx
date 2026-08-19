@@ -406,7 +406,7 @@ export default function MoreToolsPage() {
   );
 
   const headerRight = useCallback(() => {
-    return <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />;
+    return <Icon name="help-circle-outline" size={26} onPress={handleModalVisible} />;
   }, [handleModalVisible]);
 
   const keyExtractor = useCallback((item: Tool, index: number) => {
