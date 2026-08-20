@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
@@ -93,8 +94,15 @@ class ExpoUmengModule : Module() {
                 val notificationClickHandler: UmengNotificationClickHandler =
                     object : UmengNotificationClickHandler() {
                         override fun launchApp(context: Context, msg: UMessage) {
-                            val newMsg = msg.extra
-                            Log.i("UMLog", "msg:$newMsg")
+                            Log.i("UMLog", "msg from foreground:${msg.extra?:"null"}")
+                            val deeplink = msg.extra?.get("deeplink") ?: "/"
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse(deeplink)
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                                        or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                        or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                            }
+                            context.startActivity(intent)
                         }
                     }
                 PushAgent.getInstance(context).notificationClickHandler = notificationClickHandler
