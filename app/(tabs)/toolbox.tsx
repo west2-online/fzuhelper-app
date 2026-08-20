@@ -315,7 +315,7 @@ const DEFAULT_TOOLS: DefaultToolboxTool[] = [
   },
   {
     id: 200,
-    name: '水电缴费',
+    name: '水电缴费测试',
     icon: UtilityPaymentIcon,
     type: ToolType.LINK,
     href: '/toolbox/utility-payment',
@@ -329,14 +329,14 @@ const DEFAULT_TOOLS: DefaultToolboxTool[] = [
   },
   {
     id: 220,
-    name: '招聘会',
+    name: '招聘会测试',
     icon: JobFiarIcon,
     type: ToolType.LINK,
     href: '/toolbox/job-fair',
   },
   {
     id: 230,
-    name: '晚点名签到',
+    name: '晚点名签到测试',
     icon: SignIcon,
     type: ToolType.WEBVIEW,
     params: {
@@ -579,10 +579,11 @@ const ToolButton = memo(
           )
         ) : null}
         <Text
-          className="mt-0.5 text-center align-middle text-text-secondary"
+          className="mt-0.5 text-center align-top text-text-secondary"
           style={{
             width: textWidth,
             fontSize: fontSize,
+            lineHeight: fontSize * 1.5,
           }}
           numberOfLines={2} // 最大行数
           ellipsizeMode="tail"
@@ -605,7 +606,7 @@ export default function ToolsPage() {
   const { scaledTextWidth, scaledFontSize } = useMemo(() => {
     const baseWidth = 392; // 基准屏幕宽度
     const baseTextWidth = 60; // 基准文字宽度
-    const baseFontSize = 12; // 基准字体大小
+    const baseFontSize = 11; // 基准字体大小
 
     return {
       scaledTextWidth: Math.min((baseTextWidth * screenWidth) / baseWidth, 72),
