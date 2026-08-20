@@ -128,6 +128,11 @@ export function convertSemester(semester: string): string {
   if (/^\d{6}$/.test(semester)) {
     return semester;
   }
+  // 如果是 2023-2024-1 的格式，则进行转换
+  if (!/^\d{4}-\d{4}-\d{1}$/.test(semester)) {
+    return semester; // 如果格式不符合预期（一般不会，除非服务器解析出问题），直接返回原值，否则下面会崩溃
+    // TODO: 加强这里的错误处理，但不能直接抛异常，引用的地方比较多
+  }
   const [startYear, , term] = semester.split('-'); // 只需要起始年份和学期
   const formattedTerm = term.padStart(2, '0'); // 将学期转换为两位数
   return `${startYear}${formattedTerm}`;
