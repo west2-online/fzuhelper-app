@@ -315,7 +315,7 @@ const DEFAULT_TOOLS: DefaultToolboxTool[] = [
   },
   {
     id: 200,
-    name: '水电缴费测试',
+    name: '水电缴费',
     icon: UtilityPaymentIcon,
     type: ToolType.LINK,
     href: '/toolbox/utility-payment',
@@ -329,14 +329,14 @@ const DEFAULT_TOOLS: DefaultToolboxTool[] = [
   },
   {
     id: 220,
-    name: '招聘会测试',
+    name: '招聘会',
     icon: JobFiarIcon,
     type: ToolType.LINK,
     href: '/toolbox/job-fair',
   },
   {
     id: 230,
-    name: '晚点名签到测试',
+    name: '晚点名签到',
     icon: SignIcon,
     type: ToolType.WEBVIEW,
     params: {
