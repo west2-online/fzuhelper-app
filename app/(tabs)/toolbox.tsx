@@ -1,6 +1,8 @@
 import { type Href, useRouter } from 'expo-router';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Platform, Pressable, useWindowDimensions, View } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+import { toast } from 'sonner-native';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
@@ -20,6 +22,7 @@ import {
   IDCardIcon,
   JiaXiIcon,
   JobFiarIcon,
+  LibIcon,
   LostFoundIcon,
   MoreIcon,
   NotificationIcon,
@@ -35,19 +38,16 @@ import {
 } from '@/components/toolbox-icons';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { showIgnorableAlert } from '@/lib/common-settings';
-
-import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
-import { pushToWebViewSSO } from '@/lib/webview';
-import { isToolboxTool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/utils/tools';
 
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen, getApiV1ToolboxConfig } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
+import { showIgnorableAlert } from '@/lib/common-settings';
 import { EXPIRE_ONE_DAY, TOOLBOX_BANNER_KEY, TOOLBOX_CONFIG_KEY } from '@/lib/constants';
+import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { pushToWebViewSSO } from '@/lib/webview';
 import fileCache from '@/utils/file-cache';
-import DeviceInfo from 'react-native-device-info';
-import { toast } from 'sonner-native';
+import { isToolboxTool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/utils/tools';
 
 // 工具类型的枚举
 
@@ -204,13 +204,13 @@ const DEFAULT_TOOLS: DefaultToolboxTool[] = [
   {
     id: 152,
     name: '图书馆预约',
-    icon: StudyCenterIcon,
+    icon: LibIcon,
     type: ToolType.WEBVIEW,
     params: {
       url: 'https://kjgl.fzu.edu.cn/libseat',
       title: '图书馆预约',
-      sso: true
-    }
+      sso: true,
+    },
   },
   {
     id: 160,
