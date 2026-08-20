@@ -579,10 +579,11 @@ const ToolButton = memo(
           )
         ) : null}
         <Text
-          className="mt-0.5 text-center align-middle text-text-secondary"
+          className="mt-0.5 text-center align-top text-text-secondary"
           style={{
             width: textWidth,
             fontSize: fontSize,
+            lineHeight: fontSize * 1.5,
           }}
           numberOfLines={2} // 最大行数
           ellipsizeMode="tail"
@@ -605,7 +606,7 @@ export default function ToolsPage() {
   const { scaledTextWidth, scaledFontSize } = useMemo(() => {
     const baseWidth = 392; // 基准屏幕宽度
     const baseTextWidth = 60; // 基准文字宽度
-    const baseFontSize = 12; // 基准字体大小
+    const baseFontSize = 11; // 基准字体大小
 
     return {
       scaledTextWidth: Math.min((baseTextWidth * screenWidth) / baseWidth, 72),
