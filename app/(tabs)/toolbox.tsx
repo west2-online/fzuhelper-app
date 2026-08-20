@@ -579,7 +579,7 @@ const ToolButton = memo(
         <Text
           className="mt-0.5 w-full text-center align-top text-text-secondary"
           // eslint-disable-next-line react-native/no-inline-styles
-          style={{ fontSize: 12 }} // 未知原因，tailwind指定text-xs无效
+          style={{ fontSize: 11 }} // 未知原因，tailwind指定text-xs无效
           numberOfLines={2} // 最大行数
           ellipsizeMode="tail"
         >
