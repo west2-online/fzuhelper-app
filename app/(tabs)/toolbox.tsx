@@ -107,6 +107,7 @@ const DEFAULT_TOOLS: DefaultToolboxTool[] = [
     icon: OneKeyIcon,
     type: ToolType.LINK,
     href: '/toolbox/onekey-comment',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     id: 70,
