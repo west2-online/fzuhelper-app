@@ -1,9 +1,69 @@
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
+import {
+  CourseSelectedIcon,
+  CourseSelectedWhiteIcon,
+  CourseUnselectedIcon,
+  CourseUnselectedWhiteIcon,
+  QRCodeSelectedIcon,
+  QRCodeSelectedWhiteIcon,
+  QRCodeUnselectedIcon,
+  QRCodeUnselectedWhiteIcon,
+  ToolboxSelectedIcon,
+  ToolboxSelectedWhiteIcon,
+  ToolboxUnselectedIcon,
+  ToolboxUnselectedWhiteIcon,
+  UserSelectedIcon,
+  UserSelectedWhiteIcon,
+  UserUnselectedIcon,
+  UserUnselectedWhiteIcon,
+} from '@/components/navbar-icons';
+import { ComponentType } from 'react';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { type IconProps } from '@expo/vector-icons/build/createIconSet';
-import { type ComponentProps } from 'react';
-
-export function TabBarIcon({ style, ...rest }: IconProps<ComponentProps<typeof Ionicons>['name']>) {
-  return <Ionicons size={26} style={style} {...rest} />;
+interface TabBarIconProps {
+  isSelected: boolean;
+  isDark: boolean;
 }
+
+type IconComponent = ComponentType<{ width?: string; height?: string }>;
+
+interface IconSet {
+  selected: IconComponent;
+  selectedWhite: IconComponent;
+  unselected: IconComponent;
+  unselectedWhite: IconComponent;
+}
+
+function createTabBarIcon({ selected, selectedWhite, unselected, unselectedWhite }: IconSet) {
+  return function Icon({ isSelected, isDark }: TabBarIconProps) {
+    const IconComponent = isSelected ? (isDark ? selectedWhite : selected) : isDark ? unselectedWhite : unselected;
+
+    return <IconComponent width="26px" height="26px" />;
+  };
+}
+
+export const CourseTabBarIcon = createTabBarIcon({
+  selected: CourseSelectedIcon,
+  selectedWhite: CourseSelectedWhiteIcon,
+  unselected: CourseUnselectedIcon,
+  unselectedWhite: CourseUnselectedWhiteIcon,
+});
+
+export const QRCodeTabBarIcon = createTabBarIcon({
+  selected: QRCodeSelectedIcon,
+  selectedWhite: QRCodeSelectedWhiteIcon,
+  unselected: QRCodeUnselectedIcon,
+  unselectedWhite: QRCodeUnselectedWhiteIcon,
+});
+
+export const ToolboxTabBarIcon = createTabBarIcon({
+  selected: ToolboxSelectedIcon,
+  selectedWhite: ToolboxSelectedWhiteIcon,
+  unselected: ToolboxUnselectedIcon,
+  unselectedWhite: ToolboxUnselectedWhiteIcon,
+});
+
+export const UserTabBarIcon = createTabBarIcon({
+  selected: UserSelectedIcon,
+  selectedWhite: UserSelectedWhiteIcon,
+  unselected: UserUnselectedIcon,
+  unselectedWhite: UserUnselectedWhiteIcon,
+});

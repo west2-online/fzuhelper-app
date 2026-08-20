@@ -16,7 +16,7 @@ import MultiStateView from '@/components/multistateview/multi-state-view';
 import useApiRequest from '@/hooks/useApiRequest';
 import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 import { FAQ_EXAM_ROOM } from '@/lib/FAQ';
-import { JWCH_TERM_LIST_KEY } from '@/lib/constants';
+import { EXAM_ROOM_KEY, JWCH_TERM_LIST_KEY } from '@/lib/constants';
 import { getCourseSetting } from '@/lib/course';
 import { formatExamData } from '@/lib/exam-room';
 import { MergedExamData } from '@/types/academic';
@@ -28,7 +28,7 @@ interface TermContentProps {
 
 const TermContent = React.memo<TermContentProps>(({ term }) => {
   const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
-  const apiResult = useApiRequest(getApiV1JwchClassroomExam, { term });
+  const apiResult = useApiRequest(getApiV1JwchClassroomExam, { term }, { queryKey: [EXAM_ROOM_KEY, term] });
   const { data, dataUpdatedAt, isFetching, refetch } = apiResult;
 
   const { state } = useMultiStateRequest(apiResult, {
@@ -131,7 +131,7 @@ export default function ExamRoomPage() {
   }, []);
 
   const headerRight = useCallback(
-    () => <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />,
+    () => <Icon name="help-circle-outline" size={26} onPress={handleModalVisible} />,
     [handleModalVisible],
   );
 

@@ -50,18 +50,39 @@ interface ExtendCourseBase extends ParsedCourse {
   priority: number; // 优先级
 }
 
+export enum CourseType {
+  COURSE = 0,
+  EXAM = 1,
+  CUSTOM = 2,
+}
+
 export type ExtendCourse = ExtendCourseBase & {
-  type: 0 | 1 | 2; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
+  type: CourseType; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
 };
 
 export type CustomCourse = ExtendCourseBase & {
-  type: 2;
+  type: CourseType.CUSTOM;
   storageKey: string; // 预留给后端的存储 key
   lastUpdateTime: string; // 最后更新时间
   semester: string; // 学期
 };
 
+export type WeekSegment = {
+  startWeek: number;
+  endWeek: number;
+  isAdjusted: boolean; // 是否为调课课程
+  single: boolean; // 是否单周
+  double: boolean; // 是否双周
+};
+
 export type CourseInfo = ExtendCourse | CustomCourse;
+
+// 同一个课程可能被教务系统分成不同周段，甚至有调课的情况，在展示课程信息前需要先整合
+// 具体逻辑在 course-schedule.ts 中
+export type CourseInfoMerged = CourseInfo & {
+  weekSegments: WeekSegment[]; // 合并前各排课规则对应的周段
+  weekDisplay: string; // 已包含单双周信息的完整周数显示文本
+};
 
 interface CacheCourseData {
   courseData: Record<number, ExtendCourse[]>; // 课程数据
@@ -81,9 +102,9 @@ export const SCHEDULE_MIN_HEIGHT = SCHEDULE_ITEM_MIN_HEIGHT * 11;
 export const LEFT_TIME_COLUMN_WIDTH = 32;
 export const TOP_CALENDAR_HEIGHT = 68;
 
-export const COURSE_TYPE = 0;
-export const EXAM_TYPE = 1;
-export const CUSTOM_TYPE = 2;
+export const COURSE_TYPE = CourseType.COURSE;
+export const EXAM_TYPE = CourseType.EXAM;
+export const CUSTOM_TYPE = CourseType.CUSTOM;
 export const COURSE_WITHOUT_ATTENDANCE = '免听';
 
 const NO_LOADING_MSG = '未加载';
@@ -273,8 +294,8 @@ export class CourseCache {
           }),
         ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
         ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-      } else if (Platform.OS === 'android') {
-        setWidgetData(
+      } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
+        await setWidgetData(
           JSON.stringify({
             courseData: this.cachedData,
             examData: this.cachedExamData,
@@ -314,8 +335,8 @@ export class CourseCache {
       const storage = new ExtensionStorage(IOS_APP_GROUP);
       storage.set(COURSE_CURRENT_CACHE_KEY, '');
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-    } else if (Platform.OS === 'android') {
-      setWidgetData('', Constants.expoConfig?.android?.package);
+    } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
+      await setWidgetData('', Constants.expoConfig?.android?.package);
     }
   }
 
@@ -897,13 +918,13 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
   if ((await getCourseSetting()).exportExamToCourseTable) {
     const examData = await fetchWithCache(
       [EXAM_ROOM_KEY, queryTerm],
-      () => getApiV1JwchClassroomExam({ term: queryTerm }),
+      () => getApiV1JwchClassroomExam({ term: queryTerm }).then(r => r.data.data),
       {
         staleTime: 0,
       },
     );
 
-    const formattedExamData = formatExamData(examData.data.data);
+    const formattedExamData = formatExamData(examData);
     const termsList = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), {
       staleTime: 0,
     });

@@ -12,7 +12,7 @@ import useApiRequest from '@/hooks/useApiRequest';
 import useMultiStateRequest from '@/hooks/useMultiStateRequest';
 
 export default function GPAPage() {
-  const apiResult = useApiRequest(getApiV1JwchAcademicGpa);
+  const apiResult = useApiRequest(getApiV1JwchAcademicGpa, {}, { queryKey: ['jwch-academic-gpa'] });
   const { data: academicData, isFetching, refetch } = apiResult;
 
   const { state } = useMultiStateRequest(apiResult, {

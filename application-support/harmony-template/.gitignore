@@ -1,0 +1,15 @@
+.hvigor/
+build/
+oh_modules/
+oh-package-lock.json5
+entry/build/
+entry/.cxx/
+entry/oh_modules/
+entry/oh-package-lock.json5
+entry/src/main/resources/rawfile/assets/
+entry/src/main/resources/rawfile/bundle.harmony.js
+entry/src/main/cpp/generated/
+entry/src/main/cpp/RNOHGeneratedPackage.h
+entry/src/main/cpp/RNOHPackagesFactory.h
+entry/src/main/cpp/autolinking.cmake
+entry/src/main/ets/RNOHPackagesFactory.ets

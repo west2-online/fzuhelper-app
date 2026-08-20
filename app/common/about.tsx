@@ -33,11 +33,14 @@ export default function AboutPage() {
   const { handleError } = useSafeResponseSolve();
   const [updateCheckState, setUpdateCheckState] = useState('点击检查更新');
   const buildNumber = DeviceInfo.getBuildNumber();
+  const isHarmony = (Platform.OS as string) === 'harmony';
 
   const handleCheckUpdate = useCallback(async () => {
     console.log('check update');
     if (Platform.OS === 'ios') {
       Linking.openURL('itms-apps://itunes.apple.com/app/id866768101');
+    } else if ((Platform.OS as string) === 'harmony') {
+      setUpdateCheckState('请通过应用市场检查更新');
     } else {
       setUpdateCheckState('正在检查更新');
 
@@ -134,10 +137,14 @@ export default function AboutPage() {
                 隐私政策
               </Text>
               <Text className="mx-2 text-primary">|</Text>
-              <Link href="/contributors" asChild>
-                <Text className="text-primary">贡献名录</Text>
-              </Link>
-              <Text className="mx-2 text-primary">|</Text>
+              {!isHarmony && (
+                <>
+                  <Link href="/contributors" asChild>
+                    <Text className="text-primary">贡献名录</Text>
+                  </Link>
+                  <Text className="mx-2 text-primary">|</Text>
+                </>
+              )}
               <Text className="text-primary" onPress={() => pushToWebViewNormal(URL_JOIN_US, '加入我们')}>
                 加入我们
               </Text>

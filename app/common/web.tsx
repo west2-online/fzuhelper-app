@@ -1,24 +1,29 @@
-import { Icon } from '@/components/Icon';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import CookieManager from '@preeternal/react-native-cookie-manager';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation, { GeolocationOptions } from '@react-native-community/geolocation';
-import { useHeaderHeight } from '@react-navigation/elements';
+import Constants from 'expo-constants';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter, type UnknownOutputParams } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useHeaderHeight } from 'expo-router/react-navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Platform, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type {
   OnShouldStartLoadWithRequest,
+  WebViewErrorEvent,
   WebViewNavigation,
+  WebViewNavigationEvent,
   WebViewOpenWindowEvent,
+  WebViewProgressEvent,
 } from 'react-native-webview/lib/WebViewTypes';
 import { toast } from 'sonner-native';
 
+import { Icon } from '@/components/Icon';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 
 import { useTheme } from '@/components/app-theme-provider';
 import {
@@ -32,6 +37,7 @@ import SSOLogin from '@/lib/sso-login';
 import { LocalUser, USER_TYPE_POSTGRADUATE, checkCookieSSO } from '@/lib/user';
 import { consumeWebViewCallback } from '@/lib/webview-callback';
 import { buildCallbackJS, handleCustomProtocol } from '@/lib/webview-protocols';
+import { SafeAreaWebView } from '@/modules/safe-area-webview';
 import { getGeoLocationJS, getScriptByURL } from '@/utils/webview-inject-script';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
@@ -43,23 +49,107 @@ export interface WebParams {
   [key: string]: any; // 添加字符串索引签名
 }
 
+const WEBVIEW_LOAD_TIMEOUT_MS = 30_000;
+const WEBVIEW_PROGRESS_FALLBACK_DELAY_MS = 1_000;
+const WEBVIEW_REVEAL_DELAY_MS = 200;
+
+type WebViewDisplayState = 'loading' | 'ready' | 'error';
+
+interface CookiePreparationResult {
+  needsSSOLogin: boolean;
+  sourceUrl: string;
+}
+
+interface WebViewErrorViewProps {
+  message: string;
+  onRetry: () => void;
+}
+
+function WebViewErrorView({ message, onRetry }: WebViewErrorViewProps) {
+  return (
+    <View className="flex-1 items-center justify-center bg-background px-8">
+      <Text className="mb-2 text-lg font-semibold">网页加载失败</Text>
+      <Text className="mb-5 text-center text-sm text-text-secondary" numberOfLines={4}>
+        {message}
+      </Text>
+      <Button onPress={onRetry}>
+        <Text>重试</Text>
+      </Button>
+    </View>
+  );
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+async function setCookiesFromHeader(url: string, header: string) {
+  const cookies = header
+    .split(';')
+    .map(cookie => cookie.trim())
+    .filter(cookie => cookie.includes('='));
+
+  if (cookies.length === 0) {
+    throw new Error('登录凭证中没有可用的 Cookie');
+  }
+
+  await Promise.all(cookies.map(cookie => CookieManager.setFromResponse(url, cookie)));
+}
+
 // 内嵌的网页浏览器，用于显示网页
 // 在 iOS 下，当用户在网页浏览器中点击新的跳转时，会模拟创建一个新的页面，返回时只需要左滑即可
 export default function Web() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [webpageTitle, setWebpageTitle] = useState('');
-  const [currentUrl, setCurrentUrl] = useState(''); // 当前加载的 URL
+  const [sourceUrl, setSourceUrl] = useState(''); // 传递给 WebView 的受控 URL
+  const [currentUrl, setCurrentUrl] = useState(''); // WebView 当前实际加载的 URL
   const [cookiesSet, setCookiesSet] = useState(false); // 用于控制 Cookie 设置先于 WebView 加载
   const [needSSOLogin, setNeedSSOLogin] = useState(false); // 是否需要统一身份认证登录（由于进入app默认用户已登录jwch,只需要判断这一个）
-  const [injectedScript, setInjectedScript] = useState(false); // 用于控制注入脚本先于 WebView 加载
+  const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [webViewError, setWebViewError] = useState<string | null>(null);
+  const [webViewState, setWebViewState] = useState<WebViewDisplayState>('loading');
+  const [webViewKey, setWebViewKey] = useState(0);
   const webViewRef = useRef<WebView>(null);
   const initializedRef = useRef(false); // 是否已完成首次初始化（避免每次 focus 都重置导致 WebView 重新加载）
+  const initializationRunRef = useRef(0);
+  const completedUrlRef = useRef<string | null>(null);
+  const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { url, jwch, sso, title } = useLocalSearchParams<WebParams & UnknownOutputParams>(); // 读取传递的参数
   const { currentTheme } = useTheme();
   const headerHeight = useHeaderHeight();
   const router = useRouter();
 
-  const setCookies = useCallback(async () => {
+  const clearWebViewTimers = useCallback(() => {
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current);
+      loadTimeoutRef.current = null;
+    }
+    if (progressFallbackRef.current) {
+      clearTimeout(progressFallbackRef.current);
+      progressFallbackRef.current = null;
+    }
+    if (revealTimeoutRef.current) {
+      clearTimeout(revealTimeoutRef.current);
+      revealTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleLoadTimeout = useCallback(() => {
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current);
+    }
+    loadTimeoutRef.current = setTimeout(() => {
+      loadTimeoutRef.current = null;
+      setWebViewError('网页加载超时，请检查网络连接后重试');
+      setWebViewState('error');
+    }, WEBVIEW_LOAD_TIMEOUT_MS);
+  }, []);
+
+  const prepareCookies = useCallback(async (): Promise<CookiePreparationResult> => {
+    let nextSourceUrl = url || '';
+
     // 教务系统 Cookie
     if (jwch) {
       // 清除 webview cookies
@@ -80,30 +170,24 @@ export default function Web() {
           await LocalUser.login();
         } catch (error) {
           console.error('教务系统登录失败:', error);
-          toast.error('登录失败，请稍后再试');
-          return;
+          throw new Error('教务系统登录失败，请稍后再试');
         }
       }
       const credentials = LocalUser.getCredentials();
 
       if (!credentials.cookies) {
-        toast.error('登录失败，请稍后再试');
-        return;
+        throw new Error('教务系统登录凭证缺失，请重新登录后再试');
       }
 
       // 根据 URL 是否已有查询参数来决定连接符
       const separator = url.includes('?') ? '&' : '?';
-      setCurrentUrl(`${url}${separator}id=${credentials.identifier}`);
+      nextSourceUrl = `${url}${separator}id=${credentials.identifier}`;
 
       // 设置 JWCH Cookie
-      await Promise.all(
-        credentials.cookies.split(';').map(c =>
-          CookieManager.setFromResponse(
-            // 依据用户类型置入不同的域名 Cookie
-            LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? YJSY_COOKIES_DOMAIN : JWCH_COOKIES_DOMAIN,
-            c,
-          ),
-        ),
+      await setCookiesFromHeader(
+        // 依据用户类型置入不同的域名 Cookie
+        LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? YJSY_COOKIES_DOMAIN : JWCH_COOKIES_DOMAIN,
+        credentials.cookies,
       );
     }
 
@@ -115,14 +199,13 @@ export default function Web() {
 
       // 存在ssocookie且cookie有效
       if (isSSOLogin && SSOCookie) {
-        await Promise.all(SSOCookie.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c)));
+        await setCookiesFromHeader(SSO_LOGIN_COOKIE_DOMAIN, SSOCookie);
       } else if (SSOCookie) {
         // 存在ssocookie但cookie无效,需要自动重登
         const ssoLogin = new SSOLogin();
         const userData = await AsyncStorage.getItem(SSO_LOGIN_USER_KEY);
         if (!userData) {
-          setNeedSSOLogin(true);
-          return;
+          return { needsSSOLogin: true, sourceUrl: nextSourceUrl };
         }
         const { account, password } = JSON.parse(userData);
         const cookieLogin = await ssoLogin.login(account, password).catch(error => {
@@ -131,21 +214,53 @@ export default function Web() {
         });
         // toast.info('登录过期，正在重新登录');
         if (cookieLogin) {
-          await Promise.all(cookieLogin.split(';').map(c => CookieManager.setFromResponse(SSO_LOGIN_COOKIE_DOMAIN, c)));
+          await setCookiesFromHeader(SSO_LOGIN_COOKIE_DOMAIN, cookieLogin);
           await AsyncStorage.setItem(SSO_LOGIN_COOKIE_KEY, cookieLogin);
         } else {
           // 重登失败，跳转到登录页面
           toast.error('自动重登失败');
           await AsyncStorage.removeItem(SSO_LOGIN_COOKIE_KEY);
-          setNeedSSOLogin(true);
+          return { needsSSOLogin: true, sourceUrl: nextSourceUrl };
         }
       } else {
         // 不存在ssocookie
-        setNeedSSOLogin(true);
+        return { needsSSOLogin: true, sourceUrl: nextSourceUrl };
       }
     }
-    setCookiesSet(true);
+
+    return { needsSSOLogin: false, sourceUrl: nextSourceUrl };
   }, [jwch, url, sso]);
+
+  const initializeWebView = useCallback(async () => {
+    const runId = ++initializationRunRef.current;
+
+    clearWebViewTimers();
+    setCookiesSet(false);
+    setNeedSSOLogin(false);
+    setInitializationError(null);
+    setWebViewError(null);
+    setWebViewState('loading');
+    completedUrlRef.current = null;
+    setSourceUrl('');
+    setCurrentUrl('');
+
+    try {
+      const result = await prepareCookies();
+      if (runId !== initializationRunRef.current) return;
+
+      setSourceUrl(result.sourceUrl);
+      if (result.needsSSOLogin) {
+        setNeedSSOLogin(true);
+        return;
+      }
+      setCookiesSet(true);
+    } catch (error) {
+      if (runId !== initializationRunRef.current) return;
+
+      console.error('WebView 初始化失败:', error);
+      setInitializationError(getErrorMessage(error, '网页初始化失败，请稍后再试'));
+    }
+  }, [clearWebViewTimers, prepareCookies]);
 
   // 在页面获得焦点时执行
   useFocusEffect(
@@ -156,20 +271,29 @@ export default function Web() {
       if (initializedRef.current) return;
       initializedRef.current = true;
 
-      // 重置状态，准备重新加载
-      setInjectedScript(false);
-      setCookiesSet(false);
-      setNeedSSOLogin(false);
-
       // 执行设置Cookie的逻辑
-      setCookies();
-    }, [setCookies]),
+      initializeWebView();
+    }, [initializeWebView]),
   );
 
-  // 处理 Android 返回键
+  useEffect(() => {
+    return () => {
+      initializationRunRef.current += 1;
+      clearWebViewTimers();
+    };
+  }, [clearWebViewTimers]);
+
+  useEffect(() => {
+    if (!cookiesSet) return;
+    scheduleLoadTimeout();
+
+    return clearWebViewTimers;
+  }, [clearWebViewTimers, cookiesSet, scheduleLoadTimeout, sourceUrl, webViewKey]);
+
+  // 处理 Android 和 HarmonyOS 返回键
   useFocusEffect(
     useCallback(() => {
-      if (Platform.OS === 'android') {
+      if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
           if (canGoBack) {
             webViewRef.current?.goBack();
@@ -210,42 +334,133 @@ export default function Web() {
     [router],
   );
 
-  const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
-    const targetUrl = event.nativeEvent.targetUrl; // 获取目标 URL
-    console.log('Opening new window with URL:', targetUrl);
+  const handleOpenWindow = useCallback(
+    (event: WebViewOpenWindowEvent) => {
+      const targetUrl = event.nativeEvent.targetUrl; // 获取目标 URL
+      console.log('Opening new window with URL:', targetUrl);
 
-    // 在当前 WebView 中加载目标 URL
-    if (webViewRef.current) {
-      setCurrentUrl(targetUrl); // 更新当前 URL
-    }
-  }, []);
+      // 在当前 WebView 中加载目标 URL
+      if (webViewRef.current) {
+        clearWebViewTimers();
+        setSourceUrl(targetUrl);
+        setCurrentUrl(targetUrl);
+        setWebViewError(null);
+        setWebViewState('loading');
+        completedUrlRef.current = null;
+      }
+    },
+    [clearWebViewTimers],
+  );
 
   const handleNavigationStateChange = useCallback(
     (event: WebViewNavigation) => {
-      if (!event.loading) {
-        // 更新当前 URL
-        console.log('页面导航到 URL:', event.url);
+      setCanGoBack(event.canGoBack);
+      if (event.url) {
         setCurrentUrl(event.url);
+      }
 
-        // 更新网页标题
-        if (event.title && !title) {
-          setWebpageTitle(event.title); // 只有在没有传递 title 参数时才更新标题
-        }
+      if (event.title && !title) {
+        setWebpageTitle(event.title);
+      }
+    },
+    [title],
+  );
 
-        webViewRef.current?.injectJavaScript(getScriptByURL(event.url, currentTheme));
+  const handleLoadStart = useCallback(() => {
+    clearWebViewTimers();
+    setWebViewError(null);
+    setWebViewState('loading');
+    completedUrlRef.current = null;
+    scheduleLoadTimeout();
+  }, [clearWebViewTimers, scheduleLoadTimeout]);
+
+  const completeWebViewLoad = useCallback(
+    (loadedUrl: string, loadedTitle?: string) => {
+      if (completedUrlRef.current === loadedUrl) return;
+      completedUrlRef.current = loadedUrl;
+
+      if (progressFallbackRef.current) {
+        clearTimeout(progressFallbackRef.current);
+        progressFallbackRef.current = null;
+      }
+      if (loadTimeoutRef.current) {
+        clearTimeout(loadTimeoutRef.current);
+        loadTimeoutRef.current = null;
+      }
+
+      console.log('页面导航到 URL:', loadedUrl);
+      setCurrentUrl(loadedUrl);
+      if (loadedTitle && !title) {
+        setWebpageTitle(loadedTitle);
+      }
+
+      try {
+        webViewRef.current?.injectJavaScript(getScriptByURL(loadedUrl, currentTheme));
         if (Platform.OS === 'ios') {
           webViewRef.current?.injectJavaScript(getGeoLocationJS()); // 注入定位设计
           // Android 不需要注入这个代码也可以授权，但是即使定位到了，易班也提示定位失败
           // 基本是易班的问题
         }
-
-        setTimeout(() => {
-          setInjectedScript(true);
-        }, 200);
+      } catch (error) {
+        // 页面内容本身已经加载成功，辅助脚本失败不应继续阻塞页面。
+        console.warn('WebView 脚本注入失败:', error);
       }
+
+      if (revealTimeoutRef.current) {
+        clearTimeout(revealTimeoutRef.current);
+      }
+      revealTimeoutRef.current = setTimeout(() => {
+        revealTimeoutRef.current = null;
+        setWebViewState('ready');
+      }, WEBVIEW_REVEAL_DELAY_MS);
     },
     [title, currentTheme],
   );
+
+  const handleLoad = useCallback(
+    (event: WebViewNavigationEvent) => {
+      completeWebViewLoad(event.nativeEvent.url, event.nativeEvent.title);
+    },
+    [completeWebViewLoad],
+  );
+
+  const handleLoadProgress = useCallback(
+    (event: WebViewProgressEvent) => {
+      setCanGoBack(event.nativeEvent.canGoBack);
+      if (
+        event.nativeEvent.progress >= 1 &&
+        completedUrlRef.current !== event.nativeEvent.url &&
+        !progressFallbackRef.current
+      ) {
+        const { title: loadedTitle, url: loadedUrl } = event.nativeEvent;
+        progressFallbackRef.current = setTimeout(() => {
+          progressFallbackRef.current = null;
+          completeWebViewLoad(loadedUrl, loadedTitle);
+        }, WEBVIEW_PROGRESS_FALLBACK_DELAY_MS);
+      }
+    },
+    [completeWebViewLoad],
+  );
+
+  const handleLoadError = useCallback(
+    (event: WebViewErrorEvent) => {
+      event.preventDefault();
+      clearWebViewTimers();
+      completedUrlRef.current = null;
+      setCurrentUrl(event.nativeEvent.url);
+      setWebViewError(event.nativeEvent.description || '网页加载失败，请检查网络连接后重试');
+      setWebViewState('error');
+    },
+    [clearWebViewTimers],
+  );
+
+  const retryWebView = useCallback(() => {
+    clearWebViewTimers();
+    completedUrlRef.current = null;
+    setWebViewError(null);
+    setWebViewState('loading');
+    setWebViewKey(key => key + 1);
+  }, [clearWebViewTimers]);
 
   // 方案参考：https://stackoverflow.com/questions/74347489/how-to-pass-geolocation-permission-to-react-native-webview
   // 实际上在一些需要定位的站点内，请求没有问题，但是易班的签到仍然提示定位失效。
@@ -305,6 +520,7 @@ export default function Web() {
     if (currentUrl) {
       return (
         <Icon
+          accessibilityLabel="分享当前网页"
           name="share-outline"
           onPress={() => {
             Share.share({
@@ -316,13 +532,10 @@ export default function Web() {
     }
   }, [currentUrl, jwch, sso, title, webpageTitle]);
 
-  const renderLoading = useCallback(() => {
-    return (
-      <View className="absolute h-full w-full flex-1 items-center justify-center bg-background">
-        <Loading />
-      </View>
-    );
-  }, []);
+  const appNameForUa = useMemo(() => {
+    if (sso) return 'appId/cn.edu.fzu.fdxypa appScheme/kysk-fdxy-app hengfeng/fdxyappzs appType/2 ruijie-facecamera';
+    return `fzuhelper/${Constants.expoConfig?.version ?? 'dev'}`;
+  }, [sso]);
 
   return (
     <>
@@ -334,7 +547,9 @@ export default function Web() {
         }}
       />
       <PageContainer>
-        {needSSOLogin ? (
+        {initializationError ? (
+          <WebViewErrorView message={initializationError} onRetry={initializeWebView} />
+        ) : needSSOLogin ? (
           <LoginPrompt message={`登录统一身份认证平台，访问${title ?? '当前'}服务`} />
         ) : !cookiesSet ? (
           <Loading />
@@ -342,18 +557,21 @@ export default function Web() {
           <SafeAreaView className="h-full w-full bg-background" edges={['bottom']}>
             {cookiesSet && (
               <KeyboardAvoidingView behavior="padding" className="flex-1" keyboardVerticalOffset={headerHeight}>
-                <WebView
-                  source={{ uri: currentUrl || url || '' }} // 使用当前 URL 或传递的 URL
+                <SafeAreaWebView
+                  key={webViewKey}
+                  source={{ uri: sourceUrl || url || '' }}
                   ref={webViewRef}
                   sharedCookiesEnabled
+                  thirdPartyCookiesEnabled
+                  domStorageEnabled
                   cacheEnabled // 启用缓存
                   cacheMode="LOAD_DEFAULT" // 设置缓存模式，LOAD_DEFAULT 表示使用默认缓存策略
                   javaScriptEnabled // 确保启用 JavaScript
-                  startInLoadingState={true} // 启用加载状态
-                  renderLoading={renderLoading} // 加载组件
+                  applicationNameForUserAgent={appNameForUa} // 设置自定义 User-Agent
+                  webviewDebuggingEnabled={__DEV__} // 开发模式下启用 WebView 调试
                   //
                   // Android 平台设置
-                  onLoadProgress={event => setCanGoBack(event.nativeEvent.canGoBack)} // 更新是否可以返回
+                  onLoadProgress={handleLoadProgress}
                   scalesPageToFit // 启用页面缩放
                   renderToHardwareTextureAndroid // 启用硬件加速
                   setDisplayZoomControls={false} // 隐藏缩放控件图标
@@ -369,12 +587,28 @@ export default function Web() {
                   // 事件处理
                   onOpenWindow={handleOpenWindow} // 处理新窗口打开事件
                   onNavigationStateChange={handleNavigationStateChange}
+                  onLoadStart={handleLoadStart}
+                  onLoad={handleLoad}
+                  onError={handleLoadError}
                   onMessage={handleOnMessage}
                   onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                   originWhitelist={['*']}
-                  // 当脚本未注入完成时隐藏 WebView
-                  className={injectedScript ? 'flex-1' : 'hidden bg-background'}
+                  // opacity 不影响原生 WebView 挂载，避免 display:none 阻断鸿蒙加载事件。
+                  className="flex-1 bg-background"
                 />
+                {webViewState === 'loading' && (
+                  <View className="absolute h-full w-full items-center justify-center bg-background">
+                    <Loading />
+                  </View>
+                )}
+                {webViewState === 'error' && (
+                  <View className="absolute h-full w-full bg-background">
+                    <WebViewErrorView
+                      message={webViewError || '网页加载失败，请检查网络连接后重试'}
+                      onRetry={retryWebView}
+                    />
+                  </View>
+                )}
               </KeyboardAvoidingView>
             )}
           </SafeAreaView>

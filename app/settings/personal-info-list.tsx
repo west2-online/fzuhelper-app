@@ -14,6 +14,7 @@ import {
   DescriptionListTerm,
 } from '@/components/DescriptionList';
 import useApiRequest from '@/hooks/useApiRequest';
+import { JWCH_USER_INFO_KEY } from '@/lib/constants';
 
 export default function PersonalInfoListPage() {
   const [userInfo, setUserInfo] = useState({
@@ -26,7 +27,7 @@ export default function PersonalInfoListPage() {
     major: '', // 所属专业
   });
 
-  const { data: userData } = useApiRequest(getApiV1JwchUserInfo);
+  const { data: userData } = useApiRequest(getApiV1JwchUserInfo, {}, { queryKey: [JWCH_USER_INFO_KEY] });
 
   // 在组件加载时初始化数据
   useEffect(() => {

@@ -152,7 +152,7 @@ export default function GradesPage() {
   }, []);
 
   const headerRight = useCallback(
-    () => <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />,
+    () => <Icon name="help-circle-outline" size={26} onPress={handleModalVisible} />,
     [handleModalVisible],
   );
 

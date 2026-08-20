@@ -8,15 +8,16 @@ import { useCoursePageSetting } from '@/context/course-page';
 import {
   COURSE_TYPE,
   COURSE_WITHOUT_ATTENDANCE,
-  type CourseInfo,
+  type CourseInfoMerged,
   CUSTOM_TYPE,
   EXAM_TYPE,
   SCHEDULE_ITEM_MIN_HEIGHT,
 } from '@/lib/course';
+import { isCourseScheduledInWeek } from '@/lib/course-schedule';
 import { nonCurrentWeekCourseColor } from '@/utils/random-color';
 
 interface CourseScheduleItemDataBase {
-  schedules: CourseInfo[];
+  schedules: CourseInfoMerged[];
   span: number;
   color: string; // 课程的颜色
 }
@@ -27,7 +28,7 @@ type ScheduleItemData = CourseScheduleItemData | EmptyScheduleItemData;
 
 interface CalendarColProps {
   week: number;
-  schedulesOnDay: CourseInfo[];
+  schedulesOnDay: CourseInfoMerged[];
   flatListLayout: LayoutRectangle;
 }
 
@@ -49,9 +50,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     const today = schedulesOnDay
       .filter(
         s =>
-          s.startWeek <= week && // 卡起始时间范围
-          s.endWeek >= week && // 卡结束时间范围
-          ((s.single && week % 2 === 1) || (s.double && week % 2 === 0)) && // 检查单双周
+          isCourseScheduledInWeek(s, week) && // 检查是否在本周有课（含单双周）
           (s.type === COURSE_TYPE ||
             (setting.exportExamToCourseTable && s.type === EXAM_TYPE) ||
             s.type === CUSTOM_TYPE) && // 判断课程类型
@@ -106,14 +105,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     // 再按优先级去排非本周课（不含考试等），重叠的也不管
     if (setting.showNonCurrentWeekCourses) {
       const nonCurrentWeek = schedulesOnDay
-        .filter(
-          s =>
-            !(
-              s.startWeek <= week &&
-              s.endWeek >= week &&
-              ((s.single && week % 2 === 1) || (s.double && week % 2 === 0))
-            ) && s.type === COURSE_TYPE,
-        )
+        .filter(s => !isCourseScheduledInWeek(s, week) && s.type === COURSE_TYPE)
         .sort((a, b) => b.priority - a.priority);
 
       for (let s of nonCurrentWeek) {
@@ -182,6 +174,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
             span={item.span}
             color={item.color}
             schedules={item.schedules}
+            week={week}
           />
         ) : (
           <EmptyScheduleItem key={index} itemHeight={itemHeight} />

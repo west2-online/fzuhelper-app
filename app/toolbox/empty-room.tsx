@@ -2,11 +2,11 @@ import { getApiV1CommonClassroomEmpty } from '@/api/generate';
 import { Icon } from '@/components/Icon';
 import { useTheme } from '@/components/app-theme-provider';
 import ClassroomList from '@/components/classroom-list';
+import EmptyRoomDatePicker from '@/components/empty-room-date-picker';
 import FAQModal from '@/components/faq-modal';
 import MultiStateView from '@/components/multistateview/multi-state-view';
 import PageContainer from '@/components/page-container';
 import PickerModal from '@/components/picker-modal';
-import FloatModal from '@/components/ui/float-modal';
 import { Text } from '@/components/ui/text';
 import useApiRequest from '@/hooks/useApiRequest';
 import useMultiStateRequest from '@/hooks/useMultiStateRequest';
@@ -20,11 +20,9 @@ import { CalendarDaysIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
-import DateTimePicker, { useDefaultClassNames } from 'react-native-ui-datepicker';
 
 type Campus = '旗山校区' | '铜盘校区' | '晋江校区' | '泉港校区' | '怡山校区' | '集美校区' | '鼓浪屿校区';
 const CAMPUS_LIST: Campus[] = ['旗山校区', '铜盘校区', '晋江校区', '泉港校区', '怡山校区', '集美校区', '鼓浪屿校区'];
-const TIMEZONE = 'Asia/Shanghai';
 const DATE_FMT = 'YYYY-MM-DD';
 
 interface LessonRange {
@@ -67,14 +65,24 @@ function generateEndPickerData(start: number): { value: IntRange<1, 12>; label: 
 
 export default function EmptyRoomPage() {
   const today = useMemo(() => dayjs(), []);
-  const defaultClassNames = useDefaultClassNames();
+  const datePickerData = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, index) => {
+        const date = today.add(index, 'day');
+        return {
+          value: date.format(DATE_FMT),
+          label: date.format('YYYY年MM月DD日'),
+        };
+      }),
+    [today],
+  );
 
   const [selectedRange, setSelectedRange] = useState<LessonRange>({ start: 1, end: 11 });
   const [selectedDate, setSelectedDate] = useState(today);
   const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null);
   const [showFAQ, setShowFAQ] = useState(false);
 
-  const [pickerSelectedDate, setPickerSelectedDate] = useState(selectedDate);
+  const [pickerSelectedDate, setPickerSelectedDate] = useState(selectedDate.format(DATE_FMT));
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
 
   const [isRangeStartPickerVisible, setIsRangeStartPickerVisible] = useState(false);
@@ -90,7 +98,16 @@ export default function EmptyRoomPage() {
       startTime: selectedRange.start.toString(),
       endTime: selectedRange.end.toString(),
     },
-    { enabled: !!selectedCampus },
+    {
+      enabled: !!selectedCampus,
+      queryKey: [
+        'common-classroom-empty',
+        selectedDate.format(DATE_FMT),
+        selectedCampus,
+        selectedRange.start,
+        selectedRange.end,
+      ],
+    },
   );
   const { data: roomData, refetch } = apiResult;
 
@@ -168,33 +185,20 @@ export default function EmptyRoomPage() {
           refresh={refetch}
         />
         {/* 日期选择器 */}
-        <FloatModal
+        <EmptyRoomDatePicker
           visible={isDateTimePickerVisible}
-          transparent
-          title="选择日期"
+          value={pickerSelectedDate}
+          data={datePickerData}
           onClose={() => {
             setIsDateTimePickerVisible(false);
-            // 在取消时重置 datetime picker 的日期，避免再次打开时显示上一次的日期
-            setPickerSelectedDate(selectedDate);
+            // 在取消时重置日期选择器的日期，避免再次打开时显示上一次的日期
+            setPickerSelectedDate(selectedDate.format(DATE_FMT));
           }}
-          onConfirm={() => {
-            setSelectedDate(pickerSelectedDate);
+          onConfirm={date => {
+            setSelectedDate(dayjs(date));
             setIsDateTimePickerVisible(false);
           }}
-          contentContainerClassName="h-96 items-center"
-        >
-          <DateTimePicker
-            mode="single"
-            date={pickerSelectedDate.toDate()}
-            timeZone={TIMEZONE}
-            onChange={({ date }) => setPickerSelectedDate(dayjs(date))}
-            locale="zh-cn"
-            classNames={defaultClassNames}
-            // 选择范围为从今天开始的一周内
-            minDate={today.toDate()}
-            maxDate={today.add(6, 'day').toDate()}
-          />
-        </FloatModal>
+        />
 
         {/* 起始节数选择器 */}
         <PickerModal

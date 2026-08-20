@@ -4,7 +4,7 @@ import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
 import useApiRequest from '@/hooks/useApiRequest';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
@@ -35,7 +35,11 @@ function SearchButton({ currentPath, papers }: SearchButtonProps) {
 export default function PaperPage() {
   const { path } = useLocalSearchParams<PaperPageParam>();
   const [currentPath, setCurrentPath] = useState(path !== undefined ? path : '/');
-  const { data: paperData, status: loadingState, refetch } = useApiRequest(getApiV1PaperList, { path: currentPath });
+  const {
+    data: paperData,
+    status: loadingState,
+    refetch,
+  } = useApiRequest(getApiV1PaperList, { path: currentPath }, { queryKey: ['paper-list', currentPath] });
   const currentPapers = useMemo(() => {
     if (paperData) {
       const folders: Paper[] = paperData.folders.map(name => ({ name, type: PaperType.FOLDER }));

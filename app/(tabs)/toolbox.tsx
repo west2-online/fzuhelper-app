@@ -1,50 +1,53 @@
 import { type Href, useRouter } from 'expo-router';
 import { forwardRef, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Platform, Pressable, useWindowDimensions, View } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+import { toast } from 'sonner-native';
 
 import BannerImage1 from '@/assets/images/banner/default_banner1.webp';
 import BannerImage2 from '@/assets/images/banner/default_banner2.webp';
 import BannerImage3 from '@/assets/images/banner/default_banner3.webp';
-import ApartmentIcon from '@/assets/images/toolbox/ic_apartment.svg';
-import ApplicationIcon from '@/assets/images/toolbox/ic_application.svg';
-import ElectroCarIcon from '@/assets/images/toolbox/ic_electrocar.svg';
-import ExamRoomIcon from '@/assets/images/toolbox/ic_examroom.svg';
-import FileIcon from '@/assets/images/toolbox/ic_file.svg';
-import FreeFriendsIcon from '@/assets/images/toolbox/ic_free_friends.svg';
-import GradeIcon from '@/assets/images/toolbox/ic_grade.svg';
-import GraduationIcon from '@/assets/images/toolbox/ic_graduation.svg';
-import JiaXiIcon from '@/assets/images/toolbox/ic_jiaxi.svg';
-import JobFiarIcon from '@/assets/images/toolbox/ic_jobfair.svg';
-import LostFoundIcon from '@/assets/images/toolbox/ic_lostandfound.svg';
-import MoreIcon from '@/assets/images/toolbox/ic_more.svg';
-import NotificationIcon from '@/assets/images/toolbox/ic_notification.svg';
-import OneKeyIcon from '@/assets/images/toolbox/ic_onekey.svg';
-import RoomIcon from '@/assets/images/toolbox/ic_room.svg';
-import FZURunIcon from '@/assets/images/toolbox/ic_run.svg';
-import UtilityPaymentIcon from '@/assets/images/toolbox/ic_shuidian.svg';
-import IDCardIcon from '@/assets/images/toolbox/ic_studentcard.svg';
-import StudyCenterIcon from '@/assets/images/toolbox/ic_studycenter.svg';
-import WikiIcon from '@/assets/images/toolbox/ic_wiki.svg';
-import XiaoBenIcon from '@/assets/images/toolbox/ic_xiaobenhua.svg';
-import XuankeIcon from '@/assets/images/toolbox/ic_xuanke.svg';
-import ZHCTIcon from '@/assets/images/toolbox/ic_zhct.svg';
 import Banner, { type BannerContent, BannerType } from '@/components/banner';
 import PageContainer from '@/components/page-container';
+import {
+  ApartmentIcon,
+  ApplicationIcon,
+  ElectroCarIcon,
+  ExamRoomIcon,
+  FileIcon,
+  FreeFriendsIcon,
+  FZURunIcon,
+  GradeIcon,
+  GraduationIcon,
+  IDCardIcon,
+  JiaXiIcon,
+  JobFiarIcon,
+  LibIcon,
+  LostFoundIcon,
+  MoreIcon,
+  NotificationIcon,
+  OneKeyIcon,
+  RoomIcon,
+  SignIcon,
+  StudyCenterIcon,
+  UtilityPaymentIcon,
+  WikiIcon,
+  XiaoBenIcon,
+  XuankeIcon,
+  ZHCTIcon,
+} from '@/components/toolbox-icons';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { showIgnorableAlert } from '@/lib/common-settings';
-
-import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
-import { pushToWebViewSSO } from '@/lib/webview';
-import { isToolboxTool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/utils/tools';
 
 import { LaunchScreenScreenResponse } from '@/api/backend';
 import { getApiV1LaunchScreenScreen, getApiV1ToolboxConfig } from '@/api/generate';
 import useApiRequest from '@/hooks/useApiRequest';
+import { showIgnorableAlert } from '@/lib/common-settings';
 import { EXPIRE_ONE_DAY, TOOLBOX_BANNER_KEY, TOOLBOX_CONFIG_KEY } from '@/lib/constants';
+import { LocalUser, USER_TYPE_UNDERGRADUATE } from '@/lib/user';
+import { pushToWebViewSSO } from '@/lib/webview';
 import fileCache from '@/utils/file-cache';
-import DeviceInfo from 'react-native-device-info';
-import { toast } from 'sonner-native';
+import { isToolboxTool, ToolboxTool, toolOnPress, ToolType, UserType } from '@/utils/tools';
 
 // 工具类型的枚举
 
@@ -57,7 +60,11 @@ const DEFAULT_BANNERS: BannerContent[] = [
 
 // 工具id手写而不采用数组下标，是为了避免版本迭代功能增删后特定功能的下标发生改变导致配置不对应
 // 后续新增功能时，id不得使用已存在或曾经存在的功能id
-const DEFAULT_TOOLS: ToolboxTool[] = [
+type DefaultToolboxTool = ToolboxTool & {
+  defaultVisible?: boolean;
+};
+
+const DEFAULT_TOOLS: DefaultToolboxTool[] = [
   {
     id: 10,
     name: '学业状况',
@@ -181,6 +188,7 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     icon: StudyCenterIcon,
     type: ToolType.LINK,
     href: '/toolbox/learning-center',
+    defaultVisible: false,
   },
   {
     id: 151,
@@ -190,6 +198,17 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     params: {
       url: 'https://aiot.fzu.edu.cn/ibs/#/',
       title: '综合预约',
+      sso: true,
+    },
+  },
+  {
+    id: 152,
+    name: '图书馆预约',
+    icon: LibIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://kjgl.fzu.edu.cn/libseat',
+      title: '图书馆预约',
       sso: true,
     },
   },
@@ -316,6 +335,17 @@ const DEFAULT_TOOLS: ToolboxTool[] = [
     href: '/toolbox/job-fair',
   },
   {
+    id: 230,
+    name: '晚点名签到',
+    icon: SignIcon,
+    type: ToolType.WEBVIEW,
+    params: {
+      url: 'https://yzsxg.fzu.edu.cn/livecloud/project/fzu/attn/oauth2/authorize.action',
+      title: '晚点名签到',
+      sso: true,
+    },
+  },
+  {
     id: 9999,
     name: '更多',
     icon: MoreIcon,
@@ -432,18 +462,20 @@ const useToolsPageData = (columns: number) => {
   const [bannerList, setBannerList] = useState<BannerContent[]>([]);
   const userType = useMemo(() => LocalUser.getUser().type as UserType, []);
 
-  const baseTools = useMemo(
+  const allBaseTools = useMemo(
     () =>
       DEFAULT_TOOLS.filter(item => !item.userTypes || item.userTypes.includes(userType)).map(tool => ({
         ...tool,
       })),
     [userType],
   );
+  const baseTools = useMemo(() => allBaseTools.filter(tool => tool.defaultVisible !== false), [allBaseTools]);
 
   const [toolList, setToolList] = useState<ToolboxTool[]>(baseTools);
 
   useEffect(() => {
     if (configData) {
+      const defaultToolMap = new Map<number, ToolboxTool>(allBaseTools.map(tool => [tool.id, { ...tool }]));
       const toolMap = new Map<number, ToolboxTool>(baseTools.map(tool => [tool.id, { ...tool }]));
 
       configData.forEach(item => {
@@ -454,7 +486,9 @@ const useToolsPageData = (columns: number) => {
           return;
         }
 
-        const existingTool = toolMap.get(item.tool_id);
+        // 默认隐藏的内置工具只在云控明确开启后加入，同时复用本地的名称、图标和跳转配置。
+        const existingTool =
+          toolMap.get(item.tool_id) ?? (item.visible === true ? defaultToolMap.get(item.tool_id) : undefined);
 
         if (existingTool) {
           // 修改已存在的工具
@@ -492,7 +526,7 @@ const useToolsPageData = (columns: number) => {
       // 本地的已经有序
       setToolList(baseTools);
     }
-  }, [configData, baseTools]);
+  }, [configData, allBaseTools, baseTools]);
 
   const processedTools = useMemo(() => {
     return processTools(toolList, columns);
@@ -564,8 +598,8 @@ ToolButton.displayName = 'ToolButton';
 
 export default function ToolsPage() {
   const { width: screenWidth } = useWindowDimensions();
-
-  const columns = 5;
+  const isWideScreen = screenWidth >= 550;
+  const columns = Math.floor(screenWidth / (isWideScreen ? 100 : 70));
 
   // 计算缩放值
   const { scaledTextWidth, scaledFontSize } = useMemo(() => {
@@ -597,11 +631,15 @@ export default function ToolsPage() {
   return (
     <PageContainer className="p-6">
       <FlatList
+        // Changing numColumns on the fly is not supported.
+        // Change the key prop on FlatList when changing
+        // the number of columns to force a fresh render of the component
+        key={`tools-${columns}`}
         ListHeaderComponent={
           /* 滚动横幅 */
-          // 42对应上面的padding值，限制最大值避免横屏时过宽
+          // 42对应上面的padding值
           <View className="flex items-center">
-            <Banner contents={bannerList} width={Math.min(screenWidth - 42, 550)} />
+            <Banner contents={bannerList} width={screenWidth - 42} />
           </View>
         }
         ListHeaderComponentClassName="mb-4"

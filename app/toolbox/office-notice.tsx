@@ -42,11 +42,15 @@ export default function OfficeNoticePage() {
 
       const fullUrl = url + extraEntries;
       console.log('从 DeepLink 打开外部链接:', fullUrl);
-      Linking.openURL(fullUrl).catch((err) =>Alert.alert('错误', `无法打开链接: ${err}`));
+      Linking.openURL(fullUrl).catch((err) => Alert.alert('错误', `无法打开链接: ${err}`));
     }
   }, [JSON.stringify(params)]);
 
-  const { data, isFetching, isError, error, refetch } = useApiRequest(getApiV1CommonNotice, { pageNum });
+  const { data, isFetching, isError, error, refetch } = useApiRequest(
+    getApiV1CommonNotice,
+    { pageNum },
+    { queryKey: ['common-notice', pageNum] },
+  );
 
   useEffect(() => {
     if (data) {
@@ -124,7 +128,7 @@ export default function OfficeNoticePage() {
   }, []);
 
   const headerRight = useCallback(
-    () => <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />,
+    () => <Icon name="help-circle-outline" size={26} onPress={handleModalVisible} />,
     [handleModalVisible],
   );
 

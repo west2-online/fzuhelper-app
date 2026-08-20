@@ -1,6 +1,8 @@
 import { execSync } from 'child_process';
 import { type ExpoConfig } from 'expo/config';
 import 'ts-node/register';
+import quickActionsConfig from './config/quick-actions.json';
+import umengConfig from './config/umeng.json';
 import { version } from './package.json';
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
@@ -9,7 +11,7 @@ const IS_DEV = process.env.APP_VARIANT === 'development';
 // 前三位对应版本名，后三位或更多对应commit次数
 let commitCount = 0;
 try {
-  const stdout = execSync('git rev-list --count master').toString().trim();
+  const stdout = process.env.GIT_COMMIT_COUNT ?? execSync('git rev-list --count HEAD').toString().trim();
   const parsedInt = parseInt(stdout, 10);
   if (!isNaN(parsedInt)) {
     commitCount = parsedInt;
@@ -21,8 +23,18 @@ const versionCodePrefix = version.replace(/\./g, '');
 const versionCodeSuffix = String(commitCount).padStart(3, '0');
 // iOS
 const buildNumber = versionCodePrefix + versionCodeSuffix;
+console.log(`版本号: ${buildNumber}`);
 // Android
 const versionCode = parseInt(buildNumber, 10);
+const androidQuickActionIcons = Object.fromEntries(
+  quickActionsConfig.items.map(item => [
+    item.platforms.android.icon,
+    {
+      foregroundImage: item.platforms.android.foregroundImage,
+      backgroundColor: item.platforms.android.backgroundColor,
+    },
+  ]),
+);
 
 const config: ExpoConfig = {
   name: 'fzuhelper',
@@ -59,7 +71,10 @@ const config: ExpoConfig = {
       // 下面这两个定位权限申请缺一不可
       NSLocationWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
       NSLocationAlwaysAndWhenInUseUsageDescription: '我们需要在应用内使用您的位置以提供校本化签到定位等功能',
-      LSApplicationQueriesSchemes: ['itms-apps', 'kysk-fdxy-app'],
+      LSApplicationQueriesSchemes: [
+        'itms-apps', // 用于跳转到 App Store
+        'kysk-fdxy-app', // 模拟「智汇福大」，这个字段需要和给 WebView 传递的 User-Agent 的 appScheme 保持一致，否则依赖 appScheme 做解析的网页会出现问题 — @renbaoshuo, 2026.5.29
+      ],
       CFBundleAllowMixedLocalizations: true,
       CFBundleURLName: 'MEWHFZ92DY.FzuHelper.FzuHelper', // URL Scheme，用于跳转到 App，CFBundleURLSchemes Expo 已经帮忙配置好了
       NSAppTransportSecurity: {
@@ -108,6 +123,7 @@ const config: ExpoConfig = {
       {
         android: {
           buildArchs: ['arm64-v8a'],
+          usePrecompiledHeaders: true,
           useLegacyPackaging: true,
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
@@ -123,24 +139,23 @@ const config: ExpoConfig = {
     "./plugins/with-android-maxSdkVersion.js",
     './plugins/keep-android-resources',
     './plugins/inject-ios-prebuild',
+    './modules/safe-area-webview/app.plugin.js',
     [
       './modules/umeng-bridge/app.plugin.js',
       {
-        // 以下配置可以暴露在公网，不会导致安全问题
-        // Android
-        AndroidAppKey: '5dce696b570df3081900033f', // 发布（正式包名）时需更换
-        channel: 'default', // Android渠道号
-        msgsec: '2931a731b52ca1457b387bcc22cdff32', // 仅供 Android，iOS 是证书鉴权，具体参考 KeeWeb
-        mipushAppId: '2882303761517633929',
-        mipushAppKey: '5111763312929',
-        hmspushAppId: '100423559',
-        vivoPushApiKey: 'bfe61ef29b17b1b483e8505f5032a5f9',
-        vivoPushAppId: '105570681',
-        honorPushAppId: '104498819',
-        oppoPushAppKey: '6UNBx7ceC680s48cw4cwocCw8',
-        oppoPushAppSecret: '76fb94e392fc1D2e7798b2C2531216d2',
-        // iOS
-        iOSAppKey: '679132946d8fdd4ad83ab20e', // 发布（正式包名）时需更换
+        // Umeng values are maintained in one public app configuration file.
+        AndroidAppKey: umengConfig.android.appKey,
+        channel: umengConfig.channel,
+        msgsec: umengConfig.android.messageSecret,
+        mipushAppId: umengConfig.android.miPush.appId,
+        mipushAppKey: umengConfig.android.miPush.appKey,
+        hmspushAppId: umengConfig.android.huaweiPush.appId,
+        vivoPushApiKey: umengConfig.android.vivoPush.apiKey,
+        vivoPushAppId: umengConfig.android.vivoPush.appId,
+        honorPushAppId: umengConfig.android.honorPush.appId,
+        oppoPushAppKey: umengConfig.android.oppoPush.appKey,
+        oppoPushAppSecret: umengConfig.android.oppoPush.appSecret,
+        iOSAppKey: umengConfig.ios.appKey,
         bridgingSourcePath: './modules/umeng-bridge/ios/ExpoUmeng-Bridging-Header.h', // (iOS) 源路径（相对于 app.plugin.js 文件）
         bridgingTargetPath: 'fzuhelper/fzuhelper-Bridging-Header.h', // (iOS) 目标路径（相对于 ios 文件夹）这个文件可以不更改
         // 请注意：这个文件的格式是符合{targetName}/{targetName}-Bridging-Header.h的，如果你的targetName不是fzuhelper，请更改
@@ -165,12 +180,7 @@ const config: ExpoConfig = {
     [
       'expo-quick-actions',
       {
-        androidIcons: {
-          qrcode: {
-            foregroundImage: './assets/images/qr_action.png',
-            backgroundColor: '#FFFFFF',
-          },
-        },
+        androidIcons: androidQuickActionIcons,
       },
     ],
     './plugins/with-android-theme',

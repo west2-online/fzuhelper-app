@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 
-import { CUSTOM_TYPE, CourseCache, CustomCourse, type CourseInfo } from '@/lib/course';
+import { CUSTOM_TYPE, CourseCache, type CourseInfoMerged, type CustomCourse } from '@/lib/course';
 import { pushToWebViewJWCH } from '@/lib/webview';
 
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
@@ -20,14 +20,12 @@ import { Link } from 'expo-router';
 interface ScheduleDetailsDialogProps {
   open: boolean;
   onOpenChange?: (open: boolean) => void;
-  schedules: CourseInfo[];
+  schedules: CourseInfoMerged[];
 }
 
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onOpenChange, schedules }) => {
   const [scheduleIndex, setScheduleIndex] = useState(0);
   const schedule = useMemo(() => schedules[scheduleIndex], [scheduleIndex, schedules]);
-  const scheduleIsSingleOnly = useMemo(() => !schedule.double && schedule.single, [schedule.double, schedule.single]);
-  const scheduleIsDoubleOnly = useMemo(() => schedule.double && !schedule.single, [schedule.double, schedule.single]);
 
   const closeDialog = useCallback(() => {
     onOpenChange?.(false);
@@ -45,7 +43,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
   }, [schedule.lessonplan, closeDialog]);
 
   const setPriority = useCallback(
-    (course: CourseInfo) => {
+    (course: CourseInfoMerged) => {
       closeDialog();
       CourseCache.setPriority(course);
     },
@@ -95,7 +93,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                     </DescriptionListTerm>
                     <DescriptionListDescription>
                       <Text>
-                        {schedule.startClass}-{schedule.endClass} 节
+                        {schedule.startClass}-{schedule.endClass}节
                       </Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
@@ -104,12 +102,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text>周数</Text>
                     </DescriptionListTerm>
                     <DescriptionListDescription>
-                      <Text>
-                        {schedule.startWeek}-{schedule.endWeek} 周
-                        {/* 单双周显示，仅在只有单周/双周上课的时候才显示提示 */}
-                        {scheduleIsSingleOnly && ' [单]'}
-                        {scheduleIsDoubleOnly && ' [双]'}
-                      </Text>
+                      <Text>{schedule.weekDisplay}</Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
                   <DescriptionListRow className="items-start">

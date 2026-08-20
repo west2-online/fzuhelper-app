@@ -1,7 +1,7 @@
 import { fromByteArray } from 'base64-js';
 import { Stack } from 'expo-router';
 import { RotateCwIcon } from 'lucide-react-native';
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -25,63 +25,119 @@ import RadioGroup, { Option } from '@/components/radio-group';
 import { TabFlatList } from '@/components/tab-flatlist';
 
 import Loading from '@/components/loading';
-import OnekeyComment, { CourseInfo } from '@/lib/onekey-comment';
+import OnekeyComment, { CourseInfo, TextbookInfo } from '@/lib/onekey-comment';
 import { LocalUser } from '@/lib/user';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+
+const DEFAULT_TEACHER_COMMENTS = [
+  '学识渊博，品德高尚，思学生所思，为学生而为，是传道授业解惑之良师。',
+  '爱岗敬业，严谨治学，为人师表，恪守师道，以德立教，以行化人。',
+  '课堂结构完整，层次清楚，突出重点，突破难点，各环衔接紧密，时间安排合理。',
+];
+
+const teacherCommentOptions: Option[] = [
+  { label: DEFAULT_TEACHER_COMMENTS[0], id: 0 },
+  { label: DEFAULT_TEACHER_COMMENTS[1], id: 1 },
+  { label: DEFAULT_TEACHER_COMMENTS[2], id: 2 },
+  { label: '自己评价', id: 'other' },
+];
+
+const ratingOptions: Option[] = [
+  { id: 0, label: '非常满意' },
+  { id: 1, label: '满意' },
+  { id: 2, label: '基本满意' },
+  { id: 3, label: '不满意' },
+];
+
+export interface EvaluationDimension {
+  title: string;
+  description: string;
+  rating?: string;
+}
+
+const textbookEvaluations: EvaluationDimension[] = [
+  {
+    title: '内容适配性',
+    description: '教材内容是否与课程教学目标、授课进度相匹配？',
+  },
+  {
+    title: '内容适用性',
+    description: '教材内容是否结构清晰、难度适中、逻辑连贯？',
+  },
+  {
+    title: '编校质量',
+    description: '教材印刷是否清晰、排版是否合理、图表符号是否准确清晰？',
+  },
+  {
+    title: '价格合理性',
+    description: '教材价格是否合理、适中？',
+  },
+  {
+    title: '整体满意度',
+    description: '综合以上维度，对教材的整体评价。',
+  },
+];
+
+interface CourseState {
+  score: string;
+  selected: number | 'other' | undefined;
+  customText: string;
+}
+
+interface TextbookState {
+  ratings: (number | undefined)[];
+  suggestion: string;
+}
+
+const getSatisfactionLabel = (index: number | undefined): string =>
+  index !== undefined ? (ratingOptions[index]?.label ?? '') : '';
+
+const getTeacherComment = (state: CourseState): string => {
+  if (state.selected === 'other') return state.customText.trim();
+  if (state.selected !== undefined) return DEFAULT_TEACHER_COMMENTS[state.selected];
+  return '';
+};
+
+const Divider: React.FC = () => <View className="my-3 h-[2px] bg-secondary" />;
 
 interface CourseCardProps {
   courseName: string;
   teacherName: string;
-}
-
-const Divider: React.FC = () => <View className="my-3 h-[2px] bg-secondary" />;
-
-const DEFAULT_COMMENTS = [
-  '学识渊博，品德高尚，思学生所思，为学生而为，是传道授业解惑之良师。',
-  '爱岗敬业、严谨治学、为人师表。',
-  '课堂结构完整，层次清楚，突出重点，突破难点，各环衔接紧密，时间安排合理。',
-];
-const options: Option[] = [
-  { label: DEFAULT_COMMENTS[0], id: 0 },
-  { label: DEFAULT_COMMENTS[1], id: 1 },
-  { label: DEFAULT_COMMENTS[2], id: 2 },
-  { label: '自己评价', id: 'other' },
-];
-
-interface CourseFormInfo {
-  comment: string;
   score: string;
+  selected: number | 'other' | undefined;
+  customText: string;
+  onScoreChange: (v: string) => void;
+  onSelectedChange: (v: number | 'other' | undefined) => void;
+  onCustomTextChange: (v: string) => void;
 }
 
-interface CourseCardRef {
-  getFormData: () => CourseFormInfo;
-}
+const CourseCard = ({
+  courseName,
+  teacherName,
+  score,
+  selected,
+  customText,
+  onScoreChange,
+  onSelectedChange,
+  onCustomTextChange,
+}: CourseCardProps) => {
+  const handleScoreTextChange = useCallback(
+    (text: string) => {
+      // 移除非数字字符
+      const numericText = text.replace(/[^0-9]/g, '');
 
-const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCard({ courseName, teacherName }, ref) {
-  const [score, setScore] = useState('');
-  const [selected, setSelected] = useState<number | 'other' | undefined>(undefined);
-  const [customText, setCustomText] = useState('');
-
-  useImperativeHandle(ref, () => ({
-    getFormData: () => ({
-      comment: selected === 'other' ? customText : selected !== undefined ? DEFAULT_COMMENTS[selected] : '',
-      score: score,
-    }),
-  }));
-
-  const handleScoreTextChange = useCallback((text: string) => {
-    // 移除非数字字符
-    const numericText = text.replace(/[^0-9]/g, '');
-    const num = parseInt(numericText, 10);
-
-    // 允许空字符串（便于删除），否则限制在 0-100 范围
-    if (numericText === '') {
-      setScore('');
-    } else if (!isNaN(num)) {
-      const clamped = Math.min(Math.max(num, 0), 100);
-      setScore(clamped.toString());
-    }
-  }, []);
+      // 允许空字符串（便于删除），否则限制在 0-100 范围
+      if (numericText === '') {
+        onScoreChange('');
+        return;
+      }
+      const num = parseInt(numericText, 10);
+      if (!isNaN(num)) {
+        onScoreChange(Math.min(Math.max(num, 0), 100).toString());
+      }
+    },
+    [onScoreChange],
+  );
 
   return (
     <View className="mx-4 mt-4 space-y-2 rounded-xl border border-border bg-card p-5">
@@ -104,16 +160,76 @@ const CourseCard = forwardRef<CourseCardRef, CourseCardProps>(function CourseCar
       <Divider />
       <Text className="mb-1 font-bold">选择评语</Text>
       <RadioGroup
-        options={options}
+        options={teacherCommentOptions}
         selected={selected}
-        onChange={setSelected}
+        onChange={onSelectedChange}
         customText={customText}
-        onCustomTextChange={setCustomText}
-        customPlaceholder="来评价一下老师吧"
+        onCustomTextChange={onCustomTextChange}
+        customPlaceholder="来评价一下老师吧（不少于20字）"
       />
     </View>
   );
-});
+};
+
+interface TextbookCardProps {
+  courseName: string;
+  ratings: (number | undefined)[];
+  suggestion: string;
+  onRatingChange: (dimIndex: number, value: number | undefined) => void;
+  onSuggestionChange: (value: string) => void;
+}
+
+const RatingItem = ({
+  title,
+  description,
+  selected,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  selected: number | undefined;
+  onChange: (v: number | undefined) => void;
+}) => (
+  <View>
+    <Text className="font-semibold text-text-primary">{title}</Text>
+    <Text className="mb-1 text-sm text-text-secondary">{description}</Text>
+    <RadioGroup options={ratingOptions} selected={selected} onChange={v => onChange(v === 'other' ? undefined : v)} />
+  </View>
+);
+
+const TextbookCard = ({ courseName, ratings, suggestion, onRatingChange, onSuggestionChange }: TextbookCardProps) => (
+  <View className="mx-4 mt-4 rounded-xl border border-border bg-card p-5">
+    <Text className="font-bold text-text-primary">[教材] {courseName}</Text>
+    <Divider />
+    <View className="space-y-6">
+      {textbookEvaluations.map((dim, index) => (
+        <React.Fragment key={dim.title}>
+          {index > 0 && <Divider />}
+          <RatingItem
+            title={dim.title}
+            description={dim.description}
+            selected={ratings[index]}
+            onChange={v => onRatingChange(index, v)}
+          />
+        </React.Fragment>
+      ))}
+    </View>
+    <Divider />
+    <Text className="mb-2 font-semibold text-text-primary">意见与建议</Text>
+    <TextInput
+      value={suggestion}
+      onChangeText={onSuggestionChange}
+      keyboardType="default"
+      multiline
+      numberOfLines={3}
+      textAlignVertical="top"
+      placeholder="非必填..."
+      placeholderTextColor="#9ca3af"
+      className="h-24 w-full rounded-lg bg-gray-100 px-4 text-base text-text-primary dark:bg-gray-800"
+      style={styles.textInput}
+    />
+  </View>
+);
 
 enum Tab {
   学期选课 = '学期选课',
@@ -127,38 +243,85 @@ interface TabContentProps {
   refreshCaptcha: () => void;
 }
 
+type ListItem = (CourseInfo & { type: 'course'; index: number }) | (TextbookInfo & { type: 'textbook'; index: number });
+
 function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentProps) {
   const { width: screenWidth } = useWindowDimensions(); // 获取屏幕宽度
   const [isLoading, setLoading] = useState(true);
   const [courses, setCourses] = useState<CourseInfo[]>([]);
+  const [textbooks, setTextbooks] = useState<TextbookInfo[]>([]);
+  const [courseStates, setCourseStates] = useState<CourseState[]>([]);
+  const [textbookStates, setTextbookStates] = useState<TextbookState[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [recaptchaInput, setCaptchaInput] = useState('');
-  const childRefs = useRef<(CourseCardRef | null)[]>([]);
 
-  const getAllFormData = useCallback(() => {
-    const allData: CourseFormInfo[] = [];
-    Object.values(childRefs.current).forEach(ref => {
-      if (ref && ref.getFormData) {
-        allData.push(ref.getFormData());
-      }
+  const updateCourseScore = useCallback((i: number, v: string) => {
+    setCourseStates(prev => {
+      const next = [...prev];
+      next[i] = { ...next[i], score: v };
+      return next;
     });
-    return allData;
+  }, []);
+
+  const updateCourseSelected = useCallback((i: number, v: number | 'other' | undefined) => {
+    setCourseStates(prev => {
+      const next = [...prev];
+      next[i] = { ...next[i], selected: v };
+      return next;
+    });
+  }, []);
+
+  const updateCourseCustomText = useCallback((i: number, v: string) => {
+    setCourseStates(prev => {
+      const next = [...prev];
+      next[i] = { ...next[i], customText: v };
+      return next;
+    });
+  }, []);
+
+  const updateTextbookRating = useCallback((tbIndex: number, dimIndex: number, value: number | undefined) => {
+    setTextbookStates(prev => {
+      const next = [...prev];
+      const ratings = [...next[tbIndex].ratings];
+      ratings[dimIndex] = value;
+      next[tbIndex] = { ...next[tbIndex], ratings };
+      return next;
+    });
+  }, []);
+
+  const updateTextbookSuggestion = useCallback((tbIndex: number, value: string) => {
+    setTextbookStates(prev => {
+      const next = [...prev];
+      next[tbIndex] = { ...next[tbIndex], suggestion: value };
+      return next;
+    });
   }, []);
 
   const checkForm = useCallback(() => {
-    const allForm = getAllFormData();
-    for (let i = 0; i < allForm.length; i++) {
-      if (allForm[i].score === '') {
+    for (let i = 0; i < courses.length; i++) {
+      if (courseStates[i]?.score === '') {
         toast.error(`${courses[i].courseName}的评分未填写，请检查后再试！`);
         return false;
       }
-      if (allForm[i].comment === '') {
-        toast.error(`${courses[i].courseName}的评语未填写，请检查后再试！`);
+      if (getTeacherComment(courseStates[i]) === '') {
+        toast.error(`${courses[i].courseName}的评语为空，请检查后再试！`);
+        return false;
+      }
+      if (getTeacherComment(courseStates[i]).length < 20) {
+        toast.error(`${courses[i].courseName}的评语少于20字，请检查后再试！`);
         return false;
       }
     }
+    for (let i = 0; i < textbooks.length; i++) {
+      for (let j = 0; j < textbookEvaluations.length; j++) {
+        if (textbookStates[i]?.ratings[j] === undefined) {
+          toast.error(`${textbooks[i].courseName}的${textbookEvaluations[j].title}未填写，请检查后再试！`);
+          return false;
+        }
+      }
+    }
     return true;
-  }, [courses, getAllFormData]);
+  }, [courses, courseStates, textbooks, textbookStates]);
 
   const refreshCourses = useCallback(async () => {
     setLoading(true);
@@ -176,30 +339,76 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
     onekey.setCookies(cookies);
     const data = await onekey.getUncommentTeachers(identifier, tabname === Tab.学期选课 ? 'xqxk' : 'score');
     setCourses(data);
+    setCourseStates(data.map(() => ({ score: '', selected: undefined, customText: '' })));
+    // 只有成绩查询才有教材评议
+    if (tabname === Tab.成绩查询) {
+      const textbookData = await onekey.getUncommentTextbooks(identifier);
+      setTextbooks(textbookData);
+      setTextbookStates(
+        textbookData.map(() => ({
+          ratings: new Array(textbookEvaluations.length).fill(undefined),
+          suggestion: '',
+        })),
+      );
+    } else {
+      setTextbooks([]);
+      setTextbookStates([]);
+    }
+
     setLoading(false);
   }, [onekey, tabname]);
 
   const submitAllForm = useCallback(async () => {
-    const allForm = getAllFormData();
-    for (let i = 0; i < allForm.length; i++) {
-      const result = await onekey.commentTeacher(
+    let errorMsg = '';
+    for (let i = 0; i < courses.length; i++) {
+      const error = await onekey.commentTeacher(
         courses[i].params,
-        allForm[i].score,
-        allForm[i].comment,
+        courseStates[i].score,
+        getTeacherComment(courseStates[i]),
         recaptchaInput,
       );
-      if (!result) {
+      if (!error) continue;
+      if (error.includes('验证码校验错误')) {
+        // 所有请求共用一个验证码，第一个错了就不用继续了
         toast.error('验证码错误');
         refreshCaptcha();
         setCaptchaInput('');
         return;
       }
+      errorMsg += `${courses[i].courseName}评议失败：${error}\n`;
     }
-    toast.success('评议成功！');
+
+    for (let i = 0; i < textbooks.length; i++) {
+      const { ratings, suggestion } = textbookStates[i];
+      const error = await onekey.commentTextbook(
+        textbooks[i].params,
+        getSatisfactionLabel(ratings[0]),
+        getSatisfactionLabel(ratings[1]),
+        getSatisfactionLabel(ratings[2]),
+        getSatisfactionLabel(ratings[3]),
+        getSatisfactionLabel(ratings[4]),
+        suggestion,
+        recaptchaInput,
+      );
+      if (!error) continue;
+      if (error.includes('验证码校验错误')) {
+        // 所有请求共用一个验证码，第一个错了就不用继续了
+        toast.error('验证码错误');
+        refreshCaptcha();
+        setCaptchaInput('');
+        return;
+      }
+      errorMsg += `[教材] ${textbooks[i].courseName}评议失败：${error}\n`;
+    }
+    if (errorMsg) {
+      toast.error(errorMsg.trim());
+    } else {
+      toast.success('评议成功！');
+    }
     refreshCaptcha();
     setCaptchaInput('');
     refreshCourses();
-  }, [courses, getAllFormData, onekey, recaptchaInput, refreshCaptcha, refreshCourses]);
+  }, [courses, courseStates, textbooks, textbookStates, onekey, recaptchaInput, refreshCaptcha, refreshCourses]);
 
   useEffect(() => {
     refreshCourses();
@@ -212,23 +421,46 @@ function TabContent({ tabname, onekey, recaptcha, refreshCaptcha }: TabContentPr
       </View>
     );
   }
+
+  const data: ListItem[] = [
+    ...courses.map((item, i) => ({ ...item, type: 'course' as const, index: i })),
+    ...textbooks.map((item, i) => ({ ...item, type: 'textbook' as const, index: i })),
+  ];
+
   return (
     <View className="flex-1" style={{ width: screenWidth }}>
-      {courses.length !== 0 ? (
+      {courses.length !== 0 || textbooks.length !== 0 ? (
         <>
           <FlatList
             renderScrollComponent={props => <KeyboardAwareScrollView keyboardShouldPersistTaps="handled" {...props} />}
-            data={courses}
-            renderItem={({ index, item }) => (
-              <CourseCard
-                teacherName={item.teacherName}
-                courseName={item.courseName}
-                ref={ref => {
-                  childRefs.current[index] = ref;
-                }}
-              />
-            )}
+            data={data}
+            renderItem={({ item }) => {
+              if (item.type === 'course') {
+                return (
+                  <CourseCard
+                    teacherName={item.teacherName}
+                    courseName={item.courseName}
+                    score={courseStates[item.index]?.score ?? ''}
+                    selected={courseStates[item.index]?.selected}
+                    customText={courseStates[item.index]?.customText ?? ''}
+                    onScoreChange={v => updateCourseScore(item.index, v)}
+                    onSelectedChange={v => updateCourseSelected(item.index, v)}
+                    onCustomTextChange={v => updateCourseCustomText(item.index, v)}
+                  />
+                );
+              }
+              return (
+                <TextbookCard
+                  courseName={item.courseName}
+                  ratings={textbookStates[item.index]?.ratings ?? new Array(textbookEvaluations.length).fill(undefined)}
+                  suggestion={textbookStates[item.index]?.suggestion ?? ''}
+                  onRatingChange={(dimIndex, value) => updateTextbookRating(item.index, dimIndex, value)}
+                  onSuggestionChange={value => updateTextbookSuggestion(item.index, value)}
+                />
+              );
+            }}
             refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshCourses} />}
+            keyExtractor={item => `${item.type}-${item.index}`}
           />
           <SafeAreaView edges={['bottom']}>
             <Button

@@ -61,11 +61,11 @@ async function loadCourseAndExamData(
     try {
       const examData = await fetchWithCache(
         [EXAM_ROOM_KEY, queryTerm],
-        () => getApiV1JwchClassroomExam({ term: queryTerm }),
+        () => getApiV1JwchClassroomExam({ term: queryTerm }).then(r => r.data.data),
         { staleTime: EXPIRE_ONE_DAY },
       );
 
-      const formattedExamData = formatExamData(examData.data.data);
+      const formattedExamData = formatExamData(examData);
       if (!CourseCache.compareDigest(EXAM_TYPE, formattedExamData)) {
         CourseCache.mergeExamCourses(formattedExamData, currentTerm.start_date, currentTerm.end_date);
         hasChanged = true;

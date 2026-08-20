@@ -18,22 +18,31 @@ const WEBVIEW_MODE_OPTIONS: { value: WebViewMode; label: string }[] = [
   { value: 'normal', label: 'Normal' },
 ];
 
-const PRESET_LINKS: { label: string; url: string }[] = [
+const PRESET_LINKS: { label: string; url: string; mode: WebViewMode }[] = [
   {
     label: '选课内页',
     url: 'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xqxk/xqxk_kclist.aspx',
+    mode: 'jwch',
   },
   {
     label: '辅修选课内页',
     url: 'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/erzyxk/erzyxk_kclist.aspx',
+    mode: 'jwch',
   },
   {
     label: '校选课内页',
     url: 'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/xxk/xxk_kclist.aspx',
+    mode: 'jwch',
   },
   {
     label: '重修选课内页',
     url: 'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/cxxk/cxxk_kclist.aspx',
+    mode: 'jwch',
+  },
+  {
+    label: '智汇福大 Scheme 拦截测试',
+    url: 'https://fzuhelperapp.west2.online/dev/fdxy-scheme',
+    mode: 'sso',
   },
 ];
 
@@ -72,9 +81,9 @@ export default function WebViewToolsPage() {
         <KeyboardAwareScrollView className="h-full" keyboardShouldPersistTaps="handled">
           <SafeAreaView edges={['bottom']}>
             {/* 快捷按钮 */}
-            <Text style={styles.sectionTitle}>Preset Links (JWCH)</Text>
+            <Text style={styles.sectionTitle}>Preset Links</Text>
             {PRESET_LINKS.map(item => (
-              <Button key={item.url} onPress={() => openWebView(item.url, 'jwch', item.label)}>
+              <Button key={item.url} onPress={() => openWebView(item.url, item.mode, item.label)}>
                 <Text>{item.label}</Text>
               </Button>
             ))}

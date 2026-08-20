@@ -3,7 +3,7 @@ import PageContainer from '@/components/page-container';
 import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_DOMAIN, SSO_LOGIN_COOKIE_KEY } from '@/lib/constants';
 import CookieManager from '@preeternal/react-native-cookie-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useHeaderHeight } from '@react-navigation/elements';
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { View } from 'react-native';
@@ -89,6 +89,7 @@ export default function LearningCenterTokenPage() {
               }}
               onNavigationStateChange={handleNavigationStateChange}
               cacheEnabled={false}
+              domStorageEnabled
               thirdPartyCookiesEnabled
               sharedCookiesEnabled
               overScrollMode="never"
