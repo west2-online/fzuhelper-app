@@ -107,6 +107,7 @@ const DEFAULT_TOOLS: DefaultToolboxTool[] = [
     icon: OneKeyIcon,
     type: ToolType.LINK,
     href: '/toolbox/onekey-comment',
+    userTypes: [USER_TYPE_UNDERGRADUATE],
   },
   {
     id: 70,
@@ -551,17 +552,15 @@ const useToolsPageData = (columns: number) => {
 
 type ToolButtonProps = Omit<ButtonProps, 'size'> & {
   tool: ToolboxTool;
-  textWidth: number;
-  fontSize: number;
 };
 
 const ToolButton = memo(
-  forwardRef<React.ComponentRef<typeof Pressable>, ToolButtonProps>(({ tool, textWidth, fontSize }, ref) => {
+  forwardRef<React.ComponentRef<typeof Pressable>, ToolButtonProps>(({ tool }, ref) => {
     const router = useRouter();
 
     return (
       <Button
-        className="mx-0 mb-3 h-auto w-auto items-center justify-start bg-transparent"
+        className="mx-0 mb-3 h-auto flex-1 items-center justify-start bg-transparent"
         size="icon"
         ref={ref}
         onPress={() => {
@@ -579,12 +578,9 @@ const ToolButton = memo(
           )
         ) : null}
         <Text
-          className="mt-0.5 text-center align-top text-text-secondary"
-          style={{
-            width: textWidth,
-            fontSize: fontSize,
-            lineHeight: fontSize * 1.5,
-          }}
+          className="my-1.5 w-full text-center align-top text-text-secondary"
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{ fontSize: 11, lineHeight: 14 }} // 未知原因，tailwind指定text-xs无效
           numberOfLines={2} // 最大行数
           ellipsizeMode="tail"
         >
@@ -602,27 +598,12 @@ export default function ToolsPage() {
   const isWideScreen = screenWidth >= 550;
   const columns = Math.floor(screenWidth / (isWideScreen ? 100 : 70));
 
-  // 计算缩放值
-  const { scaledTextWidth, scaledFontSize } = useMemo(() => {
-    const baseWidth = 392; // 基准屏幕宽度
-    const baseTextWidth = 60; // 基准文字宽度
-    const baseFontSize = 11; // 基准字体大小
-
-    return {
-      scaledTextWidth: Math.min((baseTextWidth * screenWidth) / baseWidth, 72),
-      scaledFontSize: Math.min((baseFontSize * screenWidth) / baseWidth, 14), // 限制最大字体大小为14，避免横屏字体过大
-    };
-  }, [screenWidth]);
-
   const { bannerList, toolList } = useToolsPageData(columns);
 
   // 工具按钮的渲染函数
-  const renderToolButton = useCallback(
-    ({ item }: { item: ToolboxTool }) => {
-      return <ToolButton tool={item} textWidth={scaledTextWidth} fontSize={scaledFontSize} />;
-    },
-    [scaledTextWidth, scaledFontSize],
-  );
+  const renderToolButton = useCallback(({ item }: { item: ToolboxTool }) => {
+    return <ToolButton tool={item} />;
+  }, []);
 
   // FlatList 的 keyExtractor
   const keyExtractor = useCallback((item: ToolboxTool, index: number) => {
