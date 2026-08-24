@@ -37,6 +37,14 @@
       "value": "显示当前学期的下一节课程"
     },
     {
+      "name": "widget_lockscreen_display_name",
+      "value": "下一节课（锁屏）"
+    },
+    {
+      "name": "widget_lockscreen_desc",
+      "value": "在锁屏上显示当前学期的下一节课程"
+    },
+    {
       "name": "widget_config_label",
       "value": "下一节课设置"
     },

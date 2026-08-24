@@ -41,10 +41,12 @@ export interface WidgetBindingData {
   courseNameSize: number;
   courseLocation: string;
   courseSection: string;
+  courseTime: string;
   courseWeek: string;
   courseWeekday: string;
   showLastUpdateTime: boolean;
   lastUpdateTime: string;
+  lastUpdateTimeCompact: string;
   verticalInset: number;
 }
 
@@ -72,10 +74,12 @@ export function buildWidgetBindingData(
         course.remark.length > 0 ? course.remark : `${course.startClass}-${course.endClass}节`,
         10,
       ),
+      courseTime: `${course.startClass}-${course.endClass}节`,
       courseWeek: `第${nextClass.week}周`,
       courseWeekday: `周${weekChinese(course.weekday)}`,
       showLastUpdateTime,
       lastUpdateTime: currentUpdateTime(),
+      lastUpdateTimeCompact: currentCompactUpdateTime(),
       verticalInset,
     };
   } catch (error) {
@@ -90,10 +94,12 @@ function noLocalData(showLastUpdateTime: boolean, verticalInset: number): Widget
     courseNameSize: 20,
     courseLocation: '请打开课表设置刷新',
     courseSection: '',
+    courseTime: '',
     courseWeek: '',
     courseWeekday: '',
     showLastUpdateTime,
     lastUpdateTime: currentUpdateTime(),
+    lastUpdateTimeCompact: currentCompactUpdateTime(),
     verticalInset,
   };
 }
@@ -104,10 +110,12 @@ function noFutureClass(showLastUpdateTime: boolean, verticalInset: number): Widg
     courseNameSize: 30,
     courseLocation: '',
     courseSection: '',
+    courseTime: '',
     courseWeek: '',
     courseWeekday: '',
     showLastUpdateTime,
     lastUpdateTime: currentUpdateTime(),
+    lastUpdateTimeCompact: currentCompactUpdateTime(),
     verticalInset,
   };
 }
@@ -252,6 +260,11 @@ function currentUpdateTime(): string {
   const date = new Date();
   return `更新于 ${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())} `
     + `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+}
+
+function currentCompactUpdateTime(): string {
+  const date = new Date();
+  return `更新于${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
 }
 
 function twoDigits(value: number): string {

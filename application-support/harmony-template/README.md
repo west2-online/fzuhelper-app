@@ -1,21 +1,14 @@
 # fzuhelper HarmonyOS 工程模板
 
-此目录是 fzuhelper-app 的 HarmonyOS 原生工程模板，使用 RNOH 0.82.30 构建 Expo/React Native 应用。Android 和 iOS 继续使用 Expo 选择的 React Native 版本；Metro 只会针对 HarmonyOS bundle 切换到 RNOH 及 HarmonyOS 专用实现。
+本目录为 fzuhelper-app 的 HarmonyOS 原生工程模板，基于 RNOH 0.82.30 构建 Expo/React Native 应用。Android 与 iOS 保持使用 Expo 默认的 React Native 版本，Metro 仅针对 HarmonyOS bundle 切换至 RNOH 及鸿蒙专用实现。由于鸿蒙侧与 Android/iOS 的 React Native 运行时版本存在差异，升级依赖或重构核心代码时需格外注意兼容性。
 
-需要注意的是，鸿蒙系统的 React Native 运行时版本和 Android/iOS 的 React Native 运行时版本不一致，升级依赖、重构代码前需要格外留意。
-
-根目录下的 `harmony/` 工程由 `yarn prebuild:harmony` 生成，不要直接修改生成文件。需要持久化的原生改动请写入本模板、`scripts/harmony/` 下的配置生成器，或根目录的配置文件，然后重新生成工程。
-
-Umeng 凭据和厂商渠道标识维护在根目录的 `config/umeng.json` 中。HarmonyOS 预构建会根据该文件生成 ArkTS 常量和 `AppScope/resources/rawfile/umconfig.json`，不要直接把 Umeng 配置写入模板。
+根目录下的 `harmony/` 工程由 `yarn prebuild:harmony` 自动生成，请勿直接修改生成文件。若需持久化原生改动，请修改本模板、`scripts/harmony/` 内的配置生成脚本或根目录配置文件后重新生成。Umeng 凭据与厂商渠道维护在根目录的 `config/umeng.json` 中，预构建流程会自动将其转换为 ArkTS 常量与 `AppScope/resources/rawfile/umconfig.json`，请勿将 Umeng 配置硬编码写入模板。
 
 ## 环境要求
 
-- DevEco Studio 及 HarmonyOS SDK 20 或更高版本
-- Node.js 22.14.0 和 Yarn 1.22.22 或更高版本
-- 已加入 `PATH` 的 `ohpm` 和 `hvigorw`
-- `default` 产品的 DevEco 签名配置
+运行本项目需要 DevEco Studio 及 HarmonyOS SDK 20 或更高版本，Node.js 22.14.0+，Yarn 1.22.22+，已配置至环境变量 `PATH` 的 `ohpm` 与 `hvigorw`。
 
-## 开发
+## 开发流程
 
 ```sh
 yarn install
@@ -24,11 +17,13 @@ yarn oh:install
 yarn oh
 ```
 
-HarmonyOS 专用 npm 包声明在 `optionalDependencies` 中，因此 Android/iOS-only 环境可以使用 `yarn install --ignore-optional`。
+HarmonyOS 专用 npm 包均声明在 `optionalDependencies` 中，纯 Android/iOS 环境可使用 `yarn install --ignore-optional` 跳过安装。
 
-在 DevEco Studio 中打开生成的 `harmony/` 目录，配置签名后运行 `entry` 模块。Metro 监听 8082 端口；RNOH 的 `RNAbility` 会将冷启动和热启动的 `fzuhelper://` 链接转交给 React Native `Linking`。
+在 DevEco Studio 中打开生成的 `harmony/` 目录，配置签名后直接运行 `entry` 模块。
 
-开发者个人的签名配置可以放在 `.harmony-local/` 下，并保持与生成工程相同的相对路径。该目录会在生成配置后覆盖到工程中，例如 `.harmony-local/build-profile.json5` 可以替换未签名的默认配置，同时避免将凭据提交到 Git。
+Metro 默认监听 8082 端口，本地端口需要保持不被占用。
+
+开发时可将签名文件放置于 `.harmony-local/` 下并保持相对路径一致，该目录在配置生成后会自动覆盖至工程中（如使用 `.harmony-local/build-profile.json5` 覆盖未签名的默认配置），既便于本地调试又避免误提交泄露敏感信息。
 
 ## 离线调试构建
 
@@ -36,26 +31,24 @@ HarmonyOS 专用 npm 包声明在 `optionalDependencies` 中，因此 Android/iO
 yarn oh:build
 ```
 
-该命令会更新 `versionCode`，生成 Expo 常量和启动器快捷方式资源，准备 reanimated HAR，安装 HAR 依赖，生成 `bundle.harmony.js`，复制 Metro 资源，并调用 hvigor 构建调试 HAP。
-
-仓库中的 `scripts/harmony/prepare-dependencies.js` 会移除 reanimated 4.0.1 中无效的 `file:../worklets` 依赖声明。应用已经单独声明并注册 worklets，因此不会移除原生依赖。该脚本使用 Node.js 和系统的 `tar` 命令，不需要 Python。
-
-没有 DevEco 签名配置时，仍会生成用于编译检查的 `entry/build/default/outputs/default/entry-default-unsigned.hap`，但该产物不能安装。
+该命令会依次更新 `versionCode`，生成 Expo 常量与快捷方式资源，准备 reanimated HAR，安装 HAR 依赖，打包 `bundle.harmony.js`，同步 Metro 资源，并调用 hvigor 构建调试 HAP。其中 `scripts/harmony/prepare-dependencies.js` 仅依赖 Node.js 与系统 `tar` 命令，会自动移除 reanimated 4.0.1 中无效的 `file:../worklets` 依赖声明；应用已单独声明并注册 worklets，因此原生依赖保持完整。若缺少签名配置，仍会输出 `entry/build/default/outputs/default/entry-default-unsigned.hap` 用于编译检查，但该包无法安装至设备。
 
 ## 快捷操作
 
-根目录的 `config/quick-actions.json` 是应用唯一维护的快捷操作目录。Android 配置插件、共享 React 代码和 HarmonyOS 资源生成都会读取该文件。不要手动修改生成的 `entry/src/main/resources/base/{element,media,profile}/expo_quick_actions*` 文件。
+根目录的 `config/quick-actions.json` 是快捷操作的唯一配置源，Android 配置插件、React 共享代码与 HarmonyOS 资源生成脚本均统一读取该文件，请勿手动修改 `entry/src/main/resources/base/{element,media,profile}/expo_quick_actions*` 下的生成代码。`expo_quick_actions` HAR 仅封装冷热启动传递、Expo 事件桥接及可见性切换等底层机制，业务路由、文案、参数与图标完全由应用层配置。HarmonyOS 启动器快捷方式须在构建期静态声明，API 20 仅支持动态修改已声明条目的可见性，不支持在运行时增删条目。
 
-`expo_quick_actions` HAR 只包含可复用的平台机制：冷/热启动传递、Expo 事件桥接和可见性变化。路由、标题、参数和图标仍属于应用配置。HarmonyOS 启动器快捷方式在构建时声明；API 20 可以改变已声明条目的可见性，但不能在运行时创建或修改条目。
+## 原生能力与依赖支持
 
-## 原生能力覆盖
+HarmonyOS 端通过自研 ArkTS TurboModule 实现了 HTTP 网络请求、屏幕亮度、系统分享、状态栏与导航栏、加密摘要与随机数、Umeng Push、快捷操作、桌面卡片、自定义字体、文件 I/O、启动屏协同以及 Bugly 异常上报。`expo-crypto` 保持完整的摘要、随机数与 AES-GCM 能力，其中 AES-GCM 基于现有的 `node-forge` 依赖实现。
 
-HarmonyOS 构建使用 ArkTS TurboModule 实现 HTTP、亮度、系统分享、系统栏、加密摘要和随机数、Umeng Push、快捷操作、桌面卡片、字体、文件操作、启动屏协调及 Bugly。`expo-crypto` 保留完整的摘要、随机数和 AES-GCM 能力，其中 AES-GCM 使用项目已有的 `node-forge` 依赖实现。
+RNOH 生态同时提供了 AsyncStorage、WebView、Cookie、Geolocation、blob-util、SVG、SafeArea、Gesture Handler、Reanimated / Worklets、DeviceInfo、LinearGradient、Blur、相机扫码、剪贴板、图片裁剪与缩放、KeyboardController、权限管理、Screens 及 SplashScreen 的移植支持。
 
-RNOH 还提供了 AsyncStorage、WebView、Cookie、地理位置、blob-util、SVG、安全区域、手势、reanimated/worklets、设备信息、线性渐变、模糊、相机扫描、剪贴板、图片裁剪、图片缩放、键盘控制器、权限、screens 和启动屏等依赖的移植。HarmonyOS 专用 npm 包位于 `optionalDependencies` 中。
+目前唯一保留的 Metro mock 为 `react-native-screens/experimental`（因 RNOH screens 暂未发布对应子路径）。对于暂无对等实现的平台能力（如 Android SAF、接收外部分享、断点续传下载及动态卸载字体等），系统均会明确拒绝抛错，避免产生静默失败。Umeng 别名/标签与 Token 注册由原生实现并复用现有服务端推送链路，无需额外集成 Push Kit。Bugly 初始化需在 `entry/src/main/resources/base/element/string.json` 中配置产品凭据。
 
-当前唯一保留的 Metro mock 是 `react-native-screens/experimental`，因为 RNOH screens 包没有发布对应子路径。没有等价实现的平台能力会被明确拒绝，而不会返回虚假的成功结果，例如 Android SAF、传入分享内容、可恢复下载和字体卸载等。Umeng 标签操作和 token 注册由原生实现，因此 HarmonyOS 复用现有 Umeng 服务端受众链路，不需要额外的 Push Kit 集成。Bugly 初始化需要在 `entry/src/main/resources/base/element/string.json` 中配置 HarmonyOS 产品凭据。桌面卡片必须通过系统的手动卡片选择器添加。
+后期计划切换到 [expo-harmony](https://github.com/renbaoshuo/expo-harmony) 的 Expo 鸿蒙原生模块实现，届时将移除现有的各种 mock。
+
+桌面卡片须通过系统卡片选择器手动添加。“下一节课”同时支持 2×2 桌面卡片与 1×2 单色锁屏卡片。发布锁屏卡片前须在 AppGallery Connect 申请并开通“锁屏卡片”开放能力，未获授权的签名包仍可正常编译，但无法在系统锁屏卡片中心展示。
 
 ## 关于
 
-这个兼容层是由 [@renbaoshuo](https://github.com/renbaoshuo) 最初实现的，如有问题可以邮件联系。
+本工程兼容层最初由 [@renbaoshuo](https://github.com/renbaoshuo) 实现，如有疑问可以邮件交流。

@@ -20,6 +20,27 @@
       "supportDimensions": [
         "2*2"
       ]
+    },
+    {
+      "name": "NextClassLockScreenCard",
+      "displayName": "$string:widget_lockscreen_display_name",
+      "description": "$string:widget_lockscreen_desc",
+      "src": "./ets/widget/pages/NextClassLockScreenCard.ets",
+      "uiSyntax": "arkts",
+      "window": {
+        "designWidth": 720,
+        "autoDesignWidth": true
+      },
+      "colorMode": "auto",
+      "renderingMode": "singleColor",
+      "isDynamic": false,
+      "isDefault": false,
+      "updateEnabled": true,
+      "updateDuration": 1,
+      "defaultDimension": "1*2",
+      "supportDimensions": [
+        "1*2"
+      ]
     }
   ]
 }
