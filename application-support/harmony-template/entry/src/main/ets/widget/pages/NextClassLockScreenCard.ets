@@ -60,7 +60,8 @@ struct NextClassLockScreenCard {
     }
     .width('100%')
     .height('100%')
-    .padding({ left: 4, right: 4 })
+    // https://developer.huawei.com/consumer/cn/doc/design-guides/system-features-service-widget-0000002087671904#section252mcpsimp
+    .padding({ left: 14, right: 12, top: 8, bottom: 8 })
     .alignItems(HorizontalAlign.Start)
     .justifyContent(FlexAlign.Center)
     .onClick(() => {
