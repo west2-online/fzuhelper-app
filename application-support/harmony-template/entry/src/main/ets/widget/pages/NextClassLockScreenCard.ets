@@ -24,13 +24,13 @@ struct NextClassLockScreenCard {
         if (this.lastUpdateTimeCompact.length > 0) {
           Row({ space: 1 }) {
             Image($r('app.media.ic_refresh_lockscreen'))
-              .width(9)
-              .height(9)
+              .width(10)
+              .height(10)
               .opacity(0.72)
               .objectFit(ImageFit.Contain)
 
             Text(this.lastUpdateTimeCompact)
-              .fontSize(9)
+              .fontSize(10)
               .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
               .maxLines(1)
           }
@@ -43,28 +43,28 @@ struct NextClassLockScreenCard {
       Row({ space: 3 }) {
         Text(this.courseLocation)
           .layoutWeight(1)
-          .fontSize(9)
+          .fontSize(10)
           .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-        if (this.courseWeekday.length > 0) {
-          Text(this.courseWeekday)
-            .fontSize(9)
+        if (this.courseWeek.length > 0) {
+          Text(this.courseWeek)
+            .fontSize(10)
             .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
             .maxLines(1)
         }
 
-        if (this.courseWeek.length > 0) {
-          Text(this.courseWeek)
-            .fontSize(9)
+        if (this.courseWeekday.length > 0) {
+          Text(this.courseWeekday)
+            .fontSize(10)
             .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
             .maxLines(1)
         }
 
         if (this.courseTime.length > 0) {
           Text(this.courseTime)
-            .fontSize(9)
+            .fontSize(10)
             .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
             .maxLines(1)
         }
@@ -74,7 +74,8 @@ struct NextClassLockScreenCard {
     }
     .width('100%')
     .height('100%')
-    .padding({ left: 8, right: 8 })
+    // https://developer.huawei.com/consumer/cn/doc/design-guides/system-features-service-widget-0000002087671904#section252mcpsimp
+    .padding({ left: 14, right: 12, top: 8, bottom: 8 })
     .alignItems(HorizontalAlign.Start)
     .justifyContent(FlexAlign.Center)
     .onClick(() => {
