@@ -264,7 +264,7 @@ function currentUpdateTime(): string {
 
 function currentCompactUpdateTime(): string {
   const date = new Date();
-  return `更新于${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+  return `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
 }
 
 function twoDigits(value: number): string {
