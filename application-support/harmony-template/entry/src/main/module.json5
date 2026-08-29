@@ -6,7 +6,7 @@
     "mainElement": "EntryAbility",
     "srcEntry": "./ets/abilityStage/EntryAbilityStage.ets",
     "deviceTypes": [
-      "default"
+      "phone"
     ],
     "deliveryWithInstall": true,
     "installationFree": false,
