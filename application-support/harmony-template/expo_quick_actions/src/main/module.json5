@@ -3,7 +3,7 @@
     "name": "expo_quick_actions",
     "type": "har",
     "deviceTypes": [
-      "default"
+      "phone"
     ]
   }
 }
