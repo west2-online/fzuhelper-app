@@ -14,7 +14,7 @@ import { URL_PRIVACY_POLICY, URL_USER_AGREEMENT } from '@/lib/constants';
 import { pushToWebViewNormal } from '@/lib/webview';
 import { useFocusEffect } from 'expo-router';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { KeyboardController } from 'react-native-keyboard-controller';
 
 export interface AgreementCheckboxRef {
@@ -63,36 +63,31 @@ const AgreementCheckbox = forwardRef<AgreementCheckboxRef>((_, ref) => {
   return (
     <>
       {/* 底部协议 */}
-      <TouchableOpacity
-        activeOpacity={0.7}
-        className="mb-4 mt-12 w-full flex-row justify-center py-2"
-        onPress={() => setIsAgree(!isAgree)}
-      >
-        <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
-        <Text className="text-center text-text-secondary">
-          {'  '}
-          阅读并同意{' '}
-          <Text
-            className="text-primary"
-            onPress={event => {
-              event.stopPropagation();
-              openUserAgreement();
-            }}
-          >
-            服务协议
-          </Text>{' '}
-          和{' '}
-          <Text
-            className="text-primary"
-            onPress={event => {
-              event.stopPropagation();
-              openPrivacyPolicy();
-            }}
-          >
-            隐私政策
-          </Text>
+      <View className="mb-4 mt-12 w-full flex-row items-center justify-center py-2">
+        <TouchableOpacity activeOpacity={0.7} className="flex-row items-center" onPress={() => setIsAgree(!isAgree)}>
+          <Checkbox checked={isAgree} onCheckedChange={setIsAgree} />
+          <Text className="text-text-secondary">{'  '}阅读并同意 </Text>
+        </TouchableOpacity>
+        <Text
+          className="text-primary"
+          onPress={event => {
+            event.stopPropagation();
+            openUserAgreement();
+          }}
+        >
+          服务协议
         </Text>
-      </TouchableOpacity>
+        <Text className="text-text-secondary"> 和 </Text>
+        <Text
+          className="text-primary"
+          onPress={event => {
+            event.stopPropagation();
+            openPrivacyPolicy();
+          }}
+        >
+          隐私政策
+        </Text>
+      </View>
 
       <AlertDialog open={privacyDialogVisible && isFocus} className="absolute">
         <AlertDialogContent>

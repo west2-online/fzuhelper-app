@@ -35,7 +35,11 @@ function SearchButton({ currentPath, papers }: SearchButtonProps) {
 export default function PaperPage() {
   const { path } = useLocalSearchParams<PaperPageParam>();
   const [currentPath, setCurrentPath] = useState(path !== undefined ? path : '/');
-  const { data: paperData, status: loadingState, refetch } = useApiRequest(getApiV1PaperList, { path: currentPath });
+  const {
+    data: paperData,
+    status: loadingState,
+    refetch,
+  } = useApiRequest(getApiV1PaperList, { path: currentPath }, { queryKey: ['paper-list', currentPath] });
   const currentPapers = useMemo(() => {
     if (paperData) {
       const folders: Paper[] = paperData.folders.map(name => ({ name, type: PaperType.FOLDER }));

@@ -1,0 +1,9 @@
+{
+  "name": "entry",
+  "version": "7.2.6",
+  "description": "fzuhelper HarmonyOS entry module",
+  "license": "MIT",
+  "dependencies": {
+    "expo_quick_actions": "file:../expo_quick_actions"
+  }
+}

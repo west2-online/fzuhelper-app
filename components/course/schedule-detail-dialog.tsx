@@ -26,8 +26,6 @@ interface ScheduleDetailsDialogProps {
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onOpenChange, schedules }) => {
   const [scheduleIndex, setScheduleIndex] = useState(0);
   const schedule = useMemo(() => schedules[scheduleIndex], [scheduleIndex, schedules]);
-  const scheduleIsSingleOnly = useMemo(() => !schedule.double && schedule.single, [schedule.double, schedule.single]);
-  const scheduleIsDoubleOnly = useMemo(() => schedule.double && !schedule.single, [schedule.double, schedule.single]);
 
   const closeDialog = useCallback(() => {
     onOpenChange?.(false);
@@ -95,7 +93,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                     </DescriptionListTerm>
                     <DescriptionListDescription>
                       <Text>
-                        {schedule.startClass}-{schedule.endClass} 节
+                        {schedule.startClass}-{schedule.endClass}节
                       </Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
@@ -104,12 +102,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text>周数</Text>
                     </DescriptionListTerm>
                     <DescriptionListDescription>
-                      <Text>
-                        {schedule.weekDisplay || `${schedule.startWeek}-${schedule.endWeek} 周`}
-                        {/* 单双周显示，仅在只有单周/双周上课的时候才显示提示 */}
-                        {scheduleIsSingleOnly && ' [单]'}
-                        {scheduleIsDoubleOnly && ' [双]'}
-                      </Text>
+                      <Text>{schedule.weekDisplay}</Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
                   <DescriptionListRow className="items-start">

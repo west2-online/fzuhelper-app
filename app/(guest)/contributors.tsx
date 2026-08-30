@@ -12,7 +12,7 @@ import useApiRequest from '@/hooks/useApiRequest';
 // -- Baoshuo <i@baoshuo.ren>, 2025-02-06
 
 export default function Contributors() {
-  const { data } = useApiRequest(getApiV1CommonContributor, {});
+  const { data } = useApiRequest(getApiV1CommonContributor, {}, { queryKey: ['common-contributor'] });
   const { currentTheme } = useTheme();
 
   return (

@@ -105,7 +105,7 @@ export const TOOLBOX_CONFIG_KEY = 'toolbox_config';
 export const TOOLBOX_BANNER_KEY = 'toolbox_banner';
 
 // 考场
-export const EXAM_ROOM_KEY = 'exam_room';
+export const EXAM_ROOM_KEY = 'exam_room_v2';
 
 // 成绩
 export const GRADE_LIST_KEY = 'grade_list';
@@ -163,6 +163,8 @@ export const NAV_THEME = {
 /* eslint-enable no-restricted-syntax */
 
 // Stack Navigator Options
+export const HARMONY_HEADER_RIGHT_CONTAINER_STYLE = { paddingRight: 8 } as const;
+
 export const StackNavigatorScreenOptions = {
   animation: 'ios_from_right',
   headerTitleAlign: 'center',

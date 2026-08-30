@@ -109,7 +109,7 @@ export default function UserPage() {
   }, [termData]);
 
   const headerRight = useCallback(() => {
-    return <Icon href="/settings/app" name="settings-outline" size={24} className="mr-4" />;
+    return <Icon href="/settings/app" name="settings-outline" size={24} />;
   }, []);
 
   return (

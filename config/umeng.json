@@ -1,0 +1,32 @@
+{
+  "channel": "default",
+  "android": {
+    "appKey": "5dce696b570df3081900033f",
+    "messageSecret": "2931a731b52ca1457b387bcc22cdff32",
+    "miPush": {
+      "appId": "2882303761517633929",
+      "appKey": "5111763312929"
+    },
+    "huaweiPush": {
+      "appId": "100423559"
+    },
+    "vivoPush": {
+      "apiKey": "bfe61ef29b17b1b483e8505f5032a5f9",
+      "appId": "105570681"
+    },
+    "honorPush": {
+      "appId": "104498819"
+    },
+    "oppoPush": {
+      "appKey": "6UNBx7ceC680s48cw4cwocCw8",
+      "appSecret": "76fb94e392fc1D2e7798b2C2531216d2"
+    }
+  },
+  "ios": {
+    "appKey": "679132946d8fdd4ad83ab20e"
+  },
+  "harmony": {
+    "appKey": "6a7357ac4410067461c886b6",
+    "messageSecret": "d19a505810984b245a08bd1af379f56f"
+  }
+}

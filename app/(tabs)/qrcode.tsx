@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { Tabs as ExpoTabs, useFocusEffect, usePathname } from 'expo-router';
 import QRCodeGenerator from 'qrcode-generator';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, View } from 'react-native';
+import { Alert, Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 
@@ -87,6 +87,7 @@ const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' 
 export default function YiMaTongPage() {
   const pathname = usePathname();
   const isSelfCurrentPage = pathname === '/qrcode';
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const yktLoginRef = useRef<YKTLogin | null>(null);
 
   if (!yktLoginRef.current) {
@@ -103,7 +104,7 @@ export default function YiMaTongPage() {
   const [libCodeContent, setLibCodeContent] = useState<string>(); // 图书馆码
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
-  const [qrWidth, setQrWidth] = useState(0);
+  const qrWidth = Math.min(windowWidth, windowHeight) * 0.75;
   const redirect = useRedirectWithoutHistory();
 
   const SSOlogoutAndCleanData = useCallback(async () => {
@@ -261,10 +262,7 @@ export default function YiMaTongPage() {
                       </CardDescription>
                     </CardHeader>
 
-                    <CardContent
-                      className="flex-col items-center justify-center gap-4"
-                      onLayout={event => setQrWidth(event.nativeEvent.layout.width * 0.75)}
-                    >
+                    <CardContent className="flex-col items-center justify-center gap-4">
                       <TabsContent value="消费码">
                         {payCodeMessage ? (
                           <View className="mx-auto my-6 px-4">

@@ -1,7 +1,7 @@
 import NativeWidgetModule from '@/modules/native-widget/src/NativeWidgetModule';
 
-export function setWidgetData(...args: any) {
-  NativeWidgetModule.setWidgetData(...args);
+export async function setWidgetData(...args: any): Promise<void> {
+  await NativeWidgetModule.setWidgetData(...args);
 }
 
 export function requestPinAppWidget(...args: any): Promise<number> {

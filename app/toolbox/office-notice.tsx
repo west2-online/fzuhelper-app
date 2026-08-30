@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import useApiRequest from '@/hooks/useApiRequest';
 import { FAQ_NOTICE } from '@/lib/FAQ';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Linking, RefreshControl, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,7 +29,28 @@ export default function OfficeNoticePage() {
   const [isEnd, setIsEnd] = useState(false);
   const { bottom } = useSafeAreaInsets();
 
-  const { data, isFetching, isError, error, refetch } = useApiRequest(getApiV1CommonNotice, { pageNum });
+  const params = useLocalSearchParams();
+
+  useEffect(() => {
+    console.log('params:', params);
+    const url = params.url;
+    if (url && typeof url === 'string') {
+      // 过滤掉 url 本身，处理剩余的 query 参数
+      const extraEntries = Object.entries(params).filter(([k]) => k !== 'url')
+        .map(([key, value]) => `&${key}=${value}`)
+        .join('');
+
+      const fullUrl = url + extraEntries;
+      console.log('从 DeepLink 打开外部链接:', fullUrl);
+      Linking.openURL(fullUrl).catch((err) => Alert.alert('错误', `无法打开链接: ${err}`));
+    }
+  }, [JSON.stringify(params)]);
+
+  const { data, isFetching, isError, error, refetch } = useApiRequest(
+    getApiV1CommonNotice,
+    { pageNum },
+    { queryKey: ['common-notice', pageNum] },
+  );
 
   useEffect(() => {
     if (data) {
@@ -107,7 +128,7 @@ export default function OfficeNoticePage() {
   }, []);
 
   const headerRight = useCallback(
-    () => <Icon name="help-circle-outline" size={26} className="mr-4" onPress={handleModalVisible} />,
+    () => <Icon name="help-circle-outline" size={26} onPress={handleModalVisible} />,
     [handleModalVisible],
   );
 

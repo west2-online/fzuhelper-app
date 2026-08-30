@@ -82,7 +82,7 @@ export class NotificationManager {
       }
     }
 
-    this.refreshTag(tags);
+    await this.refreshTag(tags);
   }
 
   private static async refreshTag(newTags: string[]): Promise<void> {

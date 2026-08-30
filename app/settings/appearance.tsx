@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Dimensions, PixelRatio } from 'react-native';
+import { Dimensions, PixelRatio, Platform } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import ImagePicker from 'react-native-image-crop-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,6 +32,8 @@ export default function AppearancePage() {
     setDarkenBackground,
   } = useTheme();
   const redirect = useRedirectWithoutHistory();
+
+  const isHarmony = (Platform.OS as string) === 'harmony';
 
   const selectPicture = useCallback(async () => {
     // 获取屏幕宽高
@@ -86,7 +88,16 @@ export default function AppearancePage() {
               rightText={THEME_OPTIONS.find(option => option.value === themeSetting)?.label}
               onPress={() => setPickerVisible(true)}
             />
-            <LabelEntry leftText={'选择壁纸'} onPress={selectPicture} />
+            <LabelEntry
+              leftText={'选择壁纸'}
+              onPress={() => {
+                if (isHarmony) {
+                  toast.info('该功能鸿蒙版暂未适配，敬请期待');
+                } else {
+                  selectPicture();
+                }
+              }}
+            />
             {hasCustomBackground && (
               <>
                 <LabelEntry leftText={'恢复默认'} onPress={restoreDefault} />

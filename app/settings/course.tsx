@@ -59,6 +59,14 @@ export default function CourseSettingPage() {
     refetch,
   } = useApiRequest(getApiV1JwchTermList, {}, { persist: true, queryKey: [JWCH_TERM_LIST_KEY] });
 
+  const checkTermsAndShowPicker = useCallback(async () => {
+    if (!termList || termList.length === 0) {
+      toast.info('未查询到您的就读学期，如您是新生，请耐心等待教务系统处理');
+    } else {
+      setPickerVisible(true);
+    }
+  }, [termList]);
+
   // 选择学期开关，如果前面的加载失败会再次尝试加载
   const handleOpenTermSelectPicker = useCallback(async () => {
     if (isError) {
@@ -66,14 +74,14 @@ export default function CourseSettingPage() {
       const result = await refetch();
       setLoadingSemester(false);
       if (!result.isError) {
-        setPickerVisible(true);
+        checkTermsAndShowPicker();
       } else if (result.error?.message) {
         toast.error(result.error.message);
       }
     } else {
-      setPickerVisible(true);
+      checkTermsAndShowPicker();
     }
-  }, [isError, refetch]);
+  }, [checkTermsAndShowPicker, isError, refetch]);
 
   // 确认选择学期
   const handleConfirmTermSelectPicker = useCallback((selectedValue: string) => {

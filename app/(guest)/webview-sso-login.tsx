@@ -89,6 +89,7 @@ export default function LearningCenterTokenPage() {
               }}
               onNavigationStateChange={handleNavigationStateChange}
               cacheEnabled={false}
+              domStorageEnabled
               thirdPartyCookiesEnabled
               sharedCookiesEnabled
               overScrollMode="never"
