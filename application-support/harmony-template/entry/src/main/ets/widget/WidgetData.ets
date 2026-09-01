@@ -46,7 +46,6 @@ export interface WidgetBindingData {
   courseWeekday: string;
   showLastUpdateTime: boolean;
   lastUpdateTime: string;
-  lastUpdateTimeCompact: string;
   verticalInset: number;
 }
 
@@ -79,7 +78,6 @@ export function buildWidgetBindingData(
       courseWeekday: `周${weekChinese(course.weekday)}`,
       showLastUpdateTime,
       lastUpdateTime: currentUpdateTime(),
-      lastUpdateTimeCompact: currentCompactUpdateTime(),
       verticalInset,
     };
   } catch (error) {
@@ -99,7 +97,6 @@ function noLocalData(showLastUpdateTime: boolean, verticalInset: number): Widget
     courseWeekday: '',
     showLastUpdateTime,
     lastUpdateTime: currentUpdateTime(),
-    lastUpdateTimeCompact: currentCompactUpdateTime(),
     verticalInset,
   };
 }
@@ -115,7 +112,6 @@ function noFutureClass(showLastUpdateTime: boolean, verticalInset: number): Widg
     courseWeekday: '',
     showLastUpdateTime,
     lastUpdateTime: currentUpdateTime(),
-    lastUpdateTimeCompact: currentCompactUpdateTime(),
     verticalInset,
   };
 }
@@ -260,11 +256,6 @@ function currentUpdateTime(): string {
   const date = new Date();
   return `更新于 ${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())} `
     + `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
-}
-
-function currentCompactUpdateTime(): string {
-  const date = new Date();
-  return `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
 }
 
 function twoDigits(value: number): string {
