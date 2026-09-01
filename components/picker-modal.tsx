@@ -7,6 +7,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import IcCancel from '@/assets/images/misc/ic_cancel.svg';
 import IcConfirm from '@/assets/images/misc/ic_confirm.svg';
 import { Text } from '@/components/ui/text';
+import { toast } from 'sonner-native';
 import { useTheme } from './app-theme-provider';
 
 interface PickerModalProps<T> {
@@ -45,14 +46,6 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
     [fadeAnim, slideAnim],
   );
 
-  useEffect(() => {
-    if (visible) {
-      setTempValue(value);
-      setPickerKey(prev => prev + 1); // 强制重新渲染解决偏移问题
-      handleAnimation(true);
-    }
-  }, [handleAnimation, value, visible]);
-
   const handleClose = useCallback(() => {
     handleAnimation(false, onClose);
   }, [handleAnimation, onClose]);
@@ -61,8 +54,37 @@ export default function PickerModal<T>({ visible, title, data, value, onClose, o
     handleAnimation(false, () => onConfirm(tempValue));
   }, [onConfirm, tempValue, handleAnimation]);
 
+  useEffect(() => {
+    if (visible) {
+      // 异常处理
+      if (!data.length) {
+        // 代码中应当提前判断data为空的情况，不弹出Picker并提示用户，而不是走到这里
+        console.error('PickerModal data is empty');
+        toast.error('当前没有可选择项，请通过我的-帮助与反馈联系开发者解决此问题。');
+        handleClose();
+        return;
+      }
+      if (!data.some(item => item.value === value)) {
+        // 触发情况：新生在开学前即登录，切换学期时默认选中的学期为上一学期，不在该生就读学期列表内
+        console.error('PickerModal value is not in data', value, data);
+        // fallback到第一项
+        setTempValue(data[0].value);
+      } else {
+        setTempValue(value);
+      }
+      setPickerKey(prev => prev + 1); // 强制重新渲染解决偏移问题
+      handleAnimation(true);
+    }
+  }, [data, handleAnimation, handleClose, value, visible]);
+
   const onValueChanged = useCallback(({ item }: { item: { value: T } }) => {
-    setTempValue(item.value);
+    try {
+      setTempValue(item.value);
+    } catch (error) {
+      // 由于Picker三方库的原因，当出现data为空时，onValueChanged会在渲染时触发一次，导致item为空的崩溃
+      // 上面的异常处理逻辑已经在这种情况下提前拒绝Picker的弹出，此处兜底避免崩溃
+      console.error('PickerModal onValueChanged error', error);
+    }
   }, []);
 
   const backgroundStyle = useAnimatedStyle(() => ({

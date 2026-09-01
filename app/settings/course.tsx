@@ -27,7 +27,6 @@ import {
 } from '@/lib/course';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
-import { pushToWebViewNormal } from '@/lib/webview';
 
 export default function CourseSettingPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
