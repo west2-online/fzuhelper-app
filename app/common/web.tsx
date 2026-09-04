@@ -276,6 +276,12 @@ export default function Web() {
     }, [initializeWebView]),
   );
 
+  const handleSSOLoginPress = useCallback(() => {
+    // 登录成功后页面只会重新获得焦点，不会重新挂载；允许届时重新读取 SSO Cookie。
+    initializedRef.current = false;
+    router.push('/(guest)/sso-login');
+  }, [router]);
+
   useEffect(() => {
     return () => {
       initializationRunRef.current += 1;
@@ -550,7 +556,10 @@ export default function Web() {
         {initializationError ? (
           <WebViewErrorView message={initializationError} onRetry={initializeWebView} />
         ) : needSSOLogin ? (
-          <LoginPrompt message={`登录统一身份认证平台，访问${title ?? '当前'}服务`} />
+          <LoginPrompt
+            message={`登录统一身份认证平台，访问${title ?? '当前'}服务`}
+            onButtonPress={handleSSOLoginPress}
+          />
         ) : !cookiesSet ? (
           <Loading />
         ) : (
