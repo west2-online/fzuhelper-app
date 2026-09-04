@@ -1,3 +1,4 @@
+import { hasHarmonyLocationPermission, requestHarmonyLocationPermission } from '@/lib/harmony-location-permission';
 import { buildLocationInfo, fetchReverseGeocode } from '@/utils/location';
 import Geolocation from '@react-native-community/geolocation';
 import { Platform } from 'react-native';
@@ -184,6 +185,14 @@ registerProtocol({
           });
         }
       });
+    } else if ((Platform.OS as string) === 'harmony') {
+      requestHarmonyLocationPermission().then(granted => {
+        if (granted) {
+          proceed();
+        } else {
+          context.injectJS(buildCallbackJS(parsed.func, { lon: '', lat: '', address: '' }));
+        }
+      });
     } else {
       // iOS：app/common/web.tsx 已在挂载时调用 Geolocation.requestAuthorization()
       proceed();
@@ -215,14 +224,26 @@ registerProtocol({
     }
   },
   handler: ({ parsed, context }) => {
-    const perm =
-      Platform.OS === 'ios' ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
-    const op = parsed.action === '1' ? request : check;
-    op(perm).then(status => {
+    const report = (granted: boolean) => {
       if (parsed.func) {
-        context.injectJS(buildCallbackJS(parsed.func, status === RESULTS.GRANTED));
+        context.injectJS(buildCallbackJS(parsed.func, granted));
       }
-    });
+    };
+
+    if (Platform.OS === 'ios') {
+      const op = parsed.action === '1' ? request : check;
+      op(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE).then(status => report(status === RESULTS.GRANTED));
+    } else if ((Platform.OS as string) === 'harmony') {
+      if (parsed.action === '1') {
+        requestHarmonyLocationPermission().then(report);
+      } else {
+        hasHarmonyLocationPermission().then(report);
+      }
+    } else {
+      // Android
+      const op = parsed.action === '1' ? request : check;
+      op(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION).then(status => report(status === RESULTS.GRANTED));
+    }
     return true;
   },
 });
