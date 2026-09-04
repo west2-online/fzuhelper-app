@@ -9,6 +9,7 @@ import {
   WIDGET_STORE_NAME,
 } from '../widget/WidgetData';
 import { readWidgetConfig } from '../widget/WidgetConfig';
+import { Want } from '@kit.AbilityKit';
 
 export class NativeWidgetTurboModule extends EtsUITurboModule {
   static readonly NAME: string = 'NativeWidget';
@@ -19,10 +20,22 @@ export class NativeWidgetTurboModule extends EtsUITurboModule {
   }
 
   async requestPinAppWidget(requestCode: number): Promise<number> {
-    // HarmonyOS lets third-party applications provide a FormExtension card,
-    // but only the launcher/form host can add it. Ask the caller to show its
-    // manual-add guidance.
-    return 2;
+    const want: Want = {
+      bundleName: "com.west2online.fzuhelper.next",
+      abilityName: 'EntryAbility',
+      parameters: {
+        'ohos.extra.param.key.form_dimension': 2,
+        'ohos.extra.param.key.form_name': 'NextClassCard',
+        'ohos.extra.param.key.module_name': 'entry'
+      },
+    };
+    try {
+      // 点击按钮后调用openFormManager方法，拉起卡片管理页面
+      formProvider.openFormManager(want);
+      return 1;
+    } catch (error) {
+      return 0;
+    }
   }
 
   private async updateWidgets(json: string): Promise<void> {

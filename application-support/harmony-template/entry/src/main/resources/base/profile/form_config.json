@@ -15,10 +15,35 @@
       "isDefault": true,
       "formConfigAbility": "ability://WidgetConfigurationAbility",
       "updateEnabled": true,
-      "updateDuration": 1,
+      "updateDuration": 0,
+      "scheduledUpdateTime": "08:25",
+      "multiScheduledUpdateTime": "08:25,09:20,10:25,11:20,14:05,15:00,15:55,16:50,19:05,20:00,20:55",
       "defaultDimension": "2*2",
       "supportDimensions": [
         "2*2"
+      ]
+    },
+    {
+      "name": "NextClassLockScreenCard",
+      "displayName": "$string:widget_lockscreen_display_name",
+      "description": "$string:widget_lockscreen_desc",
+      "src": "./ets/widget/pages/NextClassLockScreenCard.ets",
+      "uiSyntax": "arkts",
+      "window": {
+        "designWidth": 720,
+        "autoDesignWidth": true
+      },
+      "colorMode": "auto",
+      "renderingMode": "singleColor",
+      "isDynamic": false,
+      "isDefault": false,
+      "updateEnabled": true,
+      "updateDuration": 0,
+      "scheduledUpdateTime": "08:25",
+      "multiScheduledUpdateTime": "08:25,09:20,10:25,11:20,14:05,15:00,15:55,16:50,19:05,20:00,20:55",
+      "defaultDimension": "1*2",
+      "supportDimensions": [
+        "1*2"
       ]
     }
   ]

@@ -23,6 +23,14 @@
     {
       "name": "widget_unnecessary_foreground",
       "value": "#66000000"
+    },
+    {
+      "name": "widget_lockscreen_foreground",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "widget_lockscreen_secondary_foreground",
+      "value": "#B8FFFFFF"
     }
   ]
 }
