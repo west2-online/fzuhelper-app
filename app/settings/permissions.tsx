@@ -19,7 +19,7 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { hasHarmonyLocationPermission, requestHarmonyLocationPermission } from '@/lib/harmony-location-permission';
+import { hasLocationPermission, requestLocationPermission } from '@/lib/location-permission';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
@@ -93,8 +93,7 @@ export default function AcademicPage() {
           statuses[HARMONY_PERMISSIONS.WRITE_CALENDAR] === RESULTS.GRANTED,
       );
       setAllowCamera(statuses[HARMONY_PERMISSIONS.CAMERA] === RESULTS.GRANTED);
-      // 鸿蒙定位同时依赖 APPROXIMATELY_LOCATION + LOCATION
-      setAllowLocation(await hasHarmonyLocationPermission());
+      setAllowLocation(await hasLocationPermission());
     }
   }, []);
 
@@ -244,7 +243,7 @@ export default function AcademicPage() {
         openApplicationSettings();
         return;
       }
-      requestHarmonyLocationPermission().then(granted => {
+      requestLocationPermission().then(granted => {
         setAllowLocation(granted);
         if (!granted) {
           toast.error('您已拒绝了定位权限');

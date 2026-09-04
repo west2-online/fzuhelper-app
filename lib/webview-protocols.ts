@@ -1,8 +1,6 @@
-import { hasHarmonyLocationPermission, requestHarmonyLocationPermission } from '@/lib/harmony-location-permission';
+import { hasLocationPermission, requestLocationPermission } from '@/lib/location-permission';
 import { buildLocationInfo, fetchReverseGeocode } from '@/utils/location';
 import Geolocation from '@react-native-community/geolocation';
-import { Platform } from 'react-native';
-import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import { toast } from 'sonner-native';
 
 // --- 注册表类型 ---
@@ -170,33 +168,13 @@ registerProtocol({
       );
     };
 
-    if (Platform.OS === 'android') {
-      // Android：先确认/请求 ACCESS_FINE_LOCATION，再获取定位
-      check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION).then(status => {
-        if (status === RESULTS.GRANTED) {
-          proceed();
-        } else {
-          request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION).then(s => {
-            if (s === RESULTS.GRANTED) {
-              proceed();
-            } else {
-              context.injectJS(buildCallbackJS(parsed.func, { lon: '', lat: '', address: '' }));
-            }
-          });
-        }
-      });
-    } else if ((Platform.OS as string) === 'harmony') {
-      requestHarmonyLocationPermission().then(granted => {
-        if (granted) {
-          proceed();
-        } else {
-          context.injectJS(buildCallbackJS(parsed.func, { lon: '', lat: '', address: '' }));
-        }
-      });
-    } else {
-      // iOS：app/common/web.tsx 已在挂载时调用 Geolocation.requestAuthorization()
-      proceed();
-    }
+    requestLocationPermission().then(granted => {
+      if (granted) {
+        proceed();
+      } else {
+        context.injectJS(buildCallbackJS(parsed.func, { lon: '', lat: '', address: '' }));
+      }
+    });
 
     return true;
   },
@@ -230,20 +208,7 @@ registerProtocol({
       }
     };
 
-    if (Platform.OS === 'ios') {
-      const op = parsed.action === '1' ? request : check;
-      op(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE).then(status => report(status === RESULTS.GRANTED));
-    } else if ((Platform.OS as string) === 'harmony') {
-      if (parsed.action === '1') {
-        requestHarmonyLocationPermission().then(report);
-      } else {
-        hasHarmonyLocationPermission().then(report);
-      }
-    } else {
-      // Android
-      const op = parsed.action === '1' ? request : check;
-      op(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION).then(status => report(status === RESULTS.GRANTED));
-    }
+    (parsed.action === '1' ? requestLocationPermission() : hasLocationPermission()).then(report);
     return true;
   },
 });
