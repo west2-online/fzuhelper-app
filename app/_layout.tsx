@@ -1,3 +1,4 @@
+import Geolocation from '@react-native-community/geolocation';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
 import { Stack as HarmonyStack } from 'expo-router/js-stack';
@@ -18,6 +19,13 @@ import { HARMONY_HEADER_RIGHT_CONTAINER_STYLE, StackNavigatorScreenOptions } fro
 import patchTextComponent from '@/utils/patch-text-component';
 
 import '../global.css';
+
+// 关闭 Harmony 定位库自带的“自动申请权限”行为。
+if ((Platform.OS as string) === 'harmony') {
+  Geolocation.setRNConfiguration({
+    skipPermissionRequests: true,
+  });
+}
 
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
 export default function RootLayout() {

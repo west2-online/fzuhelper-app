@@ -19,13 +19,13 @@ import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { hasLocationPermission, requestLocationPermission } from '@/lib/location-permission';
 import ExpoUmengModule from '@/modules/umeng-bridge';
 import { ScrollView } from 'react-native-gesture-handler';
 import { toast } from 'sonner-native';
 
 const HARMONY_PERMISSIONS = {
   CAMERA: 'ohos.permission.CAMERA' as Permission,
-  LOCATION: 'ohos.permission.LOCATION' as Permission,
   READ_CALENDAR: 'ohos.permission.READ_CALENDAR' as Permission,
   WRITE_CALENDAR: 'ohos.permission.WRITE_CALENDAR' as Permission,
 };
@@ -87,14 +87,13 @@ export default function AcademicPage() {
         HARMONY_PERMISSIONS.READ_CALENDAR,
         HARMONY_PERMISSIONS.WRITE_CALENDAR,
         HARMONY_PERMISSIONS.CAMERA,
-        HARMONY_PERMISSIONS.LOCATION,
       ]);
       setAllowCalendar(
         statuses[HARMONY_PERMISSIONS.READ_CALENDAR] === RESULTS.GRANTED &&
           statuses[HARMONY_PERMISSIONS.WRITE_CALENDAR] === RESULTS.GRANTED,
       );
       setAllowCamera(statuses[HARMONY_PERMISSIONS.CAMERA] === RESULTS.GRANTED);
-      setAllowLocation(statuses[HARMONY_PERMISSIONS.LOCATION] === RESULTS.GRANTED);
+      setAllowLocation(await hasLocationPermission());
     }
   }, []);
 
@@ -239,12 +238,20 @@ export default function AcademicPage() {
   };
 
   const handleLocationPermission = () => {
-    handleStandardPermission(
-      (Platform.OS as string) === 'harmony' ? HARMONY_PERMISSIONS.LOCATION : PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-      '定位',
-      isAllowLocation,
-      setAllowLocation,
-    );
+    if ((Platform.OS as string) === 'harmony') {
+      if (isAllowLocation) {
+        openApplicationSettings();
+        return;
+      }
+      requestLocationPermission().then(granted => {
+        setAllowLocation(granted);
+        if (!granted) {
+          toast.error('您已拒绝了定位权限');
+        }
+      });
+      return;
+    }
+    handleStandardPermission(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE, '定位', isAllowLocation, setAllowLocation);
   };
 
   return (

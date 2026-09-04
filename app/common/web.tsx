@@ -576,7 +576,7 @@ export default function Web() {
                   renderToHardwareTextureAndroid // 启用硬件加速
                   setDisplayZoomControls={false} // 隐藏缩放控件图标
                   setBuiltInZoomControls // 启用内置缩放控件
-                  geolocationEnabled={true} // 启用定位
+                  geolocationEnabled={Platform.OS === 'android' ? true : undefined} // 启用定位，不为鸿蒙传入该属性，避免打开 Webview 请求定位权限。
                   overScrollMode="never" // 禁止过度滚动
                   //
                   // iOS 平台设置
