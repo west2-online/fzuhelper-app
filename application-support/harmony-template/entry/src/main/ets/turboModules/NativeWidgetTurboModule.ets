@@ -20,19 +20,28 @@ export class NativeWidgetTurboModule extends EtsUITurboModule {
   }
 
   async requestPinAppWidget(requestCode: number): Promise<number> {
+    let formName = '';
+    if (requestCode === 72201) {
+      formName = 'NextClassCard';
+    } else if (requestCode === 72203) {
+      return 2; // 锁屏组件不支持直接拉起添加，跳转文档页
+    }
+    if (!formName) {
+      return 0;
+    }
     const want: Want = {
       bundleName: "com.west2online.fzuhelper.next",
       abilityName: 'EntryAbility',
       parameters: {
         'ohos.extra.param.key.form_dimension': 2,
-        'ohos.extra.param.key.form_name': 'NextClassCard',
+        'ohos.extra.param.key.form_name': formName,
         'ohos.extra.param.key.module_name': 'entry'
       },
     };
     try {
       // 点击按钮后调用openFormManager方法，拉起卡片管理页面
       formProvider.openFormManager(want);
-      return 1;
+      return 4;
     } catch (error) {
       return 0;
     }

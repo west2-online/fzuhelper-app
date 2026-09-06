@@ -12,8 +12,9 @@ import { useCallback } from 'react';
 import { toast } from 'sonner-native';
 
 export default function WidgetPage() {
-  // private val REQUEST_NEXT_CLASS = 72201
-  // private val REQUEST_COURSE_TABLE = 72202
+  // REQUEST_NEXT_CLASS = 72201
+  // REQUEST_COURSE_TABLE = 72202
+  // REQUEST_NEXT_CLASS_LOCK_SCREEN = 72203
 
   const showGuide = useCallback(() => {
     pushToWebViewNormal('https://west2-online.feishu.cn/wiki/SitbwKuLriaL5bk7Wbicxdf7nYb');
@@ -29,9 +30,12 @@ export default function WidgetPage() {
       } else if (result === 2) {
         // 不支持一键添加，展示手动添加向导
         showGuide();
-      } else {
-        // result=3, 鸿蒙
+      } else if (result === 3) {
+        // 卓易通
         toast.error('当前设备环境暂不支持小部件功能');
+      } else {
+        // result=4, 原生鸿蒙拉起添加弹窗后无回调
+        // 如果用户确认添加，系统会给提示，无需我们提示
       }
     },
     [showGuide],
@@ -47,6 +51,10 @@ export default function WidgetPage() {
           <LabelEntry leftText="下节课上什么" onPress={() => handleAddWidget(72201)} />
 
           {Platform.OS === 'android' && <LabelEntry leftText="课程表" onPress={() => handleAddWidget(72202)} />}
+
+          {(Platform.OS === 'ios' || (Platform.OS as string) === 'harmony') && (
+            <LabelEntry leftText="下一节课锁屏组件" onPress={() => handleAddWidget(72203)} />
+          )}
         </ScrollView>
         <SafeAreaView edges={['bottom']}>
           <Text className="mx-auto mb-12 text-primary" onPress={showGuide}>
