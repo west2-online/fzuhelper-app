@@ -41,6 +41,7 @@ export interface WidgetBindingData {
   courseNameSize: number;
   courseLocation: string;
   courseSection: string;
+  courseTime: string;
   courseWeek: string;
   courseWeekday: string;
   showLastUpdateTime: boolean;
@@ -72,6 +73,7 @@ export function buildWidgetBindingData(
         course.remark.length > 0 ? course.remark : `${course.startClass}-${course.endClass}节`,
         10,
       ),
+      courseTime: `${course.startClass}-${course.endClass}节`,
       courseWeek: `第${nextClass.week}周`,
       courseWeekday: `周${weekChinese(course.weekday)}`,
       showLastUpdateTime,
@@ -90,6 +92,7 @@ function noLocalData(showLastUpdateTime: boolean, verticalInset: number): Widget
     courseNameSize: 20,
     courseLocation: '请打开课表设置刷新',
     courseSection: '',
+    courseTime: '',
     courseWeek: '',
     courseWeekday: '',
     showLastUpdateTime,
@@ -104,6 +107,7 @@ function noFutureClass(showLastUpdateTime: boolean, verticalInset: number): Widg
     courseNameSize: 30,
     courseLocation: '',
     courseSection: '',
+    courseTime: '',
     courseWeek: '',
     courseWeekday: '',
     showLastUpdateTime,
