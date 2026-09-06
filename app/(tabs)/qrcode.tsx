@@ -6,6 +6,7 @@ import { Alert, Platform, Pressable, useWindowDimensions, View } from 'react-nat
 import { ScrollView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 
+import BarcodeView from '@/components/barcode';
 import Loading from '@/components/loading';
 import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
@@ -72,7 +73,7 @@ const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' 
   }, [color, size, value]);
 
   return value && svgXml ? (
-    <View className="mx-auto bg-white p-4">
+    <View className="mx-auto bg-white">
       <SvgXml xml={svgXml} width={Math.max(size, 1)} height={Math.max(size, 1)} />
     </View>
   ) : (
@@ -103,6 +104,7 @@ export default function YiMaTongPage() {
   const [currentTab, setCurrentTab] = useState('消费码'); // 当前选项卡
   const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
   const qrWidth = Math.min(windowWidth, windowHeight) * 0.75;
+  const libraryCodeWidth = Math.min(qrWidth + 32, windowWidth - 56);
   const redirect = useRedirectWithoutHistory();
 
   const SSOlogoutAndCleanData = useCallback(async () => {
@@ -267,11 +269,16 @@ export default function YiMaTongPage() {
                             <Text className="text-center text-base text-text-secondary">{payCodeMessage}</Text>
                           </View>
                         ) : (
-                          <QRCodeView size={qrWidth} value={payCode || undefined} />
+                          <View className="bg-white p-4">
+                            <QRCodeView size={qrWidth} value={payCode || undefined} />
+                          </View>
                         )}
                       </TabsContent>
                       <TabsContent value="入馆码">
-                        <QRCodeView size={qrWidth} value={libCodeContent} />
+                        <View className="items-center gap-6 bg-white pt-6" style={{ width: libraryCodeWidth }}>
+                          <QRCodeView size={libraryCodeWidth * 0.5} value={libCodeContent} />
+                          <BarcodeView width={libraryCodeWidth} value={libCodeContent} />
+                        </View>
                       </TabsContent>
 
                       <View className="flex-row gap-4">
