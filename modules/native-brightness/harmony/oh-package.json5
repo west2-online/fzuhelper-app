@@ -1,0 +1,13 @@
+{
+  modelVersion: '5.0.0',
+  name: 'fzuhelper-native-brightness-build',
+  version: '1.0.0',
+  dependencies: {
+    'fzuhelper-native-brightness': './library',
+  },
+  overrides: {
+    '@expo-harmony/expo-modules-core': '../../../node_modules/@expo-harmony/expo-modules-core/harmony/expo_modules_core.har',
+    '@ppd/ffrt': '1.1.5',
+    '@rnoh/react-native-openharmony': '0.84.1',
+  },
+}

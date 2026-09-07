@@ -3,7 +3,7 @@
 // 如果需要参考具体逻辑，可以参考友盟 SDK
 // iOS文档：https://developer.umeng.com/docs/67966/detail/66734
 // 安卓文档：https://developer.umeng.com/docs/67966/detail/206987
-import {
+const {
   AndroidConfig,
   createRunOncePlugin,
   withAndroidManifest,
@@ -11,9 +11,10 @@ import {
   withEntitlementsPlist,
   withInfoPlist,
   withXcodeProject,
-} from '@expo/config-plugins';
-import { promises as fs } from 'fs'; // 使用 Node.js 的 fs 模块进行文件操作
-import { join, resolve } from 'path';
+} = require('@expo/config-plugins');
+const { promises: fs } = require('fs'); // 使用 Node.js 的 fs 模块进行文件操作
+const { join, resolve } = require('path');
+const { registerHarmonyConfigPlugin, withStrings } = require('@expo-harmony/config-plugins');
 
 const withKey = (
   config,
@@ -30,6 +31,8 @@ const withKey = (
     oppoPushAppKey,
     oppoPushAppSecret,
     iOSAppKey,
+    HarmonyAppKey,
+    HarmonyMessageSecret,
     bridgingSourcePath,
     bridgingTargetPath,
     NSPushNotificationUsageDescription,
@@ -149,8 +152,27 @@ const withKey = (
     },
   ]);
 
-  return config;
+  const harmonyStrings = {
+    umeng_app_key: HarmonyAppKey,
+    umeng_channel: channel,
+    umeng_message_secret: HarmonyMessageSecret,
+  };
+  for (const [name, value] of Object.entries(harmonyStrings)) {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      throw new TypeError(`Umeng config field ${name} must be a non-empty string`);
+    }
+  }
+  config = registerHarmonyConfigPlugin(config, 'umeng-bridge', {
+    resources: { strings: { entry: Object.keys(harmonyStrings) } },
+  });
+  return withStrings(config, mod => {
+    mod.modResults.entry ??= {};
+    mod.modResults.entry.string = [
+      ...(mod.modResults.entry.string ?? []).filter(item => !Object.hasOwn(harmonyStrings, item.name)),
+      ...Object.entries(harmonyStrings).map(([name, value]) => ({ name, value })),
+    ];
+    return mod;
+  });
 };
 
-const _default = createRunOncePlugin(withKey, 'umeng-bridge', '0.1.0');
-export { _default as default };
+module.exports = createRunOncePlugin(withKey, 'umeng-bridge', '0.1.0');

@@ -1,18 +1,13 @@
 {
-  "platforms": [
-    "apple",
-    "android",
-    "web"
-  ],
+  "platforms": ["apple", "android", "web", "harmony"],
   "apple": {
-    "modules": [
-      "NativeBrightnessModule"
-    ],
+    "modules": ["NativeBrightnessModule"],
     "appDelegateSubscribers": ["NativeBrightnessAppDelegateSubscriber"]
   },
   "android": {
-    "modules": [
-      "com.west2online.nativebrightness.NativeBrightnessModule"
-    ]
+    "modules": ["com.west2online.nativebrightness.NativeBrightnessModule"]
+  },
+  "harmony": {
+    "modules": ["NativeBrightnessModule"]
   }
 }

@@ -1,5 +1,6 @@
 node_modules/
 .expo/
+.hvigor/
 dist/
 npm-debug.*
 *.jks
@@ -27,9 +28,7 @@ nativewind-env.d.ts
 /ios/*
 /android/
 /harmony/
-/application-support/harmony-polyfill/expo-config.generated.json
 /.harmony-local/
-/.harmony-prebuild-*
 !/ios/ci_scripts/ci_post_clone.sh
 !/ios/ci_scripts/ci_post_xcodebuild.sh
 

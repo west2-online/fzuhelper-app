@@ -1,0 +1,7 @@
+harmony/*.har
+harmony/**/build/
+harmony/**/.hvigor/
+harmony/**/oh_modules/
+harmony/**/oh-package-lock.json5
+harmony/local.properties
+harmony/**/BuildProfile.ets

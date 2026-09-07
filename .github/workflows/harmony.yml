@@ -57,7 +57,7 @@ jobs:
 
       - name: Prebuild
         run: |
-          yarn prebuild:harmony
+          yarn harmony:prebuild
 
       - name: Restore OpenHarmony Cache
         uses: actions/cache@v5
@@ -69,14 +69,15 @@ jobs:
             ${{ runner.os }}-ohpm-
 
       - name: Install OpenHarmony Dependencies
+        working-directory: harmony
         run: |
-          yarn oh:install
+          ohpm install --all
 
       - name: Build Release APP
         run: |
-          yarn oh:bundle
+          yarn expo-harmony export:embed
           cd harmony
-          hvigorw assembleApp --mode project -p product=default -p buildMode=release --no-daemon
+          EXPO_HARMONY_BUNDLE_PREBUILT=1 hvigorw assembleApp --mode project -p product=default -p buildMode=release --no-daemon
 
       - name: Sign APP
         run: |

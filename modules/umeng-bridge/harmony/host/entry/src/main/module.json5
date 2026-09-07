@@ -1,0 +1,5 @@
+{
+  "module": {
+    "srcEntry": "./ets/abilityStage/EntryAbilityStage.ets"
+  }
+}

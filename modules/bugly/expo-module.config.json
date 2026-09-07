@@ -1,17 +1,12 @@
 {
-  "platforms": [
-    "apple",
-    "android",
-    "web"
-  ],
+  "platforms": ["apple", "android", "harmony"],
   "apple": {
-    "modules": [
-      "BuglyModule"
-    ]
+    "modules": ["BuglyModule"]
   },
   "android": {
-    "modules": [
-      "com.west2online.bugly.BuglyModule"
-    ]
+    "modules": ["com.west2online.bugly.BuglyModule"]
+  },
+  "harmony": {
+    "modules": ["BuglyModule"]
   }
 }
