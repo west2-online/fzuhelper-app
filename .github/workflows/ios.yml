@@ -27,6 +27,14 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+      
+      - name: Download Widget Provisioning Profiles
+        uses: Apple-Actions/download-provisioning-profiles@v6
+        with:
+          bundle-id: 'FzuHelper.FzuHelper.widget'
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
       - name: Get commit count
         id: commit_count
