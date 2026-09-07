@@ -114,3 +114,8 @@ jobs:
             notify_external_testers:false \
             reject_build_waiting_for_review:true \
             skip_waiting_for_build_processing:false
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f AuthKey.p8 key.json
