@@ -14,35 +14,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Import Code Signing Certificates
-        uses: Apple-Actions/import-codesign-certs@v7
-        with:
-          p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
-          p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
-
-      - name: Download Provisioning Profiles
-        uses: Apple-Actions/download-provisioning-profiles@v6
-        with:
-          bundle-id: 'FzuHelper.FzuHelper'
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
-      
-      - name: Download Widget Provisioning Profiles
-        uses: Apple-Actions/download-provisioning-profiles@v6
-        with:
-          bundle-id: 'FzuHelper.FzuHelper.widget'
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
-
-      - name: Get commit count
-        id: commit_count
-        run: |
-          COUNT=$(git rev-list --count HEAD)
-          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-          echo "Commit count: $COUNT"
-
       - name: Restore Cache
         uses: actions/cache@v5
         with:
@@ -65,27 +36,51 @@ jobs:
         run: |
           yarn prebuild:ios
 
-      - name: Build
-        uses: Apple-Actions/xcodebuild@v1
-        with:
-          workspace: ios/fzuhelper.xcworkspace
-          scheme: fzuhelper
-          sdk: iphonesimulator
-          build-number: ${{ steps.commit_count.outputs.count }}
-          zip-result-bundle: true
+      - name: Setup API Key
+        run: |
+          echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > AuthKey.p8
 
-      - name: Build Signed
-        uses: Apple-Actions/xcodebuild@v1
-        with:
-          workspace: ios/fzuhelper.xcworkspace
-          scheme: fzuhelper
-          sdk: iphoneos
-          action: archive
-          archive-path: fzuhelper.xcarchive
-          export-options-plist: fzuhelper.plist
-          build-number: ${{ steps.commit_count.outputs.count }}
-          zip-result-bundle: true
-          zip-archive: true
+      - name: Create Export Options
+        run: |
+          cat > ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store-connect</string>
+              <key>signingStyle</key>
+              <string>automatic</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Archive
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace ios/fzuhelper.xcworkspace \
+            -scheme fzuhelper \
+            -configuration Release \
+            -archivePath fzuhelper.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$(pwd)/AuthKey.p8" \
+            -authenticationKeyID ${{ secrets.APPSTORE_API_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APPSTORE_ISSUER_ID }} \
+            archive | xcbeautify --renderer github-actions
+
+      - name: Export IPA
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -exportArchive \
+            -archivePath fzuhelper.xcarchive \
+            -exportPath . \
+            -exportOptionsPlist ExportOptions.plist \
+            -authenticationKeyPath "$(pwd)/AuthKey.p8" \
+            -authenticationKeyID ${{ secrets.APPSTORE_API_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APPSTORE_ISSUER_ID }} \
+            -allowProvisioningUpdates | xcbeautify --renderer github-actions
 
       - name: Generate Changelog
         id: changelog
@@ -98,12 +93,24 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Upload TestFlight Build
-
-        uses: Apple-Actions/upload-testflight-build@v5
-        with:
-          app-path: 'fzuhelper.ipa'
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
-          release-notes: ${{ steps.changelog.outputs.CHANGELOG }}
-          wait-for-processing: true
+        run: |
+          gem install fastlane
+          
+          cat > key.json << EOF
+          {
+            "key_id": "${{ secrets.APPSTORE_API_KEY_ID }}",
+            "issuer_id": "${{ secrets.APPSTORE_ISSUER_ID }}",
+            "key": "$(echo '${{ secrets.APPSTORE_API_PRIVATE_KEY }}' | sed 's/$/\\n/' | tr -d '\n')"
+          }
+          EOF
+          
+          fastlane run upload_to_testflight \
+            ipa:"fzuhelper.ipa" \
+            app_identifier:"FzuHelper.FzuHelper" \
+            api_key_path:"key.json" \
+            changelog:"${{ steps.changelog.outputs.CHANGELOG }}" \
+            distribute_external:true \
+            groups: ["fzuhelper-refactor", "postgraduate"] \
+            notify_external_testers:false \
+            reject_build_waiting_for_review:true \
+            skip_waiting_for_build_processing:false
