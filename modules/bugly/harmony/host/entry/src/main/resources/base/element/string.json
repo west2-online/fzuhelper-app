@@ -1,0 +1,12 @@
+{
+  "string": [
+    {
+      "name": "bugly_app_id",
+      "value": ""
+    },
+    {
+      "name": "bugly_app_key",
+      "value": ""
+    }
+  ]
+}

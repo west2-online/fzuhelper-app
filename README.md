@@ -106,16 +106,11 @@ yarn install
 yarn prebuild:harmony
 
 # 安装 ohpm 依赖
-yarn oh:install
+(cd harmony && ohpm install --all)
 
-# 启动 Expo dev server
-yarn oh
-
-# 转发端口（需要先启动模拟器）
-yarn oh:forward
+# 在模拟器中运行开发版本
+yarn harmony
 ```
-
-然后在 DevEco Studio 中打开生成的 `harmony/` 目录，运行 `entry` 模块。
 
 ## 参与贡献
 

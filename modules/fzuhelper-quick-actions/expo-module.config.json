@@ -1,0 +1,6 @@
+{
+  "platforms": ["harmony"],
+  "harmony": {
+    "modules": ["ExpoQuickActionsModule"]
+  }
+}

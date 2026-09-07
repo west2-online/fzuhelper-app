@@ -1,9 +1,12 @@
 {
-  "platforms": ["ios", "tvos", "android", "web"],
+  "platforms": ["ios", "tvos", "android", "web", "harmony"],
   "ios": {
     "modules": ["NativeRequestModule"]
   },
   "android": {
     "modules": ["com.west2online.nativerequest.NativeRequestModule"]
+  },
+  "harmony": {
+    "modules": ["NativeRequestModule"]
   }
 }
