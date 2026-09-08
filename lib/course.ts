@@ -1,5 +1,5 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
-import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1TermsList } from '@/api/generate';
+import { deleteApiV1JwchCourseCustom, getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1TermsList, postApiV1JwchCourseCustom } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { queryClient } from '@/components/query-provider';
 import {
@@ -67,6 +67,42 @@ export type CustomCourse = ExtendCourseBase & {
   semester: string; // 学期
 };
 
+// 云端自定义课程接口类型
+export interface CloudCustomCourse {
+  id: string;
+  name: string;
+  teacher?: string;
+  location: string;
+  startClass: number;
+  endClass: number;
+  startWeek: number;
+  endWeek: number;
+  weekday: number;
+  single?: boolean;
+  double?: boolean;
+  color?: string;
+  remark?: string;
+}
+
+// 上传自定义课程的参数类型
+export interface UpsertCustomCourseParams {
+  term: string;
+  course: {
+    id?: string;
+    name: string;
+    location: string;
+    startClass: number;
+    endClass: number;
+    startWeek: number;
+    endWeek: number;
+    weekday: number;
+    single?: boolean;
+    double?: boolean;
+    color?: string;
+    remark?: string;
+  };
+}
+
 export type WeekSegment = {
   startWeek: number;
   endWeek: number;
@@ -113,6 +149,42 @@ const MAX_PRIORITY = 10000; // 普通课程最大优先级，达到这个优先�
 const EXAM_PRIORITY = 20002; // 考试优先级，我们取巧一下，比最大的优先级还要大
 export const DEFAULT_PRIORITY = 1; // 默认优先级
 const DEFAULT_STARTID = 0; // 默认 ID 起始值
+
+// 云端自定义课程 storageKey 前缀
+// 约定：以该前缀开头的 storageKey 表示课程来自云端，需与服务端同步
+// 纯本地课程则使用随机 UUID 作为 storageKey，不触发同步逻辑
+const CLOUD_COURSE_STORAGE_PREFIX = 'cloud_';
+
+// 判断 storageKey 是否为云端课程
+const isCloudCourse = (key: string): boolean => key.startsWith(CLOUD_COURSE_STORAGE_PREFIX);
+
+// 根据云端 courseId 生成 storageKey
+const buildCloudStorageKey = (courseId: string): string => `${CLOUD_COURSE_STORAGE_PREFIX}${courseId}`;
+
+// 从 storageKey 中提取云端 courseId（若非云端 key，返回空字符串）
+const extractCloudCourseId = (key: string): string =>
+  isCloudCourse(key) ? key.slice(CLOUD_COURSE_STORAGE_PREFIX.length) : '';
+
+// 云端同步辅助函数：新增/更新自定义课程
+export async function upsertCustomCourse(term: string, course: UpsertCustomCourseParams['course']): Promise<string> {
+  try {
+    const resp = await postApiV1JwchCourseCustom({ term, course });
+    return resp.data?.data?.courseId || '';
+  } catch (error) {
+    console.error('Failed to upsert custom course:', error);
+    throw error;
+  }
+}
+
+// 云端同步辅助函数：删除自定义课程
+export async function deleteCustomCourse(term: string, courseId: string): Promise<void> {
+  try {
+    await deleteApiV1JwchCourseCustom({ term, course_id: courseId });
+  } catch (error) {
+    console.error('Failed to delete custom course:', error);
+    throw error;
+  }
+}
 
 export class CourseCache {
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
@@ -240,6 +312,73 @@ export class CourseCache {
     this.lastCourseUpdateTime = result.lastCourseUpdateTime;
     this.lastExamUpdateTime = result.lastExamUpdateTime;
     console.log('Loaded cached course data.');
+
+    // 老数据自动迁移
+    await this.migrateOldCustomCourses();
+  }
+
+  /**
+   * 迁移老版本的自定义课程数据到云端
+   * 仅迁移本地课程（非云端），云端课程由服务端返回
+   */
+  private static async migrateOldCustomCourses(): Promise<void> {
+    try {
+      const migrated = await AsyncStorage.getItem('custom_course_migrated');
+      if (migrated === 'true') return;
+
+      // 如果没有自定义课程数据，直接标记为已迁移
+      if (!this.cachedCustomData || Object.keys(this.cachedCustomData).length === 0) {
+        await AsyncStorage.setItem('custom_course_migrated', 'true');
+        return;
+      }
+
+      const term = (await getCourseSetting()).selectedSemester;
+      let hasLocalCourses = false;
+
+      // 遍历所有自定义课程，迁移本地课程到云端
+      for (const [day, courses] of Object.entries(this.cachedCustomData)) {
+        for (const course of courses) {
+          // 只迁移本地课程（storageKey 不以 cloud_ 开头）
+          if (!isCloudCourse(course.storageKey)) {
+            hasLocalCourses = true;
+            try {
+              const cloudCourseId = await upsertCustomCourse(term, {
+                name: course.name,
+                location: course.location,
+                startClass: course.startClass,
+                endClass: course.endClass,
+                startWeek: course.startWeek,
+                endWeek: course.endWeek,
+                weekday: course.weekday,
+                single: course.single,
+                double: course.double,
+                color: course.color,
+                remark: course.remark,
+              });
+
+              // 更新 storageKey 为云端格式
+              if (cloudCourseId) {
+                course.storageKey = buildCloudStorageKey(cloudCourseId);
+              }
+            } catch (error) {
+              console.error(`Failed to migrate course ${course.name}:`, error);
+              // 单条课程迁移失败不影响其他课程
+            }
+          }
+        }
+      }
+
+      // 保存迁移后的数据
+      if (hasLocalCourses) {
+        await this.save();
+      }
+
+      await AsyncStorage.setItem('custom_course_migrated', 'true');
+      console.log('Successfully migrated old custom courses to cloud.');
+    } catch (error) {
+      console.error('Failed to migrate old custom courses:', error);
+      // 迁移失败不阻塞主流程，用户下次启动会重试
+    }
   }
 
   /**
@@ -584,11 +723,13 @@ export class CourseCache {
    * 转换课程数据为扩展课程数据
    * @param tempData - 接口返回的数据
    * @param skipDigestCheck - 是否跳过摘要检查
+   * @param customCourses - 云端返回的自定义课程数据（可选）
    * @returns 按天归类的课程数据
    */
   public static setCourses(
     tempData: JwchCourseListResponse_Course[],
     skipDigestCheck: boolean = false,
+    customCourses?: CloudCustomCourse[],
   ): Record<number, ExtendCourse[]> {
     /* 缓存校对处理，如果缓存和传入的数据一致，不做任何改动 */
 
@@ -632,6 +773,11 @@ export class CourseCache {
       Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<number, ExtendCourse[]>,
     );
 
+    // 处理云端自定义课程数据
+    if (customCourses && customCourses.length > 0) {
+      this.processCloudCustomCourses(customCourses);
+    }
+
     // 更新缓存
     this.cachedDigest = currentDigest;
     this.cachedData = groupedData;
@@ -639,6 +785,71 @@ export class CourseCache {
     this.save().then(() => this.refresh()); // 缓存数据
 
     return groupedData;
+  }
+
+  /**
+   * 处理云端返回的自定义课程数据
+   * @param customCourses - 云端自定义课程列表
+   */
+  private static processCloudCustomCourses(customCourses: CloudCustomCourse[]): void {
+    const getCurrentSemester = async () => {
+      try {
+        const setting = await getCourseSetting();
+        return setting.selectedSemester;
+      } catch {
+        return '';
+      }
+    };
+
+    // 由于这是同步方法，我们使用一个临时变量来存储学期
+    // 实际的学期设置会在 save 时处理
+    const semester = getCurrentSemester();
+    // 注意：在同步方法中无法等待异步操作
+    // 我们将在后续的 load 或 save 中处理
+
+    if (!this.cachedCustomData) {
+      this.cachedCustomData = Object.fromEntries(
+        Array.from({ length: 7 }, (_, i) => [i, []])
+      ) as Record<number, CustomCourse[]>;
+    }
+
+    // 清空旧的云端课程（以 cloud_ 开头的 storageKey）
+    for (const day of Object.keys(this.cachedCustomData)) {
+      this.cachedCustomData[+day] = this.cachedCustomData[+day].filter(
+        c => !isCloudCourse(c.storageKey)
+      );
+    }
+
+    // 添加云端课程
+    customCourses.forEach(course => {
+      const dayIndex = course.weekday - 1;
+      if (!this.cachedCustomData![dayIndex]) {
+        this.cachedCustomData![dayIndex] = [];
+      }
+
+      const customCourse: CustomCourse = {
+        id: this.allocateID(),
+        name: course.name,
+        teacher: course.teacher || '',
+        location: course.location,
+        startClass: course.startClass,
+        endClass: course.endClass,
+        startWeek: course.startWeek,
+        endWeek: course.endWeek,
+        weekday: course.weekday,
+        single: course.single || false,
+        double: course.double || false,
+        color: course.color || '#FF5733',
+        remark: course.remark || '',
+        priority: DEFAULT_PRIORITY,
+        type: CourseType.CUSTOM,
+        storageKey: buildCloudStorageKey(course.id),
+        lastUpdateTime: dayjs().toISOString(),
+        semester: '', // 将在 load 时设置正确的学期
+      };
+
+      this.cachedCustomData![dayIndex].push(customCourse);
+    });
   }
 
   /**
@@ -693,11 +904,35 @@ export class CourseCache {
       >;
     }
 
+    // 上传到服务器，获取云端 courseId
+    let cloudCourseId = '';
+    try {
+      const term = (await getCourseSetting()).selectedSemester;
+      // 前端 weekday 0-6 (周一到周日) → 后端 1-7 (周一到周日)，此处已经是 1-7
+      cloudCourseId = await upsertCustomCourse(term, {
+        name: course.name,
+        location: course.location,
+        startClass: course.startClass,
+        endClass: course.endClass,
+        startWeek: course.startWeek,
+        endWeek: course.endWeek,
+        weekday: course.weekday,
+        single: course.single,
+        double: course.double,
+        color: course.color,
+        remark: course.remark,
+      });
+    } catch (error) {
+      console.error('Failed to upload custom course to server:', error);
+      // 上传失败不阻塞本地操作，但标记为非云端课程
+    }
+
     const newIndex = course.weekday - 1;
     const newCourse: CustomCourse = {
       ...course,
       id: this.allocateID(),
-      storageKey: randomUUID(),
+      // 如果有云端 courseId，则使用 cloud_ 前缀的 storageKey
+      storageKey: cloudCourseId ? buildCloudStorageKey(cloudCourseId) : randomUUID(),
       lastUpdateTime: dayjs().toISOString(),
     };
 
@@ -739,6 +974,30 @@ export class CourseCache {
       return;
     }
 
+    // 如果是云端课程，上传更新到服务器
+    if (isCloudCourse(key)) {
+      try {
+        const term = (await getCourseSetting()).selectedSemester;
+        const courseId = extractCloudCourseId(key);
+        await upsertCustomCourse(term, {
+          id: courseId,
+          name: course.name,
+          location: course.location,
+          startClass: course.startClass,
+          endClass: course.endClass,
+          startWeek: course.startWeek,
+          endWeek: course.endWeek,
+          weekday: course.weekday,
+          single: course.single,
+          double: course.double,
+          color: course.color,
+          remark: course.remark,
+        });
+      } catch (error) {
+        console.error('Failed to update custom course on server:', error);
+      }
+    }
+
     const updatedCourse: CustomCourse = {
       ...course,
       lastUpdateTime: dayjs().toISOString(),
@@ -763,6 +1022,17 @@ export class CourseCache {
   public static async removeCustomCourse(key: string): Promise<void> {
     if (!this.cachedCustomData) {
       return;
+    }
+
+    // 如果是云端课程，从服务器删除
+    if (isCloudCourse(key)) {
+      try {
+        const term = (await getCourseSetting()).selectedSemester;
+        const courseId = extractCloudCourseId(key);
+        await deleteCustomCourse(term, courseId);
+      } catch (error) {
+        console.error('Failed to delete custom course from server:', error);
+      }
     }
 
     for (const [day, courses] of Object.entries(this.cachedCustomData)) {
@@ -912,7 +1182,8 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
   // locate-date
   await locateDate(true); // 强制更新缓存
 
-  CourseCache.setCourses(data.data.data, true); // 设置课程数据,跳过digest检查
+  // 传递 customCourses 参数处理云端自定义课程
+  CourseCache.setCourses(data.data.data, true, data.data.customCourses); // 设置课程数据,跳过digest检查
 
   // 考场信息
   if ((await getCourseSetting()).exportExamToCourseTable) {

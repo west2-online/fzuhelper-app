@@ -73,11 +73,76 @@ export async function getApiV1JwchCourseList(
       rawAdjust: string;
       examType: string;
     }[];
+    customCourses?: {
+      id: string;
+      name: string;
+      teacher?: string;
+      location: string;
+      startClass: number;
+      endClass: number;
+      startWeek: number;
+      endWeek: number;
+      weekday: number;
+      single?: boolean;
+      double?: boolean;
+      color?: string;
+      remark?: string;
+    }[];
   }>('/api/v1/jwch/course/list', {
     method: 'GET',
     params: {
       ...params,
     },
+    ...(options || {}),
+  });
+}
+
+/** 新增/更新自定义课程 POST /api/v1/jwch/course/custom */
+export async function postApiV1JwchCourseCustom(
+  params: {
+    term: string;
+    course: {
+      id?: string;
+      name: string;
+      location: string;
+      startClass: number;
+      endClass: number;
+      startWeek: number;
+      endWeek: number;
+      weekday: number;
+      single?: boolean;
+      double?: boolean;
+      color?: string;
+      remark?: string;
+    };
+  },
+  options?: { [key: string]: unknown }
+) {
+  return request<{
+    code: string;
+    message: string;
+    data: { courseId: string };
+  }>('/api/v1/jwch/course/custom', {
+    method: 'POST',
+    data: params,
+    ...(options || {}),
+  });
+}
+
+/** 删除自定义课程 DELETE /api/v1/jwch/course/custom */
+export async function deleteApiV1JwchCourseCustom(
+  params: {
+    term: string;
+    course_id: string;
+  },
+  options?: { [key: string]: unknown }
+) {
+  return request<{
+    code: string;
+    message: string;
+  }>('/api/v1/jwch/course/custom', {
+    method: 'DELETE',
+    data: params,
     ...(options || {}),
   });
 }

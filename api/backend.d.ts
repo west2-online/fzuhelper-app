@@ -1,4 +1,5 @@
 import {
+  type deleteApiV1JwchCourseCustom,
   type getApiV1CommonClassroomEmpty,
   type getApiV1CommonContributor,
   type getApiV1JwchAcademicGpa,
@@ -13,6 +14,7 @@ import {
   type getApiV1UserFriendList,
   type getApiV2JwchAcademicCredit,
   type getApiV2VersionAndroid,
+  type postApiV1JwchCourseCustom,
 } from '@/api/generate';
 
 import { AsyncReturnType } from '@/types/utils';
@@ -50,6 +52,15 @@ export type JwchCourseListResponse = AsyncReturnType<typeof getApiV1JwchCourseLi
 export type JwchCourseListResponse_Course = JwchCourseListResponse[0];
 export type JwchCourseListResponse_CourseScheduleRules = JwchCourseListResponse_Course['scheduleRules'];
 export type JwchCourseListResponse_CourseScheduleRule = JwchCourseListResponse_CourseScheduleRules[0];
+export type JwchCourseListResponse_CustomCourses = AsyncReturnType<typeof getApiV1JwchCourseList>['data']['data'];
+export type JwchCourseListResponse_CustomCourseItem = NonNullable<AsyncReturnType<typeof getApiV1JwchCourseList>['data']['customCourses']>[0];
+
+// === 自定义课程 ===
+// postApiV1JwchCourseCustom
+export type PostApiV1JwchCourseCustomResponse = AsyncReturnType<typeof postApiV1JwchCourseCustom>['data']['data'];
+
+// deleteApiV1JwchCourseCustom
+export type DeleteApiV1JwchCourseCustomResponse = AsyncReturnType<typeof deleteApiV1JwchCourseCustom>['data'];
 
 // === 学业 ===
 // getApiV1JwchAcademicScores
