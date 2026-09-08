@@ -110,8 +110,8 @@ jobs:
             api_key_path:"key.json" \
             changelog:"${{ steps.changelog.outputs.CHANGELOG }}" \
             distribute_external:true \
-            groups: ["fzuhelper-refactor", "postgraduate"] \
-            notify_external_testers:false \
+            groups:"fzuhelper-refactor,postgraduate" \
+            notify_external_testers:true \
             reject_build_waiting_for_review:true \
             skip_waiting_for_build_processing:false
       
