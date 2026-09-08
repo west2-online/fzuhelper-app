@@ -7,8 +7,6 @@ jobs:
   build-ipa:
     runs-on: macos-26
     timeout-minutes: 60
-    env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
     steps:
       - name: Checkout Source Code
@@ -34,38 +32,55 @@ jobs:
       - name: Install Dependencies
         run: yarn install --frozen-lockfile --prefer-offline
 
-      - name: Checkout EAS CLI
+      - name: Prebuild
         run: |
-          git clone --branch feat/submit-by-local-machine --depth 1 https://github.com/west2-online/eas-cli.git
+          yarn prebuild:ios
 
-      - name: Cache EAS CLI Dependencies
-        uses: actions/cache@v5
-        with:
-          path: eas-cli/node_modules
-          key: ${{ runner.os }}-eas-cli-${{ hashFiles('eas-cli/yarn.lock') }}
+      - name: Setup API Key
+        run: |
+          echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > AuthKey.p8
 
-      - name: Build EAS CLI
+      - name: Create Export Options
         run: |
-          cd eas-cli
-          corepack yarn install --frozen-lockfile
-          corepack yarn build
-        env:
-          GH_TOKEN: ${{ github.token }}
-      
-      # EAS 本地构建会开很多奇怪的容器，这个环境变量保证 commit 正常计数
-      - name: Get commit count
-        id: commit_count
-        run: |
-          COUNT=$(git rev-list --count HEAD)
-          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-          echo "Commit count: $COUNT"  
+          cat > ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store-connect</string>
+              <key>signingStyle</key>
+              <string>automatic</string>
+          </dict>
+          </plist>
+          EOF
 
-      - name: EAS Build iOS
+      - name: Archive
         run: |
-          ./eas-cli/packages/eas-cli/bin/run build --platform ios --profile production --non-interactive --local --output=./build/fzuhelper.ipa
-        env:
-          EAS_SKIP_AUTO_FINGERPRINT: 1
-          GIT_COMMIT_COUNT: ${{ steps.commit_count.outputs.count }}
+          set -o pipefail
+          xcodebuild \
+            -workspace ios/fzuhelper.xcworkspace \
+            -scheme fzuhelper \
+            -configuration Release \
+            -archivePath fzuhelper.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$(pwd)/AuthKey.p8" \
+            -authenticationKeyID ${{ secrets.APPSTORE_API_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APPSTORE_ISSUER_ID }} \
+            archive | xcbeautify --renderer github-actions
+
+      - name: Export IPA
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -exportArchive \
+            -archivePath fzuhelper.xcarchive \
+            -exportPath . \
+            -exportOptionsPlist ExportOptions.plist \
+            -authenticationKeyPath "$(pwd)/AuthKey.p8" \
+            -authenticationKeyID ${{ secrets.APPSTORE_API_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APPSTORE_ISSUER_ID }} \
+            -allowProvisioningUpdates | xcbeautify --renderer github-actions
 
       - name: Generate Changelog
         id: changelog
@@ -77,7 +92,30 @@ jobs:
             echo "BSEOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: EAS Submit iOS
+      - name: Upload TestFlight Build
         run: |
-          ./eas-cli/packages/eas-cli/bin/run submit --platform ios --profile production --non-interactive --local --path=./build/fzuhelper.ipa --what-to-test="${{ steps.changelog.outputs.CHANGELOG }}" \
-          --fastlane-args="--distribute_external --reject_build_waiting_for_review"
+          gem install fastlane
+          
+          cat > key.json << EOF
+          {
+            "key_id": "${{ secrets.APPSTORE_API_KEY_ID }}",
+            "issuer_id": "${{ secrets.APPSTORE_ISSUER_ID }}",
+            "key": "$(echo '${{ secrets.APPSTORE_API_PRIVATE_KEY }}' | sed 's/$/\\n/' | tr -d '\n')"
+          }
+          EOF
+          
+          fastlane run upload_to_testflight \
+            ipa:"fzuhelper.ipa" \
+            app_identifier:"FzuHelper.FzuHelper" \
+            api_key_path:"key.json" \
+            changelog:"${{ steps.changelog.outputs.CHANGELOG }}" \
+            distribute_external:true \
+            groups: ["fzuhelper-refactor", "postgraduate"] \
+            notify_external_testers:false \
+            reject_build_waiting_for_review:true \
+            skip_waiting_for_build_processing:false
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f AuthKey.p8 key.json
