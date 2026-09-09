@@ -8,6 +8,11 @@ export type getApiV1CommonClassroomEmptyParams = {
   endTime?: string;
 };
 
+export type getApiV1CommonJobFairParams = {
+  /** 查询月份，格式为 YYYY-MM */
+  month: string;
+};
+
 export type getApiV1CommonNoticeParams = {
   pageNum?: number;
 };

@@ -1,50 +1,14 @@
-import { Buffer } from '@craftzdog/react-native-buffer';
 import dayjs, { type Dayjs } from 'dayjs';
 
-import { post } from '@/modules/native-request';
+import { getApiV1CommonJobFair } from '@/api/generate/common';
 
-const JOB_FAIR_API_URL = 'http://fjrclh.fzu.edu.cn/CmsInterface/getDateZPHKeynoteList_month';
-const JOB_FAIR_DETAIL_URL = 'http://fjrclh.fzu.edu.cn/cms/zphdetail.html';
-const LECTURE_DETAIL_URL = 'http://fjrclh.fzu.edu.cn/cms/xjhdetail.html';
-
-// 站点返回的标题里会混有 HTML 实体，需要在列表展示前手动解码。
-const HTML_ENTITY_MAP: Record<string, string> = {
-  amp: '&',
-  apos: "'",
-  quot: '"',
-  nbsp: ' ',
-  ldquo: '“',
-  rdquo: '”',
-  lsquo: '‘',
-  rsquo: '’',
-  mdash: '—',
-  ndash: '–',
-  hellip: '…',
-  middot: '·',
-};
-
-interface JobFairApiItem {
-  id: string;
-  title: string | null;
-  place: string | null;
-  // 源站用 YYYYMMDD 表示日期，用 time 表示当天时间
-  start_time: string;
-  time: string;
-  zphval: string;
-}
-
-interface JobFairApiResponse {
-  success: boolean;
-  zhaopinhui_keynoteList: JobFairApiItem[];
-}
+const WEEKDAY_LABELS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
 export interface JobFairItem {
   id: string;
   title: string;
   place: string;
-  time: string;
   startsAt: Dayjs;
-  dateKey: string;
   detailUrl: string;
 }
 
@@ -71,29 +35,14 @@ export type JobFairListRow =
       item: JobFairItem;
     };
 
-function decodeHtmlEntities(value: string | null | undefined) {
-  return (value ?? '').replace(/&(#x?[\da-fA-F]+|[a-zA-Z]+);/g, (fullMatch, entity: string) => {
-    if (entity.startsWith('#x') || entity.startsWith('#X')) {
-      const codePoint = Number.parseInt(entity.slice(2), 16);
-      return Number.isNaN(codePoint) ? fullMatch : String.fromCodePoint(codePoint);
-    }
-
-    if (entity.startsWith('#')) {
-      const codePoint = Number.parseInt(entity.slice(1), 10);
-      return Number.isNaN(codePoint) ? fullMatch : String.fromCodePoint(codePoint);
-    }
-
-    return HTML_ENTITY_MAP[entity] ?? fullMatch;
-  });
-}
-
 function groupItemsByDate(items: JobFairItem[]): JobFairDayGroup[] {
   const grouped = new Map<string, JobFairItem[]>();
 
   items.forEach(item => {
-    const current = grouped.get(item.dateKey) ?? [];
+    const dateKey = item.startsAt.format('YYYY-MM-DD');
+    const current = grouped.get(dateKey) ?? [];
     current.push(item);
-    grouped.set(item.dateKey, current);
+    grouped.set(dateKey, current);
   });
 
   return Array.from(grouped.entries())
@@ -102,7 +51,7 @@ function groupItemsByDate(items: JobFairItem[]): JobFairDayGroup[] {
       const currentDate = dayjs(dateKey);
       return {
         dateKey,
-        dateLabel: currentDate.format('M 月 D 日'),
+        dateLabel: `${currentDate.format('M 月 D 日')} · ${WEEKDAY_LABELS[currentDate.day()]}`,
         items: dayItems.sort((a, b) => a.startsAt.valueOf() - b.startsAt.valueOf()),
       };
     });
@@ -142,7 +91,7 @@ export function buildJobFairListRows(groups: JobFairDayGroup[], now: Dayjs): Job
     rows.push({ key: 'ended-title', type: 'endedTitle' });
     rows.push(
       ...endedItems
-        .sort((a, b) => a.startsAt.valueOf() - b.startsAt.valueOf())
+        .sort((a, b) => b.startsAt.valueOf() - a.startsAt.valueOf())
         .map(item => ({
           key: `ended-${item.id}`,
           type: 'endedItem' as const,
@@ -155,47 +104,16 @@ export function buildJobFairListRows(groups: JobFairDayGroup[], now: Dayjs): Job
 }
 
 export async function fetchJobFairMonthData(month: Dayjs): Promise<JobFairDayGroup[]> {
-  const response = await post(
-    JOB_FAIR_API_URL,
-    {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-    {
-      dateday: month.format('YYYY/MM'),
-    },
-  );
-
-  if (response.status < 200 || response.status >= 300) {
-    throw new Error('招聘会数据加载失败');
-  }
-
-  const rawText = Buffer.from(response.data).toString('utf-8');
-  let parsed: JobFairApiResponse;
-
-  try {
-    parsed = JSON.parse(rawText) as JobFairApiResponse;
-  } catch {
-    throw new Error('招聘会数据解析失败');
-  }
-
-  if (!parsed.success) {
-    throw new Error('招聘会数据加载失败');
-  }
-
-  const normalizedItems = parsed.zhaopinhui_keynoteList.map<JobFairItem>(item => {
-    // start_time 形如 20260401，time 形如 15:00，组合后用于排序和判断是否已结束。
-    const dateText = `${item.start_time.slice(0, 4)}-${item.start_time.slice(4, 6)}-${item.start_time.slice(6, 8)}`;
-    const startsAt = dayjs(`${dateText} ${item.time}`);
+  const response = await getApiV1CommonJobFair({ month: month.format('YYYY-MM') });
+  const normalizedItems = response.data.data.events.map<JobFairItem>(item => {
+    const startsAt = dayjs.unix(item.starts_at);
 
     return {
       id: item.id,
-      title: decodeHtmlEntities(item.title).trim(),
-      place: decodeHtmlEntities(item.place).trim(),
-      time: item.time,
+      title: item.title,
+      place: item.place,
       startsAt,
-      dateKey: dateText,
-      // zphval === '3' 代表宣讲会，其他值代表招聘会
-      detailUrl: `${item.zphval === '3' ? LECTURE_DETAIL_URL : JOB_FAIR_DETAIL_URL}?id=${item.id}`,
+      detailUrl: item.detail_url,
     };
   });
 
