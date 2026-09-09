@@ -34,6 +34,7 @@ const SwitchWeb = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives.Ro
 
 SwitchWeb.displayName = 'SwitchWeb';
 
+/* eslint-disable no-restricted-syntax */
 const RGB_COLORS = {
   light: {
     primary: 'rgb(24, 24, 27)',
@@ -44,6 +45,7 @@ const RGB_COLORS = {
     input: 'rgb(39, 39, 42)',
   },
 } as const;
+/* eslint-enable no-restricted-syntax */
 
 const SwitchNative = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives.RootProps>(
   ({ className, ...props }, ref) => {

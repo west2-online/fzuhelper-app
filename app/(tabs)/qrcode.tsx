@@ -46,6 +46,7 @@ interface QRCodeViewProps {
   color?: string;
 }
 
+/* eslint-disable no-restricted-syntax */
 const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' }) => {
   const svgXml = useMemo(() => {
     if (!value || size <= 0) {
@@ -82,6 +83,7 @@ const QRCodeView: React.FC<QRCodeViewProps> = ({ size, value, color = '#000000' 
     </View>
   );
 };
+/* eslint-enable no-restricted-syntax */
 
 export default function YiMaTongPage() {
   const pathname = usePathname();

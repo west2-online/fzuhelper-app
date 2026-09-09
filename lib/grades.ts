@@ -93,7 +93,8 @@ const excludedElectiveTypes = [
 // 移除补考课程对应的原课程
 const removeReexaminationCourse = (data: CourseGradesData[]) =>
   data.filter(item => {
-    if (item.exam_type.includes('补考')) { // 当前课程是补考课程
+    if (item.exam_type.includes('补考')) {
+      // 当前课程是补考课程
       return item.gpa !== ''; // 保留出了成绩的补考课程
     }
 

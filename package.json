@@ -20,7 +20,7 @@
     "oh:bundle": "node scripts/harmony/bundle.js",
     "oh:build": "yarn prebuild:harmony && yarn oh:install && yarn oh:bundle && cd harmony && hvigorw assembleHap --mode module -p product=default -p buildMode=debug --no-daemon",
     "test": "jest --watchAll",
-    "lint": "expo lint",
+    "lint": "expo lint .",
     "openapi": "openapi-ts"
   },
   "jest": {

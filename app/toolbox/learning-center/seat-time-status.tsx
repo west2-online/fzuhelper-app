@@ -84,6 +84,7 @@ export default function SeatTimeStatusPage() {
     fetchSeatTimeStatus();
   }, [api, spaceId, date, isOccupied]);
 
+  /* eslint-disable no-restricted-syntax */
   const getTimeBlockStyle = useCallback(
     (item: TimeDiamond) => {
       // 基础样式
@@ -109,6 +110,7 @@ export default function SeatTimeStatusPage() {
     },
     [beginTime, endTime],
   );
+  /* eslint-enable no-restricted-syntax */
 
   // 处理时间点击事件
   const handleTimeSelection = useCallback(

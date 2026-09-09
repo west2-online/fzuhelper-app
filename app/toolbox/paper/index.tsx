@@ -4,8 +4,8 @@ import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
 import useApiRequest from '@/hooks/useApiRequest';
-import { useFocusEffect } from "expo-router/react-navigation";
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from 'expo-router/react-navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
 
