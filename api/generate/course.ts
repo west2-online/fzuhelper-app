@@ -60,7 +60,7 @@ export async function deleteApiV1CourseCustom(
   params: API.deleteApiV1CourseCustomParams,
   options?: { [key: string]: unknown }
 ) {
-  return request<Record<string, unknown>>('/api/v1/course/custom', {
+  return request<{ code: string; message: string }>('/api/v1/course/custom', {
     method: 'DELETE',
     params: {
       ...params,

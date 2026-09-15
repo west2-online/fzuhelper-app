@@ -2,7 +2,7 @@
 // @ts-ignore
 
 export type deleteApiV1CourseCustomParams = {
-  course_id?: string;
+  course_id: string;
 };
 
 export type getApiV2JwchCourseListParams = {
