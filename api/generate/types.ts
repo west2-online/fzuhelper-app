@@ -1,6 +1,17 @@
 /* eslint-disable */
 // @ts-ignore
 
+export type deleteApiV1CourseCustomParams = {
+  course_id?: string;
+};
+
+export type getApiV2JwchCourseListParams = {
+  /** 学期 */
+  term: string;
+  /** 强刷标签 */
+  is_refresh: boolean;
+};
+
 export type getApiV1CommonClassroomEmptyParams = {
   date?: string;
   campus?: string;

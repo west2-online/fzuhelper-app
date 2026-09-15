@@ -18,6 +18,57 @@ export async function getApiV1CourseCalendarSubscribe(
   });
 }
 
+/** 更新或新增自定义课程 PUT /api/v1/course/custom https://apifox.com/web/project/3275694/apis/api-502781822-run */
+export async function putApiV1CourseCustom(
+  body: {
+    term: string;
+    course: {
+      name: string;
+      location: string;
+      startClass: number;
+      endClass: number;
+      startWeek: number;
+      endWeek: number;
+      weekday: number;
+      double: boolean;
+      single: boolean;
+      color?: string;
+      teacher?: string;
+      remark?: string;
+      id?: string;
+    };
+  },
+  options?: { [key: string]: unknown }
+) {
+  return request<{
+    code: string;
+    message: string;
+    data: { base: { code: number; msg: string }; course_id: string };
+  }>('/api/v1/course/custom', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 删除自定义课程 DELETE /api/v1/course/custom https://apifox.com/web/project/3275694/apis/api-502782017-run */
+export async function deleteApiV1CourseCustom(
+  // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
+  params: API.deleteApiV1CourseCustomParams,
+  options?: { [key: string]: unknown }
+) {
+  return request<Record<string, unknown>>('/api/v1/course/custom', {
+    method: 'DELETE',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** 获取 Locate Date GET /api/v1/course/date https://apifox.com/web/project/3275694/apis/api-264078491-run */
 export async function getApiV1CourseDate(options?: { [key: string]: unknown }) {
   return request<{
@@ -93,4 +144,62 @@ export async function getApiV1JwchTermList(options?: {
       ...(options || {}),
     }
   );
+}
+
+/** 指定学期课表  v2 数据源：我的选课、自定义课表 GET /api/v2/jwch/course/list https://apifox.com/web/project/3275694/apis/api-503276418-run */
+export async function getApiV2JwchCourseList(
+  // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
+  params: API.getApiV2JwchCourseListParams,
+  options?: { [key: string]: unknown }
+) {
+  return request<{
+    code: string;
+    message: string;
+    data: {
+      courses: {
+        name?: string;
+        teacher?: string;
+        scheduleRules?: {
+          location: string;
+          startClass: number;
+          endClass: number;
+          startWeek: number;
+          endWeek: number;
+          weekday: number;
+          single: boolean;
+          double: boolean;
+          adjust: boolean;
+        }[];
+        adjustRules?: string[];
+        remark?: string;
+        lessonplan?: string;
+        syllabus?: string;
+        rawScheduleRules?: string;
+        rawAdjust?: string;
+        examType?: string;
+        electiveType?: string;
+      }[];
+      custom_courses: {
+        id?: string;
+        name?: string;
+        teacher?: string;
+        location?: string;
+        startClass?: number;
+        endClass?: number;
+        startWeek?: number;
+        endWeek?: number;
+        weekday?: number;
+        single?: boolean;
+        double?: boolean;
+        color?: string;
+        remark?: string;
+      }[];
+    };
+  }>('/api/v2/jwch/course/list', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
 }
