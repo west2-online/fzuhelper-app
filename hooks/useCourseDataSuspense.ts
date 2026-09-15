@@ -21,6 +21,7 @@ import {
   updateCourseSetting,
   type CourseInfo,
 } from '@/lib/course';
+import { reconcileCustomCourses } from '@/lib/custom-course-sync';
 import { formatExamData } from '@/lib/exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
@@ -60,8 +61,8 @@ async function loadCourseAndExamData(
     hasChanged = true;
   }
 
-  // 合并云端的自定义课程：以云端为准，同时保留还没同步成功的本地课程
-  const customChanged = await CourseCache.mergeCloudCustomCourses(
+  // 让本地的自定义课程与云端对齐（正常情况下就是覆盖，历史数据需要先迁移，见该函数注释）
+  const customChanged = await reconcileCustomCourses(
     fetchedData.data.data.custom_courses ?? [],
     setting.selectedSemester,
   );
@@ -102,12 +103,6 @@ export function useCoursePageData() {
     queryFn: async (): Promise<CoursePageData> => {
       // 0. 确保缓存已加载（幂等操作，可以多次调用）
       await CourseCache.load();
-
-      // 0.1 静默迁移：把早期只存在本地的自定义课程补传到云端
-      // 不阻塞渲染，单门课失败只记日志，下次进入页面会重试
-      CourseCache.syncLocalCustomCourses().catch(error => {
-        console.warn('自定义课程静默迁移失败:', error);
-      });
 
       // 1. 优先使用已持久化的学期数据（若无则请求）
       let termsData = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([COURSE_TERMS_LIST_KEY]);

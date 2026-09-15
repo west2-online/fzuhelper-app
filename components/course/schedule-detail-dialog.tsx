@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Alert, Image, Pressable, View } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { deleteApiV1CourseCustom } from '@/api/generate';
 import {
   DescriptionList,
   DescriptionListDescription,
@@ -14,6 +15,7 @@ import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CUSTOM_TYPE, CourseCache, type CourseInfoMerged, type CustomCourse } from '@/lib/course';
+import { invalidateCustomCourses } from '@/lib/custom-course-sync';
 import { pushToWebViewJWCH } from '@/lib/webview';
 
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
@@ -156,8 +158,13 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                               style: 'destructive',
                               onPress: async () => {
                                 try {
-                                  // 先删云端，成功后再删本地
-                                  await CourseCache.removeCustomCourse((schedule as CustomCourse).storageKey);
+                                  const target = schedule as CustomCourse;
+                                  // 直接请求后端，storageKey 就是服务端 id
+                                  await deleteApiV1CourseCustom({ course_id: target.storageKey });
+
+                                  // 本地只当缓存：直接失效，再立刻重拉一次
+                                  await invalidateCustomCourses();
+
                                   toast.success('已删除');
                                   closeDialog();
                                 } catch (error: any) {

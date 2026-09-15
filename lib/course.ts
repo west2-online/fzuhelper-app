@@ -1,11 +1,5 @@
 import type { JwchCourseListResponse_Course, JwchCourseListResponse_CourseScheduleRule } from '@/api/backend';
-import {
-  deleteApiV1CourseCustom,
-  getApiV1JwchClassroomExam,
-  getApiV1TermsList,
-  getApiV2JwchCourseList,
-  putApiV1CourseCustom,
-} from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1TermsList, getApiV2JwchCourseList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { queryClient } from '@/components/query-provider';
 import {
@@ -68,8 +62,7 @@ export type ExtendCourse = ExtendCourseBase & {
 
 export type CustomCourse = ExtendCourseBase & {
   type: CourseType.CUSTOM;
-  storageKey: string; // 预留给后端的存储 key
-  remoteId?: string; // 云端课程 id，为空说明这门课还没同步到服务端
+  storageKey: string; // 课程标识，与云端同步后就是服务端的 course_id；为空表示尚未保存的新课程
   lastUpdateTime: string; // 最后更新时间
   semester: string; // 学期
 };
@@ -117,7 +110,7 @@ interface CloudCourse {
 }
 
 /** 后端 model.CustomCourse 的 13 个字段，本地多出来的都是渲染用的，这里做一次裁剪 */
-interface CloudCustomCourse {
+export interface CloudCustomCourse {
   id?: string;
   name?: string;
   teacher?: string;
@@ -131,23 +124,6 @@ interface CloudCustomCourse {
   double?: boolean;
   color?: string;
   remark?: string;
-}
-
-/** 写入云端时请求体里的 course 字段，必填项与后端一致 */
-interface CloudCustomCoursePayload {
-  id?: string;
-  name: string;
-  teacher: string;
-  location: string;
-  startClass: number;
-  endClass: number;
-  startWeek: number;
-  endWeek: number;
-  weekday: number;
-  single: boolean;
-  double: boolean;
-  color: string;
-  remark: string;
 }
 
 /** 本地自定义课程的默认色，与自定义课程页的调色板首色保持一致 */
@@ -169,44 +145,6 @@ export const normalizeV2Courses = (courses: CloudCourse[]): JwchCourseListRespon
     rawAdjust: course.rawAdjust ?? '',
     examType: course.examType ?? '',
   }));
-
-/**
- * 本地课程 → 云端请求体
- * 没有 remoteId 时不要带 id，后端靠 id 是否为空区分新增和更新
- */
-const toCloudCourse = (course: CustomCourse): CloudCustomCoursePayload => ({
-  ...(course.remoteId ? { id: course.remoteId } : {}),
-  name: course.name,
-  teacher: course.teacher,
-  location: course.location,
-  startClass: course.startClass,
-  endClass: course.endClass,
-  startWeek: course.startWeek,
-  endWeek: course.endWeek,
-  weekday: course.weekday,
-  single: course.single,
-  double: course.double,
-  color: course.color,
-  remark: course.remark,
-});
-
-/**
- * 取后端返回的课程 id。
- * 注意：Apifox 文档里写的是 data.course_id，但 handler 实际用的是 pack.RespData(c, resp.CourseID)，
- * 也就是 data 直接就是一个字符串。两种形状都兼容，等文档修好后可以简化掉。
- */
-const extractCourseId = (payload: unknown): string | undefined => {
-  if (typeof payload === 'string' && payload) {
-    return payload;
-  }
-  if (payload && typeof payload === 'object') {
-    const id = (payload as { course_id?: unknown }).course_id;
-    if (typeof id === 'string' && id) {
-      return id;
-    }
-  }
-  return undefined;
-};
 
 export const SCHEDULE_ITEM_MARGIN = 1;
 export const SCHEDULE_ITEM_MIN_HEIGHT = 49;
@@ -230,6 +168,8 @@ export class CourseCache {
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
   private static cachedExamDigest: string | null = null; // 缓存的考试数据的摘要
   private static cachedCustomDigest: string | null = null; // 缓存的自定义课程数据的摘要
+  // 历史本地自定义课程是否已经全部上传到云端；false 时不允许用服务端数据覆盖本地
+  private static customCoursesMigrated = false;
   private static cachedData: Record<number, ExtendCourse[]> | null = null; // 缓存的课程数据
   private static cachedExamData: Record<number, ExtendCourse[]> | null = null; // 缓存的考试数据
   private static cachedCustomData: Record<number, CustomCourse[]> | null = null; // 缓存的自定义课程数据
@@ -794,31 +734,6 @@ export class CourseCache {
   }
 
   /**
-   * 添加自定义课程：先写云端，成功后再落本地
-   * 云端失败时直接抛出，本地数据保持不变
-   * @param course - 自定义课程
-   * @returns 落库后的本地课程（带上了服务端返回的 remoteId）
-   */
-  public static async addCustomCourse(course: CustomCourse): Promise<CustomCourse> {
-    this.ensureCustomData();
-
-    const remoteId = await this.upsertToCloud(course);
-    const newCourse: CustomCourse = {
-      ...course,
-      id: this.allocateID(),
-      storageKey: randomUUID(),
-      remoteId,
-      lastUpdateTime: dayjs().toISOString(),
-    };
-
-    this.cachedCustomData![newCourse.weekday - 1].push(newCourse);
-
-    await this.save();
-    this.refresh();
-    return newCourse;
-  }
-
-  /**
    * 根据 key 获取自定义课程
    * @param key
    * @returns 课程数据
@@ -840,68 +755,6 @@ export class CourseCache {
   }
 
   /**
-   * 更新自定义课程数据：先写云端，成功后再更新本地
-   * 没有 remoteId 的历史本地课程会先补传一次（后端会当新增处理）
-   * @param course 课程数据
-   */
-  public static async updateCustomCourse(course: CustomCourse): Promise<void> {
-    const key = course.storageKey;
-
-    if (!this.cachedCustomData) {
-      return;
-    }
-
-    const remoteId = await this.upsertToCloud(course);
-
-    const updatedCourse: CustomCourse = {
-      ...course,
-      remoteId,
-      lastUpdateTime: dayjs().toISOString(),
-    };
-
-    // 先删除再添加
-    for (const [day, courses] of Object.entries(this.cachedCustomData)) {
-      this.cachedCustomData[+day] = courses.filter(c => c.storageKey !== key);
-    }
-
-    const newIndex = course.weekday - 1;
-    if (!this.cachedCustomData[newIndex]) {
-      this.cachedCustomData[newIndex] = [];
-    }
-    this.cachedCustomData[newIndex].push(updatedCourse);
-
-    await this.save();
-    this.refresh();
-  }
-
-  /**
-   * 删除自定义课程：先删云端，成功后再删本地
-   * @param key 指定的 key
-   */
-  public static async removeCustomCourse(key: string): Promise<void> {
-    if (!this.cachedCustomData) {
-      return;
-    }
-
-    const target = this.flattenCustomCourses().find(course => course.storageKey === key);
-    if (!target) {
-      return;
-    }
-
-    // 纯本地遗留的课程（从没同步过）云端本来就没有，直接删本地即可
-    if (target.remoteId) {
-      await deleteApiV1CourseCustom({ course_id: target.remoteId });
-    }
-
-    for (const [day, courses] of Object.entries(this.cachedCustomData)) {
-      this.cachedCustomData[+day] = courses.filter(course => course.storageKey !== key);
-    }
-
-    await this.save();
-    this.refresh();
-  }
-
-  /**
    * 把所有自定义课程摊平成一个数组
    */
   public static flattenCustomCourses(): CustomCourse[] {
@@ -912,87 +765,48 @@ export class CourseCache {
   }
 
   /**
-   * 静默迁移：把本地还没上传过的自定义课程补传到云端
-   * 单门课失败只记日志，留到下次启动重试，不打断用户
-   * @param fallbackTerm 课程自身没存学期时使用的学期
+   * 标记历史本地数据已迁移完成，之后允许服务端数据覆盖本地。
+   * 由 lib/custom-course-sync.ts 在迁移成功后调用；进程重启后需要重新标记。
    */
-  public static async syncLocalCustomCourses(fallbackTerm?: string): Promise<void> {
-    if (!this.cachedCustomData) {
-      return;
-    }
+  public static markCustomCoursesMigrated(): void {
+    this.customCoursesMigrated = true;
+  }
 
-    for (const course of this.flattenCustomCourses()) {
-      if (course.remoteId) {
-        continue;
-      }
-
-      const term = course.semester || fallbackTerm || (await getCourseSetting()).selectedSemester;
-      if (!term) {
-        console.warn(`自定义课程「${course.name}」没有学期信息，跳过迁移`);
-        continue;
-      }
-
-      try {
-        course.remoteId = await this.upsertToCloud(course, term);
-        // 旧数据可能没存 semester，顺手补上，
-        // 否则会出现「本地所有学期都显示、云端只属于某一个学期」的错位
-        course.semester = term;
-        await this.save(); // 立刻落盘，避免下次启动重复上传
-      } catch (error) {
-        console.warn(`自定义课程「${course.name}」迁移到云端失败，下次启动重试`, error);
-      }
-    }
+  /** 历史本地数据是否已经迁移完成（迁移没完成时不允许覆盖、也不允许清空） */
+  public static isCustomCoursesMigrated(): boolean {
+    return this.customCoursesMigrated;
   }
 
   /**
-   * 用云端的自定义课程数据刷新本地缓存
-   * - 以云端为准；已经认识的课程（remoteId 相同）保留 storageKey、priority 等本地属性
-   * - 本地还没同步成功的课程继续保留，避免离线时课程凭空消失
+   * 用服务端返回的自定义课程整体覆盖本地缓存
+   * 本地只是这份数据的镜像，不做任何合并；缓存的失效由调用方负责
    * @param cloudCourses V2 课表返回的 custom_courses
    * @param semester 当前选中的学期（前端格式）
    * @returns 数据是否发生变化
    */
-  public static async mergeCloudCustomCourses(cloudCourses: CloudCustomCourse[], semester: string): Promise<boolean> {
-    const previous = this.flattenCustomCourses();
-    const knownByRemoteId = new Map<string, CustomCourse>();
-    for (const course of previous) {
-      if (course.remoteId) {
-        knownByRemoteId.set(course.remoteId, course);
-      }
-    }
-
-    const merged = this.emptyCustomData();
-    for (const cloud of cloudCourses) {
-      const known = cloud.id ? knownByRemoteId.get(cloud.id) : undefined;
-      const course = this.buildCustomCourseFromCloud(cloud, semester, known);
-      merged[course.weekday - 1].push(course);
-    }
-
-    // 本地还没有 remoteId 的课程（迁移失败或刚离线新增的）继续保留
-    for (const course of previous) {
-      if (!course.remoteId) {
-        merged[course.weekday - 1].push(course);
-      }
+  public static async setCustomCourses(cloudCourses: CloudCustomCourse[], semester: string): Promise<boolean> {
+    // 历史本地数据还没全部上传到云端之前，不能用服务端数据覆盖，
+    // 否则那些只存在本地的课程会直接消失（见 lib/custom-course-sync.ts）
+    if (!this.customCoursesMigrated) {
+      console.warn('自定义课程尚未完成迁移，本次不使用服务端数据覆盖本地');
+      return false;
     }
 
     const digest = this.calculateDigest(cloudCourses);
-    // 云端数据没变就不用重建缓存，避免每次进页面都白刷一次（也会白同步一次小组件）
-    // 本地还没同步的课程在下面这次重建里会被一起带上，不受影响
     if (digest === this.cachedCustomDigest && this.cachedCustomData) {
       return false;
     }
 
-    this.cachedCustomData = merged;
+    const grouped = this.emptyCustomData();
+    for (const cloud of cloudCourses) {
+      const course = this.buildCustomCourseFromCloud(cloud, semester);
+      grouped[course.weekday - 1].push(course);
+    }
+
+    this.cachedCustomData = grouped;
     this.cachedCustomDigest = digest;
     await this.save();
     return true;
-  }
-
-  /** 保证自定义课程缓存结构存在 */
-  private static ensureCustomData(): void {
-    if (!this.cachedCustomData) {
-      this.cachedCustomData = this.emptyCustomData();
-    }
   }
 
   /** 生成一份按星期几分组的空数据结构 */
@@ -1004,21 +818,17 @@ export class CourseCache {
    * 云端课程 → 本地课程
    * 必须保持扁平字段：桌面小组件（CourseDataHandler.swift / WidgetUtils.kt）依赖这个形状
    */
-  private static buildCustomCourseFromCloud(
-    cloud: CloudCustomCourse,
-    semester: string,
-    known?: CustomCourse,
-  ): CustomCourse {
+  private static buildCustomCourseFromCloud(cloud: CloudCustomCourse, semester: string): CustomCourse {
     return {
       // 本地渲染才需要的字段，云端没有对应值
-      id: known?.id ?? this.allocateID(),
-      priority: known?.priority ?? DEFAULT_PRIORITY,
-      storageKey: known?.storageKey ?? randomUUID(),
+      id: this.allocateID(),
+      priority: DEFAULT_PRIORITY,
+      // 直接用服务端 id 当本地标识：缓存整体重建后它依然稳定，编辑/删除都靠它
+      storageKey: cloud.id ?? randomUUID(),
       type: CUSTOM_TYPE,
       semester,
       lastUpdateTime: dayjs().toISOString(),
 
-      remoteId: cloud.id,
       name: cloud.name ?? '',
       teacher: cloud.teacher ?? '',
       location: cloud.location ?? '',
@@ -1031,27 +841,11 @@ export class CourseCache {
       single: cloud.single ?? true,
       double: cloud.double ?? true,
       adjust: false, // 自定义课程没有调课概念
-      color: cloud.color || known?.color || DEFAULT_CUSTOM_COURSE_COLOR,
+      color: cloud.color || DEFAULT_CUSTOM_COURSE_COLOR,
       remark: cloud.remark ?? '',
       // calendar-col.tsx 对 examType 缺失做过兼容，这里补成空串更稳
-      examType: known?.examType ?? '',
+      examType: '',
     };
-  }
-
-  /**
-   * 写入云端（新增或更新），返回服务端分配的课程 id
-   */
-  private static async upsertToCloud(course: CustomCourse, term?: string): Promise<string> {
-    const response = await putApiV1CourseCustom({
-      term: term ?? course.semester,
-      course: toCloudCourse(course),
-    });
-
-    const remoteId = extractCourseId(response.data?.data);
-    if (!remoteId) {
-      throw new Error('服务端没有返回课程 id');
-    }
-    return remoteId;
   }
 }
 
@@ -1198,7 +992,7 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
 
   // 设置课程数据，跳过 digest 检查
   CourseCache.setCourses(normalizeV2Courses(data.data.data.courses ?? []), true);
-  await CourseCache.mergeCloudCustomCourses(data.data.data.custom_courses ?? [], semester);
+  await CourseCache.setCustomCourses(data.data.data.custom_courses ?? [], semester);
 
   // 考场信息
   if ((await getCourseSetting()).exportExamToCourseTable) {

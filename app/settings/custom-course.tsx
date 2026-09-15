@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { putApiV1CourseCustom } from '@/api/generate';
 import ColorRadioButton from '@/components/color-radio-button';
 import Entry from '@/components/entry';
 import PageContainer from '@/components/page-container';
@@ -13,6 +14,7 @@ import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, getCourseSetting, type CustomCourse } from '@/lib/course';
+import { buildCustomCoursePayload, invalidateCustomCourses } from '@/lib/custom-course-sync';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -138,12 +140,14 @@ export default function CourseAddPage() {
           newCourse.semester = (await getCourseSetting()).selectedSemester;
         }
 
-        // storageKey 为空说明是新建，否则是编辑已有课程
-        if (!newCourse.storageKey) {
-          await CourseCache.addCustomCourse(newCourse);
-        } else {
-          await CourseCache.updateCustomCourse(newCourse);
-        }
+        // 直接请求后端：storageKey 就是服务端 id，带它表示编辑，不带表示新增
+        await putApiV1CourseCustom({
+          term: newCourse.semester,
+          course: buildCustomCoursePayload(newCourse, newCourse.storageKey || undefined),
+        });
+
+        // 本地只当缓存：直接失效，再立刻重拉一次，之后本地就是服务端的样子
+        await invalidateCustomCourses();
 
         console.log('保存自定义课程成功：', newCourse);
         toast.success('保存成功');
