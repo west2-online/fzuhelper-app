@@ -2,7 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { toast } from 'sonner-native';
 
 import type { TermsListResponse_Term } from '@/api/backend';
-import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1TermsList } from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1TermsList, getApiV2JwchCourseList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { queryClient } from '@/components/query-provider';
 import {
@@ -17,6 +17,7 @@ import {
   CourseCache,
   EXAM_TYPE,
   getCourseSetting,
+  normalizeV2Courses,
   updateCourseSetting,
   type CourseInfo,
 } from '@/lib/course';
@@ -43,16 +44,28 @@ async function loadCourseAndExamData(
 ): Promise<boolean> {
   let hasChanged = false;
 
-  // 获取课程数据
+  // 获取课程数据（V2 会额外返回云端的自定义课程）
   const fetchedData = await fetchWithCache(
     [COURSE_DATA_KEY, queryTerm],
-    () => getApiV1JwchCourseList({ term: queryTerm, is_refresh: false }),
+    () => getApiV2JwchCourseList({ term: queryTerm, is_refresh: false }),
     { staleTime: EXPIRE_ONE_DAY },
   );
 
+  // V2 在 Apifox 里把 courses 的字段都标成了可选，先补齐成下游依赖的必填结构
+  const courses = normalizeV2Courses(fetchedData.data.data.courses ?? []);
+
   // 如果缓存数据和新数据不一致，则更新数据
-  if (!CourseCache.compareDigest(COURSE_TYPE, fetchedData.data.data)) {
-    CourseCache.setCourses(fetchedData.data.data);
+  if (!CourseCache.compareDigest(COURSE_TYPE, courses)) {
+    CourseCache.setCourses(courses);
+    hasChanged = true;
+  }
+
+  // 合并云端的自定义课程：以云端为准，同时保留还没同步成功的本地课程
+  const customChanged = await CourseCache.mergeCloudCustomCourses(
+    fetchedData.data.data.custom_courses ?? [],
+    setting.selectedSemester,
+  );
+  if (customChanged) {
     hasChanged = true;
   }
 
@@ -89,6 +102,12 @@ export function useCoursePageData() {
     queryFn: async (): Promise<CoursePageData> => {
       // 0. 确保缓存已加载（幂等操作，可以多次调用）
       await CourseCache.load();
+
+      // 0.1 静默迁移：把早期只存在本地的自定义课程补传到云端
+      // 不阻塞渲染，单门课失败只记日志，下次进入页面会重试
+      CourseCache.syncLocalCustomCourses().catch(error => {
+        console.warn('自定义课程静默迁移失败:', error);
+      });
 
       // 1. 优先使用已持久化的学期数据（若无则请求）
       let termsData = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([COURSE_TERMS_LIST_KEY]);

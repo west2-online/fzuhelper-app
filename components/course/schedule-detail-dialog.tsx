@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Image, Pressable, View } from 'react-native';
+import { toast } from 'sonner-native';
 
 import {
   DescriptionList,
@@ -10,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CUSTOM_TYPE, CourseCache, type CourseInfoMerged, type CustomCourse } from '@/lib/course';
 import { pushToWebViewJWCH } from '@/lib/webview';
@@ -24,6 +26,7 @@ interface ScheduleDetailsDialogProps {
 }
 
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onOpenChange, schedules }) => {
+  const { handleError } = useSafeResponseSolve();
   const [scheduleIndex, setScheduleIndex] = useState(0);
   const schedule = useMemo(() => schedules[scheduleIndex], [scheduleIndex, schedules]);
 
@@ -151,9 +154,18 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                             {
                               text: '删除',
                               style: 'destructive',
-                              onPress: () => {
-                                closeDialog();
-                                CourseCache.removeCustomCourse((schedule as CustomCourse).storageKey);
+                              onPress: async () => {
+                                try {
+                                  // 先删云端，成功后再删本地
+                                  await CourseCache.removeCustomCourse((schedule as CustomCourse).storageKey);
+                                  toast.success('已删除');
+                                  closeDialog();
+                                } catch (error: any) {
+                                  const data = handleError(error) as { message: string };
+                                  if (data) {
+                                    toast.error(data.message);
+                                  }
+                                }
                               },
                             },
                           ]);
