@@ -51,12 +51,13 @@ export const buildCustomCoursePayload = (course: CustomCourse, courseId?: string
 });
 
 /** 历史本地数据是否已经全部上传到云端（一次性迁移的标记，存在本地） */
-const MIGRATION_DONE_KEY = 'custom_course_migration_done';
+export const CUSTOM_COURSE_MIGRATION_DONE_KEY = 'custom_course_migration_done';
 
-const isMigrationDone = async (): Promise<boolean> => (await AsyncStorage.getItem(MIGRATION_DONE_KEY)) === '1';
+const isMigrationDone = async (): Promise<boolean> =>
+  (await AsyncStorage.getItem(CUSTOM_COURSE_MIGRATION_DONE_KEY)) === '1';
 
 const markMigrationDone = async (): Promise<void> => {
-  await AsyncStorage.setItem(MIGRATION_DONE_KEY, '1');
+  await AsyncStorage.setItem(CUSTOM_COURSE_MIGRATION_DONE_KEY, '1');
 };
 
 /**

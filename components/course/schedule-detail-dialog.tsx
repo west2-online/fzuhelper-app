@@ -167,7 +167,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                                     console.warn('删除自定义课程后刷新课表失败:', error);
                                   });
 
-                                  toast.success('已删除');
+                                  toast.success('已删除自定义课程');
                                   closeDialog();
                                 } catch (error: any) {
                                   const data = handleError(error) as { message: string };
