@@ -14,7 +14,7 @@ import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, getCourseSetting, type CustomCourse } from '@/lib/course';
-import { buildCustomCoursePayload, invalidateCustomCourses } from '@/lib/custom-course-sync';
+import { buildCustomCoursePayload, refreshCourseTable } from '@/lib/custom-course-sync';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -146,8 +146,10 @@ export default function CourseAddPage() {
           course: buildCustomCoursePayload(newCourse, newCourse.storageKey || undefined),
         });
 
-        // 本地只当缓存：直接失效，再立刻重拉一次，之后本地就是服务端的样子
-        await invalidateCustomCourses();
+        // 保存成功后自动做一次刷新，把服务端最新课表拉回来再返回。
+        await refreshCourseTable().catch(error => {
+          console.warn('保存自定义课程后刷新课表失败:', error);
+        });
 
         console.log('保存自定义课程成功：', newCourse);
         toast.success('保存成功');

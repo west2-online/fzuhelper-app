@@ -4,7 +4,13 @@ import { RejectEnum } from '@/api/enum';
 import { putApiV1CourseCustom } from '@/api/generate';
 import { queryClient } from '@/components/query-provider';
 import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
-import { CourseCache, getCourseSetting, type CloudCustomCourse, type CustomCourse } from '@/lib/course';
+import {
+  CourseCache,
+  forceRefreshCourseData,
+  getCourseSetting,
+  type CloudCustomCourse,
+  type CustomCourse,
+} from '@/lib/course';
 
 /** 写入云端时请求体里的 course 字段，必填项与后端一致 */
 export interface CloudCustomCoursePayload {
@@ -101,13 +107,11 @@ const uploadLocalCustomCourses = async (cloudCourses: CloudCustomCourse[], fallb
 };
 
 /**
- * 写操作成功后调用：让本地的自定义课程缓存失效，并立刻重新拉一次。
- * 迁移没完成时只重拉、不清缓存——那些还没上传成功的课程只存在本地，清掉就永久丢了。
+ * 强制刷新课表：和用户在课表页"下拉刷新"走同一套逻辑
  */
-export const invalidateCustomCourses = async (): Promise<void> => {
-  if (CourseCache.isCustomCoursesMigrated()) {
-    await CourseCache.clearCustomData();
-  }
+export const refreshCourseTable = async (): Promise<void> => {
+  const setting = await getCourseSetting();
+  await forceRefreshCourseData(setting.selectedSemester);
   queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
 };
 
@@ -145,7 +149,7 @@ export const reconcileCustomCourses = async (cloudCourses: CloudCustomCourse[], 
   await markMigrationDone();
   CourseCache.markCustomCoursesMigrated();
 
-  // 迁移完成：让本地的自定义课程失效，并立刻重新拉取，让服务端数据成为唯一来源
-  await invalidateCustomCourses();
+  // 迁移完成：立刻重新拉一次，让服务端数据成为唯一来源
+  await refreshCourseTable();
   return true;
 };

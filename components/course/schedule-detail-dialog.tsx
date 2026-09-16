@@ -15,7 +15,7 @@ import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CUSTOM_TYPE, CourseCache, type CourseInfoMerged, type CustomCourse } from '@/lib/course';
-import { invalidateCustomCourses } from '@/lib/custom-course-sync';
+import { refreshCourseTable } from '@/lib/custom-course-sync';
 import { pushToWebViewJWCH } from '@/lib/webview';
 
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
@@ -162,8 +162,10 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                                   // 直接请求后端，storageKey 就是服务端 id
                                   await deleteApiV1CourseCustom({ course_id: target.storageKey });
 
-                                  // 本地只当缓存：直接失效，再立刻重拉一次
-                                  await invalidateCustomCourses();
+                                  // 删除成功后自动做一次刷新，把服务端最新课表拉回来。
+                                  await refreshCourseTable().catch(error => {
+                                    console.warn('删除自定义课程后刷新课表失败:', error);
+                                  });
 
                                   toast.success('已删除');
                                   closeDialog();
