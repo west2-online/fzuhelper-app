@@ -52,7 +52,6 @@ async function loadCourseAndExamData(
     { staleTime: EXPIRE_ONE_DAY },
   );
 
-  // V2 在 Apifox 里把 courses 的字段都标成了可选，先补齐成下游依赖的必填结构
   const courses = normalizeV2Courses(fetchedData.data.data.courses ?? []);
 
   // 如果缓存数据和新数据不一致，则更新数据

@@ -96,17 +96,16 @@ interface CacheCourseData {
   priorityCounter: number;
 }
 
-/** V2 课表接口返回的课程结构（Apifox 里这些字段都标成了可选） */
 interface CloudCourse {
-  name?: string;
-  teacher?: string;
-  scheduleRules?: JwchCourseListResponse_CourseScheduleRule[];
-  remark?: string;
-  lessonplan?: string;
-  syllabus?: string;
-  rawScheduleRules?: string;
-  rawAdjust?: string;
-  examType?: string;
+  name: string;
+  teacher: string;
+  scheduleRules: JwchCourseListResponse_CourseScheduleRule[];
+  remark: string;
+  lessonplan: string;
+  syllabus: string;
+  rawScheduleRules: string;
+  rawAdjust: string;
+  examType: string;
 }
 
 /** 后端 model.CustomCourse 的 13 个字段，本地多出来的都是渲染用的，这里做一次裁剪 */
@@ -129,21 +128,17 @@ export interface CloudCustomCourse {
 /** 本地自定义课程的默认色，与自定义课程页的调色板首色保持一致 */
 const DEFAULT_CUSTOM_COURSE_COLOR = '#F39F9D';
 
-/**
- * V2 课表接口在 Apifox 里把 courses 的字段都标成了可选，
- * 而下游（parseCourses、课程表渲染、桌面小组件）依赖 V1 那套必填结构，这里补齐默认值。
- */
 export const normalizeV2Courses = (courses: CloudCourse[]): JwchCourseListResponse_Course[] =>
   courses.map(course => ({
-    name: course.name ?? '',
-    teacher: course.teacher ?? '',
-    scheduleRules: course.scheduleRules ?? [],
-    remark: course.remark ?? '',
-    lessonplan: course.lessonplan ?? '',
-    syllabus: course.syllabus ?? '',
-    rawScheduleRules: course.rawScheduleRules ?? '',
-    rawAdjust: course.rawAdjust ?? '',
-    examType: course.examType ?? '',
+    name: course.name,
+    teacher: course.teacher,
+    scheduleRules: course.scheduleRules,
+    remark: course.remark,
+    lessonplan: course.lessonplan,
+    syllabus: course.syllabus,
+    rawScheduleRules: course.rawScheduleRules,
+    rawAdjust: course.rawAdjust,
+    examType: course.examType,
   }));
 
 export const SCHEDULE_ITEM_MARGIN = 1;

@@ -157,9 +157,9 @@ export async function getApiV2JwchCourseList(
     message: string;
     data: {
       courses: {
-        name?: string;
-        teacher?: string;
-        scheduleRules?: {
+        name: string;
+        teacher: string;
+        scheduleRules: {
           location: string;
           startClass: number;
           endClass: number;
@@ -170,14 +170,14 @@ export async function getApiV2JwchCourseList(
           double: boolean;
           adjust: boolean;
         }[];
-        adjustRules?: string[];
-        remark?: string;
-        lessonplan?: string;
-        syllabus?: string;
-        rawScheduleRules?: string;
-        rawAdjust?: string;
-        examType?: string;
-        electiveType?: string;
+        adjustRules: string[];
+        remark: string;
+        lessonplan: string;
+        syllabus: string;
+        rawScheduleRules: string;
+        rawAdjust: string;
+        examType: string;
+        electiveType: string;
       }[];
       custom_courses: {
         id?: string;
