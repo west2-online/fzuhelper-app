@@ -2,6 +2,7 @@ import { uniformTypeDescriptor } from '@kit.ArkData';
 import { window } from '@kit.ArkUI';
 import { util } from '@kit.ArkTS';
 import { cryptoFramework } from '@kit.CryptoArchitectureKit';
+import { fileUri } from '@kit.CoreFileKit';
 import { systemShare } from '@kit.ShareKit';
 import { EtsUITurboModule } from '@rnoh/react-native-openharmony/ets';
 
@@ -14,6 +15,8 @@ export class HarmonySystemTurboModule extends EtsUITurboModule {
   private navigationBarBorderColor: string = '#00000000';
 
   async shareFile(uri: string, _dialogTitle: string, mimeType: string): Promise<void> {
+    const path = uri.startsWith('file://') ? uri.slice('file://'.length) : uri;
+    const sharingUri = fileUri.getUriFromPath(path);
     let uniformDataType: string = uniformTypeDescriptor.UniformDataType.FILE;
     if (mimeType.length > 0) {
       try {
@@ -24,7 +27,7 @@ export class HarmonySystemTurboModule extends EtsUITurboModule {
     }
     const record: systemShare.SharedRecord = {
       utd: uniformDataType,
-      uri,
+      uri: sharingUri,
     };
     const controller = new systemShare.ShareController(new systemShare.SharedData(record));
     await controller.show(this.ctx.uiAbilityContext, {
