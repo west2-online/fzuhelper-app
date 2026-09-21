@@ -1,9 +1,9 @@
 import { ImageBackground, View, type ViewProps } from 'react-native';
 
-import { cn } from '@/lib/utils';
 import { useTheme } from '@/components/app-theme-provider';
-import { useBottomTabBarHeight as originalUseBottomTabBarHeight } from "expo-router/js-tabs";
-import { useHeaderHeight } from "expo-router/react-navigation";
+import { cn } from '@/lib/utils';
+import { useBottomTabBarHeight as originalUseBottomTabBarHeight } from 'expo-router/js-tabs';
+import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useEffect, useRef } from 'react';
 
 export type ThemedViewProps = { refreshBackground?: boolean } & ViewProps;

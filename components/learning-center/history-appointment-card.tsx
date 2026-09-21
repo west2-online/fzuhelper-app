@@ -46,6 +46,7 @@ export default function HistoryAppointmentCard({
   const [isProcessing, setIsProcessing] = useState(false); // 控制取消预约按钮状态
   const [forceUpdateKey, setForceUpdateKey] = useState(0); // 用于强制刷新按钮的状态
 
+  /* eslint-disable no-restricted-syntax */
   const getStatusColor = useCallback(() => {
     const statusText = appointment.getStatusText();
     switch (statusText) {
@@ -65,6 +66,7 @@ export default function HistoryAppointmentCard({
         return 'text-gray-500';
     }
   }, [appointment]);
+  /* eslint-enable no-restricted-syntax */
 
   // 处理取消预约
   const handleCancel = useCallback(async () => {

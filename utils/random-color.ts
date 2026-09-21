@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax -- 本文件集中维护课程色板，需要显式定义绝对颜色。 */
+
 export const nonCurrentWeekCourseColor = '#DEDEDE'; // 非本周课程的颜色
 export const courseColors = [
   '#7A6068',

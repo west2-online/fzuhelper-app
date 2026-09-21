@@ -22,10 +22,13 @@ export const QueryProvider: React.FC<React.PropsWithChildren> = ({ children }) =
       client={queryClient}
       persistOptions={{
         persister: asyncStoragePersister,
+        buster: 'success-query-cache-v1',
         dehydrateOptions: {
           shouldDehydrateQuery: query => {
-            // 当 persist 为 true 时，才会被持久化
-            return query.options.meta?.persist === true;
+            // 仅持久化成功完成的 API 缓存，避免 pending query 在 hydrate 后 reject 时触发 TanStack Query 警告。
+            return (
+              query.options.meta?.persist === true && query.state.status === 'success' && query.state.data !== undefined
+            );
           },
         },
       }}

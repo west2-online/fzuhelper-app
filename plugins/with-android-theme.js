@@ -58,6 +58,7 @@ function withCustomAppTheme(config) {
     return androidStylesConfig;
   });
 
+  /* eslint-disable no-restricted-syntax */
   config = withAndroidColors(config, androidColorsConfig => {
     const colors = androidColorsConfig.modResults;
     colors.resources.color.map(color => {
@@ -71,6 +72,7 @@ function withCustomAppTheme(config) {
     });
     return androidColorsConfig;
   });
+  /* eslint-enable no-restricted-syntax */
 
   return config;
 }
