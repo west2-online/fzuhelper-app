@@ -99,8 +99,7 @@ export default function HomePage() {
     toast.success('已经设置不同的课程缓存摘要');
   };
 
-  // 【调试用】造两门"旧版本残留"的自定义课程：只存在设备本地、服务端没有，
-  // 用来验证静默迁移（打开课表页 → 自动上传 → 本地被服务端数据覆盖）。
+  // 【调试用】造两门"旧版本残留"的自定义课程：只存在设备本地用来验证静默迁移
   const seedLegacyCustomCourses = async () => {
     try {
       const setting = await getCourseSetting();
@@ -149,20 +148,18 @@ export default function HomePage() {
           lastUpdateTime: now,
           type: CUSTOM_TYPE,
           examType: '',
-          // 旧数据可能没存学期，故意留空来验证迁移时会回退到当前学期
           semester: '',
         },
       ];
 
       const raw = await AsyncStorage.getItem(COURSE_CURRENT_CACHE_KEY);
       const cache = raw ? JSON.parse(raw) : {};
-      // 自定义课程按「星期几 - 1」分组，周四对应下标 3
       const emptyDays = [0, 1, 2, 4, 5, 6].map(day => [day, []]);
       cache.customData = Object.fromEntries([...emptyDays, [3, legacyCourses]]);
       cache.customDigest = '';
 
       await AsyncStorage.setItem(COURSE_CURRENT_CACHE_KEY, JSON.stringify(cache));
-      // 必须清掉迁移标记，否则 reconcile 会当成本地已经迁移过，直接用服务端数据覆盖
+      // 清迁移标记
       await AsyncStorage.removeItem(CUSTOM_COURSE_MIGRATION_DONE_KEY);
 
       toast.success('已写入 2 门本地自定义课程，重启 App 后打开课表页观察迁移');

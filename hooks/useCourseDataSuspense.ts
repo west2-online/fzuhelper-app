@@ -45,7 +45,7 @@ async function loadCourseAndExamData(
 ): Promise<boolean> {
   let hasChanged = false;
 
-  // 获取课程数据（V2 会额外返回云端的自定义课程）
+  // 获取课程数据
   const fetchedData = await fetchWithCache(
     [COURSE_DATA_KEY, queryTerm],
     () => getApiV2JwchCourseList({ term: queryTerm, is_refresh: false }),

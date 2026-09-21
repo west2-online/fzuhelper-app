@@ -19,7 +19,6 @@ import { BorderlessButton } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// 与后端 pkg/constants/custom_course.go 里的限制保持一致
 const NAME_MAX_LEN = 30;
 const TEACHER_MAX_LEN = 30;
 const LOCATION_MAX_LEN = 20;
@@ -111,11 +110,7 @@ export default function CourseAddPage() {
         return;
       }
 
-      // 这几条与后端校验保持一致：地点必填，其余是长度上限
-      if (newCourse.location === '') {
-        toast.error('上课地点不能为空');
-        return;
-      }
+      // 与后端校验保持一致
       if (newCourse.name.length > NAME_MAX_LEN) {
         toast.error(`课程名称最多 ${NAME_MAX_LEN} 个字`);
         return;
@@ -146,7 +141,7 @@ export default function CourseAddPage() {
           course: buildCustomCoursePayload(newCourse, newCourse.storageKey || undefined),
         });
 
-        // 保存成功后自动做一次刷新，把服务端最新课表拉回来再返回。
+        // 保存成功后自动做一次刷新
         await refreshCourseTable().catch(error => {
           console.warn('保存自定义课程后刷新课表失败:', error);
         });
@@ -155,7 +150,6 @@ export default function CourseAddPage() {
         toast.success('保存成功');
         router.back();
       } catch (error: any) {
-        // 云端失败时本地不做任何改动，这里把服务端的错误信息透出来
         const data = handleError(error) as { message: string };
         if (data) {
           toast.error(data.message);
@@ -211,7 +205,7 @@ export default function CourseAddPage() {
             <Input
               value={course.location}
               onChangeText={location => setCourse(prev => ({ ...prev, location }))}
-              placeholder="教学楼+教室号 或具体地点（必填）"
+              placeholder="教学楼+教室号 或具体地点（选填）"
               maxLength={LOCATION_MAX_LEN}
             />
           </View>

@@ -76,22 +76,26 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
             <View className="flex w-full flex-row justify-center">
               <View>
                 <DescriptionList className="mx-6 mb-1 mt-4">
-                  <DescriptionListRow className="items-start">
-                    <DescriptionListTerm>
-                      <Text>教室</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text>{schedule.location}</Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
-                  <DescriptionListRow className="items-start">
-                    <DescriptionListTerm>
-                      <Text>教师</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text className="text-wrap break-all">{schedule.teacher}</Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
+                  {!!schedule.location && (
+                    <DescriptionListRow className="items-start">
+                      <DescriptionListTerm>
+                        <Text>教室</Text>
+                      </DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <Text>{schedule.location}</Text>
+                      </DescriptionListDescription>
+                    </DescriptionListRow>
+                  )}
+                  {!!schedule.teacher && (
+                    <DescriptionListRow className="items-start">
+                      <DescriptionListTerm>
+                        <Text>教师</Text>
+                      </DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <Text className="text-wrap break-all">{schedule.teacher}</Text>
+                      </DescriptionListDescription>
+                    </DescriptionListRow>
+                  )}
                   <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>节数</Text>
@@ -110,14 +114,16 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text>{schedule.weekDisplay}</Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow className="items-start">
-                    <DescriptionListTerm>
-                      <Text>备注</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text>{schedule.remark}</Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
+                  {!!schedule.remark &&(
+                    <DescriptionListRow className="items-start">
+                      <DescriptionListTerm>
+                        <Text>备注</Text>
+                      </DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <Text>{schedule.remark}</Text>
+                      </DescriptionListDescription>
+                    </DescriptionListRow>
+                  )}
                 </DescriptionList>
                 <View className="flex flex-row flex-wrap justify-evenly">
                   {schedule.syllabus && (
@@ -159,10 +165,10 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                               onPress: async () => {
                                 try {
                                   const target = schedule as CustomCourse;
-                                  // 直接请求后端，storageKey 就是服务端 id
+                                  // 直接请求后端
                                   await deleteApiV1CourseCustom({ course_id: target.storageKey });
 
-                                  // 删除成功后自动做一次刷新，把服务端最新课表拉回来。
+                                  // 删除成功后自动做一次刷新
                                   await refreshCourseTable().catch(error => {
                                     console.warn('删除自定义课程后刷新课表失败:', error);
                                   });
