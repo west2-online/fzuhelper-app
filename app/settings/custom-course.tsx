@@ -131,14 +131,13 @@ export default function CourseAddPage() {
       setDisabled(true);
 
       try {
-        if (!newCourse.semester) {
-          newCourse.semester = (await getCourseSetting()).selectedSemester;
-        }
+        const semester = newCourse.semester || (await getCourseSetting()).selectedSemester;
+        const courseToSave = { ...newCourse, semester };
+        setCourse(courseToSave);
 
-        // 直接请求后端：storageKey 就是服务端 id，带它表示编辑，不带表示新增
         await putApiV1CourseCustom({
-          term: newCourse.semester,
-          course: buildCustomCoursePayload(newCourse, newCourse.storageKey || undefined),
+          term: courseToSave.semester,
+          course: buildCustomCoursePayload(courseToSave, courseToSave.storageKey || undefined),
         });
 
         // 保存成功后自动做一次刷新
@@ -146,7 +145,7 @@ export default function CourseAddPage() {
           console.warn('保存自定义课程后刷新课表失败:', error);
         });
 
-        console.log('保存自定义课程成功：', newCourse);
+        console.log('保存自定义课程成功：', courseToSave);
         toast.success('保存成功');
         router.back();
       } catch (error: any) {

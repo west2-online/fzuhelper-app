@@ -180,18 +180,18 @@ export async function getApiV2JwchCourseList(
         electiveType: string;
       }[];
       custom_courses: {
-        id?: string;
-        name?: string;
+        id: string;
+        name: string;
         teacher?: string;
         location?: string;
-        startClass?: number;
-        endClass?: number;
-        startWeek?: number;
-        endWeek?: number;
-        weekday?: number;
-        single?: boolean;
-        double?: boolean;
-        color?: string;
+        startClass: number;
+        endClass: number;
+        startWeek: number;
+        endWeek: number;
+        weekday: number;
+        single: boolean;
+        double: boolean;
+        color: string;
         remark?: string;
       }[];
     };
