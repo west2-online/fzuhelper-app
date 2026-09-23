@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
+import { putApiV1CourseCustom } from '@/api/generate';
 import ColorRadioButton from '@/components/color-radio-button';
 import Entry from '@/components/entry';
 import PageContainer from '@/components/page-container';
@@ -10,11 +11,18 @@ import PickerModal from '@/components/picker-modal';
 import RadioButton from '@/components/radio-button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, getCourseSetting, type CustomCourse } from '@/lib/course';
+import { buildCustomCoursePayload, refreshCourseTable } from '@/lib/custom-course-sync';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const NAME_MAX_LEN = 30;
+const TEACHER_MAX_LEN = 30;
+const LOCATION_MAX_LEN = 20;
+const REMARK_MAX_LEN = 140;
 
 const WEEKDAYS = [
   { value: 1, label: '星期一' },
@@ -67,6 +75,7 @@ const DEFAULT_EMPTY_COURSE: CustomCourse = {
 };
 
 export default function CourseAddPage() {
+  const { handleError } = useSafeResponseSolve();
   const searchParams = useLocalSearchParams();
   const key = (searchParams.key as string) ?? '';
 
@@ -88,33 +97,68 @@ export default function CourseAddPage() {
     }
   }, [key]);
 
-  // 保存课程（即添加课程）
-  const handleSave = useCallback(async (newCourse: CustomCourse) => {
-    if (newCourse.startClass > newCourse.endClass || newCourse.startWeek > newCourse.endWeek) {
-      toast.error('开始节/周不能大于结束节/周');
-      return;
-    }
+  // 保存课程（新增或编辑）
+  const handleSave = useCallback(
+    async (newCourse: CustomCourse) => {
+      if (newCourse.startClass > newCourse.endClass || newCourse.startWeek > newCourse.endWeek) {
+        toast.error('开始节/周不能大于结束节/周');
+        return;
+      }
 
-    if (newCourse.name === '') {
-      toast.error('课程名称不能为空');
-      return;
-    }
+      if (newCourse.name === '') {
+        toast.error('课程名称不能为空');
+        return;
+      }
 
-    setDisabled(true);
+      // 与后端校验保持一致
+      if (newCourse.name.length > NAME_MAX_LEN) {
+        toast.error(`课程名称最多 ${NAME_MAX_LEN} 个字`);
+        return;
+      }
+      if (newCourse.teacher.length > TEACHER_MAX_LEN) {
+        toast.error(`教师名称最多 ${TEACHER_MAX_LEN} 个字`);
+        return;
+      }
+      if (newCourse.location.length > LOCATION_MAX_LEN) {
+        toast.error(`上课地点最多 ${LOCATION_MAX_LEN} 个字`);
+        return;
+      }
+      if (newCourse.remark.length > REMARK_MAX_LEN) {
+        toast.error(`备注最多 ${REMARK_MAX_LEN} 个字`);
+        return;
+      }
 
-    if (!newCourse.semester) {
-      newCourse.semester = (await getCourseSetting()).selectedSemester;
-    }
+      setDisabled(true);
 
-    if (newCourse.id === -1 || !newCourse.storageKey) {
-      await CourseCache.addCustomCourse(newCourse);
-    } else {
-      await CourseCache.updateCustomCourse(newCourse);
-    }
-    console.log('添加课程：', newCourse);
-    setDisabled(false);
-    router.back();
-  }, []);
+      try {
+        const semester = newCourse.semester || (await getCourseSetting()).selectedSemester;
+        const courseToSave = { ...newCourse, semester };
+        setCourse(courseToSave);
+
+        await putApiV1CourseCustom({
+          term: courseToSave.semester,
+          course: buildCustomCoursePayload(courseToSave, courseToSave.storageKey || undefined),
+        });
+
+        // 保存成功后自动做一次刷新
+        await refreshCourseTable().catch(error => {
+          console.warn('保存自定义课程后刷新课表失败:', error);
+        });
+
+        console.log('保存自定义课程成功：', courseToSave);
+        toast.success('保存成功');
+        router.back();
+      } catch (error: any) {
+        const data = handleError(error) as { message: string };
+        if (data) {
+          toast.error(data.message);
+        }
+      } finally {
+        setDisabled(false);
+      }
+    },
+    [handleError],
+  );
 
   const headerRight = useCallback(() => {
     return (
@@ -141,6 +185,7 @@ export default function CourseAddPage() {
               value={course.name}
               onChangeText={name => setCourse(prev => ({ ...prev, name }))}
               placeholder="课程名称（必填）"
+              maxLength={NAME_MAX_LEN}
             />
           </View>
 
@@ -150,6 +195,7 @@ export default function CourseAddPage() {
               value={course.teacher}
               onChangeText={teacher => setCourse(prev => ({ ...prev, teacher }))}
               placeholder="任课教师名称（选填）"
+              maxLength={TEACHER_MAX_LEN}
             />
           </View>
 
@@ -159,6 +205,7 @@ export default function CourseAddPage() {
               value={course.location}
               onChangeText={location => setCourse(prev => ({ ...prev, location }))}
               placeholder="教学楼+教室号 或具体地点（选填）"
+              maxLength={LOCATION_MAX_LEN}
             />
           </View>
           <Text className="my-2 text-lg">时间</Text>
@@ -254,6 +301,7 @@ export default function CourseAddPage() {
               value={course.remark}
               onChangeText={newRemark => setCourse(prev => ({ ...prev, remark: newRemark }))}
               placeholder="对这门课的个人备注（选填）"
+              maxLength={REMARK_MAX_LEN}
             />
           </View>
 
@@ -310,7 +358,7 @@ export default function CourseAddPage() {
           <SafeAreaView className="mx-4 space-y-4" edges={['bottom']}>
             <Text className="my-2 text-lg font-bold text-text-secondary">友情提示</Text>
             <Text className="my-2 text-base text-text-secondary">
-              自定义课程保存在设备本地，退出登录或卸载应用将导致课程被清除
+              自定义课程会同步到云端，重新登录或换设备后依然可以查看
             </Text>
           </SafeAreaView>
         </KeyboardAwareScrollView>

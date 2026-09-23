@@ -2,7 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { toast } from 'sonner-native';
 
 import type { TermsListResponse_Term } from '@/api/backend';
-import { getApiV1JwchClassroomExam, getApiV1JwchCourseList, getApiV1TermsList } from '@/api/generate';
+import { getApiV1JwchClassroomExam, getApiV1TermsList, getApiV2JwchCourseList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import { queryClient } from '@/components/query-provider';
 import {
@@ -17,9 +17,11 @@ import {
   CourseCache,
   EXAM_TYPE,
   getCourseSetting,
+  normalizeV2Courses,
   updateCourseSetting,
   type CourseInfo,
 } from '@/lib/course';
+import { reconcileCustomCourses } from '@/lib/custom-course-sync';
 import { formatExamData } from '@/lib/exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
@@ -46,13 +48,24 @@ async function loadCourseAndExamData(
   // 获取课程数据
   const fetchedData = await fetchWithCache(
     [COURSE_DATA_KEY, queryTerm],
-    () => getApiV1JwchCourseList({ term: queryTerm, is_refresh: false }),
+    () => getApiV2JwchCourseList({ term: queryTerm, is_refresh: false }),
     { staleTime: EXPIRE_ONE_DAY },
   );
 
+  const courses = normalizeV2Courses(fetchedData.data.data.courses ?? []);
+
   // 如果缓存数据和新数据不一致，则更新数据
-  if (!CourseCache.compareDigest(COURSE_TYPE, fetchedData.data.data)) {
-    CourseCache.setCourses(fetchedData.data.data);
+  if (!CourseCache.compareDigest(COURSE_TYPE, courses)) {
+    CourseCache.setCourses(courses);
+    hasChanged = true;
+  }
+
+  // 让本地的自定义课程与云端对齐（正常情况下就是覆盖，历史数据需要先迁移，见该函数注释）
+  const customChanged = await reconcileCustomCourses(
+    fetchedData.data.data.custom_courses ?? [],
+    setting.selectedSemester,
+  );
+  if (customChanged) {
     hasChanged = true;
   }
 

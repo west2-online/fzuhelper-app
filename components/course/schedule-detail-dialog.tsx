@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Image, Pressable, View } from 'react-native';
+import { toast } from 'sonner-native';
 
+import { deleteApiV1CourseCustom } from '@/api/generate';
 import {
   DescriptionList,
   DescriptionListDescription,
@@ -10,8 +12,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
+import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CUSTOM_TYPE, CourseCache, type CourseInfoMerged, type CustomCourse } from '@/lib/course';
+import { refreshCourseTable } from '@/lib/custom-course-sync';
 import { pushToWebViewJWCH } from '@/lib/webview';
 
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
@@ -24,6 +28,7 @@ interface ScheduleDetailsDialogProps {
 }
 
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onOpenChange, schedules }) => {
+  const { handleError } = useSafeResponseSolve();
   const [scheduleIndex, setScheduleIndex] = useState(0);
   const schedule = useMemo(() => schedules[scheduleIndex], [scheduleIndex, schedules]);
 
@@ -71,22 +76,26 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
             <View className="flex w-full flex-row justify-center">
               <View>
                 <DescriptionList className="mx-6 mb-1 mt-4">
-                  <DescriptionListRow className="items-start">
-                    <DescriptionListTerm>
-                      <Text>教室</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text>{schedule.location}</Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
-                  <DescriptionListRow className="items-start">
-                    <DescriptionListTerm>
-                      <Text>教师</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text className="text-wrap break-all">{schedule.teacher}</Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
+                  {!!schedule.location && (
+                    <DescriptionListRow className="items-start">
+                      <DescriptionListTerm>
+                        <Text>教室</Text>
+                      </DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <Text>{schedule.location}</Text>
+                      </DescriptionListDescription>
+                    </DescriptionListRow>
+                  )}
+                  {!!schedule.teacher && (
+                    <DescriptionListRow className="items-start">
+                      <DescriptionListTerm>
+                        <Text>教师</Text>
+                      </DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <Text className="text-wrap break-all">{schedule.teacher}</Text>
+                      </DescriptionListDescription>
+                    </DescriptionListRow>
+                  )}
                   <DescriptionListRow className="items-start">
                     <DescriptionListTerm>
                       <Text>节数</Text>
@@ -105,14 +114,16 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text>{schedule.weekDisplay}</Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  <DescriptionListRow className="items-start">
-                    <DescriptionListTerm>
-                      <Text>备注</Text>
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      <Text>{schedule.remark}</Text>
-                    </DescriptionListDescription>
-                  </DescriptionListRow>
+                  {!!schedule.remark &&(
+                    <DescriptionListRow className="items-start">
+                      <DescriptionListTerm>
+                        <Text>备注</Text>
+                      </DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <Text>{schedule.remark}</Text>
+                      </DescriptionListDescription>
+                    </DescriptionListRow>
+                  )}
                 </DescriptionList>
                 <View className="flex flex-row flex-wrap justify-evenly">
                   {schedule.syllabus && (
@@ -151,9 +162,25 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                             {
                               text: '删除',
                               style: 'destructive',
-                              onPress: () => {
-                                closeDialog();
-                                CourseCache.removeCustomCourse((schedule as CustomCourse).storageKey);
+                              onPress: async () => {
+                                try {
+                                  const target = schedule as CustomCourse;
+                                  // 直接请求后端
+                                  await deleteApiV1CourseCustom({ course_id: target.storageKey });
+
+                                  // 删除成功后自动做一次刷新
+                                  await refreshCourseTable().catch(error => {
+                                    console.warn('删除自定义课程后刷新课表失败:', error);
+                                  });
+
+                                  toast.success('已删除自定义课程');
+                                  closeDialog();
+                                } catch (error: any) {
+                                  const data = handleError(error) as { message: string };
+                                  if (data) {
+                                    toast.error(data.message);
+                                  }
+                                }
                               },
                             },
                           ]);
