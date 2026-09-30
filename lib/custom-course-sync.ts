@@ -12,7 +12,6 @@ import {
   type CustomCourse,
 } from '@/lib/course';
 
-/** 写入云端时请求体里的 course 字段，必填项与后端一致 */
 export interface CloudCustomCoursePayload {
   id?: string;
   name: string;
@@ -76,13 +75,10 @@ const uploadLocalCustomCourses = async (fallbackTerm: string): Promise<boolean> 
     try {
       await putApiV1CourseCustom({ term, course: buildCustomCoursePayload(local) });
     } catch (error: any) {
-      // 业务错误说明这门课本身有问题（比如字段超长），重试多少次都一样，跳过它继续迁移，
-      // 否则一门坏数据会把整个迁移卡死，后面所有课程都传不上去
       if (error?.type === RejectEnum.BizFailed) {
         console.warn(`自定义课程「${local.name}」无法迁移到云端，已跳过：`, error.data);
         continue;
       }
-      // 网络类错误就整体中止，留到下次再试
       console.warn(`自定义课程「${local.name}」迁移到云端失败，下次再试`, error);
       return false;
     }
@@ -108,7 +104,6 @@ export const reconcileCustomCourses = async (cloudCourses: CloudCustomCourse[], 
     return CourseCache.setCustomCourses(cloudCourses, semester);
   }
 
-  // 本地本来就没有历史课程（新用户、或已经迁移过的设备），直接进入正常覆盖模式
   if (CourseCache.flattenCustomCourses().length === 0) {
     await markMigrationDone();
     CourseCache.markCustomCoursesMigrated();
@@ -117,14 +112,12 @@ export const reconcileCustomCourses = async (cloudCourses: CloudCustomCourse[], 
 
   const migrated = await uploadLocalCustomCourses(semester);
   if (!migrated) {
-    // 还有课程没传上去，这次先不动本地，等下次拿到网络再迁
     return false;
   }
 
   await markMigrationDone();
   CourseCache.markCustomCoursesMigrated();
 
-  // 迁移完成：立刻重新拉一次，让服务端数据成为唯一来源
   await refreshCourseTable();
   return true;
 };

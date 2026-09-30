@@ -17,7 +17,6 @@ import {
 import { setWidgetData } from '@/modules/native-widget';
 import { MergedExamData } from '@/types/academic';
 import type { PartiallyOptional } from '@/types/utils';
-import { randomUUID } from '@/utils/crypto';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
 import { allocateColorForCourse, clearColorMapping, getExamColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
@@ -782,8 +781,6 @@ export class CourseCache {
    * @returns 数据是否发生变化
    */
   public static async setCustomCourses(cloudCourses: CloudCustomCourse[], semester: string): Promise<boolean> {
-    // 历史本地数据还没全部上传到云端之前，不能用服务端数据覆盖，
-    // 否则那些只存在本地的课程会直接消失（见 lib/custom-course-sync.ts）
     if (!this.customCoursesMigrated) {
       console.warn('自定义课程尚未完成迁移，本次不使用服务端数据覆盖本地');
       return false;
@@ -816,12 +813,16 @@ export class CourseCache {
    * 必须保持扁平字段：桌面小组件（CourseDataHandler.swift / WidgetUtils.kt）依赖这个形状
    */
   private static buildCustomCourseFromCloud(cloud: CloudCustomCourse, semester: string): CustomCourse {
+    if (!cloud.id) {
+      throw new Error('云端自定义课程缺少 id');
+    }
+
     return {
       // 本地渲染才需要的字段，云端没有对应值
       id: this.allocateID(),
       priority: DEFAULT_PRIORITY,
       // 直接用服务端 id 当本地标识：缓存整体重建后它依然稳定，编辑/删除都靠它
-      storageKey: cloud.id ?? randomUUID(),
+      storageKey: cloud.id,
       type: CUSTOM_TYPE,
       semester,
       lastUpdateTime: dayjs().toISOString(),
