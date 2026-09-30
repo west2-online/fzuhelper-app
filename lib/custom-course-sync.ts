@@ -6,7 +6,7 @@ import { queryClient } from '@/components/query-provider';
 import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
 import {
   CourseCache,
-  forceRefreshCourseData,
+  forceRefreshCourseData as forceRefreshCourseDataBase,
   getCourseSetting,
   type CloudCustomCourse,
   type CustomCourse,
@@ -61,29 +61,12 @@ const markMigrationDone = async (): Promise<void> => {
 };
 
 /**
- * 内容比对：迁移重试时用来跳过上一次已经成功上传的课程，避免重复上传
- * （本地老数据没有服务端 id，只能靠内容判断，字段取的是能唯一确定一门课的那几个）
- */
-const isSameCourse = (cloud: CloudCustomCourse, local: CustomCourse): boolean =>
-  cloud.name === local.name &&
-  cloud.location === local.location &&
-  cloud.weekday === local.weekday &&
-  cloud.startClass === local.startClass &&
-  cloud.endClass === local.endClass &&
-  cloud.startWeek === local.startWeek &&
-  cloud.endWeek === local.endWeek;
-
-/**
  * 把历史本地自定义课程补传到云端
  * 这些课程没有服务端 id，只能当新增提交
  * @returns 是否全部上传成功
  */
-const uploadLocalCustomCourses = async (cloudCourses: CloudCustomCourse[], fallbackTerm: string): Promise<boolean> => {
+const uploadLocalCustomCourses = async (fallbackTerm: string): Promise<boolean> => {
   for (const local of CourseCache.flattenCustomCourses()) {
-    if (cloudCourses.some(cloud => isSameCourse(cloud, local))) {
-      continue;
-    }
-
     const term = local.semester || fallbackTerm || (await getCourseSetting()).selectedSemester;
     if (!term) {
       console.warn(`自定义课程「${local.name}」没有学期信息，跳过迁移`);
@@ -105,15 +88,6 @@ const uploadLocalCustomCourses = async (cloudCourses: CloudCustomCourse[], fallb
     }
   }
   return true;
-};
-
-/**
- * 强制刷新课表：和用户在课表页"下拉刷新"走同一套逻辑
- */
-export const refreshCourseTable = async (): Promise<void> => {
-  const setting = await getCourseSetting();
-  await forceRefreshCourseData(setting.selectedSemester);
-  queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
 };
 
 /**
@@ -141,7 +115,7 @@ export const reconcileCustomCourses = async (cloudCourses: CloudCustomCourse[], 
     return CourseCache.setCustomCourses(cloudCourses, semester);
   }
 
-  const migrated = await uploadLocalCustomCourses(cloudCourses, semester);
+  const migrated = await uploadLocalCustomCourses(semester);
   if (!migrated) {
     // 还有课程没传上去，这次先不动本地，等下次拿到网络再迁
     return false;
@@ -153,4 +127,17 @@ export const reconcileCustomCourses = async (cloudCourses: CloudCustomCourse[], 
   // 迁移完成：立刻重新拉一次，让服务端数据成为唯一来源
   await refreshCourseTable();
   return true;
+};
+
+export const forceRefreshCourseData = async (queryTerm: string): Promise<void> => {
+  await forceRefreshCourseDataBase(queryTerm, reconcileCustomCourses);
+};
+
+/**
+ * 强制刷新课表：和用户在课表页"下拉刷新"走同一套逻辑
+ */
+export const refreshCourseTable = async (): Promise<void> => {
+  const setting = await getCourseSetting();
+  await forceRefreshCourseData(setting.selectedSemester);
+  queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
 };

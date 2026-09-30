@@ -6,7 +6,7 @@ import { getApiV1JwchClassroomExam, getApiV1TermsList, getApiV2JwchCourseList } 
 import type { CourseSetting } from '@/api/interface';
 import { queryClient } from '@/components/query-provider';
 import {
-  COURSE_DATA_KEY,
+  COURSE_DATA_V2_KEY,
   COURSE_PAGE_ALL_DATA_KEY,
   COURSE_TERMS_LIST_KEY,
   EXAM_ROOM_KEY,
@@ -47,7 +47,7 @@ async function loadCourseAndExamData(
 
   // 获取课程数据
   const fetchedData = await fetchWithCache(
-    [COURSE_DATA_KEY, queryTerm],
+    [COURSE_DATA_V2_KEY, queryTerm],
     () => getApiV2JwchCourseList({ term: queryTerm, is_refresh: false }),
     { staleTime: EXPIRE_ONE_DAY },
   );

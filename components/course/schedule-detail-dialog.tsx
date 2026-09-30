@@ -168,12 +168,17 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                                   // 直接请求后端
                                   await deleteApiV1CourseCustom({ course_id: target.storageKey });
 
-                                  // 删除成功后自动做一次刷新
+                                  let refreshFailed = false;
                                   await refreshCourseTable().catch(error => {
                                     console.warn('删除自定义课程后刷新课表失败:', error);
+                                    refreshFailed = true;
                                   });
 
-                                  toast.success('已删除自定义课程');
+                                  if (refreshFailed) {
+                                    toast.warning('已删除自定义课程，课表刷新失败，请下拉刷新重试');
+                                  } else {
+                                    toast.success('已删除自定义课程');
+                                  }
                                   closeDialog();
                                 } catch (error: any) {
                                   const data = handleError(error) as { message: string };

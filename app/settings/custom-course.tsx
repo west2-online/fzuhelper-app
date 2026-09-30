@@ -100,34 +100,6 @@ export default function CourseAddPage() {
   // 保存课程（新增或编辑）
   const handleSave = useCallback(
     async (newCourse: CustomCourse) => {
-      if (newCourse.startClass > newCourse.endClass || newCourse.startWeek > newCourse.endWeek) {
-        toast.error('开始节/周不能大于结束节/周');
-        return;
-      }
-
-      if (newCourse.name === '') {
-        toast.error('课程名称不能为空');
-        return;
-      }
-
-      // 与后端校验保持一致
-      if (newCourse.name.length > NAME_MAX_LEN) {
-        toast.error(`课程名称最多 ${NAME_MAX_LEN} 个字`);
-        return;
-      }
-      if (newCourse.teacher.length > TEACHER_MAX_LEN) {
-        toast.error(`教师名称最多 ${TEACHER_MAX_LEN} 个字`);
-        return;
-      }
-      if (newCourse.location.length > LOCATION_MAX_LEN) {
-        toast.error(`上课地点最多 ${LOCATION_MAX_LEN} 个字`);
-        return;
-      }
-      if (newCourse.remark.length > REMARK_MAX_LEN) {
-        toast.error(`备注最多 ${REMARK_MAX_LEN} 个字`);
-        return;
-      }
-
       setDisabled(true);
 
       try {
@@ -140,13 +112,18 @@ export default function CourseAddPage() {
           course: buildCustomCoursePayload(courseToSave, courseToSave.storageKey || undefined),
         });
 
-        // 保存成功后自动做一次刷新
+        let refreshFailed = false;
         await refreshCourseTable().catch(error => {
           console.warn('保存自定义课程后刷新课表失败:', error);
+          refreshFailed = true;
         });
 
         console.log('保存自定义课程成功：', courseToSave);
-        toast.success('保存成功');
+        if (refreshFailed) {
+          toast.warning('保存成功，课表刷新失败，请下拉刷新重试');
+        } else {
+          toast.success('保存成功');
+        }
         router.back();
       } catch (error: any) {
         const data = handleError(error) as { message: string };

@@ -7,7 +7,7 @@ import {
   CLASS_BREAK_NOON,
   CLASS_SCHEDULES_MINUTES,
   COURSE_CURRENT_CACHE_KEY,
-  COURSE_DATA_KEY,
+  COURSE_DATA_V2_KEY,
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
   DATETIME_SECOND_FORMAT,
@@ -124,6 +124,8 @@ export interface CloudCustomCourse {
   color?: string;
   remark?: string;
 }
+
+export type SyncCustomCourses = (cloudCourses: CloudCustomCourse[], semester: string) => Promise<boolean>;
 
 /** 本地自定义课程的默认色，与自定义课程页的调色板首色保持一致 */
 const DEFAULT_CUSTOM_COURSE_COLOR = '#F39F9D';
@@ -966,7 +968,7 @@ export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): P
 };
 
 // 强制刷新数据（即不使用本地缓存）
-export const forceRefreshCourseData = async (queryTerm: string) => {
+export const forceRefreshCourseData = async (queryTerm: string, syncCustomCourses: SyncCustomCourses) => {
   // 前端格式的学期，用来给云端返回的自定义课程打标记（queryTerm 对研究生会被转换掉）
   const semester = queryTerm;
 
@@ -975,9 +977,9 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
     queryTerm = deConvertSemester(queryTerm);
   }
 
-  // 课程信息（V2 会额外返回云端的自定义课程）
+  // 课程信息
   const data = await fetchWithCache(
-    [COURSE_DATA_KEY, queryTerm],
+    [COURSE_DATA_V2_KEY, queryTerm],
     () => getApiV2JwchCourseList({ term: queryTerm, is_refresh: true }),
     { staleTime: 0 }, // 强制刷新
   );
@@ -987,7 +989,7 @@ export const forceRefreshCourseData = async (queryTerm: string) => {
 
   // 设置课程数据，跳过 digest 检查
   CourseCache.setCourses(normalizeV2Courses(data.data.data.courses ?? []), true);
-  await CourseCache.setCustomCourses(data.data.data.custom_courses ?? [], semester);
+  await syncCustomCourses(data.data.data.custom_courses ?? [], semester);
 
   // 考场信息
   if ((await getCourseSetting()).exportExamToCourseTable) {

@@ -30,8 +30,9 @@ import useApiRequest from '@/hooks/useApiRequest';
 import { useCoursePageData, type CoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_COURSE_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
-import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
+import { CourseCache, getCourseSetting } from '@/lib/course';
 import { mergeCourseSchedulesByDay } from '@/lib/course-schedule';
+import { forceRefreshCourseData } from '@/lib/custom-course-sync';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
 
