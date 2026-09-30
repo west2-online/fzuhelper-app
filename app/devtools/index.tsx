@@ -1,8 +1,9 @@
 import PageContainer from '@/components/page-container';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { ACCESS_TOKEN_KEY, YKT_SYNJONES_AUTH_KEY } from '@/lib/constants';
-import { COURSE_TYPE, CourseCache, EXAM_TYPE } from '@/lib/course';
+import { ACCESS_TOKEN_KEY, COURSE_CURRENT_CACHE_KEY, YKT_SYNJONES_AUTH_KEY } from '@/lib/constants';
+import { COURSE_TYPE, CUSTOM_TYPE, CourseCache, EXAM_TYPE, getCourseSetting, type CustomCourse } from '@/lib/course';
+import { CUSTOM_COURSE_MIGRATION_DONE_KEY } from '@/lib/custom-course-sync';
 import locateDate from '@/lib/locate-date';
 import { LocalUser } from '@/lib/user';
 import UserLogin from '@/lib/user-login';
@@ -96,6 +97,75 @@ export default function HomePage() {
     CourseCache.setDigest(COURSE_TYPE, 'test');
     CourseCache.setDigest(EXAM_TYPE, 'test');
     toast.success('已经设置不同的课程缓存摘要');
+  };
+
+  // 【调试用】造两门"旧版本残留"的自定义课程：只存在设备本地用来验证静默迁移
+  const seedLegacyCustomCourses = async () => {
+    try {
+      const setting = await getCourseSetting();
+      const now = new Date().toISOString();
+
+      const legacyCourses: CustomCourse[] = [
+        {
+          id: 9001,
+          name: '调试课程1',
+          teacher: 'debug',
+          location: '西2-404',
+          startClass: 5,
+          endClass: 6,
+          startWeek: 1,
+          endWeek: 16,
+          weekday: 4,
+          single: true,
+          double: true,
+          adjust: false,
+          color: '#7A6068',
+          remark: 'debug remark',
+          priority: 1,
+          storageKey: '9f1c2d3e-4a5b-4c6d-8e7f-0a1b2c3d4e5f',
+          lastUpdateTime: now,
+          type: CUSTOM_TYPE,
+          examType: '',
+          semester: setting.selectedSemester,
+        },
+        {
+          id: 9002,
+          name: '调试课程2',
+          teacher: 'debug',
+          location: '东3-306',
+          startClass: 7,
+          endClass: 8,
+          startWeek: 2,
+          endWeek: 15,
+          weekday: 4,
+          single: false,
+          double: true,
+          adjust: false,
+          color: '#5A9DBD',
+          remark: 'debug remark',
+          priority: 2,
+          storageKey: '1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
+          lastUpdateTime: now,
+          type: CUSTOM_TYPE,
+          examType: '',
+          semester: '',
+        },
+      ];
+
+      const raw = await AsyncStorage.getItem(COURSE_CURRENT_CACHE_KEY);
+      const cache = raw ? JSON.parse(raw) : {};
+      const emptyDays = [0, 1, 2, 4, 5, 6].map(day => [day, []]);
+      cache.customData = Object.fromEntries([...emptyDays, [3, legacyCourses]]);
+      cache.customDigest = '';
+
+      await AsyncStorage.setItem(COURSE_CURRENT_CACHE_KEY, JSON.stringify(cache));
+      // 清迁移标记
+      await AsyncStorage.removeItem(CUSTOM_COURSE_MIGRATION_DONE_KEY);
+
+      toast.success('已写入 2 门本地自定义课程，重启 App 后打开课表页观察迁移');
+    } catch (error) {
+      toast.error(`写入失败：${error}`);
+    }
   };
 
   return (
@@ -194,6 +264,9 @@ export default function HomePage() {
             </Button>
             <Button onPress={SetDifferentCourseCacheDigest}>
               <Text>Set Different Course Cache Digest</Text>
+            </Button>
+            <Button onPress={seedLegacyCustomCourses}>
+              <Text>Seed Legacy Custom Courses (2)</Text>
             </Button>
             <Button
               onPress={() => {
