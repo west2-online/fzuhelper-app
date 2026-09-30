@@ -69,6 +69,7 @@ type ColorData = {
   backgroundColorAlpha: string;
 };
 
+/* eslint-disable no-restricted-syntax */
 const colors: Record<ParsedColorScheme, ColorData> = {
   light: {
     backgroundColor: '#ffffff',
@@ -115,6 +116,7 @@ const darkModeScript: GeneratedScript = colorScheme => `
     });
   })();
 `;
+/* eslint-enable no-restricted-syntax */
 
 const pyjhDarkModeScript: GeneratedScript = colorScheme => `
   (function() {
