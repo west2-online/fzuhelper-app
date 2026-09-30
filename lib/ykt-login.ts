@@ -270,18 +270,7 @@ export default class YKTLogin {
     });
 
     const payInfo = codebarResp.data[0];
-    if (!payInfo?.voucher && payInfo?.voucherStatus === 0) {
-      throw {
-        type: RejectEnum.BizFailed,
-        data: `未开通离线支付权限
-请前往“福大一卡通”微信小程序开通
-
-开通路径：
-小程序-我的-设置-支付设置-脱机二维码设置
-初始密码为身份证号后6位，X用0代替`,
-      };
-    }
-    if (!payInfo?.account || !payInfo?.payacc || !payInfo?.paytype || !payInfo?.voucher) {
+    if (!payInfo?.account || !payInfo?.payacc || !payInfo?.paytype) {
       throw {
         type: RejectEnum.BizFailed,
         data: '获取支付信息失败',
@@ -358,6 +347,11 @@ export default class YKTLogin {
     // 获取 codebarPayinfo
     const payInfo = await this.getCodebarPayInfo(synjonesAuth);
 
+    // 未开通离线支付
+    if (!payInfo.voucher) {
+      return await this.getBatchBarcode(synjonesAuth, payInfo.account, payInfo.payacc, payInfo.paytype);
+    }
+    // 离线支付
     const [currentBarcode, offlineParams, frontInfo] = await Promise.all([
       // 获取当前使用的 barcode
       this.getBatchBarcode(synjonesAuth, payInfo.account, payInfo.payacc, payInfo.paytype),
@@ -366,13 +360,11 @@ export default class YKTLogin {
       // 获取 front info
       this.getFrontInfo(),
     ]);
-
-    // 生成二维码数据
-    return this.#generateQRCodeDataString(currentBarcode, payInfo.payacc, offlineParams, frontInfo);
+    return this.#generateOfflineQRCodeData(currentBarcode, payInfo.payacc, offlineParams, frontInfo);
   }
 
   // 生成二维码数据字符串
-  async #generateQRCodeDataString(
+  async #generateOfflineQRCodeData(
     currentBarcode: string,
     payacc: string,
     offlineParams: OfflineCodeParams,
