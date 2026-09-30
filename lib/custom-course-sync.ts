@@ -6,7 +6,7 @@ import { queryClient } from '@/components/query-provider';
 import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
 import {
   CourseCache,
-  forceRefreshCourseData as forceRefreshCourseDataBase,
+  forceRefreshCourseDataWithCustomSync,
   getCourseSetting,
   type CloudCustomCourse,
   type CustomCourse,
@@ -123,7 +123,7 @@ export const reconcileCustomCourses = async (cloudCourses: CloudCustomCourse[], 
 };
 
 export const forceRefreshCourseData = async (queryTerm: string): Promise<void> => {
-  await forceRefreshCourseDataBase(queryTerm, reconcileCustomCourses);
+  await forceRefreshCourseDataWithCustomSync(queryTerm, reconcileCustomCourses);
 };
 
 /**

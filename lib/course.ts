@@ -969,7 +969,7 @@ export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): P
 };
 
 // 强制刷新数据（即不使用本地缓存）
-export const forceRefreshCourseData = async (queryTerm: string, syncCustomCourses: SyncCustomCourses) => {
+export const forceRefreshCourseDataWithCustomSync = async (queryTerm: string, syncCustomCourses: SyncCustomCourses) => {
   // 前端格式的学期，用来给云端返回的自定义课程打标记（queryTerm 对研究生会被转换掉）
   const semester = queryTerm;
 
