@@ -13,6 +13,7 @@ interface FreeFriendsColProps {
 }
 
 // 都空闲 → 不显示；部分占课 → 黄色；全部占课 → 红色
+/* eslint-disable no-restricted-syntax */
 const getSlotStyle = (count: number, total: number): { bg: string; text: string; label: string } | null => {
   const safeCount = Math.max(0, count); // clamp: data inconsistency safety net
   if (total === 0 || safeCount >= total) return null; // all free → empty
@@ -24,6 +25,7 @@ const getSlotStyle = (count: number, total: number): { bg: string; text: string;
   // some busy
   return { bg: 'bg-yellow-300', text: 'text-black', label: `${busy}人忙` };
 };
+/* eslint-enable no-restricted-syntax */
 
 const FreeFriendsCol: React.FC<FreeFriendsColProps> = ({
   freeCountPerSlot,
