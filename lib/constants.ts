@@ -68,6 +68,7 @@ export const CALENDAR_SUBSCRIPTION_TOKEN_KEY = 'calendar_subscription_token';
 export const COURSE_CURRENT_CACHE_KEY = 'course_current_cache';
 export const COURSE_SETTINGS_KEY = 'course_settings';
 export const COURSE_DATA_KEY = 'course_data';
+export const COURSE_DATA_V2_KEY = 'course_data_v2';
 export const COURSE_LOCAL_CALENDAR_ID_KEY = 'course_local_calendar_id';
 export const COURSE_TERMS_LIST_KEY = 'course_terms_list';
 export const COURSE_PAGE_ALL_DATA_KEY = 'course_page_all_data';

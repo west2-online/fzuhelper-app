@@ -1,0 +1,135 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { RejectEnum } from '@/api/enum';
+import { putApiV1CourseCustom } from '@/api/generate';
+import { queryClient } from '@/components/query-provider';
+import { COURSE_PAGE_ALL_DATA_KEY } from '@/lib/constants';
+import {
+  CourseCache,
+  forceRefreshCourseDataWithCustomSync,
+  getCourseSetting,
+  type CloudCustomCourse,
+  type CustomCourse,
+} from '@/lib/course';
+import { deConvertSemester } from '@/lib/locate-date';
+import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
+
+export interface CloudCustomCoursePayload {
+  id?: string;
+  name: string;
+  teacher: string;
+  location: string;
+  startClass: number;
+  endClass: number;
+  startWeek: number;
+  endWeek: number;
+  weekday: number;
+  single: boolean;
+  double: boolean;
+  color: string;
+  remark: string;
+}
+
+/**
+ * 本地课程 → 云端请求体
+ * 本地多出来的字段（priority、教务那些 raw 字段）都不发出去
+ * @param courseId 传了表示更新这门课，不传表示新增（后端靠 id 是否为空区分）
+ */
+export const buildCustomCoursePayload = (course: CustomCourse, courseId?: string): CloudCustomCoursePayload => ({
+  ...(courseId ? { id: courseId } : {}),
+  name: course.name,
+  teacher: course.teacher,
+  location: course.location,
+  startClass: course.startClass,
+  endClass: course.endClass,
+  startWeek: course.startWeek,
+  endWeek: course.endWeek,
+  weekday: course.weekday,
+  single: course.single,
+  double: course.double,
+  color: course.color,
+  remark: course.remark,
+});
+
+export const toCorrectTerm = (semester: string): string =>
+  LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? deConvertSemester(semester) : semester;
+
+/** 历史本地数据是否已经全部上传到云端（一次性迁移的标记，存在本地） */
+export const CUSTOM_COURSE_MIGRATION_DONE_KEY = 'custom_course_migration_done';
+
+const isMigrationDone = async (): Promise<boolean> =>
+  (await AsyncStorage.getItem(CUSTOM_COURSE_MIGRATION_DONE_KEY)) === '1';
+
+const markMigrationDone = async (): Promise<void> => {
+  await AsyncStorage.setItem(CUSTOM_COURSE_MIGRATION_DONE_KEY, '1');
+};
+
+/**
+ * 把历史本地自定义课程补传到云端
+ * 这些课程没有服务端 id，只能当新增提交
+ * @returns 是否全部上传成功
+ */
+const uploadLocalCustomCourses = async (fallbackTerm: string): Promise<boolean> => {
+  for (const local of CourseCache.flattenCustomCourses()) {
+    const term = local.semester || fallbackTerm || (await getCourseSetting()).selectedSemester;
+    if (!term) {
+      console.warn(`自定义课程「${local.name}」没有学期信息，跳过迁移`);
+      continue;
+    }
+
+    try {
+      await putApiV1CourseCustom({ term: toCorrectTerm(term), course: buildCustomCoursePayload(local) });
+    } catch (error: any) {
+      if (error?.type === RejectEnum.BizFailed) {
+        console.warn(`自定义课程「${local.name}」无法迁移到云端，已跳过：`, error.data);
+        continue;
+      }
+      console.warn(`自定义课程「${local.name}」迁移到云端失败，下次再试`, error);
+      return false;
+    }
+  }
+  return true;
+};
+
+/**
+ * 让本地的自定义课程与云端对齐。
+ * @param cloudCourses V2 课表返回的 custom_courses
+ * @param semester 当前选中的学期（前端格式）
+ * @returns 本地数据是否发生变化
+ */
+export const reconcileCustomCourses = async (cloudCourses: CloudCustomCourse[], semester: string): Promise<boolean> => {
+  if (await isMigrationDone()) {
+    CourseCache.markCustomCoursesMigrated();
+    return CourseCache.setCustomCourses(cloudCourses, semester);
+  }
+
+  if (CourseCache.flattenCustomCourses().length === 0) {
+    await markMigrationDone();
+    CourseCache.markCustomCoursesMigrated();
+    return CourseCache.setCustomCourses(cloudCourses, semester);
+  }
+
+  const migrated = await uploadLocalCustomCourses(semester);
+  if (!migrated) {
+    return false;
+  }
+
+  await markMigrationDone();
+  CourseCache.markCustomCoursesMigrated();
+
+  await refreshCourseTable();
+  return true;
+};
+
+export const forceRefreshCourseData = async (queryTerm: string): Promise<void> => {
+  await forceRefreshCourseDataWithCustomSync(queryTerm, reconcileCustomCourses);
+};
+
+/**
+ * 强制刷新课表：和用户在课表页"下拉刷新"走同一套逻辑
+ */
+export const refreshCourseTable = async (): Promise<void> => {
+  const setting = await getCourseSetting();
+  await forceRefreshCourseData(setting.selectedSemester);
+  queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+};

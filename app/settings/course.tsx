@@ -18,13 +18,8 @@ import { useUpdateEffect } from '@/hooks/use-update-effect';
 import useApiRequest from '@/hooks/useApiRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { JWCH_TERM_LIST_KEY } from '@/lib/constants';
-import {
-  CourseCache,
-  defaultCourseSetting,
-  forceRefreshCourseData,
-  getCourseSetting,
-  updateCourseSetting,
-} from '@/lib/course';
+import { CourseCache, defaultCourseSetting, getCourseSetting, updateCourseSetting } from '@/lib/course';
+import { forceRefreshCourseData } from '@/lib/custom-course-sync';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 
