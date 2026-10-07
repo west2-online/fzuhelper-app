@@ -14,7 +14,7 @@ import { Text } from '@/components/ui/text';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, getCourseSetting, type CustomCourse } from '@/lib/course';
-import { buildCustomCoursePayload, refreshCourseTable } from '@/lib/custom-course-sync';
+import { buildCustomCoursePayload, refreshCourseTable, toCorrectTerm } from '@/lib/custom-course-sync';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -108,7 +108,7 @@ export default function CourseAddPage() {
         setCourse(courseToSave);
 
         await putApiV1CourseCustom({
-          term: courseToSave.semester,
+          term: toCorrectTerm(courseToSave.semester),
           course: buildCustomCoursePayload(courseToSave, courseToSave.storageKey || undefined),
         });
 

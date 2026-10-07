@@ -11,6 +11,8 @@ import {
   type CloudCustomCourse,
   type CustomCourse,
 } from '@/lib/course';
+import { deConvertSemester } from '@/lib/locate-date';
+import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 
 export interface CloudCustomCoursePayload {
   id?: string;
@@ -49,6 +51,9 @@ export const buildCustomCoursePayload = (course: CustomCourse, courseId?: string
   remark: course.remark,
 });
 
+export const toCorrectTerm = (semester: string): string =>
+  LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? deConvertSemester(semester) : semester;
+
 /** 历史本地数据是否已经全部上传到云端（一次性迁移的标记，存在本地） */
 export const CUSTOM_COURSE_MIGRATION_DONE_KEY = 'custom_course_migration_done';
 
@@ -73,7 +78,7 @@ const uploadLocalCustomCourses = async (fallbackTerm: string): Promise<boolean> 
     }
 
     try {
-      await putApiV1CourseCustom({ term, course: buildCustomCoursePayload(local) });
+      await putApiV1CourseCustom({ term: toCorrectTerm(term), course: buildCustomCoursePayload(local) });
     } catch (error: any) {
       if (error?.type === RejectEnum.BizFailed) {
         console.warn(`自定义课程「${local.name}」无法迁移到云端，已跳过：`, error.data);
@@ -88,12 +93,6 @@ const uploadLocalCustomCourses = async (fallbackTerm: string): Promise<boolean> 
 
 /**
  * 让本地的自定义课程与云端对齐。
- *
- * 本地只是服务端数据的镜像，正常情况下这里就是一次覆盖。唯一的例外是历史数据迁移：
- * 云端功能上线之前，自定义课程只存在设备本地，服务端一无所知。如果直接用服务端的
- * 空列表覆盖，那些课程就永久丢了。所以迁移完成之前一律不覆盖，等全部上传成功后再让本地
- * 失效、重新拉一次，从此本地就完全是服务端的镜像。
- *
  * @param cloudCourses V2 课表返回的 custom_courses
  * @param semester 当前选中的学期（前端格式）
  * @returns 本地数据是否发生变化
