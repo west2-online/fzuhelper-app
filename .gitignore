@@ -35,3 +35,6 @@ nativewind-env.d.ts
 
 # yarn
 yarn-error.log
+
+# nixos dev
+.direnv/
