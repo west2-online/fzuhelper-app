@@ -100,6 +100,7 @@ const uploadLocalCustomCourses = async (fallbackTerm: string): Promise<boolean> 
 export const reconcileCustomCourses = async (cloudCourses: CloudCustomCourse[], semester: string): Promise<boolean> => {
   if (await isMigrationDone()) {
     CourseCache.markCustomCoursesMigrated();
+    console.log('本地自定义课程迁移已完成');
     return CourseCache.setCustomCourses(cloudCourses, semester);
   }
 
@@ -117,19 +118,19 @@ export const reconcileCustomCourses = async (cloudCourses: CloudCustomCourse[], 
   await markMigrationDone();
   CourseCache.markCustomCoursesMigrated();
 
-  await refreshCourseTable();
+  await forceRefreshCourseData(semester, false);
   return true;
 };
 
-export const forceRefreshCourseData = async (queryTerm: string): Promise<void> => {
-  await forceRefreshCourseDataWithCustomSync(queryTerm, reconcileCustomCourses);
+export const forceRefreshCourseData = async (queryTerm: string, refreshJwch = true): Promise<void> => {
+  await forceRefreshCourseDataWithCustomSync(queryTerm, reconcileCustomCourses, refreshJwch);
 };
 
 /**
- * 强制刷新课表：和用户在课表页"下拉刷新"走同一套逻辑
+ * 绕过本地缓存刷新课表，refreshJwch 控制是否同时强制刷新教务处数据
  */
-export const refreshCourseTable = async (): Promise<void> => {
+export const refreshCourseTable = async (refreshJwch = true): Promise<void> => {
   const setting = await getCourseSetting();
-  await forceRefreshCourseData(setting.selectedSemester);
-  queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+  await forceRefreshCourseData(setting.selectedSemester, refreshJwch);
+  await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
 };

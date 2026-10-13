@@ -11,10 +11,11 @@ import PickerModal from '@/components/picker-modal';
 import RadioButton from '@/components/radio-button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useRefreshCourseTable } from '@/hooks/useRefreshCourseTable';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CourseCache, CUSTOM_TYPE, DEFAULT_PRIORITY, getCourseSetting, type CustomCourse } from '@/lib/course';
-import { buildCustomCoursePayload, refreshCourseTable, toCorrectTerm } from '@/lib/custom-course-sync';
+import { buildCustomCoursePayload, toCorrectTerm } from '@/lib/custom-course-sync';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -76,6 +77,7 @@ const DEFAULT_EMPTY_COURSE: CustomCourse = {
 
 export default function CourseAddPage() {
   const { handleError } = useSafeResponseSolve();
+  const { refreshCourseTable } = useRefreshCourseTable();
   const searchParams = useLocalSearchParams();
   const key = (searchParams.key as string) ?? '';
 
@@ -112,8 +114,10 @@ export default function CourseAddPage() {
           course: buildCustomCoursePayload(courseToSave, courseToSave.storageKey || undefined),
         });
 
+        router.back();
+
         let refreshFailed = false;
-        await refreshCourseTable().catch(error => {
+        await refreshCourseTable(false).catch(error => {
           console.warn('保存自定义课程后刷新课表失败:', error);
           refreshFailed = true;
         });
@@ -124,7 +128,6 @@ export default function CourseAddPage() {
         } else {
           toast.success('保存成功');
         }
-        router.back();
       } catch (error: any) {
         const data = handleError(error) as { message: string };
         if (data) {
@@ -134,7 +137,7 @@ export default function CourseAddPage() {
         setDisabled(false);
       }
     },
-    [handleError],
+    [handleError, refreshCourseTable],
   );
 
   const headerRight = useCallback(() => {

@@ -969,7 +969,12 @@ export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): P
 };
 
 // 强制刷新数据（即不使用本地缓存）
-export const forceRefreshCourseDataWithCustomSync = async (queryTerm: string, syncCustomCourses: SyncCustomCourses) => {
+// refreshJwch 仅控制是否强制刷新教务处数据，为 false 时仍获取最新的云端自定义课程
+export const forceRefreshCourseDataWithCustomSync = async (
+  queryTerm: string,
+  syncCustomCourses: SyncCustomCourses,
+  refreshJwch = true,
+) => {
   // 前端格式的学期，用来给云端返回的自定义课程打标记（queryTerm 对研究生会被转换掉）
   const semester = queryTerm;
 
@@ -981,7 +986,7 @@ export const forceRefreshCourseDataWithCustomSync = async (queryTerm: string, sy
   // 课程信息
   const data = await fetchWithCache(
     [COURSE_DATA_V2_KEY, queryTerm],
-    () => getApiV2JwchCourseList({ term: queryTerm, is_refresh: true }),
+    () => getApiV2JwchCourseList({ term: queryTerm, is_refresh: refreshJwch }),
     { staleTime: 0 }, // 强制刷新
   );
 

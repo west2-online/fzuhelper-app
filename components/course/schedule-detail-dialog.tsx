@@ -12,10 +12,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
+import { useRefreshCourseTable } from '@/hooks/useRefreshCourseTable';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 
 import { CUSTOM_TYPE, CourseCache, type CourseInfoMerged, type CustomCourse } from '@/lib/course';
-import { refreshCourseTable } from '@/lib/custom-course-sync';
 import { pushToWebViewJWCH } from '@/lib/webview';
 
 import ArrowRightIcon from '@/assets/images/misc/ic_arrow_right.png';
@@ -29,6 +29,7 @@ interface ScheduleDetailsDialogProps {
 
 const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onOpenChange, schedules }) => {
   const { handleError } = useSafeResponseSolve();
+  const { refreshCourseTable } = useRefreshCourseTable();
   const [scheduleIndex, setScheduleIndex] = useState(0);
   const schedule = useMemo(() => schedules[scheduleIndex], [scheduleIndex, schedules]);
 
@@ -114,7 +115,7 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                       <Text>{schedule.weekDisplay}</Text>
                     </DescriptionListDescription>
                   </DescriptionListRow>
-                  {!!schedule.remark &&(
+                  {!!schedule.remark && (
                     <DescriptionListRow className="items-start">
                       <DescriptionListTerm>
                         <Text>备注</Text>
@@ -167,9 +168,10 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                                   const target = schedule as CustomCourse;
                                   // 直接请求后端
                                   await deleteApiV1CourseCustom({ course_id: target.storageKey });
+                                  closeDialog();
 
                                   let refreshFailed = false;
-                                  await refreshCourseTable().catch(error => {
+                                  await refreshCourseTable(false).catch(error => {
                                     console.warn('删除自定义课程后刷新课表失败:', error);
                                     refreshFailed = true;
                                   });
@@ -179,7 +181,6 @@ const ScheduleDetailsDialog: React.FC<ScheduleDetailsDialogProps> = ({ open, onO
                                   } else {
                                     toast.success('已删除自定义课程');
                                   }
-                                  closeDialog();
                                 } catch (error: any) {
                                   const data = handleError(error) as { message: string };
                                   if (data) {
