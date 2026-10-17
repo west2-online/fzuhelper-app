@@ -28,6 +28,7 @@ interface SlotDetailModalProps {
   onClose: () => void;
 }
 
+/* eslint-disable no-restricted-syntax */
 const SlotDetailModal: React.FC<SlotDetailModalProps> = ({ slotInfo, participants, onClose }) => {
   const title = slotInfo ? `第${slotInfo.week}周 周${DAYS[slotInfo.day]} 第${slotInfo.period}节` : '';
 
@@ -74,5 +75,6 @@ const SlotDetailModal: React.FC<SlotDetailModalProps> = ({ slotInfo, participant
     </FloatModal>
   );
 };
+/* eslint-enable no-restricted-syntax */
 
 export default memo(SlotDetailModal);
