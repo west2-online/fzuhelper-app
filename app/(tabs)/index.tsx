@@ -28,9 +28,10 @@ import { Text } from '@/components/ui/text';
 import { CoursePageProvider } from '@/context/course-page';
 import useApiRequest from '@/hooks/useApiRequest';
 import { useCoursePageData, type CoursePageData } from '@/hooks/useCourseDataSuspense';
+import { useRefreshCourseTable } from '@/hooks/useRefreshCourseTable';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_COURSE_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
-import { CourseCache, forceRefreshCourseData, getCourseSetting } from '@/lib/course';
+import { CourseCache, getCourseSetting } from '@/lib/course';
 import { mergeCourseSchedulesByDay } from '@/lib/course-schedule';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
@@ -334,7 +335,9 @@ function HomePageContent({
 }
 
 export default function HomePage() {
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isPageRefreshing, setIsRefreshing] = useState(false);
+  const { refreshCourseTable, isRefreshing: isCourseRefreshing } = useRefreshCourseTable();
+  const isRefreshing = isPageRefreshing || isCourseRefreshing;
   const [selectedFriendId, setSelectedFriendId] = useState<string | undefined>(undefined);
   const prevSettingsRef = useRef<string | null>(null);
 
@@ -401,10 +404,8 @@ export default function HomePage() {
         // 刷新好友课表
         await queryClient.invalidateQueries({ queryKey: [FRIEND_COURSE_KEY, selectedFriendId] });
       } else {
-        // 刷新自己的课表
-        const setting = await getCourseSetting();
-        await forceRefreshCourseData(setting.selectedSemester);
-        await queryClient.invalidateQueries({ queryKey: [COURSE_PAGE_ALL_DATA_KEY] });
+        // 手动下拉刷新时，同时强制刷新教务处数据
+        await refreshCourseTable(true);
       }
     } catch (error: any) {
       console.error('Refresh failed:', error);
@@ -415,7 +416,7 @@ export default function HomePage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, selectedFriendId, handleError]);
+  }, [isRefreshing, selectedFriendId, refreshCourseTable, handleError]);
 
   return (
     <PageContainer refreshBackground>
