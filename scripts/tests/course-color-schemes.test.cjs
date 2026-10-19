@@ -801,8 +801,11 @@ test('a deletion with a failed recovery backup preserves the original storage an
 });
 
 function createColors(registry) {
+  const display = compile('utils/course-color-display.ts');
   return compile('utils/random-color.ts', {
     '@/lib/course-color-schemes': registry,
+    '@/utils/course-color-display': display,
+    './course-color-display': display,
   });
 }
 

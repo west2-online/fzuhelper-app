@@ -1,4 +1,5 @@
 import { getCourseColors, normalizeCourseColorScheme, type CourseColorScheme } from '@/lib/course-color-schemes';
+import { getCourseDisplayColor, type CourseColorDisplayOptions } from '@/utils/course-color-display';
 
 export { getCourseColors, normalizeCourseColorScheme, type CourseColorScheme } from '@/lib/course-color-schemes';
 
@@ -89,22 +90,14 @@ export const clearColorMapping = (studentId: string, scheme: CourseColorScheme =
 };
 
 /**
- * 根据颜色模式获取课程颜色
+ * 仅在绘制时生成主题配色，不改变课程原色、颜色分配或缓存。
  */
-export const getCourseColor = (color: string, darkmode: boolean): string => {
-  // 深色主题下，对颜色增加透明度，使颜色变得更加柔和
-  let processedColor = color;
-  // 非本周颜色单独处理
-  if (color === nonCurrentWeekCourseColor && darkmode) return '#DEDEDEDE';
-  if (darkmode) {
-    if (color.length === 7) {
-      // 6 位颜色 (#RRGGBB) → 变成 #RRGGBBC0（加上 75% 透明度）
-      processedColor += 'C0';
-    }
-  }
-  // console.log('color', color, processedColor);
-  return processedColor;
-};
+export const getCourseColor = (color: string, darkmode: boolean, options: CourseColorDisplayOptions = {}): string =>
+  getCourseDisplayColor(color, darkmode, {
+    ...options,
+    // 非本周课程保持弱化的中性灰色，也使用统一的 75% 背景不透明度。
+    compensate: options.compensate !== false && color.toUpperCase() !== nonCurrentWeekCourseColor,
+  });
 
 export const getTextColor = (bgColor: string, darkmode: boolean): string => {
   if (bgColor === nonCurrentWeekCourseColor) return '#00000033';
