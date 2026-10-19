@@ -42,6 +42,7 @@ const WEEK_OPTIONS = [
 ];
 
 // 颜色沿用老版本的颜色
+/* eslint-disable no-restricted-syntax */
 const COLOR_OPTIONS = [
   { value: '#F39F9D', color: '#F39F9D' },
   { value: '#9FA5D5', color: '#9FA5D5' },
@@ -51,6 +52,7 @@ const COLOR_OPTIONS = [
   { value: '#92C5F2', color: '#92C5F2' },
   { value: '#A4D1A6', color: '#A4D1A6' },
 ];
+/* eslint-enable no-restricted-syntax */
 
 const DEFAULT_EMPTY_COURSE: CustomCourse = {
   id: -1,

@@ -11,7 +11,7 @@ import { pushToWebViewJWCH } from '@/lib/webview';
 import NativeBrightnessModule from '@/modules/native-brightness';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
-import { Link, Stack } from 'expo-router';
+import { Link, Stack, type Href } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -205,6 +205,11 @@ export default function HomePage() {
             <Link href="/devtools/webview-tools" asChild>
               <Button>
                 <Text>WebView Tools</Text>
+              </Button>
+            </Link>
+            <Link href={'/devtools/component-test' as Href} asChild>
+              <Button>
+                <Text>Component Test</Text>
               </Button>
             </Link>
 

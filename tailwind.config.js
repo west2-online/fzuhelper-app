@@ -1,5 +1,7 @@
 const { hairlineWidth } = require('nativewind/theme');
 
+/* eslint-disable no-restricted-syntax */
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
