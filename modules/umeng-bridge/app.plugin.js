@@ -14,7 +14,7 @@ const {
 } = require('@expo/config-plugins');
 const { promises: fs } = require('fs'); // 使用 Node.js 的 fs 模块进行文件操作
 const { join, resolve } = require('path');
-const { registerHarmonyConfigPlugin, withStrings } = require('@expo-harmony/config-plugins');
+const { registerHarmonyConfigPlugin, withAbilityStage, withStrings } = require('@expo-harmony/config-plugins');
 
 const withKey = (
   config,
@@ -164,6 +164,35 @@ const withKey = (
   }
   config = registerHarmonyConfigPlugin(config, 'umeng-bridge', {
     resources: { strings: { entry: Object.keys(harmonyStrings) } },
+  });
+  config = withAbilityStage(config, mod => {
+    const declaration = 'export default class EntryAbilityStage extends ExpoAbilityStage {';
+    if (!mod.modResults.includes(declaration)) {
+      throw new Error(`Expo Harmony AbilityStage template changed: missing ${declaration}`);
+    }
+    mod.modResults = `import { InternalPlugin, preInit } from '@umeng/analytics';
+import { PushPlugin } from '@umeng/push';
+${mod.modResults.replace(
+  declaration,
+  `${declaration}
+  override onCreate(): void {
+    // Pre-initialize Umeng before Expo starts the native module lifecycle.
+    const resourceManager = this.context.resourceManager;
+    preInit({
+      context: this.context.getApplicationContext(),
+      appKey: resourceManager.getStringByNameSync('umeng_app_key'),
+      channel: resourceManager.getStringByNameSync('umeng_channel'),
+      enableLog: false,
+      plugins: [
+        new InternalPlugin(),
+        new PushPlugin({ appMessageSecret: resourceManager.getStringByNameSync('umeng_message_secret') }),
+      ],
+    });
+    super.onCreate();
+  }
+`,
+)}`;
+    return mod;
   });
   return withStrings(config, mod => {
     mod.modResults.entry ??= {};

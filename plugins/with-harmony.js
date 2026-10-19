@@ -19,9 +19,7 @@ const {
 } = require('@expo-harmony/config-plugins');
 const repositoryRoot = path.resolve(__dirname, '..');
 
-const moduleHosts = ['bugly', 'native-widget', 'umeng-bridge'].map(name =>
-  path.join(repositoryRoot, 'modules', name, 'harmony/host'),
-);
+const moduleHosts = ['bugly', 'native-widget'].map(name => path.join(repositoryRoot, 'modules', name, 'harmony/host'));
 const resourceRoots = moduleHosts.map(root => path.join(root, 'entry/src/main/resources'));
 const readJson = file => require('json5').parse(fs.readFileSync(file, 'utf8'));
 const mergeNamed = (current = [], incoming = []) => [
@@ -99,7 +97,6 @@ module.exports = config => {
       const file = path.join(root, 'entry/src/main/module.json5');
       if (!fs.existsSync(file)) continue;
       const custom = readJson(file).module;
-      if (custom.srcEntry) generated.srcEntry = custom.srcEntry;
       generated.extensionAbilities = mergeNamed(generated.extensionAbilities, custom.extensionAbilities);
       generated.abilities = mergeNamed(generated.abilities, custom.abilities);
     }
