@@ -51,7 +51,6 @@ function withHarmony(config) {
           path.join(repositoryRoot, name),
         ]),
       ),
-      react: 'react-harmony',
       // JSX, CSS registration and theme hooks must share the port's style registry.
       nativewind: nativeWindRoot,
       'react-native-css-interop': cssInteropRoot,
