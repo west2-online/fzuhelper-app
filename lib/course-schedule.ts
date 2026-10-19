@@ -12,7 +12,14 @@ const ADJUSTED_COURSE_PREFIX = /^\[调课\]\s*/;
 const getCourseDisplayName = (course: CourseInfo) => course.name.replace(ADJUSTED_COURSE_PREFIX, '');
 
 const getCourseMergeKey = (course: CourseInfo, displayName: string) =>
-  JSON.stringify([course.weekday, displayName, course.startClass, course.endClass, course.location]);
+  JSON.stringify([
+    course.type, // 防止用户自定义课程和普通课程合并
+    course.weekday,
+    displayName,
+    course.startClass,
+    course.endClass,
+    course.location,
+  ]);
 
 const haveSameWeekPattern = (left: WeekPattern, right: WeekPattern) =>
   left.single === right.single && left.double === right.double;

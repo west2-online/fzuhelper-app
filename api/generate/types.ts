@@ -1,11 +1,27 @@
 /* eslint-disable */
 // @ts-ignore
 
+export type deleteApiV1CourseCustomParams = {
+  course_id: string;
+};
+
+export type getApiV2JwchCourseListParams = {
+  /** 学期 */
+  term: string;
+  /** 强刷标签 */
+  is_refresh: boolean;
+};
+
 export type getApiV1CommonClassroomEmptyParams = {
   date?: string;
   campus?: string;
   startTime?: string;
   endTime?: string;
+};
+
+export type getApiV1CommonJobFairParams = {
+  /** 查询月份，格式为 YYYY-MM */
+  month: string;
 };
 
 export type getApiV1CommonNoticeParams = {

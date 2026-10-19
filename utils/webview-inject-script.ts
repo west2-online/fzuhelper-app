@@ -180,6 +180,136 @@ const commentGuideScript: StringScript = `
   })();
 `;
 
+const jobFairDetailScript: StringScript = `
+  (function() {
+    const currentUrl = new URL(window.location.href);
+    if (currentUrl.searchParams.get('fzuhelper_original') === '1') return;
+
+    let viewport = document.querySelector('meta[name="viewport"]');
+    if (!viewport) {
+      viewport = document.createElement('meta');
+      viewport.setAttribute('name', 'viewport');
+      document.head.appendChild(viewport);
+    }
+    viewport.setAttribute('content', 'width=device-width, initial-scale=1');
+
+    const root = document.querySelector('.doc-main > div');
+    const companyInfo = document.querySelector('.companyinfo');
+    const originalLogo = document.querySelector('.home-logo');
+    if (!root || !companyInfo) return;
+
+    let article = companyInfo;
+    while (article.parentElement && article.parentElement !== root) {
+      article = article.parentElement;
+    }
+
+    root.querySelectorAll(':scope > div').forEach((element) => {
+      if (element !== article) element.remove();
+    });
+    article.classList.add('fzuhelper-job-fair-article');
+
+    if (!document.getElementById('fzuhelper-job-fair-source')) {
+      article.firstElementChild?.classList.add('fzuhelper-job-fair-content');
+
+      const source = document.createElement('div');
+      source.id = 'fzuhelper-job-fair-source';
+
+      const logo = document.createElement('img');
+      logo.src = originalLogo?.src || '/Uploads/image/2022-04-07/624e523725c5d.PNG';
+      logo.alt = '福建人才联合网与福州大学学生就业创业指导中心';
+
+      const originalLink = document.createElement('a');
+      currentUrl.searchParams.set('fzuhelper_original', '1');
+      originalLink.href = currentUrl.toString();
+      originalLink.textContent = '查看原文';
+
+      source.append(logo, originalLink);
+      article.prepend(source);
+    }
+
+    document.querySelectorAll('.cmstopnav, .cmsnav, .bdsharebuttonbox').forEach((element) => element.remove());
+
+    if (!document.getElementById('fzuhelper-job-fair-reader-style')) {
+      const style = document.createElement('style');
+      style.id = 'fzuhelper-job-fair-reader-style';
+      style.textContent = \`
+      html, body {
+        margin: 0 !important;
+        overflow-x: hidden !important;
+      }
+      .doc-main, .doc-main > div {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+      }
+      .fzuhelper-job-fair-article {
+        float: none !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 12px 18px 40px !important;
+      }
+      #fzuhelper-job-fair-source {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+      #fzuhelper-job-fair-source img {
+        display: block;
+        width: min(230px, 72%);
+        height: auto;
+      }
+      #fzuhelper-job-fair-source a {
+        flex: none;
+        color: #b02111;
+        font-size: 14px;
+        text-decoration: none;
+      }
+      .fzuhelper-job-fair-content {
+        margin-top: 0 !important;
+      }
+      .fzuhelper-job-fair-article > div,
+      .fzuhelper-job-fair-article > div > div {
+        width: 100% !important;
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      .fzuhelper-job-fair-article span[style*="font-size: 22px"] {
+        width: 100% !important;
+      }
+      #xjh-zpjz {
+        box-sizing: border-box !important;
+        width: 100% !important;
+        max-height: none !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        white-space: pre-wrap !important;
+      }
+      #xjh-zpjz * {
+        box-sizing: border-box !important;
+        max-width: 100% !important;
+        overflow-wrap: anywhere !important;
+      }
+      #xjh-zpjz img {
+        max-width: 100% !important;
+        height: auto !important;
+      }
+      #xjh-zpjz table {
+        display: block !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+      }
+      \`;
+      document.head.appendChild(style);
+    }
+    window.scrollTo(0, 0);
+  })();
+  true;
+`;
+
 // url 与脚本常量对应 map
 const urlToScriptMap: Record<string, Script[]> = {
   // 教学大纲
@@ -200,6 +330,9 @@ const urlToScriptMap: Record<string, Script[]> = {
   'https://jwcjwxt2.fzu.edu.cn:81/student/glxk/': [ratioScript],
   // 评议列表页
   'https://jwcjwxt2.fzu.edu.cn:81/student/jscp/TeaList.aspx': [commentGuideScript],
+  // 招聘会、宣讲会详情页：同时将正文重排
+  'http://fjrclh.fzu.edu.cn/cms/xjhdetail.html': [jobFairDetailScript],
+  'http://fjrclh.fzu.edu.cn/cms/zphdetail.html': [jobFairDetailScript],
 };
 
 export const getScriptByURL = (url: string, colorScheme: ColorSchemeName) => {

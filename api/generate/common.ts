@@ -42,6 +42,35 @@ export async function getApiV1CommonContributor(options?: {
   });
 }
 
+/** 获取招聘会/宣讲会列表 按月份获取招聘会与宣讲会列表。后端负责请求源站、解析数据，并返回标准化的时间和详情地址。 GET /api/v1/common/job-fair https://apifox.com/web/project/3275694/apis/api-511340453-run */
+export async function getApiV1CommonJobFair(
+  // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
+  params: API.getApiV1CommonJobFairParams,
+  options?: { [key: string]: unknown }
+) {
+  return request<{
+    code: string;
+    message: string;
+    data: {
+      events: {
+        id: string;
+        title: string;
+        place: string;
+        time: string;
+        starts_at: number;
+        date_key: string;
+        detail_url: string;
+      }[];
+    };
+  }>('/api/v1/common/job-fair', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** 获取教务处通知 教务处教学通知查询接口 GET /api/v1/common/notice https://app.apifox.com/web/project/3275694/apis/api-109631164-run */
 export async function getApiV1CommonNotice(
   // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
