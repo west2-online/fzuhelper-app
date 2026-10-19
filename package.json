@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "expo start",
-    "android": "expo run:android",
+    "android": "node scripts/android/prepare-expo-cli.cjs && expo run:android",
     "android:forward": "adb reverse tcp:8081 tcp:8081",
     "android:pkg": "cd android && ./gradlew packageRelease",
     "android:install": "adb install android/app/build/outputs/apk/release/app-arm64-v8a-release.apk",
