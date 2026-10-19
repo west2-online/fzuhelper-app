@@ -3191,10 +3191,10 @@
   dependencies:
     react-native-device-info "14.1.1"
 
-"@react-native-ohos/react-native-gesture-handler@2.30.2":
-  version "2.30.2"
-  resolved "https://registry.yarnpkg.com/@react-native-ohos/react-native-gesture-handler/-/react-native-gesture-handler-2.30.2.tgz#760106823522a5b23c755b9d8e5ed7db325ede1a"
-  integrity sha512-F63+HPVeaxXded27nADM+hlRHMDJ8k2xYdx+WWI2U+zwYL2ajxBJLoGn3h2B+NPgNlxpbFkle5KcHG6/Zi0SmA==
+"@react-native-ohos/react-native-gesture-handler@2.30.1":
+  version "2.30.1"
+  resolved "https://registry.yarnpkg.com/@react-native-ohos/react-native-gesture-handler/-/react-native-gesture-handler-2.30.1.tgz#c34026ec084f0db38cb08b94ac88e08029dbeb1f"
+  integrity sha512-A4NcpTdG3O4KR2AdSbEsIGa6X3q5cQq37eEJqsr67tRqZ0nhXMwxDxJM59zGr94yb4a7NAnIIatH1R++0Yv6gw==
 
 "@react-native-ohos/react-native-image-crop-picker@0.51.4":
   version "0.51.4"
@@ -3218,10 +3218,10 @@
   dependencies:
     react-native-permissions "5.4.2"
 
-"@react-native-ohos/react-native-reanimated@4.0.2":
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/@react-native-ohos/react-native-reanimated/-/react-native-reanimated-4.0.2.tgz#da7015d5a420f8230fb52bfbfec103b4275578da"
-  integrity sha512-yElM4v/7SSAj/oHoeES7P5pntfLBPoy2QdIfBq22cHa+rZFQnR748ExWFsSePqHa9skT28IAPTAvIgyRUWcj0g==
+"@react-native-ohos/react-native-reanimated@4.0.2-beta.1":
+  version "4.0.2-beta.1"
+  resolved "https://registry.yarnpkg.com/@react-native-ohos/react-native-reanimated/-/react-native-reanimated-4.0.2-beta.1.tgz#f39ab374469d1a5249375c0fa73910d1a4ea89c2"
+  integrity sha512-3hlKiFLDBitROux8NOAUdMs6VJ+oK1s05TVXX7QBXRB5dHylsfN0KcOhMb1ruR8TNm7P1yRV6/VKOw01jI+v+w==
   dependencies:
     "@types/node" "^24.0.14"
     react-native-reanimated "4.2.1"
