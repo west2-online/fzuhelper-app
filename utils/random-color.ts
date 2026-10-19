@@ -1,57 +1,36 @@
-export const nonCurrentWeekCourseColor = '#DEDEDE'; // 非本周课程的颜色
-export const courseColors = [
-  '#7A6068',
-  '#8D5270',
-  '#5A9DBD',
-  '#307D81',
-  '#B99799',
-  '#AA9CC6',
-  '#A2CAE7',
-  '#619AA0',
-  '#D8B4BB',
-  '#E5B9D3',
-  '#5BB3DD',
-  '#94C096',
-  '#D07A88',
-  '#F0C4A9',
-  '#92BAC5',
-  '#9AD1CD',
-  '#F39E9D',
-  '#E0B092',
-  '#7D89AB',
-  '#BBD5B4',
-  '#C6A5B6',
-  '#87B9C1',
-  '#E3A8A1',
-  '#A5C7A6',
-  '#D4B8CE',
-];
+import { getCourseColors, normalizeCourseColorScheme, type CourseColorScheme } from '@/lib/course-color-schemes';
 
-const defaultColor = '#000000'; // 默认颜色(全黑)
+export { getCourseColors, normalizeCourseColorScheme, type CourseColorScheme } from '@/lib/course-color-schemes';
+
+export const nonCurrentWeekCourseColor = '#DEDEDE'; // 非本周课程的颜色
+
 const examColor = '#FF6347'; // 考试的颜色
 
-// 每个学号对应独立的颜色映射和可用颜色数组
-const studentColorMaps: Map<string, Map<string, string>> = new Map();
-const studentAvailableColors: Map<string, string[]> = new Map();
+interface CourseColorAllocation {
+  colorMap: Map<string, string>;
+  availableColors: string[];
+}
+
+// 每个学号、配色方案对应独立的颜色映射，切换方案不会复用旧方案的颜色。
+const studentColorAllocations = new Map<string, Map<CourseColorScheme, CourseColorAllocation>>();
 
 /**
- * 获取指定学号的颜色映射，不存在则创建
+ * 获取指定学号和配色方案的分配状态，不存在则创建。
  */
-const getColorMapForStudent = (studentId: string): Map<string, string> => {
-  if (!studentColorMaps.has(studentId)) {
-    studentColorMaps.set(studentId, new Map());
+const getAllocationForStudent = (studentId: string, scheme: CourseColorScheme): CourseColorAllocation => {
+  const normalizedScheme = normalizeCourseColorScheme(scheme);
+  let allocations = studentColorAllocations.get(studentId);
+  if (!allocations) {
+    allocations = new Map();
+    studentColorAllocations.set(studentId, allocations);
   }
-  return studentColorMaps.get(studentId)!;
-};
 
-/**
- * 获取指定学号的可用颜色数组，不存在则创建
- */
-const getAvailableColorsForStudent = (studentId: string): string[] => {
-  if (!studentAvailableColors.has(studentId)) {
-    studentAvailableColors.set(studentId, [...courseColors]);
+  let allocation = allocations.get(normalizedScheme);
+  if (!allocation) {
+    allocation = { colorMap: new Map(), availableColors: [...getCourseColors(normalizedScheme)] };
+    allocations.set(normalizedScheme, allocation);
   }
-  return studentAvailableColors.get(studentId)!;
+  return allocation;
 };
 
 /**
@@ -64,20 +43,23 @@ export const getExamColor = (): string => examColor;
  * 依据课程key 获取颜色
  * @param courseName 课程名称
  * @param studentId 学号，用于区分不同学生的颜色映射
+ * @param scheme 课表配色方案
  */
-export const allocateColorForCourse = (courseName: string, studentId: string): string => {
-  const colorMap = getColorMapForStudent(studentId);
-  const availableColors = getAvailableColorsForStudent(studentId);
+export const allocateColorForCourse = (
+  courseName: string,
+  studentId: string,
+  scheme: CourseColorScheme = 'old',
+): string => {
+  const { colorMap, availableColors } = getAllocationForStudent(studentId, scheme);
 
   // 如果已经为这个 courseName 分配了颜色，直接返回
   if (colorMap.has(courseName)) {
     return colorMap.get(courseName)!;
   }
 
-  // 如果没有可用颜色，返回默认颜色
+  // 方案颜色用完后重新开始一轮；已分配课程仍保留原色，少量颜色也可以覆盖完整课表。
   if (availableColors.length === 0) {
-    console.warn('所有颜色都已选择，无法生成新颜色。');
-    return defaultColor; // 返回默认颜色或处理逻辑
+    availableColors.push(...getCourseColors(scheme));
   }
 
   // 随机选择一个颜色
@@ -99,10 +81,11 @@ export const allocateColorForCourse = (courseName: string, studentId: string): s
  * 清空指定学号的颜色索引和映射
  * @param studentId 学号，用于区分不同学生的颜色映射
  */
-export const clearColorMapping = (studentId: string) => {
+export const clearColorMapping = (studentId: string, scheme: CourseColorScheme = 'old') => {
   console.log(`Clearing color index and resetting mappings for student: ${studentId}`);
-  studentAvailableColors.set(studentId, [...courseColors]); // 重置可用颜色数组
-  studentColorMaps.get(studentId)?.clear(); // 清空 courseName 和颜色的映射
+  const allocation = getAllocationForStudent(studentId, scheme);
+  allocation.availableColors = [...getCourseColors(scheme)];
+  allocation.colorMap.clear();
 };
 
 /**
