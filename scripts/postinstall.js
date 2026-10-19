@@ -1,20 +1,6 @@
 #!/usr/bin/env node
 
-/**
- * Apply reproducible packaging fixes required before `ohpm install`.
- *
- * The published reanimated 4.0.2-beta.1 HAR points at a sibling source directory
- * (`file:../worklets`) which does not exist in an npm installation. Worklets
- * is already an explicit Harmony dependency and is registered by this
- * application, so the invalid nested dependency must be removed from the HAR
- * manifest. The published safe-area port also reads window properties while
- * EntryAbility's window can still be under construction, so its synchronous
- * initial-metrics lookup needs a zero-metrics fallback. The cookies port
- * always emits a Domain attribute, but ArkWeb expects host-only cookies to
- * derive their domain from configCookieSync's URL argument.
- * WebView must register its ArkTS component builder in its own RNOHPackage,
- * and BlobUtil's public header must match the class name used by autolinking.
- */
+// 修复鸿蒙依赖的 HAR 包，供后续 ohpm install 使用。
 
 const { existsSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } = require('node:fs');
 const os = require('node:os');
@@ -22,24 +8,6 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
 const projectDir = path.resolve(__dirname, '..');
-const reanimatedHar = path.join(
-  projectDir,
-  'node_modules',
-  '@react-native-ohos',
-  'react-native-reanimated',
-  'harmony',
-  'reanimated.har',
-);
-const safeAreaHar = path.join(
-  projectDir,
-  'node_modules',
-  '@react-native-ohos',
-  'react-native-safe-area-context',
-  'harmony',
-  'safe_area.har',
-);
-const cookiesHar = path.join(projectDir, 'node_modules', '@react-native-ohos', 'cookies', 'harmony', 'rn_cookies.har');
-const workletsDependency = '@react-native-ohos/react-native-worklets';
 
 function runTar(args) {
   try {
@@ -81,198 +49,120 @@ function inspectArchive(archivePath, archiveName) {
   return hasMacMetadata;
 }
 
-function patchReanimatedHar() {
-  if (!existsSync(reanimatedHar)) {
-    throw new Error(`${reanimatedHar} is missing; run \`yarn install\` before preparing Harmony dependencies`);
-  }
-
-  const temporaryDir = mkdtempSync(path.join(os.tmpdir(), 'fzuhelper-reanimated-'));
-  const replacement = `${reanimatedHar}.tmp`;
-
-  try {
-    const hasMacMetadata = inspectArchive(reanimatedHar, 'reanimated');
-    runTar(['-xzf', reanimatedHar, '-C', temporaryDir]);
-
-    const manifestPath = path.join(temporaryDir, 'package', 'oh-package.json5');
-    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-    const dependencies = manifest.dependencies ?? {};
-    const hasInvalidDependency = workletsDependency in dependencies;
-    if (!hasInvalidDependency && !hasMacMetadata) {
-      console.log('Reanimated HAR is already prepared');
-      return;
-    }
-
-    if (hasInvalidDependency) {
-      delete dependencies[workletsDependency];
-      writeFileSync(manifestPath, JSON.stringify(manifest), 'utf8');
-    }
-
-    rmSync(replacement, { force: true });
-    runTar(['-czf', replacement, '-C', temporaryDir, 'package']);
-    renameSync(replacement, reanimatedHar);
-    const changes = [];
-    if (hasInvalidDependency) {
-      changes.push('invalid file:../worklets dependency');
-    }
-    if (hasMacMetadata) {
-      changes.push('macOS metadata');
-    }
-    console.log(`Removed ${changes.join(' and ')} from reanimated HAR`);
-  } finally {
-    rmSync(replacement, { force: true });
-    rmSync(temporaryDir, { force: true, recursive: true });
-  }
-}
-
-function patchSafeAreaHar() {
-  if (!existsSync(safeAreaHar)) {
-    throw new Error(`${safeAreaHar} is missing; run \`yarn install\` before preparing Harmony dependencies`);
-  }
-
-  const temporaryDir = mkdtempSync(path.join(os.tmpdir(), 'fzuhelper-safe-area-'));
-  const replacement = `${safeAreaHar}.tmp`;
-  const fallbackMarker = 'Safe area metrics are unavailable while the window is being created.';
-
-  try {
-    inspectArchive(safeAreaHar, 'safe-area');
-    runTar(['-xzf', safeAreaHar, '-C', temporaryDir]);
-
-    const modulePath = path.join(temporaryDir, 'package', 'src', 'main', 'ets', 'SafeViewTurboModule.ts');
-    const source = readFileSync(modulePath, 'utf8');
-    if (source.includes(fallbackMarker)) {
-      console.log('Safe-area HAR is already prepared');
-      return;
-    }
-
-    const guardedWindowLookup =
-      / {4}if \(this\.windowInstance != null\) \{\r?\n([\s\S]*?)\r?\n {4}\}\r?\n {4}return \{ "initialWindowMetrics"/u;
-    const match = source.match(guardedWindowLookup);
-    if (!match) {
-      throw new Error('Safe-area HAR no longer contains the expected initial-metrics lookup');
-    }
-
-    const guardedBody = match[1]
-      .split(/\r?\n/u)
-      .map(line => `  ${line}`)
-      .join('\n');
-    const patchedSource = source.replace(
-      guardedWindowLookup,
-      [
-        '    if (this.windowInstance != null) {',
-        '      try {',
-        guardedBody,
-        '      } catch (error) {',
-        `        Logger.debug(TAG, '${fallbackMarker}' + JSON.stringify(error));`,
-        '      }',
-        '    }',
-        '    return { "initialWindowMetrics"',
-      ].join('\n'),
-    );
-    writeFileSync(modulePath, patchedSource, 'utf8');
-
-    rmSync(replacement, { force: true });
-    runTar(['-czf', replacement, '-C', temporaryDir, 'package']);
-    renameSync(replacement, safeAreaHar);
-    console.log('Added window-lifecycle fallback to safe-area HAR');
-  } finally {
-    rmSync(replacement, { force: true });
-    rmSync(temporaryDir, { force: true, recursive: true });
-  }
-}
-
-function patchCookiesHar() {
-  if (!existsSync(cookiesHar)) {
-    throw new Error(`${cookiesHar} is missing; run \`yarn install\` before preparing Harmony dependencies`);
-  }
-
-  const temporaryDir = mkdtempSync(path.join(os.tmpdir(), 'fzuhelper-cookies-'));
-  const replacement = `${cookiesHar}.tmp`;
-  const hostOnlyMarker = 'Host-only cookies must omit Domain';
-
-  try {
-    inspectArchive(cookiesHar, 'cookies');
-    runTar(['-xzf', cookiesHar, '-C', temporaryDir]);
-
-    const modulePath = path.join(temporaryDir, 'package', 'src', 'main', 'ets', 'CookiesModule.ts');
-    const source = readFileSync(modulePath, 'utf8');
-    if (source.includes(hostOnlyMarker)) {
-      console.log('Cookies HAR is already prepared');
-      return;
-    }
-
-    const defaultDomainBlock =
-      / {4}let domain: string;\r?\n {4}if \(!this\.isEmpty\(cookie\.domain\)\) \{\r?\n([\s\S]*?)\r?\n {4}\} else \{\r?\n {6}domain = topLevelDomain;\r?\n {4}\}\r?\n {4}cookieBuilder \+= `; domain=\$\{domain\}`;/u;
-    const match = source.match(defaultDomainBlock);
-    if (!match) {
-      throw new Error('Cookies HAR no longer contains the expected default-domain block');
-    }
-
-    const explicitDomainLines = match[1].split(/\r?\n/u);
-    if (explicitDomainLines.shift()?.trim() !== 'domain = cookie.domain!;') {
-      throw new Error('Cookies HAR default-domain assignment has an unexpected shape');
-    }
-    const explicitDomainBody = explicitDomainLines.map(line => `  ${line}`).join('\n');
-    const patchedSource = source.replace(
-      defaultDomainBlock,
-      [
-        `    // ${hostOnlyMarker}; ArkWeb derives it from the URL argument.`,
-        '    if (!this.isEmpty(cookie.domain)) {',
-        '      let domain: string = cookie.domain!;',
-        explicitDomainBody,
-        '      cookieBuilder += `; domain=${domain}`;',
-        '    }',
-      ].join('\n'),
-    );
-    writeFileSync(modulePath, patchedSource, 'utf8');
-
-    rmSync(replacement, { force: true });
-    runTar(['-czf', replacement, '-C', temporaryDir, 'package']);
-    renameSync(replacement, cookiesHar);
-    console.log('Preserved host-only cookies in cookies HAR');
-  } finally {
-    rmSync(replacement, { force: true });
-    rmSync(temporaryDir, { force: true, recursive: true });
-  }
-}
-
+// 统一解包、重打包和清理；补丁返回改动说明，返回 null 表示无需修改。
 function patchPackageHar(packageName, harName, patch) {
   const archive = path.join(projectDir, 'node_modules/@react-native-ohos', packageName, 'harmony', harName);
   if (!existsSync(archive)) return;
   const temporaryDir = mkdtempSync(path.join(os.tmpdir(), `fzuhelper-${packageName}-`));
   const replacement = `${archive}.tmp`;
   try {
-    inspectArchive(archive, packageName);
+    const hasMacMetadata = inspectArchive(archive, packageName);
     runTar(['-xzf', archive, '-C', temporaryDir]);
-    if (!patch(path.join(temporaryDir, 'package'))) {
+    const message = patch(path.join(temporaryDir, 'package'), hasMacMetadata);
+    if (!message) {
       console.log(`${packageName} HAR is already prepared`);
       return;
     }
+    rmSync(replacement, { force: true });
     runTar(['-czf', replacement, '-C', temporaryDir, 'package']);
     renameSync(replacement, archive);
-    console.log(`Fixed ${packageName} native autolinking`);
+    console.log(message);
   } finally {
     rmSync(replacement, { force: true });
     rmSync(temporaryDir, { recursive: true, force: true });
   }
 }
 
-if (existsSync(reanimatedHar)) patchReanimatedHar();
-if (existsSync(safeAreaHar)) patchSafeAreaHar();
-if (existsSync(cookiesHar)) patchCookiesHar();
-patchPackageHar('react-native-blob-util', 'blobUtil.har', root => {
+// Reanimated：移除无效的 file:../worklets 依赖（应用已单独注册），并清理 macOS 元数据。
+function patchReanimatedHar(root, hasMacMetadata) {
+  const manifestPath = path.join(root, 'oh-package.json5');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  const dependencies = manifest.dependencies ?? {};
+  const workletsDependency = '@react-native-ohos/react-native-worklets';
+  const hasInvalidDependency = workletsDependency in dependencies;
+  if (!hasInvalidDependency && !hasMacMetadata) return null;
+
+  if (hasInvalidDependency) {
+    delete dependencies[workletsDependency];
+    writeFileSync(manifestPath, JSON.stringify(manifest), 'utf8');
+  }
+
+  const changes = [];
+  if (hasInvalidDependency) changes.push('invalid file:../worklets dependency');
+  if (hasMacMetadata) changes.push('macOS metadata');
+  return `Removed ${changes.join(' and ')} from reanimated HAR`;
+}
+
+// Safe Area：窗口尚未创建完成时捕获度量读取异常，回退为默认零值。
+function patchSafeAreaHar(root) {
+  const modulePath = path.join(root, 'src/main/ets/SafeViewTurboModule.ts');
+  const source = readFileSync(modulePath, 'utf8');
+  const fallbackMarker = 'Safe area metrics are unavailable while the window is being created.';
+  if (source.includes(fallbackMarker)) return null;
+
+  const guardedWindowLookup =
+    / {4}if \(this\.windowInstance != null\) \{\r?\n([\s\S]*?)\r?\n {4}\}\r?\n {4}return \{ "initialWindowMetrics"/u;
+  const match = source.match(guardedWindowLookup);
+  if (!match) {
+    throw new Error('Safe-area HAR no longer contains the expected initial-metrics lookup');
+  }
+
+  const guardedBody = match[1]
+    .split(/\r?\n/u)
+    .map(line => `  ${line}`)
+    .join('\n');
+  const patchedSource = source.replace(
+    guardedWindowLookup,
+    [
+      '    if (this.windowInstance != null) {',
+      '      try {',
+      guardedBody,
+      '      } catch (error) {',
+      `        Logger.debug(TAG, '${fallbackMarker}' + JSON.stringify(error));`,
+      '      }',
+      '    }',
+      '    return { "initialWindowMetrics"',
+    ].join('\n'),
+  );
+  writeFileSync(modulePath, patchedSource, 'utf8');
+  return 'Added window-lifecycle fallback to safe-area HAR';
+}
+
+// Cookies：未指定 domain 时不追加 Domain，由 ArkWeb 根据 URL 设置仅限当前主机的 Cookie。
+function patchCookiesHar(root) {
+  const modulePath = path.join(root, 'src/main/ets/CookiesModule.ts');
+  const source = readFileSync(modulePath, 'utf8');
+  const hostOnlyMarker = '未指定 domain 时省略 Domain，由 ArkWeb 根据 URL 设置域名。';
+  if (source.includes(hostOnlyMarker) || source.includes('Host-only cookies must omit Domain')) return null;
+
+  const defaultDomainBlock =
+    / {6}\} else \{\r?\n {8}cookieBuilder\s*\+=\s*`; domain=\$\{topLevelDomain\}`;?\r?\n {6}\}/u;
+  if (!defaultDomainBlock.test(source)) {
+    throw new Error('Cookies HAR no longer contains the expected default-domain block');
+  }
+
+  const patchedSource = source.replace(defaultDomainBlock, ['      }', `      // ${hostOnlyMarker}`].join('\n'));
+  writeFileSync(modulePath, patchedSource, 'utf8');
+  return 'Preserved host-only cookies in cookies HAR';
+}
+
+// Blob Util：重命名公开头文件，使其与自动链接使用的 RNBlobUtilPackage 类名一致。
+function patchBlobUtilHar(root) {
   const expected = path.join(root, 'src/main/cpp/RNBlobUtilPackage.h');
-  if (existsSync(expected)) return false;
+  if (existsSync(expected)) return null;
   const previous = path.join(root, 'src/main/cpp/BlobUtilPackage.h');
   if (!readFileSync(previous, 'utf8').includes('class RNBlobUtilPackage')) {
     throw new Error('BlobUtil HAR package class has changed; review the header-name fix');
   }
   renameSync(previous, expected);
-  return true;
-});
-patchPackageHar('react-native-webview', 'rn_webview.har', root => {
+  return 'Fixed react-native-blob-util native autolinking';
+}
+
+// WebView：补充 ArkTS 组件 builder 注册，确保 RNOH 能创建 WebView 组件。
+function patchWebViewHar(root) {
   const file = path.join(root, 'src/main/ets/RNCWebViewPackage.ets');
   const source = readFileSync(file, 'utf8');
-  if (source.includes('createWrappedCustomRNComponentBuilderByComponentNameMap')) return false;
+  if (source.includes('createWrappedCustomRNComponentBuilderByComponentNameMap')) return null;
   const declaration = 'export class RNCWebViewPackage extends RNOHPackage  {';
   if (!source.includes(declaration)) throw new Error('WebView HAR package class has changed; review the builder fix');
   const imports = `import { ComponentBuilderContext } from '@rnoh/react-native-openharmony';
@@ -290,5 +180,11 @@ function buildWebView(ctx: ComponentBuilderContext) {
   }
 `;
   writeFileSync(file, source.replace(declaration, imports + declaration + builder));
-  return true;
-});
+  return 'Fixed react-native-webview native autolinking';
+}
+
+patchPackageHar('react-native-reanimated', 'reanimated.har', patchReanimatedHar);
+patchPackageHar('react-native-safe-area-context', 'safe_area.har', patchSafeAreaHar);
+patchPackageHar('cookies', 'rn_cookies.har', patchCookiesHar);
+patchPackageHar('react-native-blob-util', 'blobUtil.har', patchBlobUtilHar);
+patchPackageHar('react-native-webview', 'rn_webview.har', patchWebViewHar);

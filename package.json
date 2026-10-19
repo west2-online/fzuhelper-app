@@ -25,6 +25,7 @@
     "@bacons/apple-targets": "^0.2.1",
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@expo-harmony/config-plugins": "55.0.11-harmony.2",
+    "@expo-harmony/expo": "55.0.31-harmony.2",
     "@expo-harmony/expo-asset": "55.0.20-harmony.2",
     "@expo-harmony/expo-blur": "55.0.18-harmony.2",
     "@expo-harmony/expo-camera": "55.0.23-harmony.2",
