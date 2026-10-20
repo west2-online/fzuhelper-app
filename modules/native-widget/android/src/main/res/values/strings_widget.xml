@@ -1,5 +1,6 @@
 <resources>
     <string name="next_class_widget_description">下节课上什么</string>
+    <string name="course_overview_widget_description">今日与明日课程</string>
     <string name="course_schedule_widget_description">课程表</string>
 
     <string-array name="foreground_opacity_options">

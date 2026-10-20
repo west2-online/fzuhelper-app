@@ -4,7 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.west2online.nativewidget.R
@@ -33,18 +33,22 @@ class NextClassWidgetConfigurationActivity : AppCompatActivity() {
 
         doConfigMigration(this, appWidgetId)
 
-        binding.showLastUpdateTimeSwitch.setOnClickListener {
-            putBoolean(
-                this,
-                appWidgetId,
-                "showLastUpdateTime",
-                binding.showLastUpdateTimeSwitch.isChecked
-            )
-
-            val appWidgetManager = AppWidgetManager.getInstance(this)
-            updateNextClassWidget(this, appWidgetManager, appWidgetId)
+        binding.showRemarksSwitch.isChecked = getBoolean(this, appWidgetId, "showRemarks", true)
+        binding.previewTomorrowSwitch.isChecked = getBoolean(this, appWidgetId, "previewTomorrow", false)
+        binding.showRemarksSwitch.setOnClickListener {
+            putBoolean(this, appWidgetId, "showRemarks", binding.showRemarksSwitch.isChecked)
+            updateNextClassWidgets(this, AppWidgetManager.getInstance(this), intArrayOf(appWidgetId))
         }
-
+        binding.previewTomorrowSwitch.setOnClickListener {
+            putBoolean(this, appWidgetId, "previewTomorrow", binding.previewTomorrowSwitch.isChecked)
+            updateNextClassWidgets(this, AppWidgetManager.getInstance(this), intArrayOf(appWidgetId))
+        }
+        val medium = AppWidgetManager.getInstance(this).getAppWidgetInfo(appWidgetId)?.provider?.className ==
+            CourseOverviewWidgetProvider::class.java.name
+        if (medium) {
+            binding.previewTomorrowSwitch.visibility = View.GONE
+            binding.showAsSquareSwitch.visibility = View.GONE
+        }
 
         binding.showAsSquareSwitch.setOnClickListener {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
@@ -64,18 +68,10 @@ class NextClassWidgetConfigurationActivity : AppCompatActivity() {
             )
 
             val appWidgetManager = AppWidgetManager.getInstance(this)
-            updateNextClassWidget(this, appWidgetManager, appWidgetId)
+            updateNextClassWidgets(this, appWidgetManager, intArrayOf(appWidgetId))
         }
 
-        binding.showLastUpdateTimeSwitch.isChecked =
-            getBoolean(this, appWidgetId, "showLastUpdateTime", false)
         binding.showAsSquareSwitch.isChecked = getBoolean(this, appWidgetId, "showAsSquare", false)
-
-        binding.refreshData.setOnClickListener {
-            val appWidgetManager = AppWidgetManager.getInstance(this)
-            updateNextClassWidget(this, appWidgetManager, appWidgetId)
-            Toast.makeText(this, "已刷新", Toast.LENGTH_SHORT).show()
-        }
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
@@ -83,6 +79,7 @@ class NextClassWidgetConfigurationActivity : AppCompatActivity() {
 
         binding.toolbar.inflateMenu(R.menu.widget_configuration)
         binding.toolbar.setOnMenuItemClickListener {
+            updateNextClassWidgets(this, AppWidgetManager.getInstance(this), intArrayOf(appWidgetId))
             val resultValue = Intent()
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             setResult(RESULT_OK, resultValue)

@@ -10,15 +10,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:navigationIcon="?attr/homeAsUpIndicator"
-        android:title="下一节课设置" />
+        android:title="课程小组件设置" />
 
     <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/show_last_update_time_switch"
+        android:id="@+id/show_remarks_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
         android:height="50dp"
-        android:text="显示更新时间与刷新"
+        android:text="显示课程备注"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="16sp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/preview_tomorrow_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:height="50dp"
+        android:text="小号组件今日结束后显示明日"
         android:textColor="?android:attr/textColorPrimary"
         android:textSize="16sp" />
 
@@ -29,17 +39,6 @@
         android:layout_marginHorizontal="20dp"
         android:height="50dp"
         android:text="显示为正方形"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/refresh_data"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:height="50dp"
-        android:gravity="center_vertical"
-        android:text="刷新数据"
         android:textColor="?android:attr/textColorPrimary"
         android:textSize="16sp" />
 

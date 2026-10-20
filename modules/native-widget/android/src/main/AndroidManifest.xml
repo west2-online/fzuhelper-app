@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         package="com.west2online.nativewidget">
 
+        <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
         <application>
             <activity android:name="com.helper.west2ol.fzuhelper.NextClassWidgetConfigurationActivity"
                 android:exported="true">
@@ -21,13 +23,30 @@
                 <intent-filter>
                     <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 </intent-filter>
-                <intent-filter>
-                    <action android:name="fzuhelper.UPDATE_ACTION" />
-                </intent-filter>
-
                 <meta-data
                     android:name="android.appwidget.provider"
                     android:resource="@xml/next_class_widget_provider" />
+            </receiver>
+            <receiver
+                android:name="com.helper.west2ol.fzuhelper.CourseOverviewWidgetProvider"
+                android:exported="true"
+                android:label="@string/course_overview_widget_description">
+                <intent-filter>
+                    <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                </intent-filter>
+                <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/course_overview_widget_provider" />
+            </receiver>
+            <receiver
+                android:name="com.helper.west2ol.fzuhelper.CourseWidgetUpdateReceiver"
+                android:exported="false">
+                <intent-filter>
+                    <action android:name="android.intent.action.BOOT_COMPLETED" />
+                    <action android:name="android.intent.action.TIME_SET" />
+                    <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                    <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                </intent-filter>
             </receiver>
             <receiver
                 android:name="com.helper.west2ol.fzuhelper.CourseScheduleWidgetProvider"

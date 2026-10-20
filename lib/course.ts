@@ -10,6 +10,7 @@ import {
   COURSE_DATA_V2_KEY,
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
+  CourseType,
   DATETIME_SECOND_FORMAT,
   EXAM_ROOM_KEY,
   IOS_APP_GROUP,
@@ -27,6 +28,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
 import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
+import { buildCourseWidgetSnapshot } from './course-widget';
 import { formatExamData } from './exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from './locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
@@ -49,11 +51,7 @@ interface ExtendCourseBase extends ParsedCourse {
   priority: number; // 优先级
 }
 
-export enum CourseType {
-  COURSE = 0,
-  EXAM = 1,
-  CUSTOM = 2,
-}
+export { COURSE_WITHOUT_ATTENDANCE, CourseType } from '@/lib/constants';
 
 export type ExtendCourse = ExtendCourseBase & {
   type: CourseType; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
@@ -84,6 +82,7 @@ export type CourseInfoMerged = CourseInfo & {
 };
 
 interface CacheCourseData {
+  semester: string;
   courseData: Record<number, ExtendCourse[]>; // 课程数据
   courseDigest: string;
   examData: Record<number, ExtendCourse[]>; // 考试数据
@@ -151,7 +150,6 @@ export const TOP_CALENDAR_HEIGHT = 68;
 export const COURSE_TYPE = CourseType.COURSE;
 export const EXAM_TYPE = CourseType.EXAM;
 export const CUSTOM_TYPE = CourseType.CUSTOM;
-export const COURSE_WITHOUT_ATTENDANCE = '免听';
 
 const NO_LOADING_MSG = '未加载';
 const OVERTIME_THRESHOLD = 30; // 超时阈值，单位为分钟，用于解析时间段
@@ -161,6 +159,7 @@ export const DEFAULT_PRIORITY = 1; // 默认优先级
 const DEFAULT_STARTID = 0; // 默认 ID 起始值
 
 export class CourseCache {
+  private static semester = '';
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
   private static cachedExamDigest: string | null = null; // 缓存的考试数据的摘要
   private static cachedCustomDigest: string | null = null; // 缓存的自定义课程数据的摘要
@@ -213,6 +212,10 @@ export class CourseCache {
    */
   public static hasCachedData(): boolean {
     return !!this.cachedData && !!this.cachedDigest;
+  }
+
+  public static getSemester(): string {
+    return this.semester;
   }
 
   /**
@@ -278,6 +281,7 @@ export class CourseCache {
     if (!resp) return;
 
     const result = JSON.parse(resp) as CacheCourseData;
+    this.semester = result.semester ?? '';
     this.cachedDigest = result.courseDigest;
     this.cachedData = result.courseData;
     this.cachedExamDigest = result.examDigest;
@@ -298,6 +302,7 @@ export class CourseCache {
       await AsyncStorage.setItem(
         COURSE_CURRENT_CACHE_KEY,
         JSON.stringify({
+          semester: this.semester,
           courseData: this.cachedData,
           courseDigest: this.cachedDigest,
           examData: this.cachedExamData,
@@ -317,7 +322,7 @@ export class CourseCache {
       const courseSettings = await getCourseSetting();
       const term = courseSettings.selectedSemester;
       const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === term);
-      if (!currentTerm) {
+      if (!currentTerm || term !== this.semester) {
         console.warn('无法找到当前学期信息，跳过小组件同步');
         return;
       }
@@ -325,36 +330,29 @@ export class CourseCache {
       const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
       const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
       const customCourses = this.getCustomCoursesForSemester(term);
+      const widgetData = JSON.stringify({
+        courseData: this.cachedData,
+        examData: this.cachedExamData,
+        customData: customCourses,
+        startDate: currentTerm.start_date,
+        maxWeek,
+        showNonCurrentWeekCourses,
+        hiddenCoursesWithoutAttendances,
+        widgetSnapshot: buildCourseWidgetSnapshot({
+          courses: Object.values(this.getCachedData(term)).flat(),
+          startDate: currentTerm.start_date,
+          endDate: currentTerm.end_date,
+          settings: courseSettings,
+        }),
+      });
       if (Platform.OS === 'ios') {
         // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
         // 只能在常量中定义这个 identifier
         const storage = new ExtensionStorage(IOS_APP_GROUP);
-        storage.set(
-          COURSE_CURRENT_CACHE_KEY,
-          JSON.stringify({
-            courseData: this.cachedData,
-            examData: this.cachedExamData,
-            customData: customCourses,
-            lastCourseUpdateTime: this.lastCourseUpdateTime,
-            lastExamUpdateTime: this.lastExamUpdateTime,
-            startDate: currentTerm.start_date,
-            maxWeek: maxWeek,
-          }),
-        ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
+        storage.set(COURSE_CURRENT_CACHE_KEY, widgetData); // 如果要改这个 KEY，需要同步修改 target 中原生代码
         ExtensionStorage.reloadWidget(); // 保存后需要重载一次
       } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
-        await setWidgetData(
-          JSON.stringify({
-            courseData: this.cachedData,
-            examData: this.cachedExamData,
-            customData: customCourses,
-            startDate: currentTerm.start_date,
-            maxWeek: maxWeek,
-            showNonCurrentWeekCourses: showNonCurrentWeekCourses,
-            hiddenCoursesWithoutAttendances: hiddenCoursesWithoutAttendances,
-          }),
-          Constants.expoConfig?.android?.package,
-        );
+        await setWidgetData(widgetData, Constants.expoConfig?.android?.package);
       }
       console.log('同步课程到小组件成功');
     } catch (e) {
@@ -366,6 +364,7 @@ export class CourseCache {
    * 清除缓存数据
    */
   public static async clear(): Promise<void> {
+    this.semester = '';
     this.cachedDigest = null;
     this.cachedData = null;
     this.cachedExamData = null;
@@ -636,6 +635,7 @@ export class CourseCache {
    */
   public static setCourses(
     tempData: JwchCourseListResponse_Course[],
+    semester: string,
     skipDigestCheck: boolean = false,
   ): Record<number, ExtendCourse[]> {
     /* 缓存校对处理，如果缓存和传入的数据一致，不做任何改动 */
@@ -646,9 +646,16 @@ export class CourseCache {
     const currentDigest = this.calculateDigest(tempData);
 
     // 如果当前 digest 和上一次的 digest 一致 且 不跳过检查，则直接返回缓存的 data
-    if (currentDigest === this.cachedDigest && this.cachedData && !skipDigestCheck) {
+    if (currentDigest === this.cachedDigest && this.cachedData && this.semester === semester && !skipDigestCheck) {
       return this.cachedData;
     }
+
+    if (this.semester !== semester) {
+      this.cachedExamData = null;
+      this.cachedExamDigest = null;
+      this.lastExamUpdateTime = NO_LOADING_MSG;
+    }
+    this.semester = semester;
 
     /* 到此处我们认为数据是不一致的，开始重新处理课程 */
     this.startID = DEFAULT_STARTID; // 初始化 id
@@ -965,6 +972,8 @@ export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): P
   // 有实际变更才写入
   if (currentSettingJson !== updatedSettingJson) {
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, updatedSettingJson);
+    // 保证设置同步到小部件
+    if (CourseCache.hasCachedData()) await CourseCache.save();
   }
 };
 
@@ -994,7 +1003,7 @@ export const forceRefreshCourseDataWithCustomSync = async (
   await locateDate(true); // 强制更新缓存
 
   // 设置课程数据，跳过 digest 检查
-  CourseCache.setCourses(normalizeV2Courses(data.data.data.courses ?? []), true);
+  CourseCache.setCourses(normalizeV2Courses(data.data.data.courses ?? []), semester, true);
   await syncCustomCourses(data.data.data.custom_courses ?? [], semester);
 
   // 考场信息
@@ -1011,7 +1020,7 @@ export const forceRefreshCourseDataWithCustomSync = async (
     const termsList = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList(), {
       staleTime: 0,
     });
-    const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === queryTerm);
+    const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === semester);
     if (currentTerm) {
       CourseCache.mergeExamCourses(formattedExamData, currentTerm.start_date, currentTerm.end_date);
     } else {
@@ -1019,5 +1028,5 @@ export const forceRefreshCourseDataWithCustomSync = async (
     }
   }
 
-  CourseCache.save(); // 强制保存一次
+  await CourseCache.save(); // 强制保存一次
 };

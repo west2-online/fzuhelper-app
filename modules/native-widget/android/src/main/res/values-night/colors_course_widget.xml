@@ -1,0 +1,12 @@
+<resources>
+    <color name="widget_background">#1A1A1B</color>
+    <color name="widget_title">#F4F4F4</color>
+    <color name="widget_heading">#EAF4FF</color>
+    <color name="widget_tomorrow">#BBDBFF</color>
+    <color name="widget_blue">#5AA6FF</color>
+    <color name="widget_light_blue">#5AA6FF</color>
+    <color name="widget_faint_blue">#0957A1</color>
+    <color name="widget_detail">#8CC1FF</color>
+    <color name="widget_secondary">#BBBBBB</color>
+    <color name="widget_gray">#656565</color>
+</resources>
