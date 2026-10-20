@@ -57,7 +57,7 @@ jobs:
 
       - name: Prebuild
         run: |
-          yarn harmony:prebuild
+          yarn prebuild:harmony
 
       - name: Restore OpenHarmony Cache
         uses: actions/cache@v5
@@ -80,9 +80,9 @@ jobs:
           EXPO_HARMONY_BUNDLE_PREBUILT=1 hvigorw assembleApp --mode project -p product=default -p buildMode=release --no-daemon
 
       - name: Sign APP
+        working-directory: harmony
         run: |
-          cd harmony
-          mkdir output
+          mkdir -p output
 
           echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./release.p12"
           echo "$PROFILE_BASE64" | base64 -d > "./release.p7b"
@@ -105,14 +105,14 @@ jobs:
           KEY_ALIAS: ${{ secrets.OH_SIGN_ALIAS }}
           KEY_PASSWORD: ${{ secrets.OH_KEY_PWD }}
           SIGN_KEYSTORE_BASE64: ${{ secrets.OH_SIGN_STORE_BASE64 }}
-          CERT_BASE64: ${{secrets.OH_CERT_BASE64}}
-          PROFILE_BASE64: ${{secrets.OH_PROFILE_BASE64}}
+          CERT_BASE64: ${{ secrets.OH_CERT_BASE64 }}
+          PROFILE_BASE64: ${{ secrets.OH_PROFILE_BASE64 }}
 
       - name: Extract Version Info
+        working-directory: harmony
         id: version-info
         shell: bash
         run: |
-          cd harmony
           VERSION_CODE=$(jq -r '.app.versionCode' ./AppScope/app.json5)
           VERSION_NAME=$(jq -r '.app.versionName' ./AppScope/app.json5)
           APP_FILENAME="FzuHelper_${VERSION_NAME}.${VERSION_CODE}.app"
