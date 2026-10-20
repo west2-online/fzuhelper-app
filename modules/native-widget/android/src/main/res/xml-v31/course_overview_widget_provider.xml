@@ -3,7 +3,7 @@
     android:configure="com.helper.west2ol.fzuhelper.NextClassWidgetConfigurationActivity"
     android:initialLayout="@layout/next_class_widget_provider"
     android:minWidth="250dp"
-    android:minHeight="158dp"
+    android:minHeight="110dp"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen"
