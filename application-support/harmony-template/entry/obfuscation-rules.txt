@@ -1,2 +1,0 @@
--keep
-../oh_modules/bugly

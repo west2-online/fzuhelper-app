@@ -1,0 +1,8 @@
+{
+  app: {
+    bundleName: 'com.west2online.fzuhelper.nativewidget.build',
+    vendor: 'west2-online',
+    versionCode: 10000,
+    versionName: '1.0.0',
+  },
+}

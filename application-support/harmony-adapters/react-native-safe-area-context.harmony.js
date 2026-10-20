@@ -6,7 +6,7 @@ const harmonySafeAreaContext = require('@react-native-ohos/react-native-safe-are
 const {
   initialWindowMetrics,
   initialWindowSafeAreaInsets,
-} = require('./react-native-safe-area-context-initial-window.harmony');
+} = require('./react-native-safe-area-context-native.harmony');
 
 /**
  * The current Harmony SafeAreaView native component can receive a 0x0 window

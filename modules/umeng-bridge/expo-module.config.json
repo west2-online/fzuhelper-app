@@ -1,10 +1,13 @@
 {
-  "platforms": ["apple", "android", "web"],
+  "platforms": ["apple", "android", "web", "harmony"],
   "apple": {
     "modules": ["ExpoUmengModule"],
     "appDelegateSubscribers": ["ExpoUmengAppDelegate"]
   },
   "android": {
     "modules": ["com.west2online.umeng.ExpoUmengModule"]
+  },
+  "harmony": {
+    "modules": ["ExpoUmengModule"]
   }
 }
