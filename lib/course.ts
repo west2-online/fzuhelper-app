@@ -544,6 +544,7 @@ export class CourseCache {
     let extendedCourses: ExtendCourse[] = [];
     const startDate = dayjs(semesterStart); // 使用 dayjs 解析学期开始日期
     const endDate = dayjs(semesterEnd); // 使用 dayjs 解析学期结束日期
+    const weekStart = startDate.startOf('isoWeek');
 
     // 将 MergedExamData 转化为 ExtendCourse，优先级设置为最高
     for (const examItem of exam) {
@@ -560,8 +561,8 @@ export class CourseCache {
       // 获取考试日期是星期几（ISO 周，星期一为一周的第一天）
       const weekday = examDate.isoWeekday(); // `isoWeekday()` 返回 1（周一）到 7（周日）
 
-      // 使用 dayjs 计算周数，基于学期开始日期和考试日期
-      const diffWeeks = examDate.diff(startDate, 'week') + 1; // 计算周数
+      // 以开学当周的周一计算周数，与课表和小组件保持一致。
+      const diffWeeks = examDate.diff(weekStart, 'week') + 1; // 计算周数
 
       // 填充课程数据
       try {

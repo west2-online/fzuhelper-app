@@ -65,7 +65,8 @@ data class CourseWidgetSnapshot(
         val today = day(now)
         val calendar = calendar(now)
         val minute = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE)
-        return if (minute >= 21 * 60 + 35 || (previewTomorrow && today.events.isEmpty())) {
+        // 今日仍有未结束的课程或考试时，优先保留今日。
+        return if (today.events.isEmpty() && (previewTomorrow || minute >= 21 * 60 + 35)) {
             day(now, tomorrow = true)
         } else today
     }

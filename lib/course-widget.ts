@@ -3,6 +3,9 @@ import { CLASS_SCHEDULES_MINUTES, COURSE_WITHOUT_ATTENDANCE, CourseType } from '
 import type { CourseInfo } from '@/lib/course';
 import { isWeekInSegment } from '@/lib/course-schedule';
 import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
+
+dayjs.extend(isoWeek);
 
 export interface WidgetCourseEvent {
   date: string;
@@ -37,6 +40,8 @@ export function buildCourseWidgetSnapshot({
 }: WidgetSnapshotInput): CourseWidgetSnapshot {
   const start = dayjs(startDate).startOf('day');
   const end = dayjs(endDate).startOf('day');
+  // 与课表一致，以开学当周的周一作为第一周起点。
+  const weekStart = start.startOf('isoWeek');
   const events: WidgetCourseEvent[] = [];
   const visibleCourses = courses
     .filter(course => course.type !== CourseType.EXAM || settings.exportExamToCourseTable)
@@ -46,7 +51,7 @@ export function buildCourseWidgetSnapshot({
     .sort((left, right) => left.startClass - right.startClass || right.priority - left.priority);
 
   for (let date = start; !date.isAfter(end); date = date.add(1, 'day')) {
-    const week = date.diff(start, 'week') + 1;
+    const week = date.diff(weekStart, 'week') + 1;
     const weekday = ((date.day() + 6) % 7) + 1;
     const dayEvents = new Map<string, WidgetCourseEvent>();
 

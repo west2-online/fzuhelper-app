@@ -75,7 +75,8 @@ struct CourseWidgetSnapshot: Codable {
   func smallDay(at now: Date, previewTomorrow: Bool) -> CourseWidgetDay {
     let today = day(at: now)
     let minute = calendar.component(.hour, from: now) * 60 + calendar.component(.minute, from: now)
-    let showTomorrow = minute >= 21 * 60 + 35 || (previewTomorrow && today.events.isEmpty)
+    // 今日仍有未结束的课程或考试时，优先保留今日。
+    let showTomorrow = today.events.isEmpty && (previewTomorrow || minute >= 21 * 60 + 35)
     return showTomorrow ? day(at: now, tomorrow: true) : today
   }
 
