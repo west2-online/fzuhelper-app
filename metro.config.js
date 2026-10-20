@@ -51,6 +51,8 @@ function withHarmony(config) {
           path.join(repositoryRoot, name),
         ]),
       ),
+      // RNOH 0.84 uses React 19.2.3; Android and iOS use React 19.2.0 with RN 0.83.
+      react: 'react-harmony',
       // JSX, CSS registration and theme hooks must share the port's style registry.
       nativewind: nativeWindRoot,
       'react-native-css-interop': cssInteropRoot,
