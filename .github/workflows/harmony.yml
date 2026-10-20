@@ -79,7 +79,15 @@ jobs:
           cd harmony
           EXPO_HARMONY_BUNDLE_PREBUILT=1 hvigorw assembleApp --mode project -p product=default -p buildMode=release --no-daemon
 
+      - name: Prepare Unsigned APP
+        if: github.event_name == 'pull_request'
+        working-directory: harmony
+        run: |
+          mkdir -p output
+          cp ./build/outputs/default/harmony-default-unsigned.app ./output/release-unsigned.app
+
       - name: Sign APP
+        if: github.event_name != 'pull_request'
         working-directory: harmony
         run: |
           mkdir -p output
@@ -119,7 +127,16 @@ jobs:
           echo "APP_VERSION=v${VERSION_NAME}.${VERSION_CODE}" >> "$GITHUB_OUTPUT"
           echo "APP_FILENAME=$APP_FILENAME" >> "$GITHUB_OUTPUT"
 
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: harmony-outputs
+          path: harmony/output
+          if-no-files-found: error
+          retention-days: 0
+
       - name: Deploy to Huawei App Gallery
+        if: github.event_name != 'pull_request'
         uses: ACaiCat/huawei-appgallery-deploy@v1.7.0
         with:
           credentials: ${{secrets.HUAWEI_CREDENTIALS}}
@@ -131,10 +148,3 @@ jobs:
           test-group-ids: 3bd3c58f77f844a7abeb2b4deadfa94a,5750d1361e784f699b4113f72a98d3fa
           test-desc: 工作流自动发布
           version-desc: ${{ steps.version-info.outputs.APP_VERSION }}
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: harmony-outputs
-          path: harmony/output
-          retention-days: 0
