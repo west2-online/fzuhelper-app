@@ -144,7 +144,7 @@ struct CourseDayView: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 4) {
         WidgetText(day.isTomorrow ? "明日课程" : snapshot.formatted(day.date, "MM月dd日"), size: 12)
-          .foregroundStyle(Color(day.isTomorrow ? "WidgetTomorrow" : "WidgetHeading"))
+          .foregroundStyle(Color(day.isTomorrow ? "WidgetSecondary" : "WidgetHeading"))
         if showWeekday {
           WidgetText(snapshot.formatted(day.date, "EEE"), size: 12)
             .foregroundStyle(Color("WidgetBlue"))
@@ -216,7 +216,7 @@ struct CourseEventView: View {
         .frame(width: 2)
       VStack(alignment: .leading, spacing: compact ? 4 : 6) {
         WidgetText(course.name, size: compact ? 10 : 14, lines: compact ? 1 : nameLines)
-          .foregroundStyle(Color(compact ? "WidgetHeading" : "WidgetTitle"))
+          .foregroundStyle(Color("WidgetTitle"))
         if compact {
           // 同排放不下时将时间移到下一行，避免时间挤压教室。
           ViewThatFits(in: .horizontal) {

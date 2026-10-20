@@ -77,7 +77,7 @@ internal class CourseWidgetRenderer(
     private fun dayView(day: CourseWidgetDay, width: Int, height: Int, showWeekday: Boolean): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.course_widget_day)
         views.setTextViewText(R.id.widget_date, if (day.isTomorrow) "明日课程" else snapshot!!.formatted(day.date, "MM月dd日"))
-        views.setTextColor(R.id.widget_date, context.getColor(if (day.isTomorrow) R.color.widget_tomorrow else R.color.widget_heading))
+        views.setTextColor(R.id.widget_date, context.getColor(if (day.isTomorrow) R.color.widget_secondary else R.color.widget_heading))
         views.setTextViewText(R.id.widget_weekday, snapshot!!.formatted(day.date, "EEE"))
         views.setViewVisibility(R.id.widget_weekday, if (showWeekday) View.VISIBLE else View.GONE)
         trimText(views, R.id.widget_date, R.id.widget_weekday)
