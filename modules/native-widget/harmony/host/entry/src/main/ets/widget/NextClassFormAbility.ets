@@ -4,6 +4,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { formBindingData, FormExtensionAbility, formInfo, formProvider } from '@kit.FormKit';
 import {
   buildWidgetBindingData,
+  nextWidgetRefreshMinutes,
   WIDGET_DATA_KEY,
   WIDGET_FORM_IDS_KEY,
   WIDGET_STORE_NAME,
@@ -38,8 +39,9 @@ export default class NextClassFormAbility extends FormExtensionAbility {
     const value = store.getSync(WIDGET_DATA_KEY, '');
     const json = typeof value === 'string' ? value : '';
     const config = readWidgetConfig(store, formId);
+    if (formId.length > 0) this.scheduleNextRefresh(formId, json);
     return formBindingData.createFormBindingData(
-      buildWidgetBindingData(json, config.showLastUpdateTime, config.verticalInset),
+      buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow, config.verticalInset),
     );
   }
 
@@ -67,6 +69,10 @@ export default class NextClassFormAbility extends FormExtensionAbility {
     this.removeStoredFormId(formId);
   }
 
+  onCastToNormalForm(formId: string): void {
+    this.updateForm(formId);
+  }
+
   onAcquireFormState(want: Want): formInfo.FormState {
     return formInfo.FormState.READY;
   }
@@ -80,9 +86,10 @@ export default class NextClassFormAbility extends FormExtensionAbility {
       await formProvider.updateForm(
         formId,
         formBindingData.createFormBindingData(
-          buildWidgetBindingData(json, config.showLastUpdateTime, config.verticalInset),
+          buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow, config.verticalInset),
         ),
       );
+      this.scheduleNextRefresh(formId, json);
     } catch (error) {
       const businessError = error as BusinessError;
       if (businessError.code === NextClassFormAbility.FORM_ID_NOT_EXIST_ERROR_CODE) {
@@ -92,6 +99,13 @@ export default class NextClassFormAbility extends FormExtensionAbility {
         console.error(`Failed to update HarmonyOS widget ${formId}: ${message}`);
       }
     }
+  }
+
+  private scheduleNextRefresh(formId: string, json: string): void {
+    formProvider.setFormNextRefreshTime(formId, nextWidgetRefreshMinutes(json))
+      .catch((error: BusinessError) => {
+        console.warn(`Failed to schedule widget ${formId}: ${error.code}`);
+      });
   }
 
   private removeStoredFormId(formId: string): void {
