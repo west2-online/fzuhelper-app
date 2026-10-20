@@ -50,6 +50,15 @@ export default function WidgetPage() {
 
           <LabelEntry leftText="下节课上什么" onPress={() => handleAddWidget(72201)} />
 
+          {(Platform.OS === 'android' || Platform.OS === 'ios') && (
+            <>
+              <LabelEntry leftText="今日与明日课程" onPress={() => handleAddWidget(72204)} />
+              <Text className="mb-4 text-sm text-text-secondary">
+                小号展示当前及剩余课程，中号固定展示今日与明日。长按桌面组件可设置课程备注。
+              </Text>
+            </>
+          )}
+
           {Platform.OS === 'android' && <LabelEntry leftText="课程表" onPress={() => handleAddWidget(72202)} />}
 
           {(Platform.OS === 'ios' || (Platform.OS as string) === 'harmony') && (

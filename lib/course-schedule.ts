@@ -88,7 +88,7 @@ export const formatWeekDisplay = (weekSegments: WeekSegment[]) => {
   return displayGroups.map(group => `${group.ranges.join(', ')}周${formatWeekPattern(group)}`).join('；');
 };
 
-export const isWeekInSegment = (segment: WeekSegment, week: number) => {
+export const isWeekInSegment = (segment: DisplayWeekSegment, week: number) => {
   if (week < segment.startWeek || week > segment.endWeek) return false;
   return week % 2 === 1 ? segment.single : segment.double;
 };

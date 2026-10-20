@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+    <ImageView
+        android:layout_width="2dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no"
+        android:src="@drawable/course_widget_indicator_light" />
+    <ImageView
+        android:id="@+id/remaining_second"
+        android:layout_width="2dp"
+        android:layout_height="13dp"
+        android:layout_marginStart="2dp"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no"
+        android:src="@drawable/course_widget_indicator_faint" />
+    <ImageView
+        android:id="@+id/remaining_third"
+        android:layout_width="2dp"
+        android:layout_height="11dp"
+        android:layout_marginStart="2dp"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no"
+        android:src="@drawable/course_widget_indicator_gray" />
+    <TextView
+        style="@style/CourseWidgetText"
+        android:id="@+id/remaining_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textSize="10sp"
+        android:textColor="@color/widget_secondary" />
+</LinearLayout>
