@@ -47,6 +47,7 @@ class NextClassWidgetConfigurationActivity : AppCompatActivity() {
             CourseOverviewWidgetProvider::class.java.name
         if (medium) {
             binding.previewTomorrowSwitch.visibility = View.GONE
+            binding.previewTomorrowDescription.visibility = View.GONE
             binding.showAsSquareSwitch.visibility = View.GONE
         }
 

@@ -9,7 +9,10 @@ struct ConfigurationAppIntent: WidgetConfigurationIntent {
   @Parameter(title: "显示课程备注", default: true)
   var showRemarks: Bool
 
-  @Parameter(title: "小号组件今日结束后显示明日", default: false)
+  @Parameter(
+    title: "提前显示明日课程",
+    description: "开启：今日课程全部结束后，立即显示明日课程。\n关闭：今日课程全部结束后，最早于 21:35 显示明日课程。",
+    default: false)
   var previewTomorrow: Bool
 
   static var parameterSummary: some ParameterSummary {
