@@ -1,10 +1,11 @@
-const { hairlineWidth } = require('nativewind/theme');
+const isHarmony = process.env.EXPO_HARMONY === '1';
+const { hairlineWidth } = isHarmony ? require('@react-native-ohos/nativewind/theme') : require('nativewind/theme');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
-  presets: [require(process.env.IS_HARMONY === 'true' ? '@react-native-ohos/nativewind/preset' : 'nativewind/preset')],
+  presets: [isHarmony ? require('@react-native-ohos/nativewind/preset') : require('nativewind/preset')],
   theme: {
     extend: {
       colors: {

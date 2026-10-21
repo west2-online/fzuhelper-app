@@ -2,9 +2,10 @@
 import '@/utils/patch-text-component';
 
 import Geolocation from '@react-native-community/geolocation';
+import { getHeaderTitle, Header } from '@react-navigation/elements';
+import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
-import { Stack as HarmonyStack } from 'expo-router/js-stack';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -28,10 +29,21 @@ if ((Platform.OS as string) === 'harmony') {
   });
 }
 
+// Harmony Screens loses Animated.event header-height callbacks. Use the same
+// measured React Navigation header as the tabs so content offsets stay accurate.
+function HarmonyStackHeader({ options, route, back }: NativeStackHeaderProps) {
+  return (
+    <Header
+      {...options}
+      title={getHeaderTitle(options, route.name)}
+      back={back}
+      headerRightContainerStyle={HARMONY_HEADER_RIGHT_CONTAINER_STYLE}
+    />
+  );
+}
+
 // 这个页面作为根页面，我们不会过多放置逻辑，到 app 的逻辑可以查看 (tabs)/_layout.tsx
 export default function RootLayout() {
-  const isHarmony = (Platform.OS as string) === 'harmony';
-
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <QueryProvider>
@@ -39,25 +51,18 @@ export default function RootLayout() {
           <KeyboardProvider>
             <GestureHandlerRootView style={styles.root}>
               <LearningCenterContextProvider>
-                {isHarmony ? (
-                  // Keep headers and navigation history without using the
-                  // Harmony native ScreenStack that drops page content.
-                  <HarmonyStack screenOptions={harmonyStackScreenOptions}>
-                    <HarmonyStack.Screen name="+not-found" />
-                    <HarmonyStack.Screen
-                      name="toolbox/learning-center/qr-scanner"
-                      options={{ presentation: 'modal', title: '扫码' }}
-                    />
-                  </HarmonyStack>
-                ) : (
-                  <Stack screenOptions={StackNavigatorScreenOptions}>
-                    <Stack.Screen name="+not-found" />
-                    <Stack.Screen
-                      name="toolbox/learning-center/qr-scanner"
-                      options={{ presentation: 'modal', title: '扫码' }}
-                    />
-                  </Stack>
-                )}
+                <Stack
+                  screenOptions={{
+                    ...StackNavigatorScreenOptions,
+                    ...((Platform.OS as string) === 'harmony' ? { header: HarmonyStackHeader } : {}),
+                  }}
+                >
+                  <Stack.Screen name="+not-found" />
+                  <Stack.Screen
+                    name="toolbox/learning-center/qr-scanner"
+                    options={{ presentation: 'modal', title: '扫码' }}
+                  />
+                </Stack>
 
                 <Toaster position="top-center" duration={2500} offset={100} style={toastStyle} />
                 <PortalHost />
@@ -77,12 +82,6 @@ const toastStyle = {
   // Overrides https://github.com/gunnartorfis/sonner-native/blob/9656057710310528e05d98ae22d21520004cf8fa/src/toast.tsx#L504
   ...(Platform.OS === 'android' && { elevation: 20 }),
 };
-
-const harmonyStackScreenOptions = {
-  ...StackNavigatorScreenOptions,
-  animation: 'slide_from_right',
-  headerRightContainerStyle: HARMONY_HEADER_RIGHT_CONTAINER_STYLE,
-} as const;
 
 const styles = StyleSheet.create({
   root: {

@@ -1,6 +1,6 @@
 // https://github.com/expo/expo/issues/19563#issuecomment-1990897138
 // 对res/styles进行处理，调整主题色和删除多余属性
-import { withAndroidColors, withAndroidStyles } from '@expo/config-plugins';
+const { withAndroidColors, withAndroidStyles } = require('@expo/config-plugins');
 
 function withCustomAppTheme(config) {
   config = withAndroidStyles(config, androidStylesConfig => {
@@ -75,4 +75,4 @@ function withCustomAppTheme(config) {
   return config;
 }
 
-export default withCustomAppTheme;
+module.exports = withCustomAppTheme;

@@ -6,6 +6,9 @@ on:
       - master
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 concurrency:
@@ -14,22 +17,22 @@ concurrency:
 
 jobs:
   ios:
-    if: github.ref == 'refs/heads/master'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
     uses: ./.github/workflows/ios.yml
     secrets: inherit
 
   android:
-    if: github.ref == 'refs/heads/master'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
     uses: ./.github/workflows/android.yml
     secrets: inherit
 
   harmony:
-    if: github.ref == 'refs/heads/master'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
     uses: ./.github/workflows/harmony.yml
     secrets: inherit
 
   alpha:
-    if: github.ref == 'refs/heads/master'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
     needs: android
     uses: ./.github/workflows/alpha.yml
     secrets: inherit

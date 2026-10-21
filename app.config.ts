@@ -1,31 +1,10 @@
-import { execSync } from 'child_process';
-import { type ExpoConfig } from 'expo/config';
-import 'ts-node/register';
+import type { ExpoConfigWithHarmony } from '@expo-harmony/config-plugins';
 import quickActionsConfig from './config/quick-actions.json';
 import umengConfig from './config/umeng.json';
-import { version } from './package.json';
+import { buildNumber, version, versionCode } from './config/version';
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
 
-// 内部版本号根据commit次数设置
-// 前三位对应版本名，后三位或更多对应commit次数
-let commitCount = 0;
-try {
-  const stdout = process.env.GIT_COMMIT_COUNT ?? execSync('git rev-list --count HEAD').toString().trim();
-  const parsedInt = parseInt(stdout, 10);
-  if (!isNaN(parsedInt)) {
-    commitCount = parsedInt;
-  }
-} catch (err) {
-  console.error('无法获取 git commit 次数，将使用默认值 0:', err);
-}
-const versionCodePrefix = version.replace(/\./g, '');
-const versionCodeSuffix = String(commitCount).padStart(3, '0');
-// iOS
-const buildNumber = versionCodePrefix + versionCodeSuffix;
-console.log(`版本号: ${buildNumber}`);
-// Android
-const versionCode = parseInt(buildNumber, 10);
 const androidQuickActionIcons = Object.fromEntries(
   quickActionsConfig.items.map(item => [
     item.platforms.android.icon,
@@ -36,7 +15,7 @@ const androidQuickActionIcons = Object.fromEntries(
   ]),
 );
 
-const config: ExpoConfig = {
+const config: ExpoConfigWithHarmony = {
   name: 'fzuhelper',
   slug: 'fzuhelper-app',
   version,
@@ -44,6 +23,7 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'fzuhelper',
+  platforms: ['ios', 'android', 'harmony'],
   ios: {
     appleTeamId: 'MEWHFZ92DY', // Apple Team ID
     appStoreUrl: 'https://apps.apple.com/us/app/%E7%A6%8Fuu/id866768101',
@@ -110,6 +90,82 @@ const config: ExpoConfig = {
       'android.permission.ACCESS_FINE_LOCATION',
     ],
   },
+  harmony: {
+    userInterfaceStyle: 'automatic',
+    jsEngine: 'hermes',
+    bundleName: 'com.west2online.fzuhelper.next',
+    label: '福uu',
+    vendor: 'west2-online',
+    versionCode,
+    icon: './assets/images/icon.png',
+    targetApiVersion: 24,
+    compatibleSdkVersion: 23,
+    permissions: [
+      {
+        name: 'ohos.permission.ACCELEROMETER',
+      },
+      {
+        name: 'ohos.permission.INTERNET',
+      },
+      {
+        name: 'ohos.permission.GET_NETWORK_INFO',
+      },
+      {
+        name: 'ohos.permission.APP_TRACKING_CONSENT',
+        reason: '用于统计和改进消息推送服务',
+        usedScene: {
+          abilities: ['EntryAbility'],
+          when: 'inuse',
+        },
+      },
+      {
+        name: 'ohos.permission.VIBRATE',
+      },
+      {
+        name: 'ohos.permission.CAMERA',
+        reason: '用于扫码签到等需要相机的功能',
+        usedScene: {
+          abilities: ['EntryAbility'],
+          when: 'inuse',
+        },
+      },
+      {
+        name: 'ohos.permission.LOCATION',
+        reason: '用于校本化签到定位',
+        usedScene: {
+          abilities: ['EntryAbility'],
+          when: 'inuse',
+        },
+      },
+      {
+        name: 'ohos.permission.APPROXIMATELY_LOCATION',
+        reason: '用于校本化签到定位',
+        usedScene: {
+          abilities: ['EntryAbility'],
+          when: 'inuse',
+        },
+      },
+      {
+        name: 'ohos.permission.READ_CALENDAR',
+        reason: '用于将课表和考场安排导出到系统日历',
+        usedScene: {
+          abilities: ['EntryAbility'],
+          when: 'inuse',
+        },
+      },
+      {
+        name: 'ohos.permission.WRITE_CALENDAR',
+        reason: '用于将课表和考场安排导出到系统日历',
+        usedScene: {
+          abilities: ['EntryAbility'],
+          when: 'inuse',
+        },
+      },
+    ],
+    ...(process.env.EXPO_HARMONY_SIGNING_CONFIG_FILE
+      ? { signingConfigFile: process.env.EXPO_HARMONY_SIGNING_CONFIG_FILE }
+      : {}),
+  },
   plugins: [
     'expo-router',
     [
@@ -136,7 +192,7 @@ const config: ExpoConfig = {
       './plugins/inject-android-network-security-config',
       { networkSecurityConfig: './assets/configs/network_security_config.xml', enable: true },
     ],
-    "./plugins/with-android-maxSdkVersion.js",
+    './plugins/with-android-maxSdkVersion.js',
     './plugins/keep-android-resources',
     './plugins/inject-ios-prebuild',
     './modules/safe-area-webview/app.plugin.js',
@@ -156,6 +212,8 @@ const config: ExpoConfig = {
         oppoPushAppKey: umengConfig.android.oppoPush.appKey,
         oppoPushAppSecret: umengConfig.android.oppoPush.appSecret,
         iOSAppKey: umengConfig.ios.appKey,
+        HarmonyAppKey: umengConfig.harmony.appKey,
+        HarmonyMessageSecret: umengConfig.harmony.messageSecret,
         bridgingSourcePath: './modules/umeng-bridge/ios/ExpoUmeng-Bridging-Header.h', // (iOS) 源路径（相对于 app.plugin.js 文件）
         bridgingTargetPath: 'fzuhelper/fzuhelper-Bridging-Header.h', // (iOS) 目标路径（相对于 ios 文件夹）这个文件可以不更改
         // 请注意：这个文件的格式是符合{targetName}/{targetName}-Bridging-Header.h的，如果你的targetName不是fzuhelper，请更改
@@ -207,6 +265,34 @@ const config: ExpoConfig = {
         },
       },
     ],
+    '@expo-harmony/expo-constants',
+    [
+      '@expo-harmony/expo-font',
+      {
+        fonts: [
+          { fontFamily: 'Roboto', fontDefinitions: [{ path: './assets/fonts/Roboto-Regular.ttf' }] },
+          './assets/fonts/Roboto-Regular.ttf',
+          './assets/fonts/Roboto-Bold.ttf',
+          './node_modules/@react-native-vector-icons/ionicons/fonts/Ionicons.ttf',
+        ],
+      },
+    ],
+    [
+      '@expo-harmony/expo-splash-screen',
+      {
+        image: './assets/images/ic_launcher_foreground.png',
+        backgroundColor: '#FFFFFF',
+        dark: { backgroundColor: '#000000' },
+        resizeMode: 'contain',
+      },
+    ],
+    '@expo-harmony/expo-system-ui',
+    '@expo-harmony/expo-navigation-bar',
+    '@expo-harmony/expo-sharing',
+    require.resolve('./plugins/with-harmony.js'),
+    require.resolve('./modules/fzuhelper-quick-actions/app.plugin.js'),
+    // Base mods must be registered last.
+    '@expo-harmony/prebuild-config',
   ],
   experiments: {
     typedRoutes: true,

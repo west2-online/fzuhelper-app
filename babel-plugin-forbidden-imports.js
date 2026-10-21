@@ -32,7 +32,7 @@ module.exports = function ({ types: t }) {
           if (
             rule.allowIn?.some(allowPath => {
               const fileAbs = path.resolve(filename);
-              const allowAbs = path.resolve(allowPath);
+              const allowAbs = path.resolve(__dirname, allowPath);
               const relative = path.relative(allowAbs, fileAbs);
 
               // 文件名完全匹配，或在允许目录内

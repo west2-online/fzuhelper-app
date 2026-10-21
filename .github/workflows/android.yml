@@ -49,7 +49,15 @@ jobs:
       - name: Build Release APK
         run: |
           cd android
-          echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            # Keep release-mode PR builds installable without the release keystore.
+            export KEYSTORE_PATH=debug.keystore
+            export KEYSTORE_PASSWORD=android
+            export KEY_ALIAS=androiddebugkey
+            export KEY_PASSWORD=android
+          else
+            echo "$SIGN_KEYSTORE_BASE64" | base64 -d > "./app/$KEYSTORE_PATH"
+          fi
           ./gradlew app:packageRelease --no-problems-report \
           -D org.gradle.jvmargs="-Xmx12g -XX:MetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:+UseParallelGC"
         env:
@@ -71,4 +79,5 @@ jobs:
         with:
           name: outputs
           path: android/app/build/outputs
+          if-no-files-found: error
           retention-days: 0

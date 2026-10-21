@@ -37,15 +37,18 @@ jobs:
           yarn prebuild:ios
 
       - uses: apple-actions/import-codesign-certs@v7
+        if: github.event_name != 'pull_request'
         with:
           p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
 
       - name: Setup API Key
+        if: github.event_name != 'pull_request'
         run: |
           echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > AuthKey.p8
 
       - name: Create Export Options
+        if: github.event_name != 'pull_request'
         run: |
           cat > ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -63,18 +66,30 @@ jobs:
       - name: Archive
         run: |
           set -o pipefail
-          xcodebuild \
-            -workspace ios/fzuhelper.xcworkspace \
-            -scheme fzuhelper \
-            -configuration Release \
-            -archivePath fzuhelper.xcarchive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$(pwd)/AuthKey.p8" \
-            -authenticationKeyID ${{ secrets.APPSTORE_API_KEY_ID }} \
-            -authenticationKeyIssuerID ${{ secrets.APPSTORE_ISSUER_ID }} \
-            archive | xcbeautify --renderer github-actions
+          args=(
+            -workspace ios/fzuhelper.xcworkspace
+            -scheme fzuhelper
+            -configuration Release
+            -destination 'generic/platform=iOS'
+            -archivePath fzuhelper.xcarchive
+          )
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            args+=(CODE_SIGNING_ALLOWED=NO)
+          else
+            args+=(
+              -allowProvisioningUpdates
+              -authenticationKeyPath "$(pwd)/AuthKey.p8"
+              -authenticationKeyID "$APPSTORE_API_KEY_ID"
+              -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID"
+            )
+          fi
+          xcodebuild "${args[@]}" archive | xcbeautify --renderer github-actions
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
 
       - name: Export IPA
+        if: github.event_name != 'pull_request'
         run: |
           set -o pipefail
           xcodebuild \
@@ -87,7 +102,23 @@ jobs:
             -authenticationKeyIssuerID ${{ secrets.APPSTORE_ISSUER_ID }} \
             -allowProvisioningUpdates | xcbeautify --renderer github-actions
 
+      - name: Package Unsigned IPA
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p Payload
+          cp -R fzuhelper.xcarchive/Products/Applications/fzuhelper.app Payload/
+          zip -qry fzuhelper-unsigned.ipa Payload
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-outputs
+          path: '*.ipa'
+          if-no-files-found: error
+          retention-days: 0
+
       - name: Generate Changelog
+        if: github.event_name != 'pull_request'
         id: changelog
         run: |
           GIT_LOG=$(git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}') || { echo "Failed to get git log"; exit 1; }
@@ -98,9 +129,10 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Upload TestFlight Build
+        if: github.event_name != 'pull_request'
         run: |
           gem install fastlane
-          
+
           cat > key.json << EOF
           {
             "key_id": "${{ secrets.APPSTORE_API_KEY_ID }}",
@@ -108,7 +140,7 @@ jobs:
             "key": "$(echo '${{ secrets.APPSTORE_API_PRIVATE_KEY }}' | sed 's/$/\\n/' | tr -d '\n')"
           }
           EOF
-          
+
           fastlane run upload_to_testflight \
             ipa:"fzuhelper.ipa" \
             app_identifier:"FzuHelper.FzuHelper" \
@@ -119,7 +151,7 @@ jobs:
             notify_external_testers:true \
             reject_build_waiting_for_review:true \
             skip_waiting_for_build_processing:false
-      
+
       - name: Cleanup
         if: always()
         run: |

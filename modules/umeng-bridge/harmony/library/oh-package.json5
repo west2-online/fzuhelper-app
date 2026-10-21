@@ -1,0 +1,12 @@
+{
+  name: 'fzuhelper-umeng-bridge',
+  version: '1.0.0',
+  main: 'Index.ets',
+  dependencies: {
+    '@expo-harmony/expo-modules-core': '55.0.25-harmony.1',
+    '@umeng/analytics': '1.2.12',
+    '@umeng/common': '1.1.12',
+    '@umeng/push': '2.0.4',
+    '@umeng/utunnel': '1.2.5',
+  },
+}

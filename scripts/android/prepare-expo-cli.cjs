@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-// Expo 56 can enumerate an emulator before its console is listening. Keep that
+// Expo can enumerate an emulator before its console is listening. Keep that
 // transient device out of the list so Expo's existing boot polling can continue.
 const fs = require('node:fs');
 const path = require('node:path');
 
-const supportedVersion = '56.1.16';
+const supportedVersion = '55.0.36';
 const marker = '// fzuhelper: tolerate transient emulator console connections';
 const replacements = [
   [

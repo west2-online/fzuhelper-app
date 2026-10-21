@@ -1,0 +1,29 @@
+{
+  "module": {
+    "abilities": [
+      {
+        "name": "WidgetConfigurationAbility",
+        "srcEntry": "./ets/widget/WidgetConfigurationAbility.ets",
+        "label": "$string:widget_config_label",
+        "startWindowIcon": "$media:expo_splash_screen",
+        "startWindowBackground": "$color:expo_splash_screen_background",
+        "exported": true
+      }
+    ],
+    "extensionAbilities": [
+      {
+        "name": "NextClassFormAbility",
+        "srcEntry": "./ets/widget/NextClassFormAbility.ets",
+        "label": "$string:widget_display_name",
+        "description": "$string:widget_desc",
+        "type": "form",
+        "metadata": [
+          {
+            "name": "ohos.extension.form",
+            "resource": "$profile:form_config"
+          }
+        ]
+      }
+    ]
+  }
+}
