@@ -1,6 +1,6 @@
 import { useQueries } from '@tanstack/react-query';
 import { Stack, useRouter } from 'expo-router';
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { View } from 'react-native';
 import { BorderlessButton, Pressable, RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,10 +27,16 @@ import { useCoursePageData } from '@/hooks/useCourseDataSuspense';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { EXPIRE_ONE_DAY, FRIEND_COURSE_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { COURSE_TYPE, CourseCache, type ExtendCourse } from '@/lib/course';
+import { getCourseColorScheme, subscribeCourseColorSchemes } from '@/lib/course-color-schemes';
 
 function FreeFriendsContent() {
   const router = useRouter();
   const coursePageData = useCoursePageData();
+  const colorPalette = useSyncExternalStore(
+    subscribeCourseColorSchemes,
+    () => getCourseColorScheme(coursePageData.setting.colorScheme),
+    () => getCourseColorScheme(coursePageData.setting.colorScheme),
+  );
   const { currentWeek, maxWeek, currentTerm } = coursePageData;
   const selectedSemester = coursePageData.setting.selectedSemester;
   const ownSchedulesByDays = coursePageData.schedulesByDays;
@@ -88,9 +94,10 @@ function FreeFriendsContent() {
       },
       staleTime: EXPIRE_ONE_DAY,
       retry: false,
-      select: (courses: JwchCourseListResponse_Course[]) => CourseCache.processFriendCourses(courses, friend.stu_id),
+      select: (courses: JwchCourseListResponse_Course[]) =>
+        CourseCache.processFriendCourses(courses, friend.stu_id, colorPalette.id),
     }));
-  }, [selectedFriends, selectedSemester]);
+  }, [selectedFriends, selectedSemester, colorPalette]);
 
   // 并行获取所有选中好友的课程
   const friendCourseQueries = useQueries({

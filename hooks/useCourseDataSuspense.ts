@@ -52,11 +52,17 @@ async function loadCourseAndExamData(
     { staleTime: EXPIRE_ONE_DAY },
   );
 
+  // 请求返回时重新读取设置，避免切换配色后被较早发出的请求覆盖
+  const currentSetting = await getCourseSetting();
+  if (currentSetting.selectedSemester && currentSetting.selectedSemester !== setting.selectedSemester) {
+    return false;
+  }
+
   const courses = normalizeV2Courses(fetchedData.data.data.courses ?? []);
 
   // 如果缓存数据和新数据不一致，则更新数据
   if (!CourseCache.compareDigest(COURSE_TYPE, courses)) {
-    CourseCache.setCourses(courses);
+    CourseCache.setCourses(courses, false, currentSetting.colorScheme);
     hasChanged = true;
   }
 
@@ -142,12 +148,16 @@ export function useCoursePageData() {
       if (cachedSchedules) {
         // 后台异步刷新数据
         loadCourseAndExamData(queryTerm, setting, currentTerm)
-          .then(hasChanged => {
+          .then(async hasChanged => {
             // 缓存更新后，回填页面查询数据
             if (hasChanged) {
+              const currentSetting = await getCourseSetting();
+              if (currentSetting.selectedSemester && currentSetting.selectedSemester !== setting.selectedSemester) {
+                return;
+              }
               const updated = CourseCache.getCachedData(setting.selectedSemester);
               queryClient.setQueryData<CoursePageData>([COURSE_PAGE_ALL_DATA_KEY], {
-                setting,
+                setting: { ...currentSetting, selectedSemester: setting.selectedSemester },
                 currentWeek,
                 currentTerm,
                 maxWeek,
