@@ -80,7 +80,6 @@ class NativeWidgetModule : Module() {
         Function("setWidgetData") { json: String, packageName: String ->
             getPreferences(packageName).edit().putString("widgetdata", json).commit()
 
-            val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
             val widgetManager = AppWidgetManager.getInstance(context)
             val widgetProviders = context.packageManager.queryBroadcastReceivers(
                 Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE),
@@ -94,8 +93,10 @@ class NativeWidgetModule : Module() {
                         provider.activityInfo.name
                     )
                     val widgetIds = widgetManager.getAppWidgetIds(providerComponent)
-                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
-                    context.sendBroadcast(intent)
+                    context.sendBroadcast(Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
+                        component = providerComponent
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
+                    })
                 }
             }
         }

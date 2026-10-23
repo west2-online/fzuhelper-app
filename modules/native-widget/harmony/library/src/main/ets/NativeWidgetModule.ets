@@ -1,9 +1,10 @@
 import { preferences } from '@kit.ArkData';
 import { formBindingData, formProvider } from '@kit.FormKit';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { ExpoModule, ExpoModuleDefinition, ExpoFunction, ExpoValueTypes, ExpoRecordShape } from '@expo-harmony/expo-modules-core';
+import { ExpoModule, ExpoModuleDefinition, ExpoFunction, ExpoValueTypes } from '@expo-harmony/expo-modules-core';
 import {
   buildWidgetBindingData,
+  nextWidgetRefreshMinutes,
   WIDGET_DATA_KEY,
   WIDGET_FORM_IDS_KEY,
   WIDGET_STORE_NAME,
@@ -29,6 +30,8 @@ export class NativeWidgetModule extends ExpoModule {
     let formName = '';
     if (requestCode === 72201) {
       formName = 'NextClassCard';
+    } else if (requestCode === 72204) {
+      formName = 'CourseOverviewCard';
     } else if (requestCode === 72203) {
       return 2; // 锁屏组件不支持直接拉起添加，跳转文档页
     }
@@ -36,10 +39,10 @@ export class NativeWidgetModule extends ExpoModule {
       return 0;
     }
     const want: Want = {
-      bundleName: "com.west2online.fzuhelper.next",
-      abilityName: 'EntryAbility',
+      bundleName: this.context.uiAbilityContext.abilityInfo.bundleName,
+      abilityName: 'NextClassFormAbility',
       parameters: {
-        'ohos.extra.param.key.form_dimension': 2,
+        'ohos.extra.param.key.form_dimension': requestCode === 72204 ? 3 : 2,
         'ohos.extra.param.key.form_name': formName,
         'ohos.extra.param.key.module_name': 'entry'
       },
@@ -65,10 +68,13 @@ export class NativeWidgetModule extends ExpoModule {
       try {
         const config = readWidgetConfig(store, formId);
         const data = formBindingData.createFormBindingData(
-          buildWidgetBindingData(json, config.showLastUpdateTime, config.verticalInset),
+          buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow, config.verticalInset),
         );
         await formProvider.updateForm(formId, data);
         retainedFormIds.push(formId);
+        // Refresh scheduling can be throttled independently of publishing data.
+        formProvider.setFormNextRefreshTime(formId, nextWidgetRefreshMinutes(json))
+          .catch((error: BusinessError) => console.warn(`Widget refresh scheduling: ${error.code}`));
       } catch (error) {
         // The launcher can remove a form before onRemoveForm is delivered.
         // Remove only confirmed stale IDs. Other failures must remain visible

@@ -11,355 +11,297 @@ import WidgetKit
 
 // TimelineProvider 负责生成小组件的内容
 struct Provider: AppIntentTimelineProvider {
-  typealias Entry = SimpleEntry
-  typealias Intent = ConfigurationAppIntent
-
-  private let suiteNameKey = "group.FzuHelper.NextCourse"
-  private let dataKey = "course_current_cache"
-
-  // Loading 样式，理论上不会触发
-  func placeholder(in context: Context) -> SimpleEntry {
-    SimpleEntry(
-      date: Date(), courseName: "加载中...", courseLocation: "未知",
-      courseWeekday: "未知", courseSection: "未知", courseRemark: "",
-      courseWeek: -1, showUpdateTime: false, notCurrentWeek: false)
+  // 加载时的占位内容
+  func placeholder(in context: Context) -> CourseWidgetEntry {
+    CourseWidgetEntry(date: Date(), snapshot: nil)
   }
 
-  // 在用户添加 Widget 的时候显示的模板样例小组件信息
-  func snapshot(for configuration: ConfigurationAppIntent, in context: Context)
-    async -> SimpleEntry
-  {
-    SimpleEntry(
-      date: Date(), courseName: "软件项目管理", courseLocation: "文2-104",
-      courseWeekday: "周二", courseSection: "5-6节", courseRemark: "暂无备注",
-      courseWeek: -1, showUpdateTime: configuration.showLastUpdateTime,
-      notCurrentWeek: false)
+  // 在用户添加 Widget 的时候显示的小组件信息
+  func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> CourseWidgetEntry {
+    entry(for: configuration)
   }
 
   // 渲染小组件显示的逻辑
-  func timeline(for configuration: ConfigurationAppIntent, in context: Context)
-    async -> Timeline<SimpleEntry>
-  {
-    var entries: [SimpleEntry] = []
-
-    let defaults = UserDefaults(suiteName: suiteNameKey)
-    let jsonData = defaults?.string(forKey: dataKey) ?? ""
-
-    var nextClass: ClassInfo? = nil
-    var cacheCourseData: CacheCourseData?
-    var startTime: TimeInterval?
-
-    if jsonData.isEmpty {
-      // 空数据
-      let entryDate = Date()
-      let entry = SimpleEntry(
-        date: entryDate,
-        courseName: "数据为空",
-        courseLocation: "本地没有数据",
-        courseWeekday: "",
-        courseSection: "",
-        courseRemark: "在课表设置刷新",
-        courseWeek: -1,
-        showUpdateTime: configuration.showLastUpdateTime,
-        notCurrentWeek: false
-      )
-      entries.append(entry)
-      return Timeline(entries: entries, policy: .atEnd)
+  func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<CourseWidgetEntry> {
+    let current = entry(for: configuration)
+    let dates = current.snapshot?.timelineDates(from: current.date) ?? [current.date]
+    let entries = dates.map { date in
+      CourseWidgetEntry(
+        date: date, snapshot: current.snapshot, message: current.message,
+        showRemarks: current.showRemarks, previewTomorrow: current.previewTomorrow)
     }
+    return Timeline(entries: entries, policy: current.snapshot == nil ? .never : .atEnd)
+  }
 
-    do {
-      if let data = jsonData.data(using: .utf8) {
-        cacheCourseData = try JSONDecoder().decode(
-          CacheCourseData.self, from: data)
-
-        // 当前时间和学期开始时间
-        let sdf = DateFormatter()
-        sdf.dateFormat = "yyyy-MM-dd"
-        startTime =
-          sdf.date(from: cacheCourseData?.startDate ?? "")?
-          .timeIntervalSince1970
-        
-//        print(startTime ?? "not work")
-//        print(sdf.string(from: Date()))
-
-        nextClass = getNextClass(cacheCourseData!, startTime: startTime ?? 0.00)
-
-        let lastCourseUpdateTime = cacheCourseData!.lastCourseUpdateTime
-        let lastExamUpdateTime = cacheCourseData!.lastExamUpdateTime
-        defaults?.set(lastCourseUpdateTime, forKey: "lastCourseUpdateTime")
-        defaults?.set(lastExamUpdateTime, forKey: "lastExamUpdateTime")
+  private func entry(for configuration: ConfigurationAppIntent) -> CourseWidgetEntry {
+    let json = UserDefaults(suiteName: "group.FzuHelper.NextCourse")?.string(forKey: "course_current_cache") ?? ""
+    var snapshot: CourseWidgetSnapshot?
+    var message = "请打开福uu同步课表"
+    if !json.isEmpty {
+      do {
+        let cache = try JSONDecoder().decode(CourseWidgetCache.self, from: Data(json.utf8))
+        if cache.widgetSnapshot?.version == 2 {
+          snapshot = cache.widgetSnapshot
+        }
+      } catch {
+        // 数据异常，例如无法解码
+        message = "课表数据异常，请重新同步"
       }
-    } catch {
-      print("解码失败: \(error)")
-      let entryDate = Date()
-      // 数据异常，例如无法解码
-      let entry = SimpleEntry(
-        date: entryDate,
-        courseName: "数据异常",
-        courseLocation: "无法正常显示",
-        courseWeekday: "",
-        courseSection: "",
-        courseRemark: "",
-        courseWeek: -1,
-        showUpdateTime: configuration.showLastUpdateTime,
-        notCurrentWeek: false
-      )
-      entries.append(entry)
-      return Timeline(entries: entries, policy: .atEnd)
     }
-
-    if let nextClass = nextClass {
-      // 数据正常，且有下一节课
-      let currentDate = Date()
-      let currentWeek = getWeeks(
-        startTime: startTime ?? 0.00, endTime: currentDate.timeIntervalSince1970
-      )
-      let entryDate = currentDate
-      let entry = SimpleEntry(
-        date: entryDate,
-        courseName: nextClass.courseBean.name,
-        courseLocation: nextClass.courseBean.location,
-        courseWeekday: "周\(getWeekChinese(nextClass.courseBean.weekday))",
-        courseSection:
-          "\(nextClass.courseBean.startClass)-\(nextClass.courseBean.endClass)节",
-        courseRemark: nextClass.courseBean.remark,
-        courseWeek: nextClass.week,
-        showUpdateTime: configuration.showLastUpdateTime,
-        notCurrentWeek: nextClass.week != currentWeek
-      )
-      entries.append(entry)
-    } else {
-      // 数据正常，且没有下一节课，那么就是放假了
-      let entryDate = Date()
-      let entry = SimpleEntry(
-        date: entryDate,
-        courseName: "放假啦",
-        courseLocation: "",
-        courseWeekday: "",
-        courseSection: "",
-        courseRemark: "",
-        courseWeek: 0,
-        showUpdateTime: configuration.showLastUpdateTime,
-        notCurrentWeek: false
-      )
-      entries.append(entry)
-    }
-
-    return Timeline(entries: entries, policy: .atEnd)
+    return CourseWidgetEntry(
+      date: Date(), snapshot: snapshot, message: message,
+      showRemarks: configuration.showRemarks, previewTomorrow: configuration.previewTomorrow)
   }
 }
 
 // 显示的数据
-struct SimpleEntry: TimelineEntry {
+struct CourseWidgetEntry: TimelineEntry {
   let date: Date  // 日期
-  let courseName: String  // 课程名
-  let courseLocation: String  // 上课地点
-  let courseWeekday: String  // 周几
-  let courseSection: String  // 第几节
-  let courseRemark: String  // 备注
-  let courseWeek: Int  // 第几周的课
-  let showUpdateTime: Bool  // 是否显示刷新时间
-  let notCurrentWeek: Bool  // 是否非本周课程
+  let snapshot: CourseWidgetSnapshot?
+  var message = "请打开福uu同步课表"
+  var showRemarks = true
+  var previewTomorrow = false
 }
 
 struct widgetEntryView: View {
-  var entry: Provider.Entry
-  @Environment(\.colorScheme) var colorScheme
-  @Environment(\.widgetFamily) var widgetFamily  // 获取当前小组件的尺寸类型
+  let entry: CourseWidgetEntry
+  @Environment(\.widgetFamily) private var family  // 获取当前小组件的尺寸类型
 
   var body: some View {
-    let secondaryOpacity = 0.7
+    CourseWidgetView(entry: entry, family: family)
+  }
+}
 
-    ZStack {
-      if widgetFamily == .accessoryRectangular {
-        // 简化显示内容
-        VStack(alignment: .leading, spacing: 2) {
-          // 课程名称
-          Text(entry.courseName)
-            .font(.headline)
-            .lineLimit(1)  // 限制为 1 行
-            .truncationMode(.tail)
+struct CourseWidgetView: View {
+  let entry: CourseWidgetEntry
+  let family: WidgetFamily
 
-          // 教室和时间信息
-          HStack {
-            Text(entry.courseLocation)
-              .font(.caption)
-              .opacity(secondaryOpacity)
-              .lineLimit(1)
-              .truncationMode(.tail)
-
-            Spacer() // 空间分隔符，推送内容到左右两端
-
-            // 周几，第几周
-            Text("\(entry.courseWeekday)")
-              .font(.caption)
-              .opacity(secondaryOpacity)
-              .lineLimit(1)
-            
-            if entry.courseWeek > 0 {
-              HStack {
-                Text(
-                  (entry.notCurrentWeek ? "（非本周）" : "第 \(entry.courseWeek) 周")
-                )
-                .font(.caption)
-                .opacity(secondaryOpacity)
-                .lineLimit(1)
-              }
-            }
-          }
-          // 时间信息
-          HStack {
-            Text("更新于" + entry.date.formattedTimeOnly())
-                .font(.caption)
-                .opacity(secondaryOpacity)
-                .lineLimit(1)
-            
-            Spacer() // 空间分隔符，推送内容到左右两端
-            
-            // 周几
-            Text("\(entry.courseSection)")
-              .font(.caption)
-              .opacity(secondaryOpacity)
-              .lineLimit(1)
-          }
-        }
-        .padding(.horizontal, 4)  // 调整内边距
+  var body: some View {
+    Group {
+      if family == .accessoryRectangular {
+        lockScreen
       } else {
-        VStack(alignment: .leading, spacing: 8) {
-          // 课程名称
-          Text(entry.courseName)
-            .font(.headline)
-            .lineLimit(2)  // 限制最多显示 2 行
-            .truncationMode(
-              .tail
-            )  // 当内容超出 2 行时，尾部显示省略号
-            .multilineTextAlignment(.leading)  // 多行时左对齐
-            .frame(maxWidth: .infinity, alignment: .leading)  // 确保宽度自适应，左对齐
-            .fixedSize(horizontal: false, vertical: true)  // 允许垂直方向的内容自适应
-
-          // 周次信息
-          if entry.courseWeek > 0 {
-            HStack {
-              Text(
-                "第 \(entry.courseWeek) 周" + (entry.notCurrentWeek ? "（非本周）" : "")
-              )
-              .font(entry.notCurrentWeek ? .caption : .subheadline)
-              .foregroundColor(.secondary)
-              .lineLimit(1)
-            }
-          }
-
-          // 课程地点
-          Text(entry.courseLocation)
-            .font(.subheadline)
-            .foregroundColor(.secondary)
-            .lineLimit(1)
-
-          // 课程时间信息
-          HStack {
-            Text(entry.courseWeekday)
-            Text(entry.courseSection)
-          }
-          .font(.subheadline)
-          .foregroundColor(.secondary)
-
-          // 备注信息
-          if !entry.courseRemark.isEmpty {
-            Text(entry.courseRemark)
-              .font(.footnote)
-              .foregroundColor(.secondary)
-              .lineLimit(1)
-          }
-
-          // 更新时间信息
-          if entry.showUpdateTime {
-              Text(entry.date.formattedTimeOnly())
-                  .font(.caption)
-                  .foregroundColor(.secondary)
-                  .lineLimit(1)
-          }
-        }
-        .padding()
+        desktop
       }
     }
-    .widgetBackground(Color.clear)
+    .containerBackground(for: .widget) { Color("WidgetBackground") }
+    .widgetURL(URL(string: "fzuhelper://"))
+  }
+
+  private var desktop: some View {
+    Group {
+      if let snapshot = entry.snapshot {
+        HStack(alignment: .top, spacing: 10) {
+          CourseDayView(
+            day: family == .systemMedium
+              ? snapshot.day(at: entry.date)
+              : snapshot.smallDay(at: entry.date, previewTomorrow: entry.previewTomorrow),
+            snapshot: snapshot, showRemarks: entry.showRemarks, showWeekday: true)
+          if family == .systemMedium {
+            CourseDayView(
+              day: snapshot.day(at: entry.date, tomorrow: true),
+              snapshot: snapshot, showRemarks: entry.showRemarks, showWeekday: false)
+          }
+        }
+      } else {
+        Text(entry.message)
+          .font(.caption)
+          .foregroundStyle(Color("WidgetSecondary"))
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+    }
+    .padding(18)
+    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+  }
+
+  // 锁屏组件简化显示内容
+  private var lockScreen: some View {
+    VStack(alignment: .leading, spacing: 2) {
+      if let snapshot = entry.snapshot {
+        let day = snapshot.smallDay(at: entry.date, previewTomorrow: entry.previewTomorrow)
+        if let course = day.events.first {
+          Text(course.name).font(.headline).lineLimit(1)
+          Text(course.location).font(.caption).lineLimit(1)
+          Text("\(day.isTomorrow ? "明日 " : "")\(course.timeText)").font(.caption).lineLimit(1)
+        } else {
+          Text(day.emptyText).font(.headline)
+        }
+      } else {
+        Text(entry.message).font(.caption)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+}
+
+struct CourseDayView: View {
+  let day: CourseWidgetDay
+  let snapshot: CourseWidgetSnapshot
+  let showRemarks: Bool
+  let showWeekday: Bool
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 4) {
+        WidgetText(day.isTomorrow ? "明日课程" : snapshot.formatted(day.date, "MM月dd日"), size: 12)
+          .foregroundStyle(Color(day.isTomorrow ? "WidgetSecondary" : "WidgetHeading"))
+        if showWeekday {
+          WidgetText(snapshot.formatted(day.date, "EEE"), size: 12)
+            .foregroundStyle(Color("WidgetBlue"))
+        }
+      }
+      .minimumScaleFactor(0.7)
+      .widgetAccentable()
+
+      if day.events.isEmpty {
+        WidgetText(day.emptyText, size: 10)
+          .foregroundStyle(Color("WidgetSecondary"))
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else {
+        // 日期、课名、教室和时间优先保留，当前课程的备注优先于后续课程。
+        // 依次隐藏剩余提示、后续课程，再将备注从 3 行减至 2、1、0 行。
+        // 仍放不下才把课名从 2 行减为 1 行；使用省略号，保留系统字号。
+        ViewThatFits(in: .vertical) {
+          if day.isTomorrow {
+            ForEach((1...day.events.count).reversed(), id: \.self) { count in
+              courses(count: count, showRemaining: false)
+            }
+          } else {
+            if day.events.count > 2 { courses(count: 2, showRemaining: true) }
+            if day.events.count > 1 {
+              courses(count: 2, showRemaining: false)
+            }
+            courses(count: 1, showRemaining: false)
+            if showRemarks && !day.events[0].remark.isEmpty {
+              ForEach((0...2).reversed(), id: \.self) { lines in
+                courses(count: 1, showRemaining: false, remarkLines: lines)
+              }
+            }
+            courses(count: 1, showRemaining: false, remarkLines: 0, nameLines: 1)
+          }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .clipped()
+      }
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+  }
+
+  private func courses(count: Int, showRemaining: Bool, remarkLines: Int = 3, nameLines: Int = 2) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      ForEach(0..<count, id: \.self) { index in
+        CourseEventView(
+          course: day.events[index], compact: day.isTomorrow || index > 0,
+          showRemarks: showRemarks, remarkLines: remarkLines, nameLines: nameLines)
+      }
+      if showRemaining {
+        RemainingCoursesView(count: day.events.count - count)
+      }
+    }
+    .fixedSize(horizontal: false, vertical: true)
+  }
+}
+
+struct CourseEventView: View {
+  let course: WidgetCourseEvent
+  let compact: Bool
+  let showRemarks: Bool
+  var remarkLines = 3
+  var nameLines = 2
+
+  var body: some View {
+    HStack(spacing: 4) {
+      RoundedRectangle(cornerRadius: 2)
+        .fill(Color(compact ? "WidgetLightBlue" : "WidgetBlue"))
+        .frame(width: 2)
+      VStack(alignment: .leading, spacing: compact ? 4 : 6) {
+        WidgetText(course.name, size: compact ? 10 : 14, lines: compact ? 1 : nameLines)
+          .foregroundStyle(Color("WidgetTitle"))
+        if compact {
+          // 同排放不下时将时间移到下一行，避免时间挤压教室。
+          ViewThatFits(in: .horizontal) {
+            HStack(spacing: 2) {
+              WidgetText(course.location, size: 10)
+              WidgetText(course.timeText, size: 10)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+              WidgetText(course.location, size: 10)
+              WidgetText(course.timeText, size: 10)
+            }
+          }
+          .foregroundStyle(Color("WidgetSecondary"))
+        } else {
+          VStack(alignment: .leading, spacing: 4) {
+            if showRemarks && remarkLines > 0 && !course.remark.isEmpty {
+              WidgetText(course.remark, size: 10, lines: remarkLines)
+                .foregroundStyle(Color("WidgetSecondary"))
+            }
+            WidgetText(course.location, size: 12)
+            WidgetText(course.timeText, size: 12).minimumScaleFactor(0.7)
+          }
+          .foregroundStyle(Color("WidgetDetail"))
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.vertical, 3)
+      .padding(.trailing, 2)
+    }
+    .fixedSize(horizontal: false, vertical: true)
+    .accessibilityElement(children: .combine)
+  }
+}
+
+struct RemainingCoursesView: View {
+  let count: Int
+
+  var body: some View {
+    HStack(spacing: 4) {
+      HStack(alignment: .center, spacing: 2) {
+        ForEach(0..<min(count, 3), id: \.self) { index in
+          RoundedRectangle(cornerRadius: 2)
+            .fill(Color(["WidgetLightBlue", "WidgetFaintBlue", "WidgetGray"][index]))
+            .frame(width: 2, height: CGFloat(15 - index * 2))
+        }
+      }
+      WidgetText("其他 \(count) 节课", size: 10)
+        .foregroundStyle(Color("WidgetSecondary"))
+    }
+  }
+}
+
+struct WidgetText: View {
+  let text: String
+  let lines: Int
+  @ScaledMetric private var size: CGFloat
+
+  init(_ text: String, size: CGFloat, lines: Int = 1) {
+    self.text = text
+    self.lines = lines
+    _size = ScaledMetric(wrappedValue: size, relativeTo: .body)
+  }
+
+  var body: some View {
+    let font = UIFont.systemFont(ofSize: size, weight: .semibold)
+    Text(text)
+      .font(.system(size: size, weight: .semibold))
+      .lineLimit(lines)
+      .lineSpacing(size * 1.1 - font.lineHeight)
+      .padding(.vertical, -(font.lineHeight - font.capHeight) / 2)
   }
 }
 
 struct widget: Widget {
-  let kind: String = "widget"
+  let kind = "widget"
 
   var body: some WidgetConfiguration {
-    AppIntentConfiguration(
-      kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()
-    ) { entry in
+    AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
       widgetEntryView(entry: entry)
     }
-    .configurationDisplayName("下一节课上什么")
-    .description("显示下一节课程的详细信息")
-    .supportedFamilies(
-      [.systemSmall, .systemMedium, .accessoryRectangular]
-    )  // 只支持小和中
-    .contentMarginsDisabledIfAvailable()
-  }
-}
-
-#Preview(as: .systemSmall) {
-  widget()
-} timeline: {
-  SimpleEntry(
-    date: Date(), courseName: "预览课程", courseLocation: "教室B",
-    courseWeekday: "周二", courseSection: "3-4节", courseRemark: "无备注",
-    courseWeek: -1, showUpdateTime: true, notCurrentWeek: false)
-  SimpleEntry(
-    date: Date(), courseName: "测试课程超级长长长长长长长的时候", courseLocation: "西20-2003",
-    courseWeekday: "周二", courseSection: "3-4节", courseRemark: "无备注",
-    courseWeek: -1, showUpdateTime: true, notCurrentWeek: false)
-  SimpleEntry(
-    date: Date(), courseName: "测试课程超级长长长长长长长的时候", courseLocation: "教室也超级长长长长长",
-    courseWeekday: "周二", courseSection: "3-4节", courseRemark: "备注也超级长长长长长长",
-    courseWeek: -1, showUpdateTime: true, notCurrentWeek: false)
-}
-
-// 一个自定义的 SwiftUI 扩展，用于为小组件 (Widget) 设置背景颜色或背景视图。它通过检查系统的 iOS 版本来为小组件提供不同的背景实现方式
-extension View {
-  func widgetBackground(_ backgroundView: some View) -> some View {
-    // 实际上完全不必要，因为小组件需要 iOS18 的支持
-    if #available(iOSApplicationExtension 17.0, *) {
-      return containerBackground(for: .widget) {
-        backgroundView
-      }
-    } else {
-      return background(backgroundView)
-    }
-  }
-}
-
-extension WidgetConfiguration
-{
+    .configurationDisplayName("课程小组件")
+    .description("查看当前课程、剩余课程和明日课表")
+    .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
     // 禁用自动添加的边距，和我们设定的背景色不一致
     // https://developer.apple.com/forums/thread/731423?answerId=758108022#758108022
-    func contentMarginsDisabledIfAvailable() -> some WidgetConfiguration
-    {
-        #if compiler(>=5.9) // Xcode 15
-            if #available(iOSApplicationExtension 17.0, *) {
-                return self.contentMarginsDisabled()
-            }
-            else {
-                return self
-            }
-        #else
-            return self
-        #endif
-    }
-}
-
-
-// 添加格式化日期的拓展
-extension Date {
-    func formattedTimeOnly() -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm" // 自定义日期格式，不包含年月日
-        return dateFormatter.string(from: self)
-    }
+    .contentMarginsDisabled()
+  }
 }

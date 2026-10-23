@@ -12,6 +12,14 @@ config.resolver.assetExts = config.resolver.assetExts.filter(extension => extens
 config.resolver.sourceExts.push('svg');
 
 function withHarmony(config) {
+  // Native build output contains copied TS sources and large dependency trees.
+  // Crawling it during a HAP build can stall Metro and index duplicate modules.
+  const blockList = config.resolver.blockList;
+  config.resolver.blockList = [
+    ...(Array.isArray(blockList) ? blockList : blockList ? [blockList] : []),
+    /[/\\](?:oh_modules|\.cxx|\.hvigor)[/\\]/,
+    new RegExp(`${path.join(repositoryRoot, 'harmony').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[/\\\\]`),
+  ];
   const { withHarmonyConfig } = require('@expo-harmony/metro-config');
   const adapter = name => path.join(repositoryRoot, 'application-support/harmony-adapters', name);
   const workletsRoot = path.dirname(require.resolve('@react-native-ohos/react-native-worklets/package.json'));

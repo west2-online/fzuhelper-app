@@ -15,6 +15,7 @@ export default function WidgetPage() {
   // REQUEST_NEXT_CLASS = 72201
   // REQUEST_COURSE_TABLE = 72202
   // REQUEST_NEXT_CLASS_LOCK_SCREEN = 72203
+  // REQUEST_COURSE_OVERVIEW = 72204
 
   const showGuide = useCallback(() => {
     pushToWebViewNormal('https://west2-online.feishu.cn/wiki/SitbwKuLriaL5bk7Wbicxdf7nYb');
@@ -49,6 +50,15 @@ export default function WidgetPage() {
           <Text className="mb-2 text-sm text-text-secondary">点击你要的小部件，将它添加到桌面</Text>
 
           <LabelEntry leftText="下节课上什么" onPress={() => handleAddWidget(72201)} />
+
+          {(Platform.OS === 'android' || Platform.OS === 'ios' || (Platform.OS as string) === 'harmony') && (
+            <>
+              <LabelEntry leftText="今日与明日课程" onPress={() => handleAddWidget(72204)} />
+              <Text className="mb-4 text-sm text-text-secondary">
+                小号展示当前及剩余课程，中号固定展示今日与明日。长按桌面组件可设置课程备注。
+              </Text>
+            </>
+          )}
 
           {Platform.OS === 'android' && <LabelEntry leftText="课程表" onPress={() => handleAddWidget(72202)} />}
 

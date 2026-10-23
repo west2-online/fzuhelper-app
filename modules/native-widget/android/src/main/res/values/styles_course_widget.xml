@@ -1,0 +1,8 @@
+<resources>
+    <!-- 对齐设计稿的文本上下裁边，课程组合仍按实际高度测量。 -->
+    <style name="CourseWidgetText">
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:fallbackLineSpacing">false</item>
+        <item name="android:lineSpacingMultiplier">0.9</item>
+    </style>
+</resources>

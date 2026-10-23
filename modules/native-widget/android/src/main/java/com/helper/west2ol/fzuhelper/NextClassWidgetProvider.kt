@@ -1,305 +1,99 @@
 package com.helper.west2ol.fzuhelper
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.Build
+import android.os.Bundle
 import android.util.Log
-import android.util.TypedValue
-import android.util.TypedValue.COMPLEX_UNIT_SP
-import android.widget.RemoteViews
-import android.view.View
 import com.google.gson.Gson
-import com.west2online.nativewidget.R
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
-import kotlin.math.max
-import kotlinx.coroutines.*
 
 /**
  * Implementation of App Widget functionality.
  */
-class NextClassWidgetProvider : AppWidgetProvider() {
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
+open class NextClassWidgetProvider : AppWidgetProvider() {
+    override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
         // There may be multiple widgets active, so update all of them
-        appWidgetIds.filter {
-            appWidgetManager.getAppWidgetIds(ComponentName(context, this::class.java)).contains(it)
-        }.forEach {
-            updateNextClassWidget(context, appWidgetManager, it)
-        }
+        val ownIds = manager.getAppWidgetIds(ComponentName(context, javaClass))
+        updateNextClassWidgets(context, manager, ids.filter { it in ownIds }.toIntArray())
     }
 
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        for (appWidgetId in appWidgetIds) {
-            deleteWidgetConfig(context, appWidgetId, "showLastUpdateTime")
-            deleteWidgetConfig(context, appWidgetId, "showAsSquare")
-        }
+    override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, options: Bundle) {
+        updateNextClassWidgets(context, manager, intArrayOf(id))
     }
 
-    override fun onEnabled(context: Context) {
-        // Enter relevant functionality for when the first widget is created
+    override fun onDeleted(context: Context, ids: IntArray) {
+        for (id in ids) {
+            arrayOf("showAsSquare", "showRemarks", "previewTomorrow").forEach {
+                deleteWidgetConfig(context, id, it)
+            }
+        }
     }
 
     override fun onDisabled(context: Context) {
-        // Enter relevant functionality for when the last widget is disabled
+        scheduleCourseWidgetUpdate(context, readCourseWidgetSnapshot(context).first)
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
-internal fun updateNextClassWidget(
-    context: Context,
-    appWidgetManager: AppWidgetManager,
-    appWidgetId: Int
-) {
-    // 避免内存泄漏可能
-    GlobalScope.launch(Dispatchers.IO) {
-        doConfigMigration(context, appWidgetId)
+class CourseOverviewWidgetProvider : NextClassWidgetProvider()
 
-        val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
-
-        if (getBoolean(context, appWidgetId, "showLastUpdateTime", false)) {
-            views.setViewVisibility(R.id.progress_bar, View.VISIBLE)
-            views.setViewVisibility(R.id.refresh_button, View.GONE)
-            appWidgetManager.updateAppWidget(appWidgetId, views)
-            delay(500) //动画时间
-        }
-
-        val refreshIntent = Intent(context, NextClassWidgetProvider::class.java).apply {
-            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
-        }
-        val refreshPendingIntent = PendingIntent.getBroadcast(
-            context,
-            appWidgetId,
-            refreshIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        views.setOnClickPendingIntent(R.id.refresh_button, refreshPendingIntent)
-
-        val intent = Intent()
-        intent.setClassName(
-            "com.helper.west2ol.fzuhelper",
-            "com.helper.west2ol.fzuhelper" + ".MainActivity"
-        )
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            appWidgetId,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
-        )
-        views.setOnClickPendingIntent(R.id.container, pendingIntent)
-
-        val cacheCourseData: CacheCourseData
-        var nextClass: ClassInfo? = null
-        var hasLocalData = true
-        try {
-            val jsonData = context
-                .getSharedPreferences("${context.packageName}.widgetdata", Context.MODE_PRIVATE)
-                .getString("widgetdata", "")
-            if (jsonData != "") {
-                cacheCourseData = Gson().fromJson(jsonData, CacheCourseData::class.java)
-                nextClass = getNextClass(cacheCourseData)
-//            Log.d("NextClassWidgetProvider", "Loaded widget data: $cacheCourseData")
-            } else {
-                hasLocalData = false
-            }
-        } catch (e: Exception) {
-            Log.e("NextClassWidgetProvider", "Failed to load widget data", e)
-        }
-
-        views.apply {
-            if (nextClass != null) {
-                val name = nextClass.courseBean.name
-                    .let { if (it.length >= 13) it.substring(0, 11) + "..." else it }
-                val location = nextClass.courseBean.location
-                    .let { if (it.length >= 10) it.substring(0, 8) + "..." else it }
-                val section = nextClass.courseBean.remark
-                    .ifEmpty { "${nextClass.courseBean.startClass}-${nextClass.courseBean.endClass}节" }
-                    .let { if (it.length >= 10) it.substring(0, 8) + "..." else it }
-
-                setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
-                setTextViewText(R.id.course_name, name)
-                setTextViewText(R.id.course_room, location)
-                setTextViewText(R.id.course_section, section)
-                setTextViewText(R.id.course_week, "第${nextClass.week}周")
-                setTextViewText(
-                    R.id.course_weekday,
-                    "周${getWeekChinese(nextClass.courseBean.weekday)}"
-                )
-            } else {
-                if (hasLocalData) {
-                    setTextViewText(R.id.course_name, "放假啦")
-                    setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 30f)
-                    setTextViewText(R.id.course_room, null)
-                } else {
-                    setTextViewText(R.id.course_name, "本地没有数据")
-                    setTextViewTextSize(R.id.course_name, COMPLEX_UNIT_SP, 20f)
-                    setTextViewText(R.id.course_room, "请打开课表设置刷新")
-                }
-                setTextViewText(R.id.course_weekday, null)
-                setTextViewText(R.id.course_section, null)
-                setTextViewText(R.id.course_week, null)
-            }
-
-            if (getBoolean(context, appWidgetId, "showLastUpdateTime", false)) {
-                val currentDateTime = Calendar.getInstance()
-                val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.PRC)
-                val formattedDate = sdf.format(currentDateTime.time)
-                setTextViewText(R.id.last_update_time, "更新于 $formattedDate")
-                views.setViewVisibility(R.id.refresh_button, View.VISIBLE)
-            } else {
-                setTextViewText(R.id.last_update_time, "")
-                views.setViewVisibility(R.id.refresh_button, View.GONE)
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (getBoolean(
-                        context,
-                        appWidgetId,
-                        "showAsSquare",
-                        false
-                    )
-                ) {
-                    val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-                    val minWidth =
-                        options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 100)
-                    val minHeight =
-                        options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
-
-                    val verticalCenteringMargin = max((minHeight - minWidth) / 2, 0)
-
-                    setViewLayoutMargin(
-                        R.id.container, RemoteViews.MARGIN_TOP,
-                        verticalCenteringMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
-                    )
-
-                    setViewLayoutMargin(
-                        R.id.container, RemoteViews.MARGIN_BOTTOM,
-                        verticalCenteringMargin.toFloat(), TypedValue.COMPLEX_UNIT_DIP
-                    )
-
-                } else {
-                    setViewLayoutMargin(
-                        R.id.container, RemoteViews.MARGIN_TOP,
-                        0f, TypedValue.COMPLEX_UNIT_DIP
-                    )
-
-                    setViewLayoutMargin(
-                        R.id.container, RemoteViews.MARGIN_BOTTOM,
-                        0f, TypedValue.COMPLEX_UNIT_DIP
-                    )
-                }
-            }
-        }
-
-        views.setViewVisibility(R.id.progress_bar, View.GONE)
-
-        appWidgetManager.updateAppWidget(appWidgetId, views)
+private fun readCourseWidgetSnapshot(context: Context): Pair<CourseWidgetSnapshot?, String> {
+    val json = getSharedPreference(context).getString("widgetdata", "").orEmpty()
+    if (json.isEmpty()) return null to "请打开福uu同步课表"
+    return try {
+        val snapshot = Gson().fromJson(json, CourseWidgetCache::class.java).widgetSnapshot
+        snapshot?.takeIf { it.version == 2 } to "请打开福uu同步课表"
+    } catch (error: Exception) {
+        Log.e("CourseWidget", "Failed to read widget data", error)
+        null to "课表数据异常，请重新同步"
     }
 }
 
-
-// 返回下一节课程
-fun getNextClass(cacheCourseData: CacheCourseData): ClassInfo? {
-    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.PRC)
-    val startTime = sdf.parse(cacheCourseData.startDate)?.time ?: 0L
-    val week = getWeeks(startTime, System.currentTimeMillis())
-    val classTime = getNextClassTime(startTime)
-    return searchNextClassIterative(cacheCourseData, week, classTime)
+internal fun updateNextClassWidgets(context: Context, manager: AppWidgetManager, ids: IntArray) {
+    if (ids.isEmpty()) return
+    // 同批组件共用一次数据读取和闹钟调度。
+    val (snapshot, message) = readCourseWidgetSnapshot(context)
+    ids.forEach { id ->
+        doConfigMigration(context, id)
+        val medium = manager.getAppWidgetInfo(id)?.provider?.className == CourseOverviewWidgetProvider::class.java.name
+        val renderer = CourseWidgetRenderer(context, snapshot, message, id, medium)
+        manager.updateAppWidget(id, renderer.render(manager.getAppWidgetOptions(id)))
+    }
+    scheduleCourseWidgetUpdate(context, snapshot)
 }
 
-// 判断当前时间是一周的第几节课，返回下一节课的时间
-fun getNextClassTime(startTime: Long): ClassTime {
-
-    // 还未开学时，设置当前为周一第1节
-    if (startTime > System.currentTimeMillis()) {
-        return ClassTime(1, 1)
-    }
-
-    val d = Calendar.getInstance()
-    val hour = d.get(Calendar.HOUR_OF_DAY)
-    val minute = d.get(Calendar.MINUTE)
-
-    val weekday = (d.get(Calendar.DAY_OF_WEEK) + 5) % 7 + 1
-
-    val time = when {
-        (hour < 8 || (hour == 8 && minute < 20)) -> 1
-        (hour < 9 || (hour == 9 && minute < 15)) -> 2
-        (hour < 10 || (hour == 10 && minute < 20)) -> 3
-        (hour < 11 || hour == 11 && minute < 15) -> 4
-        (hour < 14) -> 5
-        (hour == 14 && minute < 55) -> 6
-        (hour < 15 || hour == 15 && minute < 50) -> 7
-        (hour < 16 || hour == 16 && minute < 45) -> 8
-        (hour < 17 || hour < 19) -> 9
-        (hour == 19 && minute < 55) -> 10
-        (hour < 20 || hour == 20 && minute < 50) -> 11
-        else -> 12
-    }
-    return ClassTime(weekday, time)
-
-}
-
-fun searchNextClassIterative(
-    cacheCourseData: CacheCourseData,
-    week: Int,
-    classTime: ClassTime
-): ClassInfo? {
-    var currentWeek = week
-    var currentWeekday = classTime.weekday
-    var currentSection = classTime.section
-    val courseBeans = getCourseBeans(cacheCourseData)
-
-    while (currentWeek <= cacheCourseData.maxWeek) {
-        for (course in courseBeans) {
-            if (currentWeek in course.startWeek..course.endWeek
-                && ((course.single && currentWeek % 2 == 1) || (course.double && currentWeek % 2 == 0))
-                && currentWeekday == course.weekday
-                && currentSection == course.startClass
-            ) {
-                return ClassInfo(currentWeek, course) // 按优先级排序，无需区分普通，考试，自定义
-            }
-        }
-
-        // Move to the next section, day or week
-        if (currentSection < 11) {
-            currentSection++
-        } else if (currentWeekday < 7) {
-            currentWeekday++
-            currentSection = 1
-        } else {
-            currentWeek++
-            currentWeekday = 1
-            currentSection = 1
-        }
-    }
-
-    return null
-}
-
-fun getWeekChinese(i: Int): String {
-    return when (i) {
-        0 -> "日"
-        1 -> "一"
-        2 -> "二"
-        3 -> "三"
-        4 -> "四"
-        5 -> "五"
-        6 -> "六"
-        7 -> "日"
-        else -> "无"
+private fun courseWidgetIds(context: Context): List<Int> {
+    val manager = AppWidgetManager.getInstance(context)
+    return listOf(NextClassWidgetProvider::class.java, CourseOverviewWidgetProvider::class.java).flatMap {
+        manager.getAppWidgetIds(ComponentName(context, it)).toList()
     }
 }
 
-data class ClassTime(val weekday: Int, val section: Int)
+private fun scheduleCourseWidgetUpdate(context: Context, snapshot: CourseWidgetSnapshot?) {
+    val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val pendingIntent = PendingIntent.getBroadcast(
+        context, 72204, Intent(context, CourseWidgetUpdateReceiver::class.java),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    if (courseWidgetIds(context).isEmpty()) {
+        alarm.cancel(pendingIntent)
+        return
+    }
+    if (snapshot == null) {
+        alarm.cancel(pendingIntent)
+        return
+    }
+    // 非唤醒闹钟配合系统周期更新，设备休眠时允许延迟。
+    alarm.set(AlarmManager.RTC, snapshot.nextChange(System.currentTimeMillis()), pendingIntent)
+}
 
-data class ClassInfo(val week: Int, val courseBean: ExtendCourse)
-
+class CourseWidgetUpdateReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val manager = AppWidgetManager.getInstance(context)
+        updateNextClassWidgets(context, manager, courseWidgetIds(context).toIntArray())
+    }
+}

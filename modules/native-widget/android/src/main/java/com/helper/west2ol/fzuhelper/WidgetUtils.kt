@@ -107,21 +107,20 @@ fun getCourseBeans(cacheCourseData: CacheCourseData): List<ExtendCourse> = try {
  * 将部分Int值迁移到Boolean，修正由于数据类型变化导致的解析问题
  */
 fun doConfigMigration(context: Context, widgetId: Int) {
-    arrayOf("showLastUpdateTime", "showAsSquare").forEach { key ->
-        try {
-            getInt(context, widgetId, key, -1).let { value ->
-                // -1 代表未曾写入
-                if (value != -1) {
-                    putBoolean(context, widgetId, key, value == 1)
-                }
+    try {
+        getInt(context, widgetId, "showAsSquare", -1).let { value ->
+            // -1 代表未曾写入
+            if (value != -1) {
+                putBoolean(context, widgetId, "showAsSquare", value == 1)
             }
-        } catch (_: Exception) {
         }
+    } catch (_: Exception) {
     }
 }
 
 val REQUEST_NEXT_CLASS = 72201
 val REQUEST_COURSE_TABLE = 72202
+val REQUEST_COURSE_OVERVIEW = 72204
 val ACTION_PIN_APP_WIDGET_SUCCESS = "com.helper.west2ol.fzuhelper.ACTION_PIN_APP_WIDGET_SUCCESS"
 
 fun checkMiShortcutPermission(context: Context): Boolean {
@@ -149,7 +148,9 @@ fun checkMiShortcutPermission(context: Context): Boolean {
 fun addAppWidget(context: Context, requestCode: Int): Boolean {
     val provider = when (requestCode) {
         REQUEST_NEXT_CLASS -> ComponentName(context, NextClassWidgetProvider::class.java)
-        else -> ComponentName(context, CourseScheduleWidgetProvider::class.java)
+        REQUEST_COURSE_OVERVIEW -> ComponentName(context, CourseOverviewWidgetProvider::class.java)
+        REQUEST_COURSE_TABLE -> ComponentName(context, CourseScheduleWidgetProvider::class.java)
+        else -> return false
     }
     val successBroadcast = PendingIntent.getBroadcast(
         context,
