@@ -92,7 +92,7 @@ internal class CourseWidgetRenderer(
         val header = views.apply(context, FrameLayout(context)).findViewById<View>(R.id.widget_header)
         header.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
         val available = height - header.measuredHeight - dp(8)
-        val rows = day.events.mapIndexed { index, course -> eventView(course, day.isTomorrow || index > 0) }.toMutableList()
+        val rows = day.events.mapIndexed { index, course -> eventView(course, day.isTomorrow || index > 0, width) }.toMutableList()
         val remaining = remainingView(day.events.size - 1)
         val heights = rows.map { measuredHeight(it, width) }
         val layout = selectLayout(
@@ -105,9 +105,9 @@ internal class CourseWidgetRenderer(
             val course = day.events.first()
             val variants = buildList {
                 if (showRemarks && course.remark.isNotEmpty()) {
-                    for (lines in 2 downTo 0) add(eventView(course, false, remarkLines = lines))
+                    for (lines in 2 downTo 0) add(eventView(course, false, width, remarkLines = lines))
                 }
-                add(eventView(course, false, remarkLines = 0, nameLines = 1))
+                add(eventView(course, false, width, remarkLines = 0, nameLines = 1))
             }
             rows[0] = variants.firstOrNull { measuredHeight(it, width) <= available } ?: variants.last()
         }
@@ -141,7 +141,7 @@ internal class CourseWidgetRenderer(
         }
     }
 
-    private fun eventView(course: WidgetCourseEvent, compact: Boolean, remarkLines: Int = 3, nameLines: Int = 2): RemoteViews {
+    private fun eventView(course: WidgetCourseEvent, compact: Boolean, width: Int, remarkLines: Int = 3, nameLines: Int = 2): RemoteViews {
         val views = RemoteViews(context.packageName, if (compact) R.layout.course_widget_compact else R.layout.course_widget_event)
         views.setTextViewText(R.id.course_name, course.name)
         views.setTextViewText(R.id.course_room, course.location)
@@ -154,6 +154,21 @@ internal class CourseWidgetRenderer(
             trimText(views, R.id.course_remark)
         }
         trimText(views, R.id.course_name, R.id.course_room, R.id.course_time)
+        if (compact) {
+            views.setTextViewText(R.id.course_time_stacked, course.timeText)
+            trimText(views, R.id.course_time_stacked)
+            val layout = views.apply(context, FrameLayout(context))
+            layout.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
+            val details = layout.findViewById<View>(R.id.course_details)
+            val room = layout.findViewById<TextView>(R.id.course_room)
+            val time = layout.findViewById<TextView>(R.id.course_time)
+            room.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+            time.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+            // 同排放不下时将时间移到下一行，避免时间挤压教室。
+            val wrapTime = room.measuredWidth + time.measuredWidth + dp(2) > details.measuredWidth
+            views.setViewVisibility(R.id.course_time, if (wrapTime) View.GONE else View.VISIBLE)
+            views.setViewVisibility(R.id.course_time_stacked, if (wrapTime) View.VISIBLE else View.GONE)
+        }
         return views
     }
 
