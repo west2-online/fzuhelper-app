@@ -70,8 +70,8 @@ jobs:
     steps:
       - name: Compose Build Report
         env:
-          SHA: ${{ github.sha }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
           ANDROID_RESULT: ${{ needs.android.result }}
           ANDROID_URL: ${{ needs.android.outputs.artifact-url }}
           IOS_RESULT: ${{ needs.ios.result }}
@@ -91,7 +91,7 @@ jobs:
           }
 
           {
-            printf '## 📦 Build Report [`%s`](%s/commits/%s)\n\n' "${SHA:0:7}" "$PR_URL" "$SHA"
+            printf '## 📦 Build Report [`%s`](%s/commit/%s)\n\n' "${HEAD_SHA:0:7}" "$REPO_URL" "$HEAD_SHA"
             echo '| OS | Download |'
             echo '| --- | --- |'
             row 'Android' "$ANDROID_RESULT" "$ANDROID_URL" '![APK-ARMv8](https://img.shields.io/badge/APK-ARMv8-2E8B57.svg?logo=android)'
