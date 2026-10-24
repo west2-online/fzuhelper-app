@@ -35,6 +35,10 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
     needs: android
     uses: ./.github/workflows/alpha.yml
+    with:
+      version-name: ${{ needs.android.outputs.version-name }}
+      version-code: ${{ needs.android.outputs.version-code }}
+      changelog: ${{ needs.android.outputs.changelog }}
     secrets: inherit
 
   beta:
@@ -46,3 +50,57 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     uses: ./.github/workflows/version.yml
     secrets: inherit
+
+  build-report:
+    name: Build Report
+    # skip fork PRs
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    needs:
+      - android
+      - ios
+      - harmony
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Compose Build Report
+        env:
+          SHA: ${{ github.sha }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          ANDROID_RESULT: ${{ needs.android.result }}
+          ANDROID_URL: ${{ needs.android.outputs.artifact-url }}
+          IOS_RESULT: ${{ needs.ios.result }}
+          IOS_URL: ${{ needs.ios.outputs.artifact-url }}
+          HARMONY_RESULT: ${{ needs.harmony.result }}
+          HARMONY_URL: ${{ needs.harmony.outputs.artifact-url }}
+        run: |
+          set -euo pipefail
+
+          row() {
+            local os="$1" result="$2" url="$3" badge="$4"
+            if [[ "$result" == "success" && -n "$url" ]]; then
+              printf '| %s | [%s](%s) |\n' "$os" "$badge" "$url"
+            else
+              printf '| %s | ❌ Failed |\n' "$os"
+            fi
+          }
+
+          {
+            printf '## 📦 Build Report [`%s`](%s/commits/%s)\n\n' "${SHA:0:7}" "$PR_URL" "$SHA"
+            echo '| OS | Download |'
+            echo '| --- | --- |'
+            row 'Android' "$ANDROID_RESULT" "$ANDROID_URL" '![APK-ARMv8](https://img.shields.io/badge/APK-ARMv8-168039.svg?logo=android)'
+            row 'iOS' "$IOS_RESULT" "$IOS_URL" '![IPA](https://img.shields.io/badge/IPA-Apple%20Silicon-%23000000.svg?logo=apple)'
+            row 'HarmonyOS' "$HARMONY_RESULT" "$HARMONY_URL" '![HAP](https://img.shields.io/badge/HAP-ARM64-168039.svg?logo=harmonyos)'
+          } > build-report.md
+
+      - name: Comment on Pull Request
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: build-report
+          path: build-report.md
