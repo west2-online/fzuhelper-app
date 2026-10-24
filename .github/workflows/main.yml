@@ -94,8 +94,8 @@ jobs:
             printf '## 📦 Build Report [`%s`](%s/commits/%s)\n\n' "${SHA:0:7}" "$PR_URL" "$SHA"
             echo '| OS | Download |'
             echo '| --- | --- |'
-            row 'Android' "$ANDROID_RESULT" "$ANDROID_URL" '![APK-ARMv8](https://img.shields.io/badge/APK-ARMv8-168039.svg?logo=android)'
-            row 'iOS' "$IOS_RESULT" "$IOS_URL" '![IPA](https://img.shields.io/badge/IPA-Apple%20Silicon-%23000000.svg?logo=apple)'
+            row 'Android' "$ANDROID_RESULT" "$ANDROID_URL" '![APK-ARMv8](https://img.shields.io/badge/APK-ARMv8-2E8B57.svg?logo=android)'
+            row 'iOS' "$IOS_RESULT" "$IOS_URL" '![IPA](https://img.shields.io/badge/IPA-ARM64-555555.svg?logo=apple)'
             row 'HarmonyOS' "$HARMONY_RESULT" "$HARMONY_URL" '![HAP](https://img.shields.io/badge/HAP-ARM64-168039.svg?logo=harmonyos)'
           } > build-report.md
 
