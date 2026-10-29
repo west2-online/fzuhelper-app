@@ -2,11 +2,17 @@ name: Build IPA
 
 on:
   workflow_call:
+    outputs:
+      artifact-url:
+        description: Download URL of the IPA artifact
+        value: ${{ jobs.build-ipa.outputs.artifact-url }}
 
 jobs:
   build-ipa:
     runs-on: macos-26
     timeout-minutes: 60
+    outputs:
+      artifact-url: ${{ steps.upload.outputs.artifact-url }}
 
     steps:
       - name: Checkout Source Code
@@ -109,11 +115,12 @@ jobs:
           cp -R fzuhelper.xcarchive/Products/Applications/fzuhelper.app Payload/
           zip -qry fzuhelper-unsigned.ipa Payload
 
-      - name: Upload Artifacts
+      - name: Upload Artifact
+        id: upload
         uses: actions/upload-artifact@v7
         with:
-          name: ios-outputs
-          path: '*.ipa'
+          path: fzuhelper-unsigned.ipa
+          archive: false
           if-no-files-found: error
           retention-days: 0
 
