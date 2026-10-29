@@ -44,7 +44,11 @@ jobs:
         run: yarn install --frozen-lockfile --prefer-offline
 
       - name: Prebuild
-        run: yarn run prebuild:android
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            export APP_VARIANT=development
+          fi
+          yarn run prebuild:android
 
       - name: Build Release APK
         run: |
