@@ -1,0 +1,74 @@
+name: Build Report
+
+on:
+  workflow_call:
+    inputs:
+      android-result:
+        description: Result of the Android build job
+        type: string
+        required: true
+      android-url:
+        description: Download URL of the APK artifact
+        type: string
+        required: true
+      ios-result:
+        description: Result of the iOS build job
+        type: string
+        required: true
+      ios-url:
+        description: Download URL of the IPA artifact
+        type: string
+        required: true
+      harmony-result:
+        description: Result of the HarmonyOS build job
+        type: string
+        required: true
+      harmony-url:
+        description: Download URL of the HAP artifact
+        type: string
+        required: true
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Compose Build Report
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+          ANDROID_RESULT: ${{ inputs.android-result }}
+          ANDROID_URL: ${{ inputs.android-url }}
+          IOS_RESULT: ${{ inputs.ios-result }}
+          IOS_URL: ${{ inputs.ios-url }}
+          HARMONY_RESULT: ${{ inputs.harmony-result }}
+          HARMONY_URL: ${{ inputs.harmony-url }}
+        run: |
+          set -euo pipefail
+
+          row() {
+            local os="$1" result="$2" url="$3" badge="$4"
+            if [[ "$result" == "success" && -n "$url" ]]; then
+              printf '| %s | [%s](%s) |\n' "$os" "$badge" "$url"
+            else
+              printf '| %s | ❌ Failed |\n' "$os"
+            fi
+          }
+
+          {
+            printf '## 📦 Build Report [`%s`](%s/commit/%s)\n\n' "${HEAD_SHA:0:7}" "$REPO_URL" "$HEAD_SHA"
+            echo '| OS | Download |'
+            echo '| --- | --- |'
+            row 'Android' "$ANDROID_RESULT" "$ANDROID_URL" '![APK-ARMv8](https://img.shields.io/badge/APK-ARMv8-2E8B57.svg?logo=android)'
+            row 'iOS' "$IOS_RESULT" "$IOS_URL" '![IPA](https://img.shields.io/badge/IPA-ARM64-555555.svg?logo=apple)'
+            row 'HarmonyOS' "$HARMONY_RESULT" "$HARMONY_URL" '![HAP](https://img.shields.io/badge/HAP-ARM64-168039.svg?logo=harmonyos)'
+          } > build-report.md
+
+      - name: Comment on Pull Request
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: build-report
+          path: build-report.md
