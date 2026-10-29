@@ -1,4 +1,7 @@
+import type { CourseColorScheme } from '@/lib/course-color-schemes';
+
 export interface CourseSetting {
+  colorScheme: CourseColorScheme; // 普通课程配色方案
   selectedSemester: string; // 当前学期
   showNonCurrentWeekCourses: boolean; // 显示非本周课程
   exportExamToCourseTable: boolean; // 导出考试到课程表
