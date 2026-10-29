@@ -63,6 +63,13 @@ export const SPLASH_DATE = 'splash_date';
 export const SPLASH_ID = 'splash_id';
 
 // 课程表
+export enum CourseType {
+  COURSE = 0,
+  EXAM = 1,
+  CUSTOM = 2,
+}
+export const COURSE_WITHOUT_ATTENDANCE = '免听';
+
 export const CALENDAR_SUBSCRIPTION_PREFIX = 'https://fzuhelper.west2.online/api/v1/course/calendar/subscribe?token=';
 export const CALENDAR_SUBSCRIPTION_TOKEN_KEY = 'calendar_subscription_token';
 export const COURSE_CURRENT_CACHE_KEY = 'course_current_cache';

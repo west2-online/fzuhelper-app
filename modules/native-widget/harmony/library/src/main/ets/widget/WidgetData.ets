@@ -2,271 +2,198 @@ export const WIDGET_STORE_NAME: string = 'fzuhelper_widget';
 export const WIDGET_DATA_KEY: string = 'widget_data';
 export const WIDGET_FORM_IDS_KEY: string = 'form_ids';
 
-interface WidgetCourse {
+// Keep this protocol in sync with lib/course-widget.ts. The app expands weeks,
+// filters hidden courses and resolves actual exam times before publishing it.
+export interface WidgetCourseEvent {
+  date: string;
   name: string;
   location: string;
-  startClass: number;
-  endClass: number;
-  startWeek: number;
-  endWeek: number;
-  weekday: number;
-  single: boolean;
-  double: boolean;
   remark: string;
-  priority: number;
-  examType?: string;
+  startMinute: number;
+  endMinute: number;
 }
 
-interface WidgetCourseCache {
-  courseData?: Record<string, WidgetCourse[]> | null;
-  examData?: Record<string, WidgetCourse[]> | null;
-  customData?: Record<string, WidgetCourse[]> | null;
+export interface CourseWidgetSnapshot {
+  version: number;
+  timeZone: string;
   startDate: string;
-  maxWeek: number;
-  hiddenCoursesWithoutAttendances?: boolean;
+  endDate: string;
+  events: WidgetCourseEvent[];
 }
 
-interface ClassTime {
-  weekday: number;
-  section: number;
+interface CourseWidgetCache {
+  widgetSnapshot?: CourseWidgetSnapshot;
 }
 
-interface NextClass {
-  week: number;
-  course: WidgetCourse;
+export interface WidgetEventBinding {
+  name: string;
+  location: string;
+  remark: string;
+  timeText: string;
+}
+
+export interface WidgetDayBinding {
+  title: string;
+  weekday: string;
+  isTomorrow: boolean;
+  events: WidgetEventBinding[];
+  emptyText: string;
 }
 
 export interface WidgetBindingData {
-  courseName: string;
-  courseNameSize: number;
-  courseLocation: string;
-  courseSection: string;
-  courseTime: string;
-  courseWeek: string;
-  courseWeekday: string;
-  showLastUpdateTime: boolean;
-  lastUpdateTime: string;
+  hasSnapshot: boolean;
+  message: string;
+  today: WidgetDayBinding;
+  tomorrow: WidgetDayBinding;
+  smallDay: WidgetDayBinding;
+  showRemarks: boolean;
   verticalInset: number;
+  courseName: string;
+  courseLocation: string;
+  courseTime: string;
+}
+
+const DAY_MS: number = 86_400_000;
+const MINUTE_MS: number = 60_000;
+const SHANGHAI_OFFSET_MS: number = 8 * 60 * MINUTE_MS;
+const TOMORROW_MINUTE: number = 21 * 60 + 35;
+
+export function emptyWidgetDay(): WidgetDayBinding {
+  return { title: '', weekday: '', isTomorrow: false, events: [], emptyText: '' };
 }
 
 export function buildWidgetBindingData(
   json: string,
-  showLastUpdateTime: boolean = false,
+  showRemarks: boolean = true,
+  previewTomorrow: boolean = false,
   verticalInset: number = 0,
+  now: number = Date.now(),
 ): WidgetBindingData {
-  if (json.length === 0) {
-    return noLocalData(showLastUpdateTime, verticalInset);
-  }
+  const data: WidgetBindingData = {
+    hasSnapshot: false,
+    message: '请打开福uu同步课表',
+    today: emptyWidgetDay(),
+    tomorrow: emptyWidgetDay(),
+    smallDay: emptyWidgetDay(),
+    showRemarks,
+    verticalInset,
+    courseName: '请打开福uu同步课表',
+    courseLocation: '',
+    courseTime: '',
+  };
+  if (json.length === 0) return data;
 
   try {
-    const cache = JSON.parse(json) as WidgetCourseCache;
-    const nextClass = findNextClass(cache);
-    if (nextClass === undefined) {
-      return noFutureClass(showLastUpdateTime, verticalInset);
-    }
-    const course = nextClass.course;
-    return {
-      courseName: truncate(course.name, 13),
-      courseNameSize: 20,
-      courseLocation: truncate(course.location, 10),
-      courseSection: truncate(
-        course.remark.length > 0 ? course.remark : `${course.startClass}-${course.endClass}节`,
-        10,
-      ),
-      courseTime: `${course.startClass}-${course.endClass}节`,
-      courseWeek: `第${nextClass.week}周`,
-      courseWeekday: `周${weekChinese(course.weekday)}`,
-      showLastUpdateTime,
-      lastUpdateTime: currentUpdateTime(),
-      verticalInset,
-    };
+    const snapshot = readSnapshot(json);
+    if (snapshot === undefined) return data;
+    const date = shanghaiDate(now);
+    const minute = date.getUTCHours() * 60 + date.getUTCMinutes();
+    data.hasSnapshot = true;
+    data.message = '';
+    data.today = buildDay(snapshot, date, minute, false);
+    data.tomorrow = buildDay(snapshot, new Date(date.getTime() + DAY_MS), minute, true);
+    data.smallDay = data.today.events.length === 0 && (previewTomorrow || minute >= TOMORROW_MINUTE)
+      ? data.tomorrow : data.today;
+    const first = data.smallDay.events[0];
+    data.courseName = first === undefined ? data.smallDay.emptyText : first.name;
+    data.courseLocation = first === undefined ? '' : first.location;
+    data.courseTime = first === undefined ? ''
+      : `${data.smallDay.isTomorrow ? '明日 ' : ''}${first.timeText}`;
   } catch (error) {
-    // Match Android: malformed local data is treated as a semester with no future classes.
-    return noFutureClass(showLastUpdateTime, verticalInset);
+    data.message = '课表数据异常，请重新同步';
+    data.courseName = data.message;
   }
+  return data;
 }
 
-function noLocalData(showLastUpdateTime: boolean, verticalInset: number): WidgetBindingData {
+// FormKit's minimum delay is five minutes. Fixed school period endpoints,
+// 21:35 and midnight are also declared in form_config.json as recovery points.
+export function nextWidgetRefreshMinutes(json: string, now: number = Date.now()): number {
+  const date = shanghaiDate(now);
+  const dayStart = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - SHANGHAI_OFFSET_MS;
+  let next = dayStart + DAY_MS;
+  const evening = dayStart + TOMORROW_MINUTE * MINUTE_MS;
+  if (evening > now) next = Math.min(next, evening);
+  try {
+    const snapshot = readSnapshot(json);
+    if (snapshot !== undefined) {
+      const key = dateKey(date);
+      for (const event of snapshot.events) {
+        const end = dayStart + event.endMinute * MINUTE_MS;
+        if (event.date === key && end > now) next = Math.min(next, end);
+      }
+    }
+  } catch (error) {
+    // A subsequent app sync can repair invalid data; still refresh the date.
+  }
+  return Math.max(5, Math.ceil((next - now) / MINUTE_MS));
+}
+
+function readSnapshot(json: string): CourseWidgetSnapshot | undefined {
+  const cache = JSON.parse(json) as CourseWidgetCache;
+  if (cache === null || cache.widgetSnapshot === undefined || cache.widgetSnapshot === null) return undefined;
+  const snapshot = cache.widgetSnapshot;
+  if (snapshot.version !== 2) return undefined;
+  // The producer explicitly uses Asia/Shanghai. Do not silently use the device's
+  // timezone when the user travels or when the emulator is configured in UTC.
+  if (snapshot.timeZone !== 'Asia/Shanghai' || !isDateKey(snapshot.startDate)
+    || !isDateKey(snapshot.endDate) || snapshot.startDate > snapshot.endDate
+    || !Array.isArray(snapshot.events)) {
+    throw new Error('Invalid course widget snapshot');
+  }
+  for (const event of snapshot.events) {
+    if (event === null || !isDateKey(event.date) || typeof event.name !== 'string'
+      || typeof event.location !== 'string' || typeof event.remark !== 'string'
+      || !Number.isInteger(event.startMinute) || !Number.isInteger(event.endMinute)
+      || event.startMinute < 0 || event.startMinute >= event.endMinute || event.endMinute > 1440) {
+      throw new Error('Invalid course widget event');
+    }
+  }
+  return snapshot;
+}
+
+function buildDay(snapshot: CourseWidgetSnapshot, date: Date, minute: number, tomorrow: boolean): WidgetDayBinding {
+  const key = dateKey(date);
+  const courses = snapshot.events.filter((event: WidgetCourseEvent) => event.date === key);
+  const remaining = courses.filter((event: WidgetCourseEvent) => tomorrow || event.endMinute > minute)
+    .sort((left: WidgetCourseEvent, right: WidgetCourseEvent) => left.startMinute - right.startMinute);
+  let emptyText = courses.length === 0 ? '今日没有课程' : '今日课程已结束';
+  if (key < snapshot.startDate) emptyText = '尚未开学';
+  else if (key > snapshot.endDate) emptyText = '本学期已结束';
+  else if (tomorrow) emptyText = '明日没有课程';
+  const weekdays: string[] = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
   return {
-    courseName: '本地没有数据',
-    courseNameSize: 20,
-    courseLocation: '请打开课表设置刷新',
-    courseSection: '',
-    courseTime: '',
-    courseWeek: '',
-    courseWeekday: '',
-    showLastUpdateTime,
-    lastUpdateTime: currentUpdateTime(),
-    verticalInset,
+    title: tomorrow ? '明日课程' : `${twoDigits(date.getUTCMonth() + 1)}月${twoDigits(date.getUTCDate())}日`,
+    weekday: weekdays[date.getUTCDay()],
+    isTomorrow: tomorrow,
+    events: remaining.map((event: WidgetCourseEvent): WidgetEventBinding => ({
+      name: event.name,
+      location: event.location,
+      remark: event.remark,
+      timeText: `${minuteText(event.startMinute)}-${minuteText(event.endMinute)}`,
+    })),
+    emptyText,
   };
 }
 
-function noFutureClass(showLastUpdateTime: boolean, verticalInset: number): WidgetBindingData {
-  return {
-    courseName: '放假啦',
-    courseNameSize: 30,
-    courseLocation: '',
-    courseSection: '',
-    courseTime: '',
-    courseWeek: '',
-    courseWeekday: '',
-    showLastUpdateTime,
-    lastUpdateTime: currentUpdateTime(),
-    verticalInset,
-  };
+function shanghaiDate(now: number): Date {
+  return new Date(now + SHANGHAI_OFFSET_MS);
 }
 
-function findNextClass(cache: WidgetCourseCache): NextClass | undefined {
-  const startTime = parseLocalDate(cache.startDate);
-  if (!Number.isFinite(startTime) || cache.maxWeek <= 0) {
-    return undefined;
-  }
-  const now = new Date();
-  let week = getWeeks(startTime, now.getTime());
-  const classTime = getNextClassTime(now, startTime);
-  let weekday = classTime.weekday;
-  let section = classTime.section;
-  const courses = getCourses(cache);
-
-  while (week <= cache.maxWeek) {
-    for (let index = 0; index < courses.length; index += 1) {
-      const course = courses[index];
-      const weekMatches = week >= course.startWeek
-        && week <= course.endWeek
-        && ((course.single && week % 2 === 1) || (course.double && week % 2 === 0));
-      if (weekMatches && weekday === course.weekday && section === course.startClass) {
-        return { week, course };
-      }
-    }
-
-    if (section < 11) {
-      section += 1;
-    } else if (weekday < 7) {
-      weekday += 1;
-      section = 1;
-    } else {
-      week += 1;
-      weekday = 1;
-      section = 1;
-    }
-  }
-  return undefined;
+function dateKey(date: Date): string {
+  return `${date.getUTCFullYear()}-${twoDigits(date.getUTCMonth() + 1)}-${twoDigits(date.getUTCDate())}`;
 }
 
-function parseLocalDate(value: string): number {
-  const segments = value.split('-');
-  if (segments.length !== 3) {
-    return Number.NaN;
-  }
-  const year = Number.parseInt(segments[0], 10);
-  const month = Number.parseInt(segments[1], 10);
-  const day = Number.parseInt(segments[2], 10);
-  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
-    return Number.NaN;
-  }
-  return new Date(year, month - 1, day).getTime();
+function isDateKey(value: string): boolean {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && dateKey(date) === value;
 }
 
-function getWeeks(startTime: number, endTime: number): number {
-  if (endTime < startTime) {
-    return 1;
-  }
-  const result = Math.floor((endTime - startTime) / 604_800_000) + 1;
-  return result <= 0 ? 1 : result;
-}
-
-function getCourses(cache: WidgetCourseCache): WidgetCourse[] {
-  const result: WidgetCourse[] = [];
-  const courseData: WidgetCourse[] = [];
-  appendCourseRecord(courseData, cache.courseData, cache.hiddenCoursesWithoutAttendances === true);
-  if (cache.hiddenCoursesWithoutAttendances !== true) {
-    courseData.sort((left: WidgetCourse, right: WidgetCourse) => {
-      const leftWithoutAttendance = left.examType?.includes('免听') === true ? 1 : 0;
-      const rightWithoutAttendance = right.examType?.includes('免听') === true ? 1 : 0;
-      return leftWithoutAttendance - rightWithoutAttendance;
-    });
-  }
-  for (let index = 0; index < courseData.length; index += 1) {
-    result.push(courseData[index]);
-  }
-  appendCourseRecord(result, cache.examData, false);
-  appendCourseRecord(result, cache.customData, false);
-  result.sort((left: WidgetCourse, right: WidgetCourse) => right.priority - left.priority);
-  return result;
-}
-
-function appendCourseRecord(
-  result: WidgetCourse[],
-  record: Record<string, WidgetCourse[]> | null | undefined,
-  hideWithoutAttendance: boolean,
-): void {
-  if (record === undefined || record === null) {
-    return;
-  }
-  const keys = Object.keys(record);
-  for (let keyIndex = 0; keyIndex < keys.length; keyIndex += 1) {
-    const courses = record[keys[keyIndex]];
-    for (let courseIndex = 0; courseIndex < courses.length; courseIndex += 1) {
-      const course = courses[courseIndex];
-      if (
-        !hideWithoutAttendance
-        || (course.examType !== undefined && !course.examType.includes('免听'))
-      ) {
-        result.push(course);
-      }
-    }
-  }
-}
-
-function getNextClassTime(now: Date, startTime: number): ClassTime {
-  if (now.getTime() < startTime) {
-    return { weekday: 1, section: 1 };
-  }
-  const hour = now.getHours();
-  const minute = now.getMinutes();
-  const weekday = (now.getDay() + 6) % 7 + 1;
-  let section = 12;
-  if (hour < 8 || (hour === 8 && minute < 20)) {
-    section = 1;
-  } else if (hour < 9 || (hour === 9 && minute < 15)) {
-    section = 2;
-  } else if (hour < 10 || (hour === 10 && minute < 20)) {
-    section = 3;
-  } else if (hour < 11 || (hour === 11 && minute < 15)) {
-    section = 4;
-  } else if (hour < 14) {
-    section = 5;
-  } else if (hour === 14 && minute < 55) {
-    section = 6;
-  } else if (hour < 15 || (hour === 15 && minute < 50)) {
-    section = 7;
-  } else if (hour < 16 || (hour === 16 && minute < 45)) {
-    section = 8;
-  } else if (hour < 19) {
-    section = 9;
-  } else if (hour === 19 && minute < 55) {
-    section = 10;
-  } else if (hour < 20 || (hour === 20 && minute < 50)) {
-    section = 11;
-  }
-  return { weekday, section };
-}
-
-function currentUpdateTime(): string {
-  const date = new Date();
-  return `更新于 ${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())} `
-    + `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+function minuteText(minute: number): string {
+  return `${twoDigits(Math.floor(minute / 60))}:${twoDigits(minute % 60)}`;
 }
 
 function twoDigits(value: number): string {
   return value < 10 ? `0${value}` : `${value}`;
-}
-
-function truncate(value: string, limit: number): string {
-  return value.length >= limit ? `${value.substring(0, limit - 2)}...` : value;
-}
-
-function weekChinese(weekday: number): string {
-  const names: string[] = ['无', '一', '二', '三', '四', '五', '六', '日'];
-  return weekday >= 1 && weekday <= 7 ? names[weekday] : names[0];
 }

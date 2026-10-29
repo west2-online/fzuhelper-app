@@ -10,17 +10,37 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:navigationIcon="?attr/homeAsUpIndicator"
-        android:title="下一节课设置" />
+        android:title="课程小组件设置" />
 
     <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/show_last_update_time_switch"
+        android:id="@+id/show_remarks_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
         android:height="50dp"
-        android:text="显示更新时间与刷新"
+        android:text="显示课程备注"
         android:textColor="?android:attr/textColorPrimary"
         android:textSize="16sp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/preview_tomorrow_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:height="50dp"
+        android:text="提前显示明日课程"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/preview_tomorrow_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="10dp"
+        android:text="开启：今日课程全部结束后，立即显示明日课程。\n关闭：今日课程全部结束后，最早于 21:35 显示明日课程。"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="12sp" />
 
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/show_as_square_switch"
@@ -29,17 +49,6 @@
         android:layout_marginHorizontal="20dp"
         android:height="50dp"
         android:text="显示为正方形"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/refresh_data"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:height="50dp"
-        android:gravity="center_vertical"
-        android:text="刷新数据"
         android:textColor="?android:attr/textColorPrimary"
         android:textSize="16sp" />
 

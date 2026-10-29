@@ -40,11 +40,7 @@ internal fun updateCourseScheduleWidget(
     appWidgetId: Int
 ) {
     val views = RemoteViews(context.packageName, R.layout.course_schedule_widget_provider)
-    val intent = Intent()
-    intent.setClassName(
-        "com.helper.west2ol.fzuhelper",
-        "com.helper.west2ol.fzuhelper" + ".MainActivity"
-    )
+    val intent = launchAppIntent(context)
     val pendingIntent = PendingIntent.getActivity(
         context,
         appWidgetId,
