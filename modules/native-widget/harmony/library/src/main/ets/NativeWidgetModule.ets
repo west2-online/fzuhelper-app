@@ -15,14 +15,14 @@ import { Want } from '@kit.AbilityKit';
 export class NativeWidgetModule extends ExpoModule {
   override definition(): ExpoModuleDefinition {
     return new ExpoModuleDefinition().name('NativeWidget')
-      .asyncFunction('setWidgetData', ExpoFunction.typed2(ExpoValueTypes.string(), ExpoValueTypes.string(),
-        async (json: string, packageName: string): Promise<void> => this.setWidgetData(json, packageName)))
+      .asyncFunction('setWidgetData', ExpoFunction.typed1(ExpoValueTypes.string(),
+        async (json: string): Promise<void> => this.setWidgetData(json)))
       .asyncFunction('requestPinAppWidget', ExpoFunction.typed1(ExpoValueTypes.number(),
         async (requestCode: number): Promise<number> => this.context.runOnUIQueue(() => this.requestPinAppWidget(requestCode))));
   }
   private static readonly FORM_ID_NOT_EXIST_ERROR_CODE: number = 16501001;
 
-  async setWidgetData(json: string, packageName: string): Promise<void> {
+  async setWidgetData(json: string): Promise<void> {
     await this.updateWidgets(json);
   }
 

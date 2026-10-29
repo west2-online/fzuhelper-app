@@ -25,7 +25,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween'; // 引入插件以支持日期范围判断
 import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
-import Constants from 'expo-constants';
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
 import { buildCourseWidgetSnapshot } from './course-widget';
@@ -352,7 +351,7 @@ export class CourseCache {
         storage.set(COURSE_CURRENT_CACHE_KEY, widgetData); // 如果要改这个 KEY，需要同步修改 target 中原生代码
         ExtensionStorage.reloadWidget(); // 保存后需要重载一次
       } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
-        await setWidgetData(widgetData, Constants.expoConfig?.android?.package);
+        await setWidgetData(widgetData);
       }
       console.log('同步课程到小组件成功');
     } catch (e) {
@@ -383,7 +382,7 @@ export class CourseCache {
       storage.set(COURSE_CURRENT_CACHE_KEY, '');
       ExtensionStorage.reloadWidget(); // 保存后需要重载一次
     } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
-      await setWidgetData('', Constants.expoConfig?.android?.package);
+      await setWidgetData('');
     }
   }
 

@@ -87,6 +87,12 @@ fun deleteWidgetConfig(context: Context, appWidgetId: Int, key: String) {
     getSharedPreference(context).edit().remove("$appWidgetId$key").commit()
 }
 
+fun launchAppIntent(context: Context): Intent {
+    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        ?: Intent().setClassName(context.packageName, "${context.packageName}.MainActivity")
+    return intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+}
+
 fun getCourseBeans(cacheCourseData: CacheCourseData): List<ExtendCourse> = try {
     ((cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run {
         if (cacheCourseData.hiddenCoursesWithoutAttendances == true) {

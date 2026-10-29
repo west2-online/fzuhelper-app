@@ -77,8 +77,9 @@ class NativeWidgetModule : Module() {
             cleanupAndResolve(RESULT_FAIL)
         }
 
-        Function("setWidgetData") { json: String, packageName: String ->
-            getPreferences(packageName).edit().putString("widgetdata", json).commit()
+        Function("setWidgetData") { json: String ->
+            val packageName = context.packageName
+            getPreferences().edit().putString("widgetdata", json).commit()
 
             val widgetManager = AppWidgetManager.getInstance(context)
             val widgetProviders = context.packageManager.queryBroadcastReceivers(
@@ -169,7 +170,7 @@ class NativeWidgetModule : Module() {
     private val context
         get() = requireNotNull(appContext.currentActivity)
 
-    private fun getPreferences(packageName: String): SharedPreferences {
-        return context.getSharedPreferences(packageName + ".widgetdata", Context.MODE_PRIVATE)
+    private fun getPreferences(): SharedPreferences {
+        return context.getSharedPreferences(context.packageName + ".widgetdata", Context.MODE_PRIVATE)
     }
 }
