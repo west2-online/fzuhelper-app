@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:maxLines="2"
             android:ellipsize="end"
-            android:textSize="14sp"
+            android:textSize="14dp"
             android:textStyle="bold"
             android:textColor="@color/widget_title" />
         <LinearLayout
@@ -45,7 +45,7 @@
                 android:layout_marginBottom="4dp"
                 android:maxLines="3"
                 android:ellipsize="end"
-                android:textSize="10sp"
+                android:textSize="10dp"
                 android:textColor="@color/widget_secondary" />
             <TextView
                 style="@style/CourseWidgetText"
@@ -54,7 +54,7 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:ellipsize="end"
-                android:textSize="12sp"
+                android:textSize="12dp"
                 android:textStyle="bold"
                 android:textColor="@color/widget_detail" />
             <TextView
@@ -65,7 +65,7 @@
                 android:layout_marginTop="4dp"
                 android:maxLines="1"
                 android:ellipsize="end"
-                android:textSize="12sp"
+                android:textSize="12dp"
                 android:textStyle="bold"
                 android:textColor="@color/widget_detail" />
         </LinearLayout>

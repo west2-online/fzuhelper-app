@@ -36,6 +36,6 @@
         android:layout_marginStart="4dp"
         android:maxLines="1"
         android:ellipsize="end"
-        android:textSize="10sp"
+        android:textSize="10dp"
         android:textColor="@color/widget_secondary" />
 </LinearLayout>

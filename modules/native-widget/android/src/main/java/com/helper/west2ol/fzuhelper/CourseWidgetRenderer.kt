@@ -4,7 +4,6 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -82,7 +81,6 @@ internal class CourseWidgetRenderer(
         }
         views.setTextViewText(R.id.widget_weekday, snapshot!!.formatted(day.date, "EEE"))
         views.setViewVisibility(R.id.widget_weekday, if (showWeekday) View.VISIBLE else View.GONE)
-        trimText(views, R.id.widget_date, R.id.widget_weekday)
         views.removeAllViews(R.id.widget_events)
         if (day.events.isEmpty()) {
             views.addView(R.id.widget_events, emptyView(day.emptyText))
@@ -100,7 +98,7 @@ internal class CourseWidgetRenderer(
         )
         // 日期、课名、教室和时间优先保留，当前课程的备注优先于后续课程。
         // 依次隐藏剩余提示、后续课程，再将备注从 3 行减至 2、1、0 行。
-        // 仍放不下才把课名从 2 行减为 1 行；使用省略号，保留系统字号。
+        // 仍放不下才把课名从 2 行减为 1 行；使用省略号，保持固定字号。
         if (layout == null && !day.isTomorrow) {
             val course = day.events.first()
             val variants = buildList {
@@ -151,12 +149,9 @@ internal class CourseWidgetRenderer(
             views.setTextViewText(R.id.course_remark, course.remark)
             views.setInt(R.id.course_remark, "setMaxLines", remarkLines)
             views.setViewVisibility(R.id.course_remark, if (showRemarks && remarkLines > 0 && course.remark.isNotEmpty()) View.VISIBLE else View.GONE)
-            trimText(views, R.id.course_remark)
         }
-        trimText(views, R.id.course_name, R.id.course_room, R.id.course_time)
         if (compact) {
             views.setTextViewText(R.id.course_time_stacked, course.timeText)
-            trimText(views, R.id.course_time_stacked)
             val layout = views.apply(context, FrameLayout(context))
             layout.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
             val details = layout.findViewById<View>(R.id.course_details)
@@ -177,26 +172,11 @@ internal class CourseWidgetRenderer(
         views.setTextViewText(R.id.remaining_text, "其他 $count 节课")
         views.setViewVisibility(R.id.remaining_second, if (count >= 2) View.VISIBLE else View.GONE)
         views.setViewVisibility(R.id.remaining_third, if (count >= 3) View.VISIBLE else View.GONE)
-        trimText(views, R.id.remaining_text)
         return views
     }
 
     private fun emptyView(text: String) = RemoteViews(context.packageName, R.layout.course_widget_empty).apply {
         setTextViewText(R.id.widget_empty, text)
-        trimText(this, R.id.widget_empty)
-    }
-
-    // 按字体度量去掉行首尾留白，保留实际字形和系统字号缩放。
-    private fun trimText(views: RemoteViews, vararg ids: Int) {
-        val layout = views.apply(context, FrameLayout(context))
-        for (id in ids) {
-            val text = layout.findViewById<TextView>(id)
-            val metrics = text.paint.fontMetrics
-            val bounds = Rect()
-            text.paint.getTextBounds(text.text.toString(), 0, text.length(), bounds)
-            views.setViewPadding(id, 0, (metrics.ascent - bounds.top).roundToInt(), 0,
-                (bounds.bottom - metrics.descent).roundToInt())
-        }
     }
 
     private fun measuredHeight(views: RemoteViews, width: Int): Int {

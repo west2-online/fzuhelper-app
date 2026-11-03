@@ -105,13 +105,12 @@ struct CourseWidgetView: View {
         }
       } else {
         Text(entry.message)
-          .font(.caption)
+          .font(.system(size: 12))
           .foregroundStyle(Color("WidgetSecondary"))
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
     }
     .padding(18)
-    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
   }
 
   // 锁屏组件简化显示内容
@@ -120,14 +119,14 @@ struct CourseWidgetView: View {
       if let snapshot = entry.snapshot {
         let day = snapshot.smallDay(at: entry.date, previewTomorrow: entry.previewTomorrow)
         if let course = day.events.first {
-          Text(course.name).font(.headline).lineLimit(1)
-          Text(course.location).font(.caption).lineLimit(1)
-          Text("\(day.isTomorrow ? "明日 " : "")\(course.timeText)").font(.caption).lineLimit(1)
+          Text(course.name).font(.system(size: 17, weight: .semibold)).lineLimit(1)
+          Text(course.location).font(.system(size: 12)).lineLimit(1)
+          Text("\(day.isTomorrow ? "明日 " : "")\(course.timeText)").font(.system(size: 12)).lineLimit(1)
         } else {
-          Text(day.emptyText).font(.headline)
+          Text(day.emptyText).font(.system(size: 17, weight: .semibold))
         }
       } else {
-        Text(entry.message).font(.caption)
+        Text(entry.message).font(.system(size: 12))
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -150,7 +149,6 @@ struct CourseDayView: View {
             .foregroundStyle(Color("WidgetBlue"))
         }
       }
-      .minimumScaleFactor(0.7)
       .widgetAccentable()
 
       if day.events.isEmpty {
@@ -160,7 +158,7 @@ struct CourseDayView: View {
       } else {
         // 日期、课名、教室和时间优先保留，当前课程的备注优先于后续课程。
         // 依次隐藏剩余提示、后续课程，再将备注从 3 行减至 2、1、0 行。
-        // 仍放不下才把课名从 2 行减为 1 行；使用省略号，保留系统字号。
+        // 仍放不下才把课名从 2 行减为 1 行；使用省略号，保持固定字号。
         ViewThatFits(in: .vertical) {
           if day.isTomorrow {
             ForEach((1...day.events.count).reversed(), id: \.self) { count in
@@ -237,7 +235,7 @@ struct CourseEventView: View {
                 .foregroundStyle(Color("WidgetSecondary"))
             }
             WidgetText(course.location, size: 12)
-            WidgetText(course.timeText, size: 12).minimumScaleFactor(0.7)
+            WidgetText(course.timeText, size: 12)
           }
           .foregroundStyle(Color("WidgetDetail"))
         }
@@ -272,21 +270,19 @@ struct RemainingCoursesView: View {
 struct WidgetText: View {
   let text: String
   let lines: Int
-  @ScaledMetric private var size: CGFloat
+  let size: CGFloat
 
   init(_ text: String, size: CGFloat, lines: Int = 1) {
     self.text = text
     self.lines = lines
-    _size = ScaledMetric(wrappedValue: size, relativeTo: .body)
+    self.size = size
   }
 
   var body: some View {
-    let font = UIFont.systemFont(ofSize: size, weight: .semibold)
     Text(text)
       .font(.system(size: size, weight: .semibold))
       .lineLimit(lines)
-      .lineSpacing(size * 1.1 - font.lineHeight)
-      .padding(.vertical, -(font.lineHeight - font.capHeight) / 2)
+      .lineSpacing(2)
   }
 }
 

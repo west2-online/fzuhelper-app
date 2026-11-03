@@ -1,8 +1,9 @@
 <resources>
-    <!-- 对齐设计稿的文本上下裁边，课程组合仍按实际高度测量。 -->
+    <!-- 字号使用 dp，不随系统字体缩放；课程组合仍按实际高度测量。 -->
     <style name="CourseWidgetText">
         <item name="android:includeFontPadding">false</item>
         <item name="android:fallbackLineSpacing">false</item>
-        <item name="android:lineSpacingMultiplier">0.9</item>
+        <item name="android:lineSpacingMultiplier">1</item>
+        <item name="android:lineSpacingExtra">2dp</item>
     </style>
 </resources>
