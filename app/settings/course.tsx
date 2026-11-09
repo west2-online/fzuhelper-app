@@ -1,5 +1,5 @@
-import { router, Stack } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { router, Stack, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -19,6 +19,7 @@ import useApiRequest from '@/hooks/useApiRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { JWCH_TERM_LIST_KEY } from '@/lib/constants';
 import { CourseCache, defaultCourseSetting, getCourseSetting, updateCourseSetting } from '@/lib/course';
+import { getCourseColorScheme } from '@/lib/course-color-schemes';
 import { forceRefreshCourseData } from '@/lib/custom-course-sync';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
@@ -30,15 +31,26 @@ export default function CourseSettingPage() {
   const { handleError } = useSafeResponseSolve();
   const [isLoadingSemester, setLoadingSemester] = useState(false);
 
-  const readSettingsFromStorage = useCallback(async () => {
-    console.log('读取课程设置');
-    setSettings(await getCourseSetting());
-  }, []);
-
-  // 页面加载时读取设置
-  useEffect(() => {
-    readSettingsFromStorage();
-  }, [readSettingsFromStorage]);
+  // 从配色管理页返回时重新读取，保持设置摘要与当前选择一致。
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      const readSettings = async () => {
+        try {
+          await CourseCache.load();
+          const nextSettings = await getCourseSetting();
+          if (active) setSettings(nextSettings);
+        } catch (error) {
+          console.error('读取课程设置失败:', error);
+          if (active) toast.error('读取课程设置失败，请重新进入页面');
+        }
+      };
+      readSettings();
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   // 设置变化时保存设置
   useUpdateEffect(() => {
@@ -185,6 +197,14 @@ export default function CourseSettingPage() {
             />
 
             <LabelEntry leftText="在系统日历中订阅课表" onPress={handleExportToCalendar} />
+
+            <Text className="mb-2 mt-4 text-sm text-text-secondary">课表外观</Text>
+
+            <LabelEntry
+              leftText="课程配色"
+              rightText={getCourseColorScheme(settings.colorScheme).name}
+              onPress={() => router.push('/settings/course-colors')}
+            />
 
             <Text className="mb-2 mt-4 text-sm text-text-secondary">开关设置</Text>
 

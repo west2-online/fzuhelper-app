@@ -22,7 +22,7 @@ interface ScheduleItemProps {
 // ScheduleItem 组件，用于显示课程表中的一节课
 const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color, week }) => {
   const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const { isDarkTheme } = useTheme();
+  const { isDarkTheme, hasCustomBackground, darkenBackground } = useTheme();
 
   return (
     <>
@@ -30,7 +30,7 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
         <Pressable
           className="flex flex-1 flex-col items-center justify-center overflow-hidden rounded-lg p-[1px]"
           style={{
-            backgroundColor: getCourseColor(color, isDarkTheme),
+            backgroundColor: getCourseColor(color, isDarkTheme, { hasCustomBackground, darkenBackground }),
           }}
           onPress={() => setDetailsDialogOpen(true)}
         >

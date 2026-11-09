@@ -53,6 +53,7 @@ const CourseGrid = forwardRef(
   ) => {
     const { handleError } = useSafeResponseSolve();
     const { currentTerm, maxWeek } = coursePageData;
+    const colorScheme = coursePageData.setting.colorScheme;
     const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
     const mergedSchedulesByDays = useMemo(() => mergeCourseSchedulesByDay(schedulesByDays), [schedulesByDays]);
 
@@ -77,7 +78,11 @@ const CourseGrid = forwardRef(
         // 情况 A：查看好友课表，仅在数据成功返回时更新
         if (friendCourseData) {
           setSchedulesByDays(
-            CourseCache.processFriendCourses(friendCourseData as JwchCourseListResponse_Course[], selectedFriendId),
+            CourseCache.processFriendCourses(
+              friendCourseData as JwchCourseListResponse_Course[],
+              selectedFriendId,
+              colorScheme,
+            ),
           );
         }
       } else {
@@ -90,7 +95,7 @@ const CourseGrid = forwardRef(
         CourseCache.addRefreshListener(syncOwnData);
         return () => CourseCache.removeRefreshListener(syncOwnData);
       }
-    }, [selectedFriendId, friendCourseData, coursePageData.setting.selectedSemester]);
+    }, [selectedFriendId, friendCourseData, coursePageData.setting.selectedSemester, colorScheme]);
 
     const { width } = useWindowDimensions();
     const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });
