@@ -2,11 +2,17 @@ name: Build APP
 
 on:
   workflow_call:
+    outputs:
+      artifact-url:
+        description: Download URL of the HAP artifact
+        value: ${{ jobs.build-app.outputs.artifact-url }}
 
 jobs:
   build-app:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    outputs:
+      artifact-url: ${{ steps.upload.outputs.artifact-url }}
 
     steps:
       - name: Checkout Source Code
@@ -79,12 +85,14 @@ jobs:
           cd harmony
           EXPO_HARMONY_BUNDLE_PREBUILT=1 hvigorw assembleApp --mode project -p product=default -p buildMode=release --no-daemon
 
-      - name: Prepare Unsigned APP
+      - name: Prepare Unsigned HAP
         if: github.event_name == 'pull_request'
         working-directory: harmony
         run: |
           mkdir -p output
-          cp ./build/outputs/default/harmony-default-unsigned.app ./output/release-unsigned.app
+          HAP=./entry/build/default/outputs/default/entry-default-unsigned.hap
+          [[ -f "$HAP" ]] || HAP=$(find ./entry/build -name '*-unsigned.hap' | head -n 1)
+          cp "$HAP" ./output/fzuhelper-unsigned.hap
 
       - name: Sign APP
         if: github.event_name != 'pull_request'
@@ -127,11 +135,12 @@ jobs:
           echo "APP_VERSION=v${VERSION_NAME}.${VERSION_CODE}" >> "$GITHUB_OUTPUT"
           echo "APP_FILENAME=$APP_FILENAME" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Artifacts
+      - name: Upload Artifact
+        id: upload
         uses: actions/upload-artifact@v7
         with:
-          name: harmony-outputs
-          path: harmony/output
+          path: harmony/output/fzuhelper-unsigned.hap
+          archive: false
           if-no-files-found: error
           retention-days: 0
 

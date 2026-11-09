@@ -2,11 +2,29 @@ name: Build APK
 
 on:
   workflow_call:
+    outputs:
+      artifact-url:
+        description: Download URL of the APK artifact
+        value: ${{ jobs.build-apk.outputs.artifact-url }}
+      version-name:
+        description: App version name
+        value: ${{ jobs.build-apk.outputs.version-name }}
+      version-code:
+        description: App version code
+        value: ${{ jobs.build-apk.outputs.version-code }}
+      changelog:
+        description: Recent commit messages
+        value: ${{ jobs.build-apk.outputs.changelog }}
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    outputs:
+      artifact-url: ${{ steps.upload.outputs.artifact-url }}
+      version-name: ${{ steps.version-info.outputs.version-name }}
+      version-code: ${{ steps.version-info.outputs.version-code }}
+      changelog: ${{ steps.version-info.outputs.changelog }}
 
     steps:
       - name: Checkout Source Code
@@ -44,7 +62,11 @@ jobs:
         run: yarn install --frozen-lockfile --prefer-offline
 
       - name: Prebuild
-        run: yarn run prebuild:android
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            export APP_VARIANT=development
+          fi
+          yarn run prebuild:android
 
       - name: Build Release APK
         run: |
@@ -68,16 +90,31 @@ jobs:
           SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
 
       - name: Extract Version Info
+        id: version-info
         shell: bash
         run: |
-          echo "$(grep 'versionCode' android/app/build.gradle | awk '{print $2}')" > android/app/build/outputs/version-code
-          echo "$(grep 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')" > android/app/build/outputs/version-name
-          git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}' > android/app/build/outputs/changelog
+          VERSION_CODE=$(grep -m1 'versionCode' android/app/build.gradle | awk '{print $2}')
+          VERSION_NAME=$(grep -m1 'versionName' android/app/build.gradle | awk -F '"' '{print $2}')
+          CHANGELOG=$(git log -n 3 --pretty=format:"%s" | awk '{print NR ". " $0}')
+          echo "version-code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "version-name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          {
+            echo "changelog<<BSEOF"
+            echo "$CHANGELOG"
+            echo "BSEOF"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Upload Artifacts
+      - name: Prepare Artifact
+        shell: bash
+        run: |
+          mkdir -p artifact
+          cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk artifact/fzuhelper.apk
+
+      - name: Upload Artifact
+        id: upload
         uses: actions/upload-artifact@v7
         with:
-          name: outputs
-          path: android/app/build/outputs
+          path: artifact/fzuhelper.apk
+          archive: false
           if-no-files-found: error
           retention-days: 0

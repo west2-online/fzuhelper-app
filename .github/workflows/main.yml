@@ -35,6 +35,10 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
     needs: android
     uses: ./.github/workflows/alpha.yml
+    with:
+      version-name: ${{ needs.android.outputs.version-name }}
+      version-code: ${{ needs.android.outputs.version-code }}
+      changelog: ${{ needs.android.outputs.changelog }}
     secrets: inherit
 
   beta:
@@ -46,3 +50,23 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     uses: ./.github/workflows/version.yml
     secrets: inherit
+
+  build-report:
+    name: Build Report
+    # skip fork PRs
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    needs:
+      - android
+      - ios
+      - harmony
+    uses: ./.github/workflows/build-report.yml
+    with:
+      android-result: ${{ needs.android.result }}
+      android-url: ${{ needs.android.outputs.artifact-url }}
+      ios-result: ${{ needs.ios.result }}
+      ios-url: ${{ needs.ios.outputs.artifact-url }}
+      harmony-result: ${{ needs.harmony.result }}
+      harmony-url: ${{ needs.harmony.outputs.artifact-url }}
