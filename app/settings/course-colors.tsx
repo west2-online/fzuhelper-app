@@ -1,13 +1,11 @@
 import { Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { ActivityIndicator, Pressable, View, type LayoutChangeEvent } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import AddPaletteIcon from '@/assets/images/course/add-palette.svg';
 import ColorPalettePreview from '@/components/course/color-palette-preview';
-import CourseColorEditorModal from '@/components/course/course-color-editor-modal';
 import PageContainer from '@/components/page-container';
 import { queryClient } from '@/components/query-provider';
 import { Button } from '@/components/ui/button';
@@ -22,17 +20,13 @@ import {
 import {
   DEFAULT_COURSE_COLOR_SCHEME,
   getCourseColorScheme,
-  getCourseColorSchemeLoadWarning,
   getCourseColorSchemes,
-  loadCourseColorSchemes,
-  MAX_CUSTOM_COURSE_COLOR_SCHEMES,
-  subscribeCourseColorSchemes,
   type CourseColorPalette,
 } from '@/lib/course-color-schemes';
 import { cn } from '@/lib/utils';
 
 export default function CourseColorsPage() {
-  const palettes = useSyncExternalStore(subscribeCourseColorSchemes, getCourseColorSchemes, getCourseColorSchemes);
+  const palettes = getCourseColorSchemes();
   const [selectedId, setSelectedId] = useState<string>(DEFAULT_COURSE_COLOR_SCHEME);
   const [isLoading, setLoading] = useState(true);
   const isSaving = useSyncExternalStore(
@@ -44,20 +38,8 @@ export default function CourseColorsPage() {
   const [saveError, setSaveError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [retryCount, setRetryCount] = useState(0);
-  const [paletteCardHeight, setPaletteCardHeight] = useState(144);
-  const [editor, setEditor] = useState<{ id?: string } | null>(null);
   const mountedRef = useRef(true);
   const focusVersionRef = useRef(0);
-  const loadWarning = getCourseColorSchemeLoadWarning();
-  const measurePaletteCard = useCallback((event: LayoutChangeEvent) => {
-    setPaletteCardHeight(event.nativeEvent.layout.height);
-  }, []);
-  const closeEditor = useCallback(() => setEditor(null), []);
-  const refreshAfterEdit = useCallback(() => setRetryCount(count => count + 1), []);
-  const openEditor = useCallback((id?: string) => {
-    if (getCourseColorOperationPending()) return;
-    setEditor(current => current ?? { id });
-  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -78,7 +60,6 @@ export default function CourseColorsPage() {
       const load = async () => {
         try {
           await CourseCache.load();
-          await loadCourseColorSchemes();
           const settings = await getCourseSetting();
           if (!active) return;
           setSelectedId(getCourseColorScheme(settings.colorScheme).id);
@@ -102,7 +83,7 @@ export default function CourseColorsPage() {
   useEffect(() => {
     if (isLoading || isSaving || loadError) return;
     let active = true;
-    // 另一页面实例完成删除/回退后，也同步当前页面的选中项。
+    // 返回后再次进入时，同步仍在进行的配色切换结果。
     getCourseSetting()
       .then(settings => {
         if (active && !getCourseColorOperationPending()) setSelectedId(getCourseColorScheme(settings.colorScheme).id);
@@ -113,17 +94,11 @@ export default function CourseColorsPage() {
     return () => {
       active = false;
     };
-  }, [isLoading, isSaving, loadError, palettes]);
+  }, [isLoading, isSaving, loadError]);
 
   const handleSelect = useCallback(
     async (palette: CourseColorPalette) => {
-      if (editor || isLoading || loadError || getCourseColorOperationPending()) return;
-      if (palette.id === selectedId) {
-        if (palette.source === 'custom') {
-          openEditor(palette.id);
-        }
-        return;
-      }
+      if (isLoading || loadError || getCourseColorOperationPending() || palette.id === selectedId) return;
       const finish = beginCourseColorOperation();
       if (!finish) return;
       const focusVersion = focusVersionRef.current;
@@ -151,7 +126,7 @@ export default function CourseColorsPage() {
         }
       }
     },
-    [editor, isLoading, loadError, openEditor, selectedId],
+    [isLoading, loadError, selectedId],
   );
 
   const renderPalette = (palette: CourseColorPalette) => {
@@ -162,27 +137,7 @@ export default function CourseColorsPage() {
         accessibilityRole="radio"
         accessibilityLabel={palette.name}
         accessibilityState={{ checked: selected, selected, disabled: isSaving }}
-        accessibilityActions={
-          palette.source === 'custom'
-            ? [
-                { name: 'activate', label: selected ? '编辑配色' : '应用配色' },
-                { name: 'edit', label: '编辑配色' },
-              ]
-            : undefined
-        }
-        onAccessibilityAction={
-          palette.source === 'custom'
-            ? event => {
-                if (event.nativeEvent.actionName === 'edit' && !getCourseColorOperationPending()) {
-                  openEditor(palette.id);
-                }
-                if (event.nativeEvent.actionName === 'activate') handleSelect(palette);
-              }
-            : undefined
-        }
         disabled={isSaving}
-        accessibilityHint={palette.source === 'custom' ? '点按应用，选中后再次点按编辑' : undefined}
-        onLayout={palette.id === DEFAULT_COURSE_COLOR_SCHEME ? measurePaletteCard : undefined}
         className={cn(
           'mb-3 rounded-xl border border-border bg-card p-4 active:opacity-80',
           selected && 'border-primary',
@@ -194,10 +149,6 @@ export default function CourseColorsPage() {
       </Pressable>
     );
   };
-
-  const builtInPalettes = palettes.filter(palette => palette.source === 'builtin');
-  const customPalettes = palettes.filter(palette => palette.source === 'custom');
-  const customLimitReached = customPalettes.length >= MAX_CUSTOM_COURSE_COLOR_SCHEMES;
 
   return (
     <>
@@ -221,29 +172,8 @@ export default function CourseColorsPage() {
               </View>
             ) : (
               <>
-                {!!loadWarning && (
-                  <Text className="mb-4 text-sm leading-6 text-text-secondary" accessibilityLiveRegion="polite">
-                    {loadWarning}
-                  </Text>
-                )}
                 <Text className="mb-3 text-sm text-text-secondary">内置配色</Text>
-                {builtInPalettes.map(renderPalette)}
-
-                <Text className="mb-3 mt-4 text-sm text-text-secondary">我的配色</Text>
-                {customPalettes.map(renderPalette)}
-                {!customLimitReached && (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="导入自定义配色"
-                    accessibilityState={{ disabled: isSaving }}
-                    disabled={isSaving}
-                    className="mb-3 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-card active:opacity-60"
-                    style={{ height: paletteCardHeight }}
-                    onPress={() => openEditor()}
-                  >
-                    <AddPaletteIcon width={36} height={36} color="#9CA3AF" />
-                  </Pressable>
-                )}
+                {palettes.map(renderPalette)}
 
                 {isSaving && (
                   <Text className="mb-3 text-sm text-text-secondary" accessibilityLiveRegion="polite">
@@ -265,7 +195,6 @@ export default function CourseColorsPage() {
           </SafeAreaView>
         </ScrollView>
       </PageContainer>
-      {editor && <CourseColorEditorModal id={editor.id} onClose={closeEditor} onSaved={refreshAfterEdit} />}
     </>
   );
 }

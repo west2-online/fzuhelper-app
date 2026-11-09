@@ -102,37 +102,21 @@ function rgba(value) {
 }
 
 function createRegistryAndColors() {
-  const values = new Map();
-  const writes = [];
-  const registry = compile(
-    'lib/course-color-schemes.ts',
-    {
-      '@react-native-async-storage/async-storage': {
-        async getItem(key) {
-          return values.get(key) ?? null;
-        },
-        async setItem(key, value) {
-          values.set(key, value);
-          writes.push({ key, value });
-        },
-      },
-    },
-    (_directory, _recursive, filter) => {
-      const keys = fs
-        .readdirSync(assetsDirectory)
-        .map(name => `./${name}`)
-        .filter(name => filter.test(name));
-      const context = name => JSON.parse(fs.readFileSync(path.join(assetsDirectory, name.slice(2)), 'utf8'));
-      context.keys = () => keys;
-      return context;
-    },
-  );
+  const registry = compile('lib/course-color-schemes.ts', {}, (_directory, _recursive, filter) => {
+    const keys = fs
+      .readdirSync(assetsDirectory)
+      .map(name => `./${name}`)
+      .filter(name => filter.test(name));
+    const context = name => JSON.parse(fs.readFileSync(path.join(assetsDirectory, name.slice(2)), 'utf8'));
+    context.keys = () => keys;
+    return context;
+  });
   const colors = compile('utils/random-color.ts', {
     '@/lib/course-color-schemes': registry,
     '@/utils/course-color-display': display,
     './course-color-display': display,
   });
-  return { registry, colors, values, writes };
+  return { registry, colors };
 }
 
 test('independent reference conversion agrees with published XYZ/OKLab examples and neutral endpoints', () => {
@@ -315,9 +299,8 @@ test('memoized outputs remain correct across theme, wallpaper, darkening, and co
   );
 });
 
-test('the public wrapper preserves non-current-week gray and text rules without mutating stored source colors', async () => {
-  const { registry, colors, values, writes } = createRegistryAndColors();
-  await registry.loadCourseColorSchemes();
+test('the public wrapper preserves non-current-week gray and text rules without mutating stored source colors', () => {
+  const { registry, colors } = createRegistryAndColors();
   const snapshot = registry.getCourseColorSchemes();
   const definitionsBefore = JSON.stringify(snapshot);
   const cachedCourses = Object.freeze({
@@ -325,7 +308,6 @@ test('the public wrapper preserves non-current-week gray and text rules without 
     courseData: Object.freeze(allColors.map((color, id) => Object.freeze({ id, color }))),
   });
   const cacheBefore = JSON.stringify(cachedCourses);
-  values.set('course-cache-fixture', cacheBefore);
   const allocated = colors.allocateColorForCourse('fixed-course', 'student-display-test', 'old');
   for (const dark of [false, true]) {
     for (const options of [{}, { hasCustomBackground: true }, { hasCustomBackground: true, darkenBackground: true }]) {
@@ -341,6 +323,4 @@ test('the public wrapper preserves non-current-week gray and text rules without 
   assert.equal(registry.getCourseColorSchemes(), snapshot);
   assert.equal(JSON.stringify(snapshot), definitionsBefore);
   assert.equal(JSON.stringify(cachedCourses), cacheBefore);
-  assert.equal(values.get('course-cache-fixture'), cacheBefore);
-  assert.equal(writes.length, 0);
 });

@@ -1,15 +1,5 @@
 import { Tabs, useFocusEffect } from 'expo-router';
-import {
-  forwardRef,
-  Suspense,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import { forwardRef, Suspense, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -42,7 +32,6 @@ import { useRefreshCourseTable } from '@/hooks/useRefreshCourseTable';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { COURSE_PAGE_ALL_DATA_KEY, FRIEND_COURSE_KEY, FRIEND_LIST_KEY } from '@/lib/constants';
 import { CourseCache, getCourseSetting } from '@/lib/course';
-import { getCourseColorScheme, subscribeCourseColorSchemes } from '@/lib/course-color-schemes';
 import { mergeCourseSchedulesByDay } from '@/lib/course-schedule';
 import { getFirstDateByWeek } from '@/lib/locate-date';
 import { NotificationManager } from '@/lib/notification';
@@ -64,12 +53,7 @@ const CourseGrid = forwardRef(
   ) => {
     const { handleError } = useSafeResponseSolve();
     const { currentTerm, maxWeek } = coursePageData;
-    // 编辑已应用的方案会保留 id，订阅方案快照才能同步好友课表的颜色。
-    const colorPalette = useSyncExternalStore(
-      subscribeCourseColorSchemes,
-      () => getCourseColorScheme(coursePageData.setting.colorScheme),
-      () => getCourseColorScheme(coursePageData.setting.colorScheme),
-    );
+    const colorScheme = coursePageData.setting.colorScheme;
     const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
     const mergedSchedulesByDays = useMemo(() => mergeCourseSchedulesByDay(schedulesByDays), [schedulesByDays]);
 
@@ -97,7 +81,7 @@ const CourseGrid = forwardRef(
             CourseCache.processFriendCourses(
               friendCourseData as JwchCourseListResponse_Course[],
               selectedFriendId,
-              colorPalette.id,
+              colorScheme,
             ),
           );
         }
@@ -111,7 +95,7 @@ const CourseGrid = forwardRef(
         CourseCache.addRefreshListener(syncOwnData);
         return () => CourseCache.removeRefreshListener(syncOwnData);
       }
-    }, [selectedFriendId, friendCourseData, coursePageData.setting.selectedSemester, colorPalette]);
+    }, [selectedFriendId, friendCourseData, coursePageData.setting.selectedSemester, colorScheme]);
 
     const { width } = useWindowDimensions();
     const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });

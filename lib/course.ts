@@ -14,7 +14,7 @@ import {
   EXAM_ROOM_KEY,
   IOS_APP_GROUP,
 } from '@/lib/constants';
-import { DEFAULT_COURSE_COLOR_SCHEME, loadCourseColorSchemes } from '@/lib/course-color-schemes';
+import { DEFAULT_COURSE_COLOR_SCHEME } from '@/lib/course-color-schemes';
 import { setWidgetData } from '@/modules/native-widget';
 import { MergedExamData } from '@/types/academic';
 import type { PartiallyOptional } from '@/types/utils';
@@ -93,7 +93,6 @@ export type CourseInfoMerged = CourseInfo & {
 
 interface CacheCourseData {
   colorScheme?: CourseColorScheme; // 旧缓存未记录时按经典配色处理
-  paletteColors?: readonly string[]; // 保存当时的色表，方便方案更新或移除后重新映射
   courseData: Record<number, ExtendCourse[]>; // 课程数据
   courseDigest: string;
   examData: Record<number, ExtendCourse[]>; // 考试数据
@@ -172,7 +171,6 @@ const DEFAULT_STARTID = 0; // 默认 ID 起始值
 
 export class CourseCache {
   private static colorScheme: CourseColorScheme = DEFAULT_COURSE_COLOR_SCHEME;
-  private static paletteColors: readonly string[] = getCourseColors();
   private static isLoaded = false;
   private static loadPromise: Promise<void> | null = null;
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
@@ -296,25 +294,17 @@ export class CourseCache {
   }
 
   private static async loadFromStorage(): Promise<void> {
-    await loadCourseColorSchemes();
     // 课程数据
     const resp = await AsyncStorage.getItem(COURSE_CURRENT_CACHE_KEY);
     if (!resp) {
       const setting = await getCourseSetting();
       this.colorScheme = setting.colorScheme;
-      this.paletteColors = getCourseColors(setting.colorScheme);
       this.isLoaded = true;
       return;
     }
 
     const result = JSON.parse(resp) as CacheCourseData;
-    this.colorScheme = result.colorScheme ?? DEFAULT_COURSE_COLOR_SCHEME;
-    this.paletteColors =
-      Array.isArray(result.paletteColors) &&
-      result.paletteColors.length > 0 &&
-      result.paletteColors.every(color => typeof color === 'string' && /^#[0-9A-F]{6}$/i.test(color))
-        ? result.paletteColors.map(color => color.toUpperCase())
-        : getCourseColors(this.colorScheme);
+    this.colorScheme = normalizeCourseColorScheme(result.colorScheme);
     this.cachedDigest = result.courseDigest;
     this.cachedData = result.courseData;
     this.cachedExamDigest = result.examDigest;
@@ -335,17 +325,22 @@ export class CourseCache {
    * 切换普通课程配色，保留色号、课程信息以及考试和自定义课程的颜色
    */
   public static async applyColorScheme(colorScheme: CourseColorScheme): Promise<void> {
-    await loadCourseColorSchemes();
     // 设置页直接打开时也需要先读取已保存的课表，避免空内存覆盖缓存
     if (!this.isLoaded) await this.load();
 
     const nextScheme = normalizeCourseColorScheme(colorScheme);
     const nextColors = getCourseColors(nextScheme);
-    if (nextScheme === this.colorScheme && nextColors.join() === this.paletteColors.join()) return;
+    const hasValidColors = Object.values(this.cachedData ?? {}).every(courses =>
+      courses.every(
+        course =>
+          course.type !== COURSE_TYPE ||
+          (typeof course.color === 'string' && nextColors.includes(course.color.toUpperCase())),
+      ),
+    );
+    if (nextScheme === this.colorScheme && hasValidColors) return;
 
-    const previousColors = this.paletteColors;
+    const previousColors = getCourseColors(this.colorScheme);
     this.colorScheme = nextScheme;
-    this.paletteColors = nextColors;
     if (!this.cachedData) return;
 
     const studentId = LocalUser.getUser().userid;
@@ -356,14 +351,11 @@ export class CourseCache {
         courses.map(course => {
           if (course.type !== COURSE_TYPE) return course;
 
-          const colorIndex = previousColors.indexOf(course.color.toUpperCase());
+          const colorIndex = typeof course.color === 'string' ? previousColors.indexOf(course.color.toUpperCase()) : -1;
           const courseName = course.adjust ? course.name.replace(/^\[调课\]\s*/, '') : course.name;
           return {
             ...course,
-            color:
-              colorIndex >= 0
-                ? nextColors[colorIndex % nextColors.length]
-                : allocateColorForCourse(courseName, studentId, nextScheme),
+            color: colorIndex >= 0 ? nextColors[colorIndex] : allocateColorForCourse(courseName, studentId, nextScheme),
           };
         }),
       ]),
@@ -382,7 +374,6 @@ export class CourseCache {
         COURSE_CURRENT_CACHE_KEY,
         JSON.stringify({
           colorScheme: this.colorScheme,
-          paletteColors: this.paletteColors,
           courseData: this.cachedData,
           courseDigest: this.cachedDigest,
           examData: this.cachedExamData,
@@ -734,20 +725,13 @@ export class CourseCache {
     const currentDigest = this.calculateDigest(tempData);
 
     // 如果当前 digest 和上一次的 digest 一致 且 不跳过检查，则直接返回缓存的 data
-    if (
-      currentDigest === this.cachedDigest &&
-      this.cachedData &&
-      !skipDigestCheck &&
-      scheme === this.colorScheme &&
-      getCourseColors(scheme).join() === this.paletteColors.join()
-    ) {
+    if (currentDigest === this.cachedDigest && this.cachedData && !skipDigestCheck && scheme === this.colorScheme) {
       return this.cachedData;
     }
 
     /* 到此处我们认为数据是不一致的，开始重新处理课程 */
     this.startID = DEFAULT_STARTID; // 初始化 id
     this.colorScheme = scheme;
-    this.paletteColors = getCourseColors(scheme);
     const currentUserId = LocalUser.getUser().userid;
     clearColorMapping(currentUserId, scheme); // 清空颜色映射，重新分配颜色
 
@@ -1035,11 +1019,22 @@ export const defaultCourseSetting: CourseSetting = {
   calendarSubscribeUrl: '',
 };
 
+const parseCourseSetting = (settingJson: string | null): Partial<CourseSetting> => {
+  if (!settingJson) return {};
+  try {
+    const value: unknown = JSON.parse(settingJson);
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
+      ? (value as Partial<CourseSetting>)
+      : {};
+  } catch {
+    return {};
+  }
+};
+
 /**
  * 读取课程设置，如果用户没有修改过则返回默认值
  */
 export const getCourseSetting = async (): Promise<CourseSetting> => {
-  await loadCourseColorSchemes();
   const settingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
 
   if (!settingJson) {
@@ -1047,7 +1042,7 @@ export const getCourseSetting = async (): Promise<CourseSetting> => {
   }
 
   // 始终做合并操作，避免因用户未调整设置/后期有新设置加入而JSON中尚不存在，导致没有默认值
-  const config = { ...defaultCourseSetting, ...JSON.parse(settingJson) } as CourseSetting;
+  const config = { ...defaultCourseSetting, ...parseCourseSetting(settingJson) };
   config.colorScheme = normalizeCourseColorScheme(config.colorScheme);
 
   return config;
@@ -1059,9 +1054,8 @@ export const getCourseSetting = async (): Promise<CourseSetting> => {
  * @param newSetting - 改动部分的设置，不要传入getCourseSetting返回的完整设置
  */
 export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): Promise<void> => {
-  await loadCourseColorSchemes();
   const currentSettingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-  const currentSetting = currentSettingJson ? JSON.parse(currentSettingJson) : {};
+  const currentSetting = parseCourseSetting(currentSettingJson);
   const updatedSetting = { ...currentSetting, ...newSetting };
   if (newSetting.colorScheme !== undefined) {
     updatedSetting.colorScheme = normalizeCourseColorScheme(newSetting.colorScheme);
@@ -1072,7 +1066,7 @@ export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): P
     await AsyncStorage.setItem(COURSE_SETTINGS_KEY, updatedSettingJson);
   }
   if (newSetting.colorScheme !== undefined) {
-    await CourseCache.applyColorScheme(updatedSetting.colorScheme);
+    await CourseCache.applyColorScheme(newSetting.colorScheme);
   }
 };
 

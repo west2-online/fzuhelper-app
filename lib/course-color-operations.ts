@@ -1,4 +1,4 @@
-// 页面返回后重新进入时，选择与删除仍需要共享同一把锁。
+// 页面返回后重新进入时，仍需等待上一次内置配色切换完成。
 let pending = false;
 const listeners = new Set<() => void>();
 
