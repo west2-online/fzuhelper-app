@@ -11,26 +11,25 @@
         android:id="@+id/widget_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:baselineAligned="false"
         android:orientation="horizontal">
         <TextView
-            style="@style/CourseWidgetText"
+            style="@style/CourseWidgetHeading"
             android:id="@+id/widget_date"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/course_widget_heading_line_height"
             android:maxLines="1"
             android:ellipsize="end"
-            android:textSize="12dp"
             android:textStyle="bold"
             android:textColor="@color/widget_heading" />
         <TextView
-            style="@style/CourseWidgetText"
+            style="@style/CourseWidgetHeading"
             android:id="@+id/widget_weekday"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/course_widget_heading_line_height"
             android:layout_marginStart="4dp"
             android:maxLines="1"
             android:ellipsize="end"
-            android:textSize="12dp"
             android:textStyle="bold"
             android:textColor="@color/widget_blue" />
     </LinearLayout>
@@ -40,6 +39,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/course_widget_header_gap"
         android:orientation="vertical" />
 </LinearLayout>

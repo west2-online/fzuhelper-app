@@ -29,13 +29,12 @@
         android:importantForAccessibility="no"
         android:src="@drawable/course_widget_indicator_gray" />
     <TextView
-        style="@style/CourseWidgetText"
+        style="@style/CourseWidgetSecondary"
         android:id="@+id/remaining_text"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/course_widget_secondary_line_height"
         android:layout_marginStart="4dp"
         android:maxLines="1"
         android:ellipsize="end"
-        android:textSize="10dp"
         android:textColor="@color/widget_secondary" />
 </LinearLayout>

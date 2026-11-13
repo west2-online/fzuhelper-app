@@ -22,13 +22,12 @@
         android:paddingBottom="2dp"
         android:orientation="vertical">
         <TextView
-            style="@style/CourseWidgetText"
+            style="@style/CourseWidgetSecondary"
             android:id="@+id/course_name"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/course_widget_secondary_line_height"
             android:maxLines="1"
             android:ellipsize="end"
-            android:textSize="10dp"
             android:textStyle="bold"
             android:textColor="@color/widget_title" />
         <LinearLayout
@@ -36,37 +35,35 @@
             android:id="@+id/course_details"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/course_widget_details_gap"
+            android:baselineAligned="false"
             android:orientation="horizontal">
             <TextView
-                style="@style/CourseWidgetText"
+                style="@style/CourseWidgetSecondary"
                 android:id="@+id/course_room"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/course_widget_secondary_line_height"
                 android:maxLines="1"
                 android:ellipsize="end"
-                android:textSize="10dp"
                 android:textColor="@color/widget_secondary" />
             <TextView
-                style="@style/CourseWidgetText"
+                style="@style/CourseWidgetSecondary"
                 android:id="@+id/course_time"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
+                android:layout_height="@dimen/course_widget_secondary_line_height"
+                android:layout_marginStart="@dimen/course_widget_inline_gap"
                 android:maxLines="1"
                 android:ellipsize="end"
-                android:textSize="10dp"
                 android:textColor="@color/widget_secondary" />
         </LinearLayout>
         <TextView
-            style="@style/CourseWidgetText"
+            style="@style/CourseWidgetSecondary"
             android:id="@+id/course_time_stacked"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_height="@dimen/course_widget_secondary_line_height"
+            android:layout_marginTop="@dimen/course_widget_time_gap"
             android:maxLines="1"
             android:ellipsize="end"
-            android:textSize="10dp"
             android:textColor="@color/widget_secondary"
             android:visibility="gone" />
     </LinearLayout>

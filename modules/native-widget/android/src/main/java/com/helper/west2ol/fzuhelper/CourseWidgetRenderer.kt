@@ -47,8 +47,18 @@ internal class CourseWidgetRenderer(
         val inset = if (!medium && getBoolean(context, widgetId, "showAsSquare", false)) {
             ((height - width) / 2).coerceAtLeast(0f)
         } else 0f
+        val insetPixels = dp(inset)
+        val contentHeight = dp(height) - insetPixels * 2
+        val short = contentHeight < dimension(R.dimen.course_widget_short_height)
+        val horizontalPadding = dimension(
+            if (short) R.dimen.course_widget_short_padding_horizontal else R.dimen.course_widget_padding_horizontal
+        )
+        val verticalPadding = dimension(
+            if (short) R.dimen.course_widget_short_padding_vertical else R.dimen.course_widget_padding_vertical
+        )
         val views = RemoteViews(context.packageName, R.layout.next_class_widget_provider)
-        views.setViewPadding(R.id.next_class_widget_root, 0, dp(inset), 0, dp(inset))
+        views.setViewPadding(R.id.next_class_widget_root, 0, insetPixels, 0, insetPixels)
+        views.setViewPadding(R.id.container, horizontalPadding, verticalPadding, horizontalPadding, verticalPadding)
         views.removeAllViews(R.id.widget_days)
         val openApp = PendingIntent.getActivity(
             context, widgetId,
@@ -62,13 +72,16 @@ internal class CourseWidgetRenderer(
             return views
         }
 
-        val availableHeight = dp(height - inset * 2 - 36)
-        val columnWidth = dp(if (medium) (width - 46) / 2 else width - 36).coerceAtLeast(1)
+        val availableHeight = contentHeight - verticalPadding * 2
+        val contentWidth = dp(width) - horizontalPadding * 2
+        val columnGap = if (medium) dimension(R.dimen.course_widget_column_gap) else 0
+        val columnWidth = ((contentWidth - columnGap) / (if (medium) 2 else 1)).coerceAtLeast(1)
         val today = if (medium) snapshot.day(now) else snapshot.smallDay(now, previewTomorrow)
         views.addView(R.id.widget_days, dayView(today, columnWidth, availableHeight, true))
         if (medium) {
             views.addView(R.id.widget_days, RemoteViews(context.packageName, R.layout.course_widget_column_gap))
-            views.addView(R.id.widget_days, dayView(snapshot.day(now, tomorrow = true), columnWidth, availableHeight, false))
+            val tomorrowWidth = (contentWidth - columnGap - columnWidth).coerceAtLeast(1)
+            views.addView(R.id.widget_days, dayView(snapshot.day(now, tomorrow = true), tomorrowWidth, availableHeight, false))
         }
         return views
     }
@@ -89,27 +102,35 @@ internal class CourseWidgetRenderer(
 
         val header = views.apply(context, FrameLayout(context)).findViewById<View>(R.id.widget_header)
         header.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
-        val available = height - header.measuredHeight - dp(8)
+        val available = height - header.measuredHeight - dimension(R.dimen.course_widget_header_gap)
         val rows = day.events.mapIndexed { index, course -> eventView(course, day.isTomorrow || index > 0, width) }.toMutableList()
         val remaining = remainingView(day.events.size - 1)
         val heights = rows.map { measuredHeight(it, width) }
-        val layout = selectLayout(
-            heights, measuredHeight(remaining, width), available, dp(4), day.isTomorrow
+        var layout = selectLayout(
+            heights, measuredHeight(remaining, width), available, dimension(R.dimen.course_widget_event_gap), day.isTomorrow
         )
         // 日期、课名、教室和时间优先保留，当前课程的备注优先于后续课程。
         // 依次隐藏剩余提示、后续课程，再将备注从 3 行减至 2、1、0 行。
         // 仍放不下才把课名从 2 行减为 1 行；使用省略号，保持固定字号。
-        if (layout == null && !day.isTomorrow) {
+        // 极小空间只保留日期和单行课名；所有候选均需通过高度检查，避免强行插入后裁切。
+        if (layout == null) {
             val course = day.events.first()
             val variants = buildList {
-                if (showRemarks && course.remark.isNotEmpty()) {
-                    for (lines in 2 downTo 0) add(eventView(course, false, width, remarkLines = lines))
+                if (!day.isTomorrow) {
+                    if (showRemarks && course.remark.isNotEmpty()) {
+                        for (lines in 2 downTo 0) add(eventView(course, false, width, remarkLines = lines))
+                    }
+                    add(eventView(course, false, width, remarkLines = 0, nameLines = 1))
                 }
-                add(eventView(course, false, width, remarkLines = 0, nameLines = 1))
+                add(eventView(course, day.isTomorrow, width, remarkLines = 0, nameLines = 1, showDetails = false))
             }
-            rows[0] = variants.firstOrNull { measuredHeight(it, width) <= available } ?: variants.last()
+            val first = variants.firstOrNull { measuredHeight(it, width) <= available }
+            if (first != null) {
+                rows[0] = first
+                layout = Layout(1, false)
+            }
         }
-        rows.take(layout?.count ?: 1).forEachIndexed { index, row ->
+        rows.take(layout?.count ?: 0).forEachIndexed { index, row ->
             if (index > 0) views.addView(R.id.widget_events, RemoteViews(context.packageName, R.layout.course_widget_gap))
             views.addView(R.id.widget_events, row)
         }
@@ -139,7 +160,10 @@ internal class CourseWidgetRenderer(
         }
     }
 
-    private fun eventView(course: WidgetCourseEvent, compact: Boolean, width: Int, remarkLines: Int = 3, nameLines: Int = 2): RemoteViews {
+    private fun eventView(
+        course: WidgetCourseEvent, compact: Boolean, width: Int,
+        remarkLines: Int = 3, nameLines: Int = 2, showDetails: Boolean = true,
+    ): RemoteViews {
         val views = RemoteViews(context.packageName, if (compact) R.layout.course_widget_compact else R.layout.course_widget_event)
         views.setTextViewText(R.id.course_name, course.name)
         views.setTextViewText(R.id.course_room, course.location)
@@ -150,7 +174,8 @@ internal class CourseWidgetRenderer(
             views.setInt(R.id.course_remark, "setMaxLines", remarkLines)
             views.setViewVisibility(R.id.course_remark, if (showRemarks && remarkLines > 0 && course.remark.isNotEmpty()) View.VISIBLE else View.GONE)
         }
-        if (compact) {
+        if (!showDetails) views.setViewVisibility(R.id.course_details, View.GONE)
+        if (compact && showDetails) {
             views.setTextViewText(R.id.course_time_stacked, course.timeText)
             val layout = views.apply(context, FrameLayout(context))
             layout.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
@@ -160,7 +185,7 @@ internal class CourseWidgetRenderer(
             room.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
             time.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
             // 同排放不下时将时间移到下一行，避免时间挤压教室。
-            val wrapTime = room.measuredWidth + time.measuredWidth + dp(2) > details.measuredWidth
+            val wrapTime = room.measuredWidth + time.measuredWidth + dimension(R.dimen.course_widget_inline_gap) > details.measuredWidth
             views.setViewVisibility(R.id.course_time, if (wrapTime) View.GONE else View.VISIBLE)
             views.setViewVisibility(R.id.course_time_stacked, if (wrapTime) View.VISIBLE else View.GONE)
         }
@@ -186,4 +211,6 @@ internal class CourseWidgetRenderer(
     }
 
     private fun dp(value: Number) = (value.toFloat() * context.resources.displayMetrics.density).roundToInt()
+
+    private fun dimension(id: Int) = context.resources.getDimensionPixelSize(id)
 }

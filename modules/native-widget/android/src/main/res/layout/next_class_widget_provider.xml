@@ -12,7 +12,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/course_widget_background"
-        android:padding="18dp"
+        android:paddingStart="@dimen/course_widget_padding_horizontal"
+        android:paddingEnd="@dimen/course_widget_padding_horizontal"
+        android:paddingTop="@dimen/course_widget_padding_vertical"
+        android:paddingBottom="@dimen/course_widget_padding_vertical"
         android:orientation="vertical">
         <LinearLayout
             android:clipChildren="false"

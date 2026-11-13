@@ -3,7 +3,33 @@
     <style name="CourseWidgetText">
         <item name="android:includeFontPadding">false</item>
         <item name="android:fallbackLineSpacing">false</item>
+        <item name="android:useLocalePreferredLineHeightForMinimum">false</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <!-- Android 9 起使用显式行高，旧系统保留额外行距。 -->
         <item name="android:lineSpacingMultiplier">1</item>
         <item name="android:lineSpacingExtra">2dp</item>
+    </style>
+
+    <style name="CourseWidgetHeading" parent="CourseWidgetText">
+        <item name="android:textSize">@dimen/course_widget_heading_size</item>
+        <item name="android:lineHeight">@dimen/course_widget_heading_line_height</item>
+    </style>
+
+    <style name="CourseWidgetTitle" parent="CourseWidgetText">
+        <item name="android:textSize">@dimen/course_widget_title_size</item>
+        <item name="android:lineHeight">@dimen/course_widget_title_line_height</item>
+        <item name="android:minHeight">@dimen/course_widget_title_line_height</item>
+    </style>
+
+    <style name="CourseWidgetDetail" parent="CourseWidgetText">
+        <item name="android:textSize">@dimen/course_widget_detail_size</item>
+        <item name="android:lineHeight">@dimen/course_widget_detail_line_height</item>
+    </style>
+
+    <style name="CourseWidgetSecondary" parent="CourseWidgetText">
+        <item name="android:textSize">@dimen/course_widget_secondary_size</item>
+        <item name="android:lineHeight">@dimen/course_widget_secondary_line_height</item>
+        <item name="android:minHeight">@dimen/course_widget_secondary_line_height</item>
     </style>
 </resources>

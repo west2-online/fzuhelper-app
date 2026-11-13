@@ -73,6 +73,7 @@ export const COURSE_WITHOUT_ATTENDANCE = '免听';
 export const CALENDAR_SUBSCRIPTION_PREFIX = 'https://fzuhelper.west2.online/api/v1/course/calendar/subscribe?token=';
 export const CALENDAR_SUBSCRIPTION_TOKEN_KEY = 'calendar_subscription_token';
 export const COURSE_CURRENT_CACHE_KEY = 'course_current_cache';
+export const COURSE_WIDGET_DEBUG_SCENARIO_KEY = 'course_widget_debug_scenario';
 export const COURSE_SETTINGS_KEY = 'course_settings';
 export const COURSE_DATA_KEY = 'course_data';
 export const COURSE_DATA_V2_KEY = 'course_data_v2';

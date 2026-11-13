@@ -10,6 +10,7 @@ import {
   COURSE_DATA_V2_KEY,
   COURSE_SETTINGS_KEY,
   COURSE_TERMS_LIST_KEY,
+  COURSE_WIDGET_DEBUG_SCENARIO_KEY,
   CourseType,
   DATETIME_SECOND_FORMAT,
   EXAM_ROOM_KEY,
@@ -28,6 +29,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'; // 引入插件以支持 ISO 周
 import objectHash from 'object-hash';
 import { Platform } from 'react-native';
 import { buildCourseWidgetSnapshot } from './course-widget';
+import { buildCourseWidgetDebugSnapshot, getCourseWidgetDebugScenario } from './course-widget-debug';
 import { formatExamData } from './exam-room';
 import locateDate, { deConvertSemester, getWeeksBySemester } from './locate-date';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from './user';
@@ -314,48 +316,75 @@ export class CourseCache {
         } as CacheCourseData),
       );
 
-      // 将数据保存到原生共享存储中，以便在小组件中调用
-      const termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([
-        COURSE_TERMS_LIST_KEY,
-      ]);
-      const courseSettings = await getCourseSetting();
-      const term = courseSettings.selectedSemester;
-      const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === term);
-      if (!currentTerm || term !== this.semester) {
+      await this.syncWidgetData();
+    } catch (e) {
+      console.error('同步课程到小组件失败', e);
+    }
+  }
+
+  public static async syncWidgetData(clearIfUnavailable = false): Promise<boolean> {
+    const scenario = __DEV__ ? await getCourseWidgetDebugScenario() : null;
+    const debugSnapshot = scenario ? buildCourseWidgetDebugSnapshot(scenario) : null;
+    const termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([COURSE_TERMS_LIST_KEY]);
+    const courseSettings = await getCourseSetting();
+    const term = courseSettings.selectedSemester;
+    const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === term);
+    if (!currentTerm || term !== this.semester) {
+      if (debugSnapshot) {
+        await this.writeWidgetData(
+          JSON.stringify({
+            courseData: {},
+            examData: {},
+            customData: {},
+            startDate: debugSnapshot.startDate,
+            maxWeek: 1,
+            showNonCurrentWeekCourses: false,
+            hiddenCoursesWithoutAttendances: false,
+            widgetSnapshot: debugSnapshot,
+          }),
+        );
+      } else if (clearIfUnavailable) {
+        await this.writeWidgetData('');
+      } else {
         console.warn('无法找到当前学期信息，跳过小组件同步');
-        return;
       }
-      const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
-      const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
-      const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
-      const customCourses = this.getCustomCoursesForSemester(term);
-      const widgetData = JSON.stringify({
-        courseData: this.cachedData,
-        examData: this.cachedExamData,
-        customData: customCourses,
-        startDate: currentTerm.start_date,
-        maxWeek,
-        showNonCurrentWeekCourses,
-        hiddenCoursesWithoutAttendances,
-        widgetSnapshot: buildCourseWidgetSnapshot({
+      return debugSnapshot !== null;
+    }
+    const maxWeek = getWeeksBySemester(currentTerm.start_date, currentTerm.end_date);
+    const showNonCurrentWeekCourses = courseSettings.showNonCurrentWeekCourses;
+    const hiddenCoursesWithoutAttendances = courseSettings.hiddenCoursesWithoutAttendances;
+    const customCourses = this.getCustomCoursesForSemester(term);
+    const widgetData = JSON.stringify({
+      courseData: this.cachedData,
+      examData: this.cachedExamData,
+      customData: customCourses,
+      startDate: currentTerm.start_date,
+      maxWeek,
+      showNonCurrentWeekCourses,
+      hiddenCoursesWithoutAttendances,
+      widgetSnapshot:
+        debugSnapshot ??
+        buildCourseWidgetSnapshot({
           courses: Object.values(this.getCachedData(term)).flat(),
           startDate: currentTerm.start_date,
           endDate: currentTerm.end_date,
           settings: courseSettings,
         }),
-      });
-      if (Platform.OS === 'ios') {
-        // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
-        // 只能在常量中定义这个 identifier
-        const storage = new ExtensionStorage(IOS_APP_GROUP);
-        storage.set(COURSE_CURRENT_CACHE_KEY, widgetData); // 如果要改这个 KEY，需要同步修改 target 中原生代码
-        ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-      } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
-        await setWidgetData(widgetData);
-      }
-      console.log('同步课程到小组件成功');
-    } catch (e) {
-      console.error('同步课程到小组件失败', e);
+    });
+    await this.writeWidgetData(widgetData);
+    console.log('同步课程到小组件成功');
+    return true;
+  }
+
+  private static async writeWidgetData(widgetData: string): Promise<void> {
+    if (Platform.OS === 'ios') {
+      // 这里不能和安卓那样直接用 package，因为这个 identifier 可能会有多个
+      // 只能在常量中定义这个 identifier
+      const storage = new ExtensionStorage(IOS_APP_GROUP);
+      storage.set(COURSE_CURRENT_CACHE_KEY, widgetData); // 如果要改这个 KEY，需要同步修改 target 中原生代码
+      ExtensionStorage.reloadWidget(); // 保存后需要重载一次
+    } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
+      await setWidgetData(widgetData);
     }
   }
 
@@ -375,15 +404,10 @@ export class CourseCache {
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
     this.startID = DEFAULT_STARTID; // 重置 ID 计数器
     await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
+    if (__DEV__) await AsyncStorage.removeItem(COURSE_WIDGET_DEBUG_SCENARIO_KEY);
 
     // 清除小组件数据
-    if (Platform.OS === 'ios') {
-      const storage = new ExtensionStorage(IOS_APP_GROUP);
-      storage.set(COURSE_CURRENT_CACHE_KEY, '');
-      ExtensionStorage.reloadWidget(); // 保存后需要重载一次
-    } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
-      await setWidgetData('');
-    }
+    await this.writeWidgetData('');
   }
 
   /**
