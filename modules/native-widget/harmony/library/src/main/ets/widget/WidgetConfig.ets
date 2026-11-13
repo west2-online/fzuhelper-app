@@ -1,12 +1,15 @@
 import { preferences } from '@kit.ArkData';
 
 const SHOW_LAST_UPDATE_TIME_SUFFIX: string = ':show_last_update_time';
+const SHOW_REMARKS_SUFFIX: string = ':show_remarks';
+const PREVIEW_TOMORROW_SUFFIX: string = ':preview_tomorrow';
 const SHOW_AS_SQUARE_SUFFIX: string = ':show_as_square';
 const FORM_WIDTH_SUFFIX: string = ':form_width';
 const FORM_HEIGHT_SUFFIX: string = ':form_height';
 
 export interface WidgetConfig {
-  showLastUpdateTime: boolean;
+  showRemarks: boolean;
+  previewTomorrow: boolean;
   showAsSquare: boolean;
   width: number;
   height: number;
@@ -14,12 +17,14 @@ export interface WidgetConfig {
 }
 
 export function readWidgetConfig(store: preferences.Preferences, formId: string): WidgetConfig {
-  const showLastUpdateTime = store.getSync(configKey(formId, SHOW_LAST_UPDATE_TIME_SUFFIX), false) as boolean;
+  const showRemarks = store.getSync(configKey(formId, SHOW_REMARKS_SUFFIX), true) as boolean;
+  const previewTomorrow = store.getSync(configKey(formId, PREVIEW_TOMORROW_SUFFIX), false) as boolean;
   const showAsSquare = store.getSync(configKey(formId, SHOW_AS_SQUARE_SUFFIX), false) as boolean;
   const width = store.getSync(configKey(formId, FORM_WIDTH_SUFFIX), 0) as number;
   const height = store.getSync(configKey(formId, FORM_HEIGHT_SUFFIX), 0) as number;
   return {
-    showLastUpdateTime,
+    showRemarks,
+    previewTomorrow,
     showAsSquare,
     width,
     height,
@@ -27,12 +32,20 @@ export function readWidgetConfig(store: preferences.Preferences, formId: string)
   };
 }
 
-export function putShowLastUpdateTime(
+export function putShowRemarks(
   store: preferences.Preferences,
   formId: string,
   value: boolean,
 ): void {
-  store.putSync(configKey(formId, SHOW_LAST_UPDATE_TIME_SUFFIX), value);
+  store.putSync(configKey(formId, SHOW_REMARKS_SUFFIX), value);
+}
+
+export function putPreviewTomorrow(
+  store: preferences.Preferences,
+  formId: string,
+  value: boolean,
+): void {
+  store.putSync(configKey(formId, PREVIEW_TOMORROW_SUFFIX), value);
 }
 
 export function putShowAsSquare(
@@ -58,6 +71,8 @@ export function putFormMetrics(
 }
 
 export function deleteWidgetConfig(store: preferences.Preferences, formId: string): void {
+  store.deleteSync(configKey(formId, SHOW_REMARKS_SUFFIX));
+  store.deleteSync(configKey(formId, PREVIEW_TOMORROW_SUFFIX));
   store.deleteSync(configKey(formId, SHOW_LAST_UPDATE_TIME_SUFFIX));
   store.deleteSync(configKey(formId, SHOW_AS_SQUARE_SUFFIX));
   store.deleteSync(configKey(formId, FORM_WIDTH_SUFFIX));

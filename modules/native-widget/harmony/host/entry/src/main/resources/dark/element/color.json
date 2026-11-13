@@ -5,10 +5,6 @@
       "value": "#E9E9E9"
     },
     {
-      "name": "widget_background",
-      "value": "#1A1A1B"
-    },
-    {
       "name": "widget_unnecessary_foreground",
       "value": "#C1C1C1"
     },
@@ -19,6 +15,42 @@
     {
       "name": "widget_lockscreen_secondary_foreground",
       "value": "#B8FFFFFF"
+    },
+    {
+      "value": "#1A1A1B",
+      "name": "widget_background"
+    },
+    {
+      "value": "#F4F4F4",
+      "name": "widget_title"
+    },
+    {
+      "value": "#EAF4FF",
+      "name": "widget_heading"
+    },
+    {
+      "value": "#5AA6FF",
+      "name": "widget_blue"
+    },
+    {
+      "value": "#5AA6FF",
+      "name": "widget_light_blue"
+    },
+    {
+      "value": "#0957A1",
+      "name": "widget_faint_blue"
+    },
+    {
+      "value": "#8CC1FF",
+      "name": "widget_detail"
+    },
+    {
+      "value": "#BBBBBB",
+      "name": "widget_secondary"
+    },
+    {
+      "value": "#656565",
+      "name": "widget_gray"
     }
   ]
 }

@@ -3,11 +3,9 @@ const lockScreenWidgetStorage = new LocalStorage();
 @Entry(lockScreenWidgetStorage)
 @Component
 struct NextClassLockScreenCard {
-  @LocalStorageProp('courseName') courseName: string = '本地没有数据';
-  @LocalStorageProp('courseLocation') courseLocation: string = '请打开课表设置刷新';
+  @LocalStorageProp('courseName') courseName: string = '请打开福uu同步课表';
+  @LocalStorageProp('courseLocation') courseLocation: string = '';
   @LocalStorageProp('courseTime') courseTime: string = '';
-  @LocalStorageProp('courseWeek') courseWeek: string = '';
-  @LocalStorageProp('courseWeekday') courseWeekday: string = '';
 
   build() {
     Column({ space: 4 }) {
@@ -19,8 +17,14 @@ struct NextClassLockScreenCard {
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       .width('100%')
 
-      // 锁屏部件空间太过紧张，舍弃部分空格
-      Text(this.courseLocation + ' ' + this.courseWeek + this.courseWeekday + this.courseTime)
+      Text(this.courseLocation)
+        .fontSize(10)
+        .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .width('100%')
+
+      Text(this.courseTime)
         .fontSize(10)
         .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
         .maxLines(1)

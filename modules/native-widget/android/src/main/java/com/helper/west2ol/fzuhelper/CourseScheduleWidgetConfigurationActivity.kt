@@ -5,9 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import android.widget.SeekBar
-import android.widget.Spinner
 import android.widget.AdapterView
 import androidx.appcompat.app.AppCompatActivity
 import com.west2online.nativewidget.R
@@ -99,12 +97,6 @@ class CourseScheduleWidgetConfigurationActivity : AppCompatActivity() {
         binding.foregroundAlphaSeekbar.progress = getInt(this, appWidgetId, "foreground_alpha", 100)
         binding.backgroundAlphaText.text = "${binding.backgroundAlphaSeekbar.progress}%"
         binding.foregroundAlphaText.text = "${binding.foregroundAlphaSeekbar.progress}%"
-
-        binding.refreshData.setOnClickListener {
-            val appWidgetManager = AppWidgetManager.getInstance(this)
-            updateCourseScheduleWidget(this, appWidgetManager, appWidgetId)
-            Toast.makeText(this, "已刷新", Toast.LENGTH_SHORT).show()
-        }
 
         binding.toolbar.setNavigationOnClickListener {
             finish()

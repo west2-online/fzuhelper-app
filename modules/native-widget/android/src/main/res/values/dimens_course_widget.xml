@@ -1,0 +1,22 @@
+<resources>
+    <dimen name="course_widget_heading_size">13dp</dimen>
+    <dimen name="course_widget_heading_line_height">18dp</dimen>
+    <dimen name="course_widget_title_size">15dp</dimen>
+    <dimen name="course_widget_title_line_height">19dp</dimen>
+    <dimen name="course_widget_detail_size">13dp</dimen>
+    <dimen name="course_widget_detail_line_height">16dp</dimen>
+    <dimen name="course_widget_secondary_size">11dp</dimen>
+    <dimen name="course_widget_secondary_line_height">14dp</dimen>
+
+    <dimen name="course_widget_padding_horizontal">14dp</dimen>
+    <dimen name="course_widget_padding_vertical">12dp</dimen>
+    <dimen name="course_widget_short_padding_horizontal">12dp</dimen>
+    <dimen name="course_widget_short_padding_vertical">8dp</dimen>
+    <dimen name="course_widget_short_height">140dp</dimen>
+    <dimen name="course_widget_column_gap">10dp</dimen>
+    <dimen name="course_widget_header_gap">6dp</dimen>
+    <dimen name="course_widget_event_gap">4dp</dimen>
+    <dimen name="course_widget_details_gap">2dp</dimen>
+    <dimen name="course_widget_time_gap">1dp</dimen>
+    <dimen name="course_widget_inline_gap">2dp</dimen>
+</resources>

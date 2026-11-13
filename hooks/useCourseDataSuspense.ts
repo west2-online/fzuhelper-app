@@ -55,8 +55,8 @@ async function loadCourseAndExamData(
   const courses = normalizeV2Courses(fetchedData.data.data.courses ?? []);
 
   // 如果缓存数据和新数据不一致，则更新数据
-  if (!CourseCache.compareDigest(COURSE_TYPE, courses)) {
-    CourseCache.setCourses(courses);
+  if (CourseCache.getSemester() !== currentTerm.term || !CourseCache.compareDigest(COURSE_TYPE, courses)) {
+    CourseCache.setCourses(courses, currentTerm.term);
     hasChanged = true;
   }
 

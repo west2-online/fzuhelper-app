@@ -6,7 +6,7 @@
     },
     {
       "name": "widget_desc",
-      "value": "显示当前学期的下一节课程"
+      "value": "查看当前课程、剩余课程和明日预览"
     },
     {
       "name": "widget_lockscreen_display_name",
@@ -18,7 +18,15 @@
     },
     {
       "name": "widget_config_label",
-      "value": "下一节课设置"
+      "value": "课程小组件设置"
+    },
+    {
+      "value": "今日与明日课程",
+      "name": "widget_overview_display_name"
+    },
+    {
+      "value": "同时查看今日剩余课程和明日课表",
+      "name": "widget_overview_desc"
     }
   ]
 }

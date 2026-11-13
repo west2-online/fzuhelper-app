@@ -12,6 +12,7 @@ import NativeBrightnessModule from '@/modules/native-brightness';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Link, Stack } from 'expo-router';
+import { Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -207,6 +208,13 @@ export default function HomePage() {
                 <Text>WebView Tools</Text>
               </Button>
             </Link>
+            {(Platform.OS === 'android' || Platform.OS === 'ios') && (
+              <Link href="/devtools/course-widget-tools" asChild>
+                <Button>
+                  <Text>Course Widget Tools</Text>
+                </Button>
+              </Link>
+            )}
 
             {/* Toast 示例 */}
             <Text className="m-3 my-4 text-lg font-bold">Toast</Text>
