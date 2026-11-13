@@ -323,7 +323,7 @@ export class CourseCache {
   }
 
   public static async syncWidgetData(clearIfUnavailable = false): Promise<boolean> {
-    const scenario = __DEV__ ? await getCourseWidgetDebugScenario() : null;
+    const scenario = await getCourseWidgetDebugScenario();
     const debugSnapshot = scenario ? buildCourseWidgetDebugSnapshot(scenario) : null;
     const termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([COURSE_TERMS_LIST_KEY]);
     const courseSettings = await getCourseSetting();
@@ -404,7 +404,7 @@ export class CourseCache {
     this.priorityCounter = DEFAULT_PRIORITY; // 重置优先级计数器
     this.startID = DEFAULT_STARTID; // 重置 ID 计数器
     await AsyncStorage.removeItem(COURSE_CURRENT_CACHE_KEY);
-    if (__DEV__) await AsyncStorage.removeItem(COURSE_WIDGET_DEBUG_SCENARIO_KEY);
+    await AsyncStorage.removeItem(COURSE_WIDGET_DEBUG_SCENARIO_KEY);
 
     // 清除小组件数据
     await this.writeWidgetData('');

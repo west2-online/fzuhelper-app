@@ -208,7 +208,7 @@ export default function HomePage() {
                 <Text>WebView Tools</Text>
               </Button>
             </Link>
-            {__DEV__ && (Platform.OS === 'android' || Platform.OS === 'ios') && (
+            {(Platform.OS === 'android' || Platform.OS === 'ios') && (
               <Link href="/devtools/course-widget-tools" asChild>
                 <Button>
                   <Text>Course Widget Tools</Text>

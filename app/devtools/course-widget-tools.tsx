@@ -21,7 +21,6 @@ export default function CourseWidgetToolsPage() {
   const [widgetBusy, setWidgetBusy] = useState(true);
 
   useEffect(() => {
-    if (!__DEV__) return;
     getCourseWidgetDebugScenario()
       .then(setWidgetScenario)
       .catch(error => toast.error(`读取小组件模拟设置失败：${error}`))
@@ -51,7 +50,7 @@ export default function CourseWidgetToolsPage() {
     }
   };
 
-  if (!__DEV__ || (Platform.OS !== 'android' && Platform.OS !== 'ios')) {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     return <Redirect href="/devtools" />;
   }
 
