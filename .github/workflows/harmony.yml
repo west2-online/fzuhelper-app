@@ -139,7 +139,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v7
         with:
-          path: harmony/output/fzuhelper-unsigned.hap
+          path: ${{ github.event_name == 'pull_request' && 'harmony/output/fzuhelper-unsigned.hap' || 'harmony/output/release.app' }}
           archive: false
           if-no-files-found: error
           retention-days: 0
