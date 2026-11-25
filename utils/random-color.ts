@@ -1,6 +1,5 @@
 import { COURSE_COLOR_COUNT } from '@/lib/palettes';
 
-export const nonCurrentWeekCourseColor = '#DEDEDE'; // 非本周课程的颜色
 export const examColor = '#FF6347'; // 考试的颜色
 
 // 同一张课表内，按课名分配色号，每轮用完色板再重复取色。
@@ -20,9 +19,4 @@ export const createCourseColorAllocator = () => {
     colorIndices.set(name, index);
     return index;
   };
-};
-
-export const getTextColor = (bgColor: string, darkmode: boolean): string => {
-  if (bgColor === nonCurrentWeekCourseColor) return '#00000033';
-  return darkmode ? '#FFFFFFDE' : '#FFFFFF';
 };

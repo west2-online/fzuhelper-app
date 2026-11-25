@@ -2,11 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme, ThemeProvider as ReactNavigationThemeProvider } from '@react-navigation/native';
 import { colorScheme } from 'nativewind';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { ImageSourcePropType, useColorScheme as useSystemColorScheme, type ColorSchemeName } from 'react-native';
+import {
+  DeviceEventEmitter,
+  ImageSourcePropType,
+  useColorScheme as useSystemColorScheme,
+  type ColorSchemeName,
+} from 'react-native';
 
-import { DARKEN_BACKGROUND_KEY } from '@/lib/constants';
-import { getCourseSetting, updateCourseSetting } from '@/lib/course';
+import { COURSE_SETTINGS_KEY, DARKEN_BACKGROUND_KEY } from '@/lib/constants';
+import { getCourseSetting } from '@/lib/course';
 import { DEFAULT_COURSE_COLOR_SCHEME, type CourseColorScheme } from '@/lib/palettes';
+import { USER_LOGOUT_EVENT } from '@/lib/user';
 import {
   checkCustomBackground,
   getBackgroundImagePath,
@@ -38,7 +44,6 @@ type ThemeContextValue = {
   courseColorScheme: CourseColorScheme | null | undefined;
   loadCourseColorScheme: () => Promise<void>;
   setCourseColorScheme: (scheme: CourseColorScheme) => Promise<void>;
-  resetCourseColorScheme: () => void;
   // 背景配置相关
   hasCustomBackground: boolean;
   darkenBackground: boolean;
@@ -89,12 +94,8 @@ export const AppThemeProvider = ({ children }: Props) => {
   }, []);
 
   const setCourseColorScheme = useCallback(async (scheme: CourseColorScheme) => {
-    await updateCourseSetting({ colorScheme: scheme });
+    await AsyncStorage.mergeItem(COURSE_SETTINGS_KEY, JSON.stringify({ colorScheme: scheme }));
     setCourseColorSchemeState(scheme);
-  }, []);
-
-  const resetCourseColorScheme = useCallback(() => {
-    setCourseColorSchemeState(DEFAULT_COURSE_COLOR_SCHEME);
   }, []);
 
   // 背景相关方法
@@ -145,7 +146,11 @@ export const AppThemeProvider = ({ children }: Props) => {
   }, [initializeSettings]);
 
   useEffect(() => {
+    const logoutSubscription = DeviceEventEmitter.addListener(USER_LOGOUT_EVENT, () => {
+      setCourseColorSchemeState(DEFAULT_COURSE_COLOR_SCHEME);
+    });
     loadCourseColorScheme();
+    return () => logoutSubscription.remove();
   }, [loadCourseColorScheme]);
 
   const contextValue = useMemo<ThemeContextValue>(
@@ -157,7 +162,6 @@ export const AppThemeProvider = ({ children }: Props) => {
       courseColorScheme,
       loadCourseColorScheme,
       setCourseColorScheme,
-      resetCourseColorScheme,
       hasCustomBackground,
       darkenBackground,
       setBackgroundImage,
@@ -176,7 +180,6 @@ export const AppThemeProvider = ({ children }: Props) => {
       courseColorScheme,
       loadCourseColorScheme,
       setCourseColorScheme,
-      resetCourseColorScheme,
       setBackgroundImage,
       deleteBackgroundImage,
       setDarkenBackground,

@@ -16,12 +16,11 @@ import {
 } from '@/lib/course';
 import { isCourseScheduledInWeek } from '@/lib/course-schedule';
 import { coursePalettes } from '@/lib/palettes';
-import { nonCurrentWeekCourseColor } from '@/utils/random-color';
 
 interface CourseScheduleItemDataBase {
   schedules: CourseInfoMerged[];
   span: number;
-  nonCurrentWeek?: boolean;
+  nonCurrentWeek: boolean;
 }
 
 type CourseScheduleItemData = { type: 'course' } & CourseScheduleItemDataBase;
@@ -85,6 +84,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
       mainCourses.push({
         schedules: [s],
         span: s.endClass - s.startClass + 1,
+        nonCurrentWeek: false,
       });
 
       // 标记区间内课次已被占用
@@ -180,7 +180,8 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
             key={index}
             itemHeight={itemHeight}
             span={item.span}
-            color={item.nonCurrentWeek ? nonCurrentWeekCourseColor : courseColor}
+            color={courseColor}
+            nonCurrentWeek={item.nonCurrentWeek}
             schedules={item.schedules}
             week={week}
           />

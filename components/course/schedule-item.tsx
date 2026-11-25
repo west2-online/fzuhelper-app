@@ -7,7 +7,6 @@ import OverlapIcon from '@/assets/images/course/overlap.svg';
 import { SCHEDULE_ITEM_MARGIN, type CourseInfoMerged } from '@/lib/course';
 import { isWeekInSegment } from '@/lib/course-schedule';
 import { getCourseDisplayColor } from '@/utils/course-color-display';
-import { getTextColor, nonCurrentWeekCourseColor } from '@/utils/random-color';
 
 import { useTheme } from '../app-theme-provider';
 import ScheduleDetailsDialog from './schedule-detail-dialog';
@@ -17,14 +16,15 @@ interface ScheduleItemProps {
   itemHeight: number;
   span: number;
   color: string; // 课程的颜色
+  nonCurrentWeek: boolean;
   week: number;
 }
 
 // ScheduleItem 组件，用于显示课程表中的一节课
-const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color, week }) => {
+const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color, nonCurrentWeek, week }) => {
   const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const { isDarkTheme, hasCustomBackground, darkenBackground } = useTheme();
-  const textColor = getTextColor(color, isDarkTheme);
+  const textColor = nonCurrentWeek ? '#00000033' : isDarkTheme ? '#FFFFFFDE' : '#FFFFFF';
 
   return (
     <>
@@ -32,10 +32,10 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
         <Pressable
           className="flex flex-1 flex-col items-center justify-center overflow-hidden rounded-lg p-[1px]"
           style={{
-            backgroundColor: getCourseDisplayColor(color, isDarkTheme, {
+            backgroundColor: getCourseDisplayColor(nonCurrentWeek ? '#DEDEDE' : color, isDarkTheme, {
               hasCustomBackground,
               darkenBackground,
-              compensate: color.toUpperCase() !== nonCurrentWeekCourseColor,
+              compensate: !nonCurrentWeek,
             }),
           }}
           onPress={() => setDetailsDialogOpen(true)}
