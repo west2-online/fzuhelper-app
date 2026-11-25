@@ -9,8 +9,8 @@ import {
   type ColorSchemeName,
 } from 'react-native';
 
-import { COURSE_SETTINGS_KEY, DARKEN_BACKGROUND_KEY } from '@/lib/constants';
-import { getCourseSetting } from '@/lib/course';
+import { DARKEN_BACKGROUND_KEY } from '@/lib/constants';
+import { getCourseSetting, updateCourseSetting } from '@/lib/course';
 import { DEFAULT_COURSE_COLOR_SCHEME, type CourseColorScheme } from '@/lib/palettes';
 import { USER_LOGOUT_EVENT } from '@/lib/user';
 import {
@@ -94,7 +94,7 @@ export const AppThemeProvider = ({ children }: Props) => {
   }, []);
 
   const setCourseColorScheme = useCallback(async (scheme: CourseColorScheme) => {
-    await AsyncStorage.mergeItem(COURSE_SETTINGS_KEY, JSON.stringify({ colorScheme: scheme }));
+    await updateCourseSetting({ colorScheme: scheme });
     setCourseColorSchemeState(scheme);
   }, []);
 

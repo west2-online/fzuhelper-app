@@ -13,7 +13,6 @@ import {
   EXPIRE_ONE_DAY,
 } from '@/lib/constants';
 import {
-  COURSE_TYPE,
   CourseCache,
   EXAM_TYPE,
   getCourseSetting,
@@ -43,8 +42,6 @@ async function loadCourseAndExamData(
   setting: CourseSetting,
   currentTerm: TermsListResponse_Term,
 ): Promise<boolean> {
-  let hasChanged = false;
-
   // 获取课程数据
   const fetchedData = await fetchWithCache(
     [COURSE_DATA_V2_KEY, queryTerm],
@@ -54,11 +51,7 @@ async function loadCourseAndExamData(
 
   const courses = normalizeV2Courses(fetchedData.data.data.courses ?? []);
 
-  // 如果缓存数据和新数据不一致，则更新数据
-  if (!CourseCache.compareDigest(COURSE_TYPE, courses)) {
-    CourseCache.setCourses(courses);
-    hasChanged = true;
-  }
+  let hasChanged = CourseCache.setCourses(courses);
 
   // 让本地的自定义课程与云端对齐（正常情况下就是覆盖，历史数据需要先迁移，见该函数注释）
   const customChanged = await reconcileCustomCourses(
@@ -117,14 +110,19 @@ export function useCoursePageData() {
       }
 
       // 2. 获取当前日期和课表设置
-      const [locateDateRes, setting] = await Promise.all([locateDate(), getCourseSetting()]);
-      setting.selectedSemester = setting.selectedSemester || locateDateRes.semester;
+      const locateDateRes = await locateDate();
+      const setting = await getCourseSetting();
+      const selectedSemester = setting.selectedSemester || locateDateRes.semester;
 
       // 3. 获取当前学期信息
-      const currentTerm = termsData?.data?.data?.terms?.find(t => t.term === setting.selectedSemester);
+      const currentTerm = termsData?.data?.data?.terms?.find(t => t.term === selectedSemester);
       if (!termsData || !currentTerm) {
         console.error('Failed to load term data: ', termsData, currentTerm);
         throw new Error('获取学期信息失败，请稍后再试');
+      }
+      if (!setting.selectedSemester) {
+        await updateCourseSetting({ selectedSemester });
+        setting.selectedSemester = selectedSemester;
       }
 
       // 4. 计算当前周数（历史学期为 -1）和最大周数
@@ -161,8 +159,6 @@ export function useCoursePageData() {
           .catch(error => {
             console.error('Background refresh failed:', error);
           });
-        // 同步确保选中学期写回设置
-        await updateCourseSetting({ selectedSemester: setting.selectedSemester });
         return {
           setting,
           currentWeek,
@@ -178,10 +174,7 @@ export function useCoursePageData() {
       // 8. 获取课表数据
       const schedulesByDays = CourseCache.getCachedData(setting.selectedSemester);
 
-      // 9. 更新选中学期
-      await updateCourseSetting({ selectedSemester: setting.selectedSemester });
-
-      // 10. 提示数据刷新
+      // 9. 提示数据刷新
       if (hasChanged) {
         toast.success('课程数据已更新');
       }

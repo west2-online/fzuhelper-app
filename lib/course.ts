@@ -328,8 +328,16 @@ export class CourseCache {
           lastExamUpdateTime: this.lastExamUpdateTime,
         } satisfies CacheCourseData),
       );
+    } catch (error) {
+      console.error('保存课表缓存失败', error);
+      return;
+    }
 
-      // 将数据保存到原生共享存储中，以便在小组件中调用
+    await this.syncWidgets();
+  }
+
+  public static async syncWidgets(): Promise<void> {
+    try {
       const termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([
         COURSE_TERMS_LIST_KEY,
       ]);
@@ -658,28 +666,21 @@ export class CourseCache {
   }
 
   /**
-   * 转换课程数据为扩展课程数据
-   * @param tempData - 接口返回的数据
-   * @param skipDigestCheck - 是否跳过摘要检查
-   * @returns 按天归类的课程数据
+   * 更新普通课程缓存，返回是否发生更新
    */
-  public static setCourses(
-    tempData: JwchCourseListResponse_Course[],
-    skipDigestCheck = false,
-  ): Record<number, RegularCourse[]> {
-    this.lastCourseUpdateTime = dayjs().format(DATETIME_SECOND_FORMAT);
-    const currentDigest = this.calculateDigest(tempData);
+  public static setCourses(courses: JwchCourseListResponse_Course[], skipDigestCheck = false): boolean {
+    const currentDigest = this.calculateDigest(courses);
 
-    if (currentDigest === this.cachedDigest && this.cachedData && !skipDigestCheck) {
-      return this.cachedData;
+    if (!skipDigestCheck && currentDigest === this.cachedDigest && this.cachedData) {
+      return false;
     }
 
     this.startID = DEFAULT_STARTID;
-    const groupedData = this.processCourses(tempData);
+    this.cachedData = this.processCourses(courses);
     this.cachedDigest = currentDigest;
-    this.cachedData = groupedData;
+    this.lastCourseUpdateTime = dayjs().format(DATETIME_SECOND_FORMAT);
     this.save().then(() => this.refresh());
-    return groupedData;
+    return true;
   }
 
   /**
@@ -927,15 +928,8 @@ export const getCourseSetting = async (): Promise<CourseSetting> => {
  * 只存储用户主动修改的配置，不存储默认值，目的是让后续改动默认值自动生效
  * @param newSetting - 改动部分的设置，不要传入getCourseSetting返回的完整设置
  */
-export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): Promise<void> => {
-  const currentSettingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-  const currentSetting = currentSettingJson ? (JSON.parse(currentSettingJson) as Partial<CourseSetting>) : {};
-  if (Object.entries(newSetting).every(([key, value]) => currentSetting[key as keyof CourseSetting] === value)) {
-    return;
-  }
-
-  await AsyncStorage.mergeItem(COURSE_SETTINGS_KEY, JSON.stringify(newSetting));
-};
+export const updateCourseSetting = (newSetting: Partial<CourseSetting>): Promise<void> =>
+  AsyncStorage.mergeItem(COURSE_SETTINGS_KEY, JSON.stringify(newSetting));
 
 // 强制刷新数据（即不使用本地缓存）
 // refreshJwch 仅控制是否强制刷新教务处数据，为 false 时仍获取最新的云端自定义课程
