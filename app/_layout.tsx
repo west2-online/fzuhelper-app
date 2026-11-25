@@ -2,10 +2,9 @@
 import '@/utils/patch-text-component';
 
 import Geolocation from '@react-native-community/geolocation';
-import { getHeaderTitle, Header } from '@react-navigation/elements';
-import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { PortalHost } from '@rn-primitives/portal';
-import { Stack } from 'expo-router';
+import { Stack, type NativeStackHeaderProps } from 'expo-router';
+import { getHeaderTitle, Header } from 'expo-router/react-navigation';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

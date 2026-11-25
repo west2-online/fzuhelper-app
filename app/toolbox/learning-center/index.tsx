@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useContext, useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LabelEntry from '@/components/label-entry';
 import Loading from '@/components/loading';
@@ -10,9 +11,8 @@ import LoginPrompt from '@/components/sso-login-prompt';
 import { Text } from '@/components/ui/text';
 
 import { LearningCenterContext } from '@/context/learning-center';
+import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
-import { LEARNING_CENTER_TOKEN_KEY, SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const menuItems: {
   name: string;

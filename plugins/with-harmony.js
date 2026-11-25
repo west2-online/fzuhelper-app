@@ -7,7 +7,6 @@ const {
   registerHarmonyConfigPlugin,
   withHarmonyDangerousMod,
   withRootOhPackage,
-  withRootHvigor,
   withProjectBuildProfile,
   withModuleJson,
   withStrings,
@@ -57,14 +56,6 @@ module.exports = config => {
       permission: permission.name,
     }));
   config = registerHarmonyConfigPlugin(config, 'fzuhelper-harmony');
-  config = withRootHvigor(config, mod => {
-    mod.modResults = replaceSource(
-      mod.modResults,
-      "process.env.HERMES_V1_ENABLED = 'true';",
-      "process.env.EXPO_HARMONY = '1';\nprocess.env.IS_HARMONY = 'true';\nprocess.env.HERMES_V1_ENABLED = 'true';",
-    );
-    return mod;
-  });
   config = withHarmonyDangerousMod(config, mod => {
     for (const root of moduleHosts) copyNativeFiles(mod, root);
     return mod;

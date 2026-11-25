@@ -25,7 +25,9 @@ fzuhelper-app 是一个使用 React Native 跨平台技术开发的客户端应�
 
 ## 快速开始
 
-本项目使用 React Native。
+本项目使用 Expo SDK 57、React Native 0.86 和 React 19.2.3。CI 使用 Node.js 22，建议本地使用 Node.js 22.13 或更新的 22.x 版本。
+
+从旧版升级时，请全新安装 `node_modules`，并重新运行对应平台的预构建。
 
 在启动开发环境之前，需要准备一台安装了 Windows 10 或更高版本的 PC，或者运行 macOS 15 或更高版本的 Mac。还需要安装好 [Node.js](https://nodejs.org) 和 [Yarn](https://yarnpkg.com)。如果需要进行 iOS 开发，则必须使用 Mac 电脑。
 
@@ -93,6 +95,8 @@ yarn ios --device
 
 ## HarmonyOS NEXT
 
+鸿蒙端使用 Expo Harmony 的 SDK 57 适配包和 RNOH 0.86.1。依赖和构建工具的配套版本见 [Expo Harmony 快速开始](https://github.com/renbaoshuo/expo-harmony/blob/master/docs/QuickStart.md)。
+
 需要先安装 [DevEco Studio](https://developer.huawei.com/consumer/cn/deveco-studio/) 和 [Command Line Tools](https://developer.huawei.com/consumer/cn/download/)，并手动配置好 SDK、模拟器、相关 PATH（Command Line Tools 的 bin；DevEco Studio 的 OpenHarmony SDK Toolchains）。
 
 ```bash
@@ -105,10 +109,7 @@ yarn install
 # 预构建 HarmonyOS 工程项目
 yarn prebuild:harmony
 
-# 安装 ohpm 依赖
-(cd harmony && ohpm install --all)
-
-# 在模拟器中运行开发版本
+# 安装 ohpm 依赖、构建并在模拟器中运行开发版本
 yarn harmony
 ```
 

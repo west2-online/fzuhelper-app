@@ -98,8 +98,6 @@ const config: ExpoConfigWithHarmony = {
     vendor: 'west2-online',
     versionCode,
     icon: './assets/images/icon.png',
-    targetApiVersion: 24,
-    compatibleSdkVersion: 23,
     permissions: [
       {
         name: 'ohos.permission.ACCELEROMETER',
@@ -289,12 +287,22 @@ const config: ExpoConfigWithHarmony = {
     '@expo-harmony/expo-system-ui',
     '@expo-harmony/expo-navigation-bar',
     '@expo-harmony/expo-sharing',
+    [
+      '@expo-harmony/expo-build-properties',
+      {
+        harmony: {
+          targetSdkVersion: 24,
+          compatibleSdkVersion: 23,
+        },
+      },
+    ],
     require.resolve('./plugins/with-harmony.js'),
     require.resolve('./modules/fzuhelper-quick-actions/app.plugin.js'),
     // Base mods must be registered last.
     '@expo-harmony/prebuild-config',
   ],
   experiments: {
+    outOfTreePlatforms: true,
     typedRoutes: true,
   },
   extra: {

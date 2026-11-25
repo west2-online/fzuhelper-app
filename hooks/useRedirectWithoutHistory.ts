@@ -1,5 +1,5 @@
-import { StackActions } from '@react-navigation/native';
 import { router, useNavigationContainerRef } from 'expo-router';
+import { StackActions } from 'expo-router/react-navigation';
 import { useCallback } from 'react';
 
 export function useRedirectWithoutHistory() {

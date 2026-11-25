@@ -9,8 +9,8 @@ import PageContainer from '@/components/page-container';
 import LoginPrompt from '@/components/sso-login-prompt';
 import { Text } from '@/components/ui/text';
 
+import { SSO_LOGIN_COOKIE_KEY } from '@/lib/constants';
 import SSOLogin from '@/lib/sso-login';
-import { SSO_LOGIN_COOKIE_KEY } from 'lib/constants';
 
 // 该代码暂时作废，目前公寓报修页面还是可以正常使用的，不像学习中心那样卡的要死
 

@@ -26,8 +26,6 @@ jobs:
           path: |
             ${{ github.workspace }}/node_modules
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

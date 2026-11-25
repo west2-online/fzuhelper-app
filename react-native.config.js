@@ -3,8 +3,6 @@ const harmonyOnlyDependencies = [
   // Transitive dependencies of the Harmony image viewer port.
   '@react-native-camera-roll/camera-roll',
   'rn-fetch-blob',
-  // This upstream copy only supplies JS to the Harmony Screens port.
-  'react-native-screens-harmony',
 ];
 
 module.exports = {
