@@ -37,7 +37,7 @@ jobs:
       - name: Setup HarmonyOS CLI tools
         uses: west2-online/setup-ohos@v2
         with:
-          version: 6.1.1.300
+          version: 6.1.1.460
           cache: true
 
       - name: Setup Node.js
