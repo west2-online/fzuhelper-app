@@ -53,7 +53,6 @@ const CourseGrid = forwardRef(
   ) => {
     const { handleError } = useSafeResponseSolve();
     const { currentTerm, maxWeek } = coursePageData;
-    const colorScheme = coursePageData.setting.colorScheme;
     const [schedulesByDays, setSchedulesByDays] = useState(coursePageData.schedulesByDays);
     const mergedSchedulesByDays = useMemo(() => mergeCourseSchedulesByDay(schedulesByDays), [schedulesByDays]);
 
@@ -77,13 +76,7 @@ const CourseGrid = forwardRef(
       if (selectedFriendId) {
         // 情况 A：查看好友课表，仅在数据成功返回时更新
         if (friendCourseData) {
-          setSchedulesByDays(
-            CourseCache.processFriendCourses(
-              friendCourseData as JwchCourseListResponse_Course[],
-              selectedFriendId,
-              colorScheme,
-            ),
-          );
+          setSchedulesByDays(CourseCache.processCourses(friendCourseData as JwchCourseListResponse_Course[]));
         }
       } else {
         // 情况 B：查看本人课表，立即同步并监听缓存刷新
@@ -95,7 +88,7 @@ const CourseGrid = forwardRef(
         CourseCache.addRefreshListener(syncOwnData);
         return () => CourseCache.removeRefreshListener(syncOwnData);
       }
-    }, [selectedFriendId, friendCourseData, coursePageData.setting.selectedSemester, colorScheme]);
+    }, [selectedFriendId, friendCourseData, coursePageData.setting.selectedSemester]);
 
     const { width } = useWindowDimensions();
     const [flatListLayout, setFlatListLayout] = useState<LayoutRectangle>({ width, height: 0, x: 0, y: 0 });
@@ -367,7 +360,7 @@ export default function HomePage() {
     useCallback(() => {
       const checkSettingsChange = async () => {
         const currentSettings = await getCourseSetting();
-        const currentSettingsStr = JSON.stringify(currentSettings);
+        const currentSettingsStr = JSON.stringify({ ...currentSettings, colorScheme: undefined });
 
         // 首次加载时保存设置
         if (prevSettingsRef.current === null) {

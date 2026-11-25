@@ -4,6 +4,7 @@ import { type LayoutRectangle, View } from 'react-native';
 import EmptyScheduleItem from './empty-schedule-item';
 import ScheduleItem from './schedule-item';
 
+import { useTheme } from '@/components/app-theme-provider';
 import { useCoursePageSetting } from '@/context/course-page';
 import {
   COURSE_TYPE,
@@ -14,12 +15,13 @@ import {
   SCHEDULE_ITEM_MIN_HEIGHT,
 } from '@/lib/course';
 import { isCourseScheduledInWeek } from '@/lib/course-schedule';
+import { coursePalettes } from '@/lib/palettes';
 import { nonCurrentWeekCourseColor } from '@/utils/random-color';
 
 interface CourseScheduleItemDataBase {
   schedules: CourseInfoMerged[];
   span: number;
-  color: string; // 课程的颜色
+  nonCurrentWeek?: boolean;
 }
 
 type CourseScheduleItemData = { type: 'course' } & CourseScheduleItemDataBase;
@@ -39,6 +41,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     [flatListLayout.height],
   );
   const setting = useCoursePageSetting();
+  const { courseColorScheme } = useTheme();
 
   // 根据当前周数和星期几，筛选出当天的课程
   // 并进行整合，生成一个用于渲染的数据结构
@@ -82,7 +85,6 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
       mainCourses.push({
         schedules: [s],
         span: s.endClass - s.startClass + 1,
-        color: s.color,
       });
 
       // 标记区间内课次已被占用
@@ -124,7 +126,7 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
         mainCourses.push({
           schedules: [s],
           span: s.endClass - s.startClass + 1,
-          color: nonCurrentWeekCourseColor,
+          nonCurrentWeek: true,
         });
 
         // 标记已占用
@@ -164,22 +166,26 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     week,
   ]);
 
+  const { colors } = coursePalettes[courseColorScheme ?? setting.colorScheme];
+
   return (
     <View className="flex flex-shrink-0 flex-grow flex-col" style={{ width: flatListLayout.width / 7 }}>
-      {scheduleData.map((item, index) =>
-        item.type === 'course' ? (
+      {scheduleData.map((item, index) => {
+        if (item.type === 'empty') return <EmptyScheduleItem key={index} itemHeight={itemHeight} />;
+
+        const course = item.schedules[0];
+        const courseColor = course.type === COURSE_TYPE ? colors[course.color] : course.color;
+        return (
           <ScheduleItem
             key={index}
             itemHeight={itemHeight}
             span={item.span}
-            color={item.color}
+            color={item.nonCurrentWeek ? nonCurrentWeekCourseColor : courseColor}
             schedules={item.schedules}
             week={week}
           />
-        ) : (
-          <EmptyScheduleItem key={index} itemHeight={itemHeight} />
-        ),
-      )}
+        );
+      })}
     </View>
   );
 };

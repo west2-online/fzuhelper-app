@@ -1,4 +1,4 @@
-import type { CourseColorScheme } from '@/lib/course-color-schemes';
+import type { CourseColorScheme } from '@/lib/palettes';
 
 export interface CourseSetting {
   colorScheme: CourseColorScheme; // 普通课程配色方案

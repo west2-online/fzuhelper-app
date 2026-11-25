@@ -14,19 +14,12 @@ import {
   EXAM_ROOM_KEY,
   IOS_APP_GROUP,
 } from '@/lib/constants';
-import { DEFAULT_COURSE_COLOR_SCHEME } from '@/lib/course-color-schemes';
+import { coursePalettes, DEFAULT_COURSE_COLOR_SCHEME } from '@/lib/palettes';
 import { setWidgetData } from '@/modules/native-widget';
 import { MergedExamData } from '@/types/academic';
 import type { PartiallyOptional } from '@/types/utils';
 import { fetchWithCache } from '@/utils/fetch-with-cache';
-import {
-  allocateColorForCourse,
-  clearColorMapping,
-  getCourseColors,
-  getExamColor,
-  normalizeCourseColorScheme,
-  type CourseColorScheme,
-} from '@/utils/random-color';
+import { createCourseColorAllocator, examColor } from '@/utils/random-color';
 import { ExtensionStorage } from '@bacons/apple-targets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
@@ -53,7 +46,6 @@ export type ParsedCourse = PartiallyOptional<
 // 对课程类型的拓展，支持颜色等设计，也允许后期进行不断扩充
 interface ExtendCourseBase extends ParsedCourse {
   id: number; // 我们为每门课程分配一个唯一的 ID，后续可以用于识别
-  color: string; // 课程颜色
   priority: number; // 优先级
 }
 
@@ -63,12 +55,21 @@ export enum CourseType {
   CUSTOM = 2,
 }
 
-export type ExtendCourse = ExtendCourseBase & {
-  type: CourseType; // 课程类型（0 = 普通课程，1 = 考试，2 = 自定义课程）
+type RegularCourse = ExtendCourseBase & {
+  type: CourseType.COURSE;
+  color: number; // 色板索引
 };
+
+type ExamCourse = ExtendCourseBase & {
+  type: CourseType.EXAM;
+  color: string;
+};
+
+export type ExtendCourse = RegularCourse | ExamCourse | CustomCourse;
 
 export type CustomCourse = ExtendCourseBase & {
   type: CourseType.CUSTOM;
+  color: string;
   storageKey: string; // 课程标识，与云端同步后就是服务端的 course_id；为空表示尚未保存的新课程
   lastUpdateTime: string; // 最后更新时间
   semester: string; // 学期
@@ -82,7 +83,7 @@ export type WeekSegment = {
   double: boolean; // 是否双周
 };
 
-export type CourseInfo = ExtendCourse | CustomCourse;
+export type CourseInfo = ExtendCourse;
 
 // 同一个课程可能被教务系统分成不同周段，甚至有调课的情况，在展示课程信息前需要先整合
 // 具体逻辑在 course-schedule.ts 中
@@ -92,13 +93,12 @@ export type CourseInfoMerged = CourseInfo & {
 };
 
 interface CacheCourseData {
-  colorScheme?: CourseColorScheme; // 旧缓存未记录时按经典配色处理
-  courseData: Record<number, ExtendCourse[]>; // 课程数据
-  courseDigest: string;
-  examData: Record<number, ExtendCourse[]>; // 考试数据
-  examDigest: string;
-  customData: Record<number, CustomCourse[]>; // 自定义数据
-  customDigest: string;
+  courseData: Record<number, RegularCourse[]> | null; // 课程数据
+  courseDigest: string | null;
+  examData: Record<number, ExamCourse[]> | null; // 考试数据
+  examDigest: string | null;
+  customData: Record<number, CustomCourse[]> | null; // 自定义数据
+  customDigest: string | null;
   lastCourseUpdateTime: string;
   lastExamUpdateTime: string;
   priorityCounter: number;
@@ -170,16 +170,13 @@ export const DEFAULT_PRIORITY = 1; // 默认优先级
 const DEFAULT_STARTID = 0; // 默认 ID 起始值
 
 export class CourseCache {
-  private static colorScheme: CourseColorScheme = DEFAULT_COURSE_COLOR_SCHEME;
-  private static isLoaded = false;
-  private static loadPromise: Promise<void> | null = null;
   private static cachedDigest: string | null = null; // 缓存的课程数据的摘要
   private static cachedExamDigest: string | null = null; // 缓存的考试数据的摘要
   private static cachedCustomDigest: string | null = null; // 缓存的自定义课程数据的摘要
   // 历史本地自定义课程是否已经全部上传到云端；false 时不允许用服务端数据覆盖本地
   private static customCoursesMigrated = false;
-  private static cachedData: Record<number, ExtendCourse[]> | null = null; // 缓存的课程数据
-  private static cachedExamData: Record<number, ExtendCourse[]> | null = null; // 缓存的考试数据
+  private static cachedData: Record<number, RegularCourse[]> | null = null; // 缓存的课程数据
+  private static cachedExamData: Record<number, ExamCourse[]> | null = null; // 缓存的考试数据
   private static cachedCustomData: Record<number, CustomCourse[]> | null = null; // 缓存的自定义课程数据
   private static priorityCounter: number = DEFAULT_PRIORITY; // 静态优先级计数器，初始值为 1
   private static startID = DEFAULT_STARTID; // 从 1000 开始分配 ID
@@ -284,29 +281,24 @@ export class CourseCache {
   /**
    * 加载缓存数据
    */
-  public static load(): Promise<void> {
-    if (!this.loadPromise) {
-      this.loadPromise = this.loadFromStorage().finally(() => {
-        this.loadPromise = null;
-      });
-    }
-    return this.loadPromise;
-  }
-
-  private static async loadFromStorage(): Promise<void> {
-    // 课程数据
+  public static async load(): Promise<void> {
     const resp = await AsyncStorage.getItem(COURSE_CURRENT_CACHE_KEY);
-    if (!resp) {
-      const setting = await getCourseSetting();
-      this.colorScheme = setting.colorScheme;
-      this.isLoaded = true;
-      return;
-    }
+    if (!resp) return;
 
     const result = JSON.parse(resp) as CacheCourseData;
-    this.colorScheme = normalizeCourseColorScheme(result.colorScheme);
     this.cachedDigest = result.courseDigest;
     this.cachedData = result.courseData;
+    const days = Object.values(this.cachedData ?? {});
+    if (days.some(([course]) => typeof course?.color === 'string')) {
+      // 已发布版本的课程缓存仍可离线使用，按课名重新分配色号。
+      const allocateColor = createCourseColorAllocator();
+      for (const courses of days) {
+        for (const course of courses) {
+          const name = course.adjust ? course.name.replace(/^\[调课\]\s*/, '') : course.name;
+          course.color = allocateColor(name);
+        }
+      }
+    }
     this.cachedExamDigest = result.examDigest;
     this.cachedExamData = result.examData;
     this.cachedCustomData = result.customData;
@@ -314,55 +306,7 @@ export class CourseCache {
     this.priorityCounter = result.priorityCounter;
     this.lastCourseUpdateTime = result.lastCourseUpdateTime;
     this.lastExamUpdateTime = result.lastExamUpdateTime;
-    this.isLoaded = true;
-    // 缓存读取期间可能切换了方案，恢复数据后以最新设置重染
-    const setting = await getCourseSetting();
-    await this.applyColorScheme(setting.colorScheme);
     console.log('Loaded cached course data.');
-  }
-
-  /**
-   * 切换普通课程配色，保留色号、课程信息以及考试和自定义课程的颜色
-   */
-  public static async applyColorScheme(colorScheme: CourseColorScheme): Promise<void> {
-    // 设置页直接打开时也需要先读取已保存的课表，避免空内存覆盖缓存
-    if (!this.isLoaded) await this.load();
-
-    const nextScheme = normalizeCourseColorScheme(colorScheme);
-    const nextColors = getCourseColors(nextScheme);
-    const hasValidColors = Object.values(this.cachedData ?? {}).every(courses =>
-      courses.every(
-        course =>
-          course.type !== COURSE_TYPE ||
-          (typeof course.color === 'string' && nextColors.includes(course.color.toUpperCase())),
-      ),
-    );
-    if (nextScheme === this.colorScheme && hasValidColors) return;
-
-    const previousColors = getCourseColors(this.colorScheme);
-    this.colorScheme = nextScheme;
-    if (!this.cachedData) return;
-
-    const studentId = LocalUser.getUser().userid;
-    clearColorMapping(studentId, nextScheme);
-    this.cachedData = Object.fromEntries(
-      Object.entries(this.cachedData).map(([day, courses]) => [
-        day,
-        courses.map(course => {
-          if (course.type !== COURSE_TYPE) return course;
-
-          const colorIndex = typeof course.color === 'string' ? previousColors.indexOf(course.color.toUpperCase()) : -1;
-          const courseName = course.adjust ? course.name.replace(/^\[调课\]\s*/, '') : course.name;
-          return {
-            ...course,
-            color: colorIndex >= 0 ? nextColors[colorIndex] : allocateColorForCourse(courseName, studentId, nextScheme),
-          };
-        }),
-      ]),
-    );
-
-    await this.save();
-    this.refresh();
   }
 
   /**
@@ -373,7 +317,6 @@ export class CourseCache {
       await AsyncStorage.setItem(
         COURSE_CURRENT_CACHE_KEY,
         JSON.stringify({
-          colorScheme: this.colorScheme,
           courseData: this.cachedData,
           courseDigest: this.cachedDigest,
           examData: this.cachedExamData,
@@ -383,7 +326,7 @@ export class CourseCache {
           priorityCounter: this.priorityCounter,
           lastCourseUpdateTime: this.lastCourseUpdateTime,
           lastExamUpdateTime: this.lastExamUpdateTime,
-        } as CacheCourseData),
+        } satisfies CacheCourseData),
       );
 
       // 将数据保存到原生共享存储中，以便在小组件中调用
@@ -419,9 +362,19 @@ export class CourseCache {
         ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
         ExtensionStorage.reloadWidget(); // 保存后需要重载一次
       } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
+        // Android 小组件仍按字符串颜色取其内置背景。
+        const { colors } = coursePalettes[courseSettings.colorScheme];
+        const courseData =
+          this.cachedData &&
+          Object.fromEntries(
+            Object.entries(this.cachedData).map(([day, courses]) => [
+              day,
+              courses.map(course => ({ ...course, color: colors[course.color] })),
+            ]),
+          );
         await setWidgetData(
           JSON.stringify({
-            courseData: this.cachedData,
+            courseData,
             examData: this.cachedExamData,
             customData: customCourses,
             startDate: currentTerm.start_date,
@@ -442,7 +395,6 @@ export class CourseCache {
    * 清除缓存数据
    */
   public static async clear(): Promise<void> {
-    this.isLoaded = true;
     this.cachedDigest = null;
     this.cachedData = null;
     this.cachedExamData = null;
@@ -558,7 +510,7 @@ export class CourseCache {
 
     switch (course.type) {
       case COURSE_TYPE:
-        const updatedData: Record<number, ExtendCourse[]> = {};
+        const updatedData: Record<number, RegularCourse[]> = {};
         for (const [day, courses] of Object.entries(this.cachedData)) {
           updatedData[+day] = courses.map(c => {
             if (c.id === course.id) {
@@ -619,7 +571,7 @@ export class CourseCache {
     // 如果当前 digest 和上一次的 digest 一致，则不再进行后续处理
     if (currentDigest === this.cachedExamDigest && this.cachedExamData) return;
 
-    let extendedCourses: ExtendCourse[] = [];
+    const extendedCourses: ExamCourse[] = [];
     const startDate = dayjs(semesterStart); // 使用 dayjs 解析学期开始日期
     const endDate = dayjs(semesterEnd); // 使用 dayjs 解析学期结束日期
 
@@ -644,10 +596,10 @@ export class CourseCache {
       // 填充课程数据
       try {
         const { startClass, endClass } = parseTimeToClass(time);
-        const course: ExtendCourse = {
+        const course: ExamCourse = {
           id: this.allocateID(), // 分配新 ID
           priority: EXAM_PRIORITY, // 使用最高优先级
-          color: getExamColor(), // 固定为一个明亮的颜色
+          color: examColor, // 固定为一个明亮的颜色
           type: EXAM_TYPE, // 类型为考试
           name: '[考试] ' + examItem.name, // 特别标记
           teacher: examItem.teacher,
@@ -680,7 +632,7 @@ export class CourseCache {
         result[day].push(current);
         return result;
       },
-      {} as Record<number, ExtendCourse[]>,
+      {} as Record<number, ExamCourse[]>,
     );
     this.cachedExamData = groupedData;
     this.cachedExamDigest = currentDigest;
@@ -713,101 +665,41 @@ export class CourseCache {
    */
   public static setCourses(
     tempData: JwchCourseListResponse_Course[],
-    skipDigestCheck: boolean = false,
-    colorScheme: CourseColorScheme = this.colorScheme,
-  ): Record<number, ExtendCourse[]> {
-    const scheme = normalizeCourseColorScheme(colorScheme);
-    /* 缓存校对处理，如果缓存和传入的数据一致，不做任何改动 */
-
-    // 更新时间戳
+    skipDigestCheck = false,
+  ): Record<number, RegularCourse[]> {
     this.lastCourseUpdateTime = dayjs().format(DATETIME_SECOND_FORMAT);
-    // 生成当前 tempData 的 digest
     const currentDigest = this.calculateDigest(tempData);
 
-    // 如果当前 digest 和上一次的 digest 一致 且 不跳过检查，则直接返回缓存的 data
-    if (currentDigest === this.cachedDigest && this.cachedData && !skipDigestCheck && scheme === this.colorScheme) {
+    if (currentDigest === this.cachedDigest && this.cachedData && !skipDigestCheck) {
       return this.cachedData;
     }
 
-    /* 到此处我们认为数据是不一致的，开始重新处理课程 */
-    this.startID = DEFAULT_STARTID; // 初始化 id
-    this.colorScheme = scheme;
-    const currentUserId = LocalUser.getUser().userid;
-    clearColorMapping(currentUserId, scheme); // 清空颜色映射，重新分配颜色
-
-    const schedules = this.parseCourses(tempData); // 解析课程数据
-
-    // 为每个课程生成颜色并扩展数据
-    const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
-      const id = this.allocateID(); // 分配一个新的 ID
-      return {
-        ...schedule,
-        name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
-        color: allocateColorForCourse(schedule.name, currentUserId, scheme), // 分配颜色
-        priority: DEFAULT_PRIORITY, // 默认优先级
-        id: id,
-        type: COURSE_TYPE,
-      };
-    });
-
-    // 按天归类课程数据
-    const groupedData = extendedCourses.reduce(
-      (result, current) => {
-        const day = current.weekday - 1;
-        result[day].push(current);
-        return result;
-      },
-      Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<number, ExtendCourse[]>,
-    );
-
-    // 更新缓存
+    this.startID = DEFAULT_STARTID;
+    const groupedData = this.processCourses(tempData);
     this.cachedDigest = currentDigest;
     this.cachedData = groupedData;
-
-    this.save().then(() => this.refresh()); // 缓存数据
-
+    this.save().then(() => this.refresh());
     return groupedData;
   }
 
   /**
-   * 处理好友课程数据，不更新缓存
-   * @param courses - 原始课程数据
-   * @returns 按天归类的课程数据
+   * 处理普通课程数据并按天归类
    */
-  public static processFriendCourses(
-    courses: JwchCourseListResponse_Course[],
-    friendId: string,
-    colorScheme: CourseColorScheme = this.colorScheme,
-  ): Record<number, ExtendCourse[]> {
-    const scheme = normalizeCourseColorScheme(colorScheme);
-    const studentId = friendId; // 使用好友学号作为颜色映射的 key
-    clearColorMapping(studentId, scheme); // 清空好友的颜色映射，重新分配颜色
-    const schedules = this.parseCourses(courses); // 解析课程数据
+  public static processCourses(courses: JwchCourseListResponse_Course[]): Record<number, RegularCourse[]> {
+    const allocateColor = createCourseColorAllocator();
+    const groupedData: Record<number, RegularCourse[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
-    // 为每个课程生成颜色并扩展数据
-    const extendedCourses: ExtendCourse[] = schedules.map(schedule => {
-      const id = this.allocateID(); // 分配一个新的 ID
-      return {
+    for (const schedule of this.parseCourses(courses)) {
+      const day = schedule.weekday - 1;
+      (groupedData[day] ??= []).push({
         ...schedule,
         name: schedule.adjust ? `[调课] ${schedule.name}` : schedule.name,
-        color: allocateColorForCourse(schedule.name, studentId, scheme), // 分配颜色
-        priority: DEFAULT_PRIORITY, // 默认优先级
-        id: id,
+        color: allocateColor(schedule.name),
+        priority: DEFAULT_PRIORITY,
+        id: this.allocateID(),
         type: COURSE_TYPE,
-      };
-    });
-
-    // 按天归类课程数据
-    const groupedData = extendedCourses.reduce(
-      (result, current) => {
-        const day = current.weekday - 1;
-        if (!result[day]) result[day] = []; // 确保数组存在
-        result[day].push(current);
-        return result;
-      },
-      Object.fromEntries(Array.from({ length: 7 }, (_, i) => [i, []])) as Record<number, ExtendCourse[]>,
-    );
-
+      });
+    }
     return groupedData;
   }
 
@@ -1019,33 +911,15 @@ export const defaultCourseSetting: CourseSetting = {
   calendarSubscribeUrl: '',
 };
 
-const parseCourseSetting = (settingJson: string | null): Partial<CourseSetting> => {
-  if (!settingJson) return {};
-  try {
-    const value: unknown = JSON.parse(settingJson);
-    return typeof value === 'object' && value !== null && !Array.isArray(value)
-      ? (value as Partial<CourseSetting>)
-      : {};
-  } catch {
-    return {};
-  }
-};
-
 /**
  * 读取课程设置，如果用户没有修改过则返回默认值
  */
 export const getCourseSetting = async (): Promise<CourseSetting> => {
   const settingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
 
-  if (!settingJson) {
-    return defaultCourseSetting;
-  }
-
   // 始终做合并操作，避免因用户未调整设置/后期有新设置加入而JSON中尚不存在，导致没有默认值
-  const config = { ...defaultCourseSetting, ...parseCourseSetting(settingJson) };
-  config.colorScheme = normalizeCourseColorScheme(config.colorScheme);
-
-  return config;
+  const setting = settingJson ? (JSON.parse(settingJson) as Partial<CourseSetting>) : {};
+  return { ...defaultCourseSetting, ...setting };
 };
 
 /**
@@ -1055,19 +929,12 @@ export const getCourseSetting = async (): Promise<CourseSetting> => {
  */
 export const updateCourseSetting = async (newSetting: Partial<CourseSetting>): Promise<void> => {
   const currentSettingJson = await AsyncStorage.getItem(COURSE_SETTINGS_KEY);
-  const currentSetting = parseCourseSetting(currentSettingJson);
-  const updatedSetting = { ...currentSetting, ...newSetting };
-  if (newSetting.colorScheme !== undefined) {
-    updatedSetting.colorScheme = normalizeCourseColorScheme(newSetting.colorScheme);
+  const currentSetting = currentSettingJson ? (JSON.parse(currentSettingJson) as Partial<CourseSetting>) : {};
+  if (Object.entries(newSetting).every(([key, value]) => currentSetting[key as keyof CourseSetting] === value)) {
+    return;
   }
-  const updatedSettingJson = JSON.stringify(updatedSetting);
-  // 有实际变更才写入
-  if (currentSettingJson !== updatedSettingJson) {
-    await AsyncStorage.setItem(COURSE_SETTINGS_KEY, updatedSettingJson);
-  }
-  if (newSetting.colorScheme !== undefined) {
-    await CourseCache.applyColorScheme(newSetting.colorScheme);
-  }
+
+  await AsyncStorage.mergeItem(COURSE_SETTINGS_KEY, JSON.stringify(newSetting));
 };
 
 // 强制刷新数据（即不使用本地缓存）
@@ -1095,9 +962,8 @@ export const forceRefreshCourseDataWithCustomSync = async (
   // locate-date
   await locateDate(true); // 强制更新缓存
 
-  const currentSetting = await getCourseSetting();
   // 设置课程数据，跳过 digest 检查
-  CourseCache.setCourses(normalizeV2Courses(data.data.data.courses ?? []), true, currentSetting.colorScheme);
+  CourseCache.setCourses(normalizeV2Courses(data.data.data.courses ?? []), true);
   await syncCustomCourses(data.data.data.custom_courses ?? [], semester);
 
   // 考场信息

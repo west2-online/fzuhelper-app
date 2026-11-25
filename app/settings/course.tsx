@@ -1,5 +1,5 @@
-import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { router, Stack } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -13,44 +13,40 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1JwchTermList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
+import { useTheme } from '@/components/app-theme-provider';
 import LastUpdateTime from '@/components/last-update-time';
 import { useUpdateEffect } from '@/hooks/use-update-effect';
 import useApiRequest from '@/hooks/useApiRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { JWCH_TERM_LIST_KEY } from '@/lib/constants';
 import { CourseCache, defaultCourseSetting, getCourseSetting, updateCourseSetting } from '@/lib/course';
-import { getCourseColorScheme } from '@/lib/course-color-schemes';
 import { forceRefreshCourseData } from '@/lib/custom-course-sync';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
+import { coursePalettes } from '@/lib/palettes';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 
 export default function CourseSettingPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
+  const { courseColorScheme } = useTheme();
   const { handleError } = useSafeResponseSolve();
   const [isLoadingSemester, setLoadingSemester] = useState(false);
 
-  // 从配色管理页返回时重新读取，保持设置摘要与当前选择一致。
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      const readSettings = async () => {
-        try {
-          await CourseCache.load();
-          const nextSettings = await getCourseSetting();
-          if (active) setSettings(nextSettings);
-        } catch (error) {
-          console.error('读取课程设置失败:', error);
-          if (active) toast.error('读取课程设置失败，请重新进入页面');
-        }
-      };
-      readSettings();
-      return () => {
-        active = false;
-      };
-    }, []),
-  );
+  useEffect(() => {
+    let active = true;
+    Promise.all([CourseCache.load(), getCourseSetting()])
+      .then(([, nextSettings]) => {
+        if (active) setSettings(nextSettings);
+      })
+      .catch(error => {
+        console.error('读取课程设置失败:', error);
+        if (active) toast.error('读取课程设置失败，请重新进入页面');
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // 设置变化时保存设置
   useUpdateEffect(() => {
@@ -202,7 +198,7 @@ export default function CourseSettingPage() {
 
             <LabelEntry
               leftText="课程配色"
-              rightText={getCourseColorScheme(settings.colorScheme).name}
+              rightText={coursePalettes[courseColorScheme ?? settings.colorScheme].name}
               onPress={() => router.push('/settings/course-colors')}
             />
 

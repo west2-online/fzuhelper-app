@@ -8,6 +8,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
+import { useTheme } from '@/components/app-theme-provider';
 import LabelEntry from '@/components/label-entry';
 import PageContainer from '@/components/page-container';
 import { Text } from '@/components/ui/text';
@@ -21,6 +22,7 @@ import { getReleaseChannel, storeReleaseChannel } from '@/utils/android-update';
 
 export default function SettingPage() {
   const redirect = useRedirectWithoutHistory();
+  const { resetCourseColorScheme } = useTheme();
   const [releaseChannel, setReleaseChannel] = useState<string | null>('release'); // (仅 Android) 发布渠道
 
   // 清除数据
@@ -36,6 +38,7 @@ export default function SettingPage() {
         onPress: async () => {
           await AsyncStorage.clear(); // 清空 AsyncStorage
           await logoutUser(); // 清除用户数据
+          resetCourseColorScheme();
           try {
             await FileSystem.deleteAsync(FileSystem.cacheDirectory as string, { idempotent: true }); // 清除系统缓存
           } catch (error) {
@@ -62,6 +65,7 @@ export default function SettingPage() {
         onPress: async () => {
           try {
             await logoutUser();
+            resetCourseColorScheme();
             await SSOlogoutAndCleanData();
             redirect('/(guest)');
           } catch (error) {
