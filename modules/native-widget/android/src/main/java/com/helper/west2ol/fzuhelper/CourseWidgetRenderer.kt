@@ -110,7 +110,7 @@ internal class CourseWidgetRenderer(
             heights, measuredHeight(remaining, width), available, dimension(R.dimen.course_widget_event_gap), day.isTomorrow
         )
         // 日期、课名、教室和时间优先保留，当前课程的备注优先于后续课程。
-        // 依次隐藏剩余提示、后续课程，再将备注从 3 行减至 2、1、0 行。
+        // 下一节放不下时先尝试用剩余课数替代；主课仍放不下时，将备注从 3 行减至 2、1、0 行。
         // 仍放不下才把课名从 2 行减为 1 行；使用省略号，保持固定字号。
         // 极小空间只保留日期和单行课名；所有候选均需通过高度检查，避免强行插入后裁切。
         if (layout == null) {
@@ -150,7 +150,10 @@ internal class CourseWidgetRenderer(
             (heights.size downTo 1).map { Layout(it, false) }
         } else buildList {
             if (heights.size > 2) add(Layout(2, true))
-            if (heights.size > 1) add(Layout(2, false))
+            if (heights.size > 1) {
+                add(Layout(2, false))
+                add(Layout(1, true))
+            }
             add(Layout(1, false))
         }
         return candidates.firstOrNull { candidate ->
