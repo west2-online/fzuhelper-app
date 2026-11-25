@@ -110,7 +110,8 @@ struct CourseWidgetView: View {
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
     }
-    .padding(18)
+    .padding(.horizontal, 17)
+    .padding(.vertical, 15)
   }
 
   // 锁屏组件简化显示内容
@@ -140,24 +141,24 @@ struct CourseDayView: View {
   let showWeekday: Bool
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: 6) {
       HStack(spacing: 4) {
-        WidgetText(day.isTomorrow ? "明日课程" : snapshot.formatted(day.date, "MM月dd日"), size: 12)
+        WidgetText(day.isTomorrow ? "明日课程" : snapshot.formatted(day.date, "MM月dd日"), size: 13)
           .foregroundStyle(Color(day.isTomorrow ? "WidgetSecondary" : "WidgetHeading"))
         if showWeekday {
-          WidgetText(snapshot.formatted(day.date, "EEE"), size: 12)
+          WidgetText(snapshot.formatted(day.date, "EEE"), size: 13)
             .foregroundStyle(Color("WidgetBlue"))
         }
       }
       .widgetAccentable()
 
       if day.events.isEmpty {
-        WidgetText(day.emptyText, size: 10)
+        WidgetText(day.emptyText, size: 11)
           .foregroundStyle(Color("WidgetSecondary"))
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else {
         // 日期、课名、教室和时间优先保留，当前课程的备注优先于后续课程。
-        // 依次隐藏剩余提示、后续课程，再将备注从 3 行减至 2、1、0 行。
+        // 下一节放不下时先尝试用剩余课数替代；主课仍放不下时，将备注从 3 行减至 2、1、0 行。
         // 仍放不下才把课名从 2 行减为 1 行；使用省略号，保持固定字号。
         ViewThatFits(in: .vertical) {
           if day.isTomorrow {
@@ -168,6 +169,7 @@ struct CourseDayView: View {
             if day.events.count > 2 { courses(count: 2, showRemaining: true) }
             if day.events.count > 1 {
               courses(count: 2, showRemaining: false)
+              courses(count: 1, showRemaining: true)
             }
             courses(count: 1, showRemaining: false)
             if showRemarks && !day.events[0].remark.isEmpty {
@@ -212,36 +214,38 @@ struct CourseEventView: View {
       RoundedRectangle(cornerRadius: 2)
         .fill(Color(compact ? "WidgetLightBlue" : "WidgetBlue"))
         .frame(width: 2)
-      VStack(alignment: .leading, spacing: compact ? 4 : 6) {
-        WidgetText(course.name, size: compact ? 10 : 14, lines: compact ? 1 : nameLines)
+      VStack(alignment: .leading, spacing: 2) {
+        WidgetText(course.name, size: compact ? 11 : 15, lines: compact ? 1 : nameLines)
           .foregroundStyle(Color("WidgetTitle"))
         if compact {
           // 同排放不下时将时间移到下一行，避免时间挤压教室。
           ViewThatFits(in: .horizontal) {
             HStack(spacing: 2) {
-              WidgetText(course.location, size: 10)
-              WidgetText(course.timeText, size: 10)
+              WidgetText(course.location, size: 11)
+              WidgetText(course.timeText, size: 11)
             }
-            VStack(alignment: .leading, spacing: 2) {
-              WidgetText(course.location, size: 10)
-              WidgetText(course.timeText, size: 10)
+            VStack(alignment: .leading, spacing: 1) {
+              WidgetText(course.location, size: 11)
+              WidgetText(course.timeText, size: 11)
             }
           }
           .foregroundStyle(Color("WidgetSecondary"))
         } else {
-          VStack(alignment: .leading, spacing: 4) {
+          VStack(alignment: .leading, spacing: 2) {
             if showRemarks && remarkLines > 0 && !course.remark.isEmpty {
-              WidgetText(course.remark, size: 10, lines: remarkLines)
+              WidgetText(course.remark, size: 11, lines: remarkLines)
                 .foregroundStyle(Color("WidgetSecondary"))
             }
-            WidgetText(course.location, size: 12)
-            WidgetText(course.timeText, size: 12)
+            VStack(alignment: .leading, spacing: 1) {
+              WidgetText(course.location, size: 13)
+              WidgetText(course.timeText, size: 13)
+            }
           }
           .foregroundStyle(Color("WidgetDetail"))
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.vertical, 3)
+      .padding(.vertical, 2)
       .padding(.trailing, 2)
     }
     .fixedSize(horizontal: false, vertical: true)
@@ -261,7 +265,7 @@ struct RemainingCoursesView: View {
             .frame(width: 2, height: CGFloat(15 - index * 2))
         }
       }
-      WidgetText("其他 \(count) 节课", size: 10)
+      WidgetText("其他 \(count) 节课", size: 11)
         .foregroundStyle(Color("WidgetSecondary"))
     }
   }
@@ -282,7 +286,7 @@ struct WidgetText: View {
     Text(text)
       .font(.system(size: size, weight: .semibold))
       .lineLimit(lines)
-      .lineSpacing(2)
+      .lineSpacing(1)
   }
 }
 
