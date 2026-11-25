@@ -106,8 +106,14 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
 
     // 再按优先级去排非本周课（不含考试等），重叠的也不管
     if (setting.showNonCurrentWeekCourses) {
+      // 同一节课可能合并了常规和调课周段，仅有调课周段的课程不显示为灰色占位
       const nonCurrentWeek = visibleSchedules
-        .filter(s => !isCourseScheduledInWeek(s, week) && s.type === COURSE_TYPE)
+        .filter(
+          s =>
+            s.type === COURSE_TYPE &&
+            !isCourseScheduledInWeek(s, week) &&
+            s.weekSegments.some(segment => !segment.isAdjusted),
+        )
         .sort((a, b) => b.priority - a.priority);
 
       for (let s of nonCurrentWeek) {
