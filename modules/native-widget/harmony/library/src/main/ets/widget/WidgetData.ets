@@ -47,7 +47,6 @@ export interface WidgetBindingData {
   tomorrow: WidgetDayBinding;
   smallDay: WidgetDayBinding;
   showRemarks: boolean;
-  verticalInset: number;
   courseName: string;
   courseLocation: string;
   courseTime: string;
@@ -66,7 +65,6 @@ export function buildWidgetBindingData(
   json: string,
   showRemarks: boolean = true,
   previewTomorrow: boolean = false,
-  verticalInset: number = 0,
   now: number = Date.now(),
 ): WidgetBindingData {
   const data: WidgetBindingData = {
@@ -76,7 +74,6 @@ export function buildWidgetBindingData(
     tomorrow: emptyWidgetDay(),
     smallDay: emptyWidgetDay(),
     showRemarks,
-    verticalInset,
     courseName: '请打开福uu同步课表',
     courseLocation: '',
     courseTime: '',

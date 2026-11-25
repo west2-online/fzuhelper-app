@@ -2,12 +2,7 @@ import { common } from '@kit.AbilityKit';
 import { preferences } from '@kit.ArkData';
 import { promptAction } from '@kit.ArkUI';
 import { formBindingData, formProvider } from '@kit.FormKit';
-import {
-  putShowAsSquare,
-  putShowRemarks,
-  putPreviewTomorrow,
-  readWidgetConfig,
-} from 'fzuhelper-native-widget';
+import { putShowRemarks, putPreviewTomorrow, readWidgetConfig } from 'fzuhelper-native-widget';
 import {
   buildWidgetBindingData,
   WIDGET_DATA_KEY,
@@ -18,33 +13,35 @@ import { WIDGET_CONFIG_FORM_ID } from '../widget/WidgetConfigurationAbility';
 @Entry
 @Component
 struct WidgetConfigurationPage {
-  @StorageProp(WIDGET_CONFIG_FORM_ID) formId: string = '';
+  @StorageProp(WIDGET_CONFIG_FORM_ID) @Watch('loadConfig') formId: string = '';
   @State showRemarks: boolean = true;
   @State previewTomorrow: boolean = false;
-  @State showAsSquare: boolean = false;
 
   aboutToAppear(): void {
+    this.loadConfig();
+  }
+
+  private loadConfig(): void {
     const store = preferences.getPreferencesSync(getContext(this), { name: WIDGET_STORE_NAME });
     const config = readWidgetConfig(store, this.formId);
     this.showRemarks = config.showRemarks;
     this.previewTomorrow = config.previewTomorrow;
-    this.showAsSquare = config.showAsSquare;
   }
 
   private async saveAndUpdate(): Promise<void> {
+    const formId = this.formId;
+    if (formId.length === 0) throw new Error('Missing widget form ID');
     const store = preferences.getPreferencesSync(getContext(this), { name: WIDGET_STORE_NAME });
-    if (this.formId.length === 0) return;
-    putShowRemarks(store, this.formId, this.showRemarks);
-    putPreviewTomorrow(store, this.formId, this.previewTomorrow);
-    putShowAsSquare(store, this.formId, this.showAsSquare);
+    putShowRemarks(store, formId, this.showRemarks);
+    putPreviewTomorrow(store, formId, this.previewTomorrow);
     await store.flush();
     const value = store.getSync(WIDGET_DATA_KEY, '');
     const json = typeof value === 'string' ? value : '';
-    const config = readWidgetConfig(store, this.formId);
+    const config = readWidgetConfig(store, formId);
     await formProvider.updateForm(
-      this.formId,
+      formId,
       formBindingData.createFormBindingData(
-        buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow, config.verticalInset),
+        buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow),
       ),
     );
   }
@@ -123,24 +120,6 @@ struct WidgetConfigurationPage {
         .fontColor($r('sys.color.ohos_id_color_text_secondary'))
         .width('100%')
         .padding({ left: 20, right: 20, bottom: 12 })
-
-      Row() {
-        Text('小号显示为正方形')
-          .fontSize(16)
-          .fontColor($r('sys.color.ohos_id_color_text_primary'))
-
-        Blank()
-
-        Toggle({ type: ToggleType.Switch, isOn: this.showAsSquare })
-          .onChange((value: boolean) => {
-            this.showAsSquare = value;
-            this.updateWithFeedback();
-          })
-      }
-      .width('100%')
-      .height(50)
-      .padding({ left: 20, right: 20 })
-      .alignItems(VerticalAlign.Center)
 
       Text('刷新数据')
         .width('100%')

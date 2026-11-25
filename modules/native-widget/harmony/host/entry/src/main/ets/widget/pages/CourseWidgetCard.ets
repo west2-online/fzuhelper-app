@@ -6,14 +6,15 @@ interface CourseLayout {
   count: number;
   remaining: boolean;
   nameLines: number;
+  remarkLines: number;
+  showDetails: boolean;
 }
 
 @Extend(Text)
 function courseText(typography: WidgetTextStyle, lines: number = 1) {
-  .fontSize(typography.size)
+  .fontSize(`${typography.size}vp`)
   .fontWeight(600)
-  .lineHeight(`${typography.lineHeight}fp`)
-  .margin({ top: `${-typography.leadingTrim}fp`, bottom: `${-typography.leadingTrim}fp` })
+  .lineHeight(`${typography.lineHeight}vp`)
   .maxLines(lines)
   .textOverflow({ overflow: TextOverflow.Ellipsis })
 }
@@ -27,52 +28,53 @@ export struct CourseWidgetCard {
   @LocalStorageProp('tomorrow') tomorrow: WidgetDayBinding = emptyWidgetDay();
   @LocalStorageProp('smallDay') smallDay: WidgetDayBinding = emptyWidgetDay();
   @LocalStorageProp('showRemarks') showRemarks: boolean = true;
-  @LocalStorageProp('verticalInset') verticalInset: number = 0;
+  @State shortCard: boolean = false;
 
-  // Keep the primary course's three-line remark allowance. Replace subsequent
-  // courses with their count before hiding them, then truncate only the name.
+  // Replace the next course with the remaining count when only the count fits.
+  // If the main course itself is too tall, shorten its remarks, title, then details.
   private layouts(day: WidgetDayBinding): CourseLayout[] {
     const candidates: CourseLayout[] = [];
     if (day.isTomorrow) {
       for (let count = day.events.length; count > 0; count--) {
-        candidates.push({ count, remaining: false, nameLines: 1 });
+        candidates.push({ count, remaining: false, nameLines: 1, remarkLines: 0, showDetails: true });
       }
-      return candidates;
+    } else {
+      if (day.events.length > 2) {
+        candidates.push({ count: 2, remaining: true, nameLines: 2, remarkLines: 3, showDetails: true });
+      }
+      if (day.events.length > 1) {
+        candidates.push({ count: 2, remaining: false, nameLines: 2, remarkLines: 3, showDetails: true });
+        candidates.push({ count: 1, remaining: true, nameLines: 2, remarkLines: 3, showDetails: true });
+      }
+      const hasRemark = this.showRemarks && day.events[0].remark.length > 0;
+      for (let remarkLines = hasRemark ? 3 : 0; remarkLines >= 0; remarkLines--) {
+        candidates.push({ count: 1, remaining: false, nameLines: 2, remarkLines, showDetails: true });
+      }
+      candidates.push({ count: 1, remaining: false, nameLines: 1, remarkLines: 0, showDetails: true });
     }
-    if (day.events.length > 2) {
-      candidates.push({ count: 2, remaining: true, nameLines: 2 });
-    }
-    if (day.events.length > 1) {
-      candidates.push({ count: 2, remaining: false, nameLines: 2 });
-      candidates.push({ count: 1, remaining: true, nameLines: 2 });
-    }
-    candidates.push({ count: 1, remaining: false, nameLines: 2 });
-    candidates.push({ count: 1, remaining: false, nameLines: 1 });
+    candidates.push({ count: 1, remaining: false, nameLines: 1, remarkLines: 0, showDetails: false });
     return candidates;
-  }
-
-  private hasPrimaryRemark(event: WidgetEventBinding): boolean {
-    return this.showRemarks && event.remark.length > 0;
   }
 
   @Builder
   private compactDetails(event: WidgetEventBinding) {
-    Row({ space: WidgetSpacing.compactDetails }) {
+    // Give the room and time their own lines when their full widths do not fit side by side.
+    Row({ space: WidgetSpacing.inlineDetails }) {
       Text(event.location)
-        .courseText(WidgetTypography.compactDetail)
+        .courseText(WidgetTypography.secondary)
         .fontColor($r('app.color.widget_secondary')).flexShrink(0)
       Text(event.timeText)
-        .courseText(WidgetTypography.compactDetail)
+        .courseText(WidgetTypography.secondary)
         .fontColor($r('app.color.widget_secondary')).flexShrink(0)
     }
     .width(LayoutPolicy.fixAtIdealSize)
     .height(LayoutPolicy.fixAtIdealSize)
-    Column({ space: WidgetSpacing.compactDetails }) {
+    Column({ space: WidgetSpacing.detailRows }) {
       Text(event.location)
-        .courseText(WidgetTypography.compactDetail)
+        .courseText(WidgetTypography.secondary)
         .fontColor($r('app.color.widget_secondary')).width('100%')
       Text(event.timeText)
-        .courseText(WidgetTypography.compactDetail)
+        .courseText(WidgetTypography.secondary)
         .fontColor($r('app.color.widget_secondary')).width('100%')
     }
     .alignItems(HorizontalAlign.Start)
@@ -87,24 +89,21 @@ export struct CourseWidgetCard {
         .alignSelf(ItemAlign.Stretch)
         .borderRadius(2)
         .backgroundColor(compact ? $r('app.color.widget_light_blue') : $r('app.color.widget_blue'))
-      Column({
-        space: compact ? WidgetSpacing.compactTitleToDetails :
-          (this.hasPrimaryRemark(event) ? WidgetSpacing.primaryTitleToRemark : WidgetSpacing.primaryTitleToDetails),
-      }) {
+      Column({ space: WidgetSpacing.details }) {
         Text(event.name)
-          .courseText(compact ? WidgetTypography.compactTitle : WidgetTypography.primaryTitle,
+          .courseText(compact ? WidgetTypography.secondary : WidgetTypography.primaryTitle,
             compact ? 1 : layout.nameLines)
-          .fontColor(compact ? $r('app.color.widget_heading') : $r('app.color.widget_title'))
+          .fontColor($r('app.color.widget_title'))
           .width('100%')
-        if (compact) {
+        if (compact && layout.showDetails) {
           WidgetViewThatFits({ horizontal: true, content: (): void => this.compactDetails(event) })
             .width('100%')
             .clip(true)
-        } else {
-          Column({ space: WidgetSpacing.remarkToDetails }) {
-            if (this.hasPrimaryRemark(event)) {
+        } else if (layout.showDetails) {
+          Column({ space: WidgetSpacing.details }) {
+            if (this.showRemarks && layout.remarkLines > 0 && event.remark.length > 0) {
               Text(event.remark)
-                .courseText(WidgetTypography.remark, 3)
+                .courseText(WidgetTypography.secondary, layout.remarkLines)
                 .fontColor($r('app.color.widget_secondary'))
                 .width('100%')
             }
@@ -133,8 +132,7 @@ export struct CourseWidgetCard {
       .padding({
         top: WidgetSpacing.eventVerticalInset,
         bottom: WidgetSpacing.eventVerticalInset,
-        left: WidgetSpacing.eventHorizontalInset,
-        right: WidgetSpacing.eventHorizontalInset,
+        right: WidgetSpacing.eventEndInset,
       })
     }
     .width('100%')
@@ -161,7 +159,7 @@ export struct CourseWidgetCard {
               }
             }
             Text(`其他 ${day.events.length - layout.count} 节课`)
-              .courseText(WidgetTypography.remaining)
+              .courseText(WidgetTypography.secondary)
               .fontColor($r('app.color.widget_secondary'))
           }
           .width('100%')
@@ -172,7 +170,8 @@ export struct CourseWidgetCard {
       // before WidgetViewThatFits has measured its complete course rows.
       .height(LayoutPolicy.fixAtIdealSize)
       .alignItems(HorizontalAlign.Start)
-    }, (layout: CourseLayout) => `${layout.count}-${layout.remaining}-${layout.nameLines}`)
+    }, (layout: CourseLayout) =>
+      `${layout.count}-${layout.remaining}-${layout.nameLines}-${layout.remarkLines}-${layout.showDetails}`)
   }
 
   @Builder
@@ -193,7 +192,7 @@ export struct CourseWidgetCard {
 
       if (day.events.length === 0) {
         Text(day.emptyText)
-          .courseText(WidgetTypography.remaining)
+          .courseText(WidgetTypography.secondary)
           .fontColor($r('app.color.widget_secondary'))
           .width('100%')
           .layoutWeight(1)
@@ -220,7 +219,7 @@ export struct CourseWidgetCard {
           }
         } else {
           Text(this.message)
-            .fontSize(12)
+            .fontSize('12vp')
             .fontColor($r('app.color.widget_secondary'))
             .width('100%')
             .height('100%')
@@ -229,11 +228,13 @@ export struct CourseWidgetCard {
       }
       .width('100%')
       .layoutWeight(1)
-      .padding(WidgetSpacing.cardInset)
-      .margin({ top: this.medium ? 0 : this.verticalInset, bottom: this.medium ? 0 : this.verticalInset })
+      .padding(this.shortCard ? WidgetSpacing.shortCardInset : WidgetSpacing.cardInset)
       .backgroundColor($r('app.color.widget_background'))
       .borderRadius(18)
       .alignItems(VerticalAlign.Top)
+      .onSizeChange((_, size) => {
+        this.shortCard = Number(size.height) < WidgetSpacing.shortCardHeight;
+      })
     }
     .width('100%')
     .height('100%')

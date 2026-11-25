@@ -10,7 +10,7 @@ struct NextClassLockScreenCard {
   build() {
     Column({ space: 4 }) {
         Text(this.courseName)
-          .fontSize(14)
+          .fontSize('14vp')
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.widget_lockscreen_foreground'))
           .maxLines(1)
@@ -18,14 +18,14 @@ struct NextClassLockScreenCard {
       .width('100%')
 
       Text(this.courseLocation)
-        .fontSize(10)
+        .fontSize('10vp')
         .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .width('100%')
 
       Text(this.courseTime)
-        .fontSize(10)
+        .fontSize('10vp')
         .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })

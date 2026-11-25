@@ -9,11 +9,7 @@ import {
   WIDGET_FORM_IDS_KEY,
   WIDGET_STORE_NAME,
 } from 'fzuhelper-native-widget';
-import {
-  deleteWidgetConfig,
-  putFormMetrics,
-  readWidgetConfig,
-} from 'fzuhelper-native-widget';
+import { deleteWidgetConfig, readWidgetConfig } from 'fzuhelper-native-widget';
 
 export default class NextClassFormAbility extends FormExtensionAbility {
   private static readonly FORM_ID_NOT_EXIST_ERROR_CODE: number = 16501001;
@@ -22,12 +18,6 @@ export default class NextClassFormAbility extends FormExtensionAbility {
     const store = preferences.getPreferencesSync(this.context, { name: WIDGET_STORE_NAME });
     const formIdValue = want.parameters?.[formInfo.FormParam.IDENTITY_KEY];
     const formId = formIdValue === undefined ? '' : `${formIdValue}`;
-    putFormMetrics(
-      store,
-      formId,
-      this.numberParameter(want.parameters?.[formInfo.FormParam.WIDTH_KEY]),
-      this.numberParameter(want.parameters?.[formInfo.FormParam.HEIGHT_KEY]),
-    );
     const formIds = store.getSync(WIDGET_FORM_IDS_KEY, []) as string[];
     if (formId.length > 0 && !formIds.includes(formId)) {
       formIds.push(formId);
@@ -41,23 +31,11 @@ export default class NextClassFormAbility extends FormExtensionAbility {
     const config = readWidgetConfig(store, formId);
     if (formId.length > 0) this.scheduleNextRefresh(formId, json);
     return formBindingData.createFormBindingData(
-      buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow, config.verticalInset),
+      buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow),
     );
   }
 
-  onUpdateForm(formId: string, wantParams?: Record<string, Object>): void {
-    if (wantParams !== undefined) {
-      const store = preferences.getPreferencesSync(this.context, { name: WIDGET_STORE_NAME });
-      putFormMetrics(
-        store,
-        formId,
-        this.numberParameter(wantParams[formInfo.FormParam.WIDTH_KEY]),
-        this.numberParameter(wantParams[formInfo.FormParam.HEIGHT_KEY]),
-      );
-      store.flush().catch((error: BusinessError) => {
-        console.error(`Failed to save HarmonyOS widget metrics ${formId}: ${error.message}`);
-      });
-    }
+  onUpdateForm(formId: string): void {
     this.updateForm(formId);
   }
 
@@ -86,7 +64,7 @@ export default class NextClassFormAbility extends FormExtensionAbility {
       await formProvider.updateForm(
         formId,
         formBindingData.createFormBindingData(
-          buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow, config.verticalInset),
+          buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow),
         ),
       );
       this.scheduleNextRefresh(formId, json);
@@ -122,9 +100,5 @@ export default class NextClassFormAbility extends FormExtensionAbility {
     store.flush().catch((error: Error) => {
       console.error(`Failed to remove HarmonyOS widget ID ${formId}: ${error.message}`);
     });
-  }
-
-  private numberParameter(value: Object | undefined): number | undefined {
-    return typeof value === 'number' ? value : undefined;
   }
 }

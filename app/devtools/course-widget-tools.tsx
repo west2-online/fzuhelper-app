@@ -9,9 +9,8 @@ import {
   type CourseWidgetDebugScenario,
 } from '@/lib/course-widget-debug';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Redirect, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -49,10 +48,6 @@ export default function CourseWidgetToolsPage() {
       setWidgetBusy(false);
     }
   };
-
-  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
-    return <Redirect href="/devtools" />;
-  }
 
   return (
     <>

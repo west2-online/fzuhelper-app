@@ -68,7 +68,7 @@ export class NativeWidgetModule extends ExpoModule {
       try {
         const config = readWidgetConfig(store, formId);
         const data = formBindingData.createFormBindingData(
-          buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow, config.verticalInset),
+          buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow),
         );
         await formProvider.updateForm(formId, data);
         retainedFormIds.push(formId);

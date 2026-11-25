@@ -46,7 +46,7 @@ const snapshot = (events = [], extra = {}) => ({
 });
 const cache = (events = [], extra = {}) => JSON.stringify({ widgetSnapshot: snapshot(events, extra) });
 const view = (json, time = '09:30:00', preview = false) =>
-  data.buildWidgetBindingData(json, true, preview, 0, at(time));
+  data.buildWidgetBindingData(json, true, preview, at(time));
 
 test('ongoing courses remain until their actual end, including exams beyond 21:35', () => {
   const json = cache([event(), event({ name: '期中考试', startMinute: 1200, endMinute: 1350 })]);
@@ -76,12 +76,11 @@ test('no course, before term and after term retain distinct states', () => {
 
 test('date rollover uses Shanghai even with a different process timezone', () => {
   const now = Date.parse('2026-10-21T16:00:00Z');
-  const result = data.buildWidgetBindingData(cache([event({ date: '2026-10-22' })]), false, false, 3, now);
+  const result = data.buildWidgetBindingData(cache([event({ date: '2026-10-22' })]), false, false, now);
   assert.equal(result.today.title, '10月22日');
   assert.equal(result.today.weekday, '周四');
   assert.equal(result.today.events.length, 1);
   assert.equal(result.showRemarks, false);
-  assert.equal(result.verticalInset, 3);
   assert.equal(result.smallDay.isTomorrow, false);
 });
 
@@ -132,9 +131,6 @@ test('settings are per form and removing one form preserves the others', () => {
   assert.equal(config.readWidgetConfig(prefs, 'small').previewTomorrow, false);
   config.putShowRemarks(prefs, 'small', false);
   config.putPreviewTomorrow(prefs, 'small', true);
-  config.putShowAsSquare(prefs, 'small', true);
-  config.putFormMetrics(prefs, 'small', 160, 200);
-  assert.equal(config.readWidgetConfig(prefs, 'small').verticalInset, 20);
   assert.equal(config.readWidgetConfig(prefs, 'medium').showRemarks, true);
   config.putPreviewTomorrow(prefs, 'medium', true);
   config.deleteWidgetConfig(prefs, 'small');

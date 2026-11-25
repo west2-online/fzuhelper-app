@@ -1,33 +1,34 @@
 // Measure the real ArkUI children in preference order, like SwiftUI's
-// ViewThatFits. Text wrapping and system font scaling must affect the decision.
+// ViewThatFits. Keep only candidates whose measured content fits.
 @Component
 export struct WidgetViewThatFits {
   @Prop horizontal: boolean = false;
   @BuilderParam content: () => void;
-  private selectedIndex: number = 0;
+  private selectedIndex: number = -1;
 
   onMeasureSize(info: GeometryInfo, children: Measurable[], constraint: ConstraintSizeOptions): SizeResult {
     const width = Math.max(0, Number(constraint.maxWidth));
     const height = Math.max(0, Number(constraint.maxHeight));
-    let selected: SizeResult = { width: 0, height: 0 };
-    this.selectedIndex = children.length - 1;
+    let selectedHeight = 0;
+    this.selectedIndex = -1;
     for (let index = 0; index < children.length; index++) {
       // Release only the axis being tested. The last horizontal candidate is
       // the stacked fallback, whose individual lines may use ellipses.
-      selected = children[index].measure({
+      const size = children[index].measure({
         minWidth: this.horizontal ? 0 : width,
         maxWidth: this.horizontal && index < children.length - 1 ? 100000 : width,
         minHeight: 0,
         maxHeight: 100000,
       });
-      if (this.horizontal ? selected.width <= width : selected.height <= height) {
+      if (this.horizontal ? size.width <= width : size.height <= height) {
         this.selectedIndex = index;
+        selectedHeight = size.height;
         break;
       }
     }
     return {
       width,
-      height: Math.max(Number(constraint.minHeight ?? 0), Math.min(selected.height, height)),
+      height: Math.max(Number(constraint.minHeight ?? 0), Math.min(selectedHeight, height)),
     };
   }
 
