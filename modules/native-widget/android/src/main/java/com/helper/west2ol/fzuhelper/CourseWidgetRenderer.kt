@@ -3,8 +3,6 @@ package com.helper.west2ol.fzuhelper
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.SizeF
@@ -62,7 +60,7 @@ internal class CourseWidgetRenderer(
         views.removeAllViews(R.id.widget_days)
         val openApp = PendingIntent.getActivity(
             context, widgetId,
-            Intent(Intent.ACTION_VIEW, Uri.parse("fzuhelper://")).setPackage(context.packageName),
+            courseWidgetLaunchIntent(context),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.container, openApp)

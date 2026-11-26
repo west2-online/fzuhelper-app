@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.Keep
@@ -87,11 +88,8 @@ fun deleteWidgetConfig(context: Context, appWidgetId: Int, key: String) {
     getSharedPreference(context).edit().remove("$appWidgetId$key").commit()
 }
 
-fun launchAppIntent(context: Context): Intent {
-    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-        ?: Intent().setClassName(context.packageName, "${context.packageName}.MainActivity")
-    return intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-}
+internal fun courseWidgetLaunchIntent(context: Context): Intent =
+    Intent(Intent.ACTION_VIEW, Uri.parse("fzuhelper://course-widget")).setPackage(context.packageName)
 
 fun getCourseBeans(cacheCourseData: CacheCourseData): List<ExtendCourse> = try {
     ((cacheCourseData.courseData?.values?.flatten() ?: emptyList()).run {

@@ -210,7 +210,7 @@ export struct CourseWidgetCard {
   }
 
   build() {
-    Column() {
+    FormLink({ action: 'router', uri: 'fzuhelper://course-widget' }) {
       Row({ space: WidgetSpacing.columns }) {
         if (this.hasSnapshot) {
           this.dayView(this.medium ? this.today : this.smallDay, true)
@@ -227,7 +227,7 @@ export struct CourseWidgetCard {
         }
       }
       .width('100%')
-      .layoutWeight(1)
+      .height('100%')
       .padding(this.shortCard ? WidgetSpacing.shortCardInset : WidgetSpacing.cardInset)
       .backgroundColor($r('app.color.widget_background'))
       .borderRadius(18)
@@ -238,8 +238,5 @@ export struct CourseWidgetCard {
     }
     .width('100%')
     .height('100%')
-    .onClick(() => {
-      postCardAction(this, { action: 'router', abilityName: 'EntryAbility' });
-    })
   }
 }

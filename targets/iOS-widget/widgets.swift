@@ -85,7 +85,7 @@ struct CourseWidgetView: View {
       }
     }
     .containerBackground(for: .widget) { Color("WidgetBackground") }
-    .widgetURL(URL(string: "fzuhelper://"))
+    .widgetURL(URL(string: "fzuhelper://course-widget"))
   }
 
   private var desktop: some View {

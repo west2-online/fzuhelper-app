@@ -78,28 +78,12 @@ class NativeWidgetModule : Module() {
         }
 
         Function("setWidgetData") { json: String ->
-            val packageName = context.packageName
             getPreferences().edit().putString("widgetdata", json).commit()
+            refreshCourseWidgets()
+        }
 
-            val widgetManager = AppWidgetManager.getInstance(context)
-            val widgetProviders = context.packageManager.queryBroadcastReceivers(
-                Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE),
-                PackageManager.GET_META_DATA
-            )
-
-            for (provider in widgetProviders) {
-                if (provider.activityInfo.packageName == packageName) {
-                    val providerComponent = ComponentName(
-                        provider.activityInfo.packageName,
-                        provider.activityInfo.name
-                    )
-                    val widgetIds = widgetManager.getAppWidgetIds(providerComponent)
-                    context.sendBroadcast(Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
-                        component = providerComponent
-                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
-                    })
-                }
-            }
+        Function("refreshCourseWidgets") {
+            refreshCourseWidgets()
         }
 
         AsyncFunction("requestPinAppWidget") { requestCode: Int, promise: Promise ->
@@ -169,6 +153,19 @@ class NativeWidgetModule : Module() {
 
     private val context
         get() = requireNotNull(appContext.currentActivity)
+
+    private fun refreshCourseWidgets() {
+        val app = requireNotNull(appContext.reactContext).applicationContext
+        val manager = AppWidgetManager.getInstance(app)
+        val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).setPackage(app.packageName)
+        for (provider in app.packageManager.queryBroadcastReceivers(intent, PackageManager.GET_META_DATA)) {
+            val component = ComponentName(app, provider.activityInfo.name)
+            val ids = manager.getAppWidgetIds(component)
+            if (ids.isNotEmpty()) {
+                app.sendBroadcast(Intent(intent).setComponent(component).putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids))
+            }
+        }
+    }
 
     private fun getPreferences(): SharedPreferences {
         return context.getSharedPreferences(context.packageName + ".widgetdata", Context.MODE_PRIVATE)

@@ -13,17 +13,24 @@ import { readWidgetConfig } from './widget/WidgetConfig';
 import { Want } from '@kit.AbilityKit';
 
 export class NativeWidgetModule extends ExpoModule {
+  private pendingUpdate: Promise<void> = Promise.resolve();
+
   override definition(): ExpoModuleDefinition {
     return new ExpoModuleDefinition().name('NativeWidget')
       .asyncFunction('setWidgetData', ExpoFunction.typed1(ExpoValueTypes.string(),
-        async (json: string): Promise<void> => this.setWidgetData(json)))
+        (json: string): Promise<void> => this.updateWidgets(json)))
+      .asyncFunction('refreshCourseWidgets', ExpoFunction.typed0(
+        (): Promise<void> => this.updateWidgets()))
       .asyncFunction('requestPinAppWidget', ExpoFunction.typed1(ExpoValueTypes.number(),
         async (requestCode: number): Promise<number> => this.context.runOnUIQueue(() => this.requestPinAppWidget(requestCode))));
   }
   private static readonly FORM_ID_NOT_EXIST_ERROR_CODE: number = 16501001;
 
-  async setWidgetData(json: string): Promise<void> {
-    await this.updateWidgets(json);
+  private updateWidgets(newData?: string): Promise<void> {
+    // 串行发布，避免点击时读到的旧课表覆盖同时发生的课表同步。
+    const update = this.pendingUpdate.then(() => this.publishWidgets(newData));
+    this.pendingUpdate = update.catch(() => {});
+    return update;
   }
 
   async requestPinAppWidget(requestCode: number): Promise<number> {
@@ -56,10 +63,13 @@ export class NativeWidgetModule extends ExpoModule {
     }
   }
 
-  private async updateWidgets(json: string): Promise<void> {
+  private async publishWidgets(newData?: string): Promise<void> {
     const store = await preferences.getPreferences(this.context.uiAbilityContext, WIDGET_STORE_NAME);
-    await store.put(WIDGET_DATA_KEY, json);
-    await store.flush();
+    if (newData !== undefined) {
+      await store.put(WIDGET_DATA_KEY, newData);
+      await store.flush();
+    }
+    const json = newData ?? store.getSync(WIDGET_DATA_KEY, '') as string;
     const formIds = await store.get(WIDGET_FORM_IDS_KEY, []) as string[];
     const retainedFormIds: string[] = [];
     const updateErrors: string[] = [];

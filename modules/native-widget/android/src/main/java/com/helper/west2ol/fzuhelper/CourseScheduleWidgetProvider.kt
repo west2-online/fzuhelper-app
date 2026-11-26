@@ -40,7 +40,7 @@ internal fun updateCourseScheduleWidget(
     appWidgetId: Int
 ) {
     val views = RemoteViews(context.packageName, R.layout.course_schedule_widget_provider)
-    val intent = launchAppIntent(context)
+    val intent = courseWidgetLaunchIntent(context)
     val pendingIntent = PendingIntent.getActivity(
         context,
         appWidgetId,
