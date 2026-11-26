@@ -338,11 +338,22 @@ export class CourseCache {
 
   public static async syncWidgets(): Promise<void> {
     try {
-      const termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([
-        COURSE_TERMS_LIST_KEY,
-      ]);
       const courseSettings = await getCourseSetting();
       const term = courseSettings.selectedSemester;
+      if (!term) return;
+
+      // 直接打开配色页时，课表可能只在磁盘上。
+      if (Platform.OS === 'android' && !this.cachedData && !this.cachedExamData && !this.cachedCustomData) {
+        await this.load();
+      }
+      let termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([COURSE_TERMS_LIST_KEY]);
+      if (
+        Platform.OS === 'android' &&
+        !termsList &&
+        (this.cachedData || this.cachedExamData || this.cachedCustomData)
+      ) {
+        termsList = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList());
+      }
       const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === term);
       if (!currentTerm) {
         console.warn('无法找到当前学期信息，跳过小组件同步');

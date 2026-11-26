@@ -1,7 +1,9 @@
-export interface CourseColorDisplayOptions {
-  hasCustomBackground?: boolean;
-  darkenBackground?: boolean;
-  compensate?: boolean;
+import { pageBackgroundLightness, wallpaperOverlayOpacity } from '@/config/theme';
+
+interface CourseColorDisplayOptions {
+  hasCustomBackground: boolean;
+  darkenBackground: boolean;
+  compensate: boolean;
 }
 
 type Triple = readonly [number, number, number];
@@ -156,23 +158,17 @@ const rgba = (rgb: Triple): string => `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${A
 export const getCourseDisplayColor = (
   color: string,
   darkMode: boolean,
-  options: CourseColorDisplayOptions = {},
+  { hasCustomBackground, darkenBackground, compensate }: CourseColorDisplayOptions,
 ): string => {
   // Leave alpha-bearing and other formats intact so repeated rendering never stacks alpha.
   if (!/^#[0-9a-fA-F]{6}$/.test(color)) return color;
-  const rgb: Triple = [
-    parseInt(color.slice(1, 3), 16),
-    parseInt(color.slice(3, 5), 16),
-    parseInt(color.slice(5, 7), 16),
-  ];
-  if (options.compensate === false) return rgba(rgb);
-
-  const hasWallpaper = options.hasCustomBackground === true;
   // Wallpaper pixels are unknown: use independent middle gray, with only 25% compensation.
-  // The optional black overlay matches PageContainer's #00000050, independent of the theme.
-  const background = hasWallpaper ? 128 * (options.darkenBackground ? 1 - 80 / 255 : 1) : darkMode ? 18 : 247;
-  const strength = hasWallpaper ? WALLPAPER_STRENGTH : 1;
-  const key = `${color.toUpperCase()}:${background}:${strength}`;
+  const background = hasCustomBackground
+    ? 128 * (darkenBackground ? 1 - wallpaperOverlayOpacity : 1)
+    : Math.round((pageBackgroundLightness[darkMode ? 'dark' : 'light'] / 100) * 255);
+  const strength = hasCustomBackground ? WALLPAPER_STRENGTH : 1;
+  const hex = color.toUpperCase();
+  const key = compensate ? `${hex}:${background}:${strength}` : hex;
   const cached = displayColorCache.get(key);
   if (cached !== undefined) {
     displayColorCache.delete(key);
@@ -180,7 +176,8 @@ export const getCourseDisplayColor = (
     return cached;
   }
 
-  const result = rgba(compensateColor(rgb, background, strength));
+  const rgb: Triple = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+  const result = rgba(compensate ? compensateColor(rgb, background, strength) : rgb);
   displayColorCache.set(key, result);
   if (displayColorCache.size > CACHE_LIMIT) {
     const oldest = displayColorCache.keys().next().value;
