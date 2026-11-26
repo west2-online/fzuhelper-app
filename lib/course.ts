@@ -14,7 +14,7 @@ import {
   EXAM_ROOM_KEY,
   IOS_APP_GROUP,
 } from '@/lib/constants';
-import { coursePalettes, DEFAULT_COURSE_COLOR_SCHEME } from '@/lib/palettes';
+import { DEFAULT_COURSE_COLOR_SCHEME } from '@/lib/palettes';
 import { setWidgetData } from '@/modules/native-widget';
 import { MergedExamData } from '@/types/academic';
 import type { PartiallyOptional } from '@/types/utils';
@@ -338,22 +338,11 @@ export class CourseCache {
 
   public static async syncWidgets(): Promise<void> {
     try {
+      const termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([
+        COURSE_TERMS_LIST_KEY,
+      ]);
       const courseSettings = await getCourseSetting();
       const term = courseSettings.selectedSemester;
-      if (!term) return;
-
-      // 直接打开配色页时，课表可能只在磁盘上。
-      if (Platform.OS === 'android' && !this.cachedData && !this.cachedExamData && !this.cachedCustomData) {
-        await this.load();
-      }
-      let termsList = queryClient.getQueryData<Awaited<ReturnType<typeof getApiV1TermsList>>>([COURSE_TERMS_LIST_KEY]);
-      if (
-        Platform.OS === 'android' &&
-        !termsList &&
-        (this.cachedData || this.cachedExamData || this.cachedCustomData)
-      ) {
-        termsList = await fetchWithCache([COURSE_TERMS_LIST_KEY], () => getApiV1TermsList());
-      }
       const currentTerm = termsList?.data?.data?.terms?.find((termData: any) => termData.term === term);
       if (!currentTerm) {
         console.warn('无法找到当前学期信息，跳过小组件同步');
@@ -381,19 +370,9 @@ export class CourseCache {
         ); // 如果要改这个 KEY，需要同步修改 target 中原生代码
         ExtensionStorage.reloadWidget(); // 保存后需要重载一次
       } else if (Platform.OS === 'android' || (Platform.OS as string) === 'harmony') {
-        // Android 小组件仍按字符串颜色取其内置背景。
-        const { colors } = coursePalettes[courseSettings.colorScheme];
-        const courseData =
-          this.cachedData &&
-          Object.fromEntries(
-            Object.entries(this.cachedData).map(([day, courses]) => [
-              day,
-              courses.map(course => ({ ...course, color: colors[course.color] })),
-            ]),
-          );
         await setWidgetData(
           JSON.stringify({
-            courseData,
+            courseData: this.cachedData,
             examData: this.cachedExamData,
             customData: customCourses,
             startDate: currentTerm.start_date,

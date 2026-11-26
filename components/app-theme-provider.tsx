@@ -5,13 +5,12 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import {
   DeviceEventEmitter,
   ImageSourcePropType,
-  Platform,
   useColorScheme as useSystemColorScheme,
   type ColorSchemeName,
 } from 'react-native';
 
 import { DARKEN_BACKGROUND_KEY } from '@/lib/constants';
-import { CourseCache, getCourseSetting, updateCourseSetting } from '@/lib/course';
+import { getCourseSetting, updateCourseSetting } from '@/lib/course';
 import { DEFAULT_COURSE_COLOR_SCHEME, type CourseColorScheme } from '@/lib/palettes';
 import { USER_LOGOUT_EVENT } from '@/lib/user';
 import {
@@ -97,7 +96,6 @@ export const AppThemeProvider = ({ children }: Props) => {
   const setCourseColorScheme = useCallback(async (scheme: CourseColorScheme) => {
     await updateCourseSetting({ colorScheme: scheme });
     setCourseColorSchemeState(scheme);
-    if (Platform.OS === 'android') await CourseCache.syncWidgets();
   }, []);
 
   // 背景相关方法
