@@ -2,7 +2,8 @@
     <dimen name="course_widget_heading_size">13dp</dimen>
     <dimen name="course_widget_heading_line_height">18dp</dimen>
     <dimen name="course_widget_title_size">15dp</dimen>
-    <dimen name="course_widget_title_line_height">19dp</dimen>
+    <dimen name="course_widget_title_line_height">17dp</dimen>
+    <dimen name="course_widget_title_min_height">19dp</dimen>
     <dimen name="course_widget_detail_size">13dp</dimen>
     <dimen name="course_widget_detail_line_height">16dp</dimen>
     <dimen name="course_widget_secondary_size">11dp</dimen>

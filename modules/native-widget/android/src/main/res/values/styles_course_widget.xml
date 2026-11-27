@@ -18,8 +18,9 @@
 
     <style name="CourseWidgetTitle" parent="CourseWidgetText">
         <item name="android:textSize">@dimen/course_widget_title_size</item>
+        <item name="android:lineSpacingExtra">0dp</item>
         <item name="android:lineHeight">@dimen/course_widget_title_line_height</item>
-        <item name="android:minHeight">@dimen/course_widget_title_line_height</item>
+        <item name="android:minHeight">@dimen/course_widget_title_min_height</item>
     </style>
 
     <style name="CourseWidgetDetail" parent="CourseWidgetText">
