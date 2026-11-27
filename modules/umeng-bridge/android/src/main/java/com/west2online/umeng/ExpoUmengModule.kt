@@ -18,6 +18,7 @@ import com.umeng.message.PushAgent
 import com.umeng.message.UmengNotificationClickHandler
 import com.umeng.message.api.UPushRegisterCallback
 import com.umeng.message.entity.UMessage
+import com.uyumao.nns.zmd.ZmdManager
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.records.Field
@@ -68,14 +69,8 @@ class ExpoUmengModule : Module() {
                     context.applicationInfo.packageName,
                     PackageManager.GET_META_DATA
                 ).metaData
-                UMConfigure.setLogEnabled(true)
-                // 必须在 UMConfigure.init() 之前调用：disableCollectAid() 通过反射将
-                // UMConfigure.shouldCollectAid() 置为 false，init 时 SDK 才会跳过读取 android_id。
-                // 顺序颠倒会导致 init 过程中已完成采集，防呆失效。
-                com.uyumao.nns.zmd.ZmdManager.disableCollectAid()
-                // 防呆：反射是静默吞异常的，若因版本不匹配等原因失败，shouldCollectAid 仍为默认 true。
-                // 正常应为 false；打印为 true 说明防呆未生效，Android ID 仍会被采集。
-                Log.d("UMLog", "shouldCollectAid after disableCollectAid: ${com.umeng.commonsdk.UMConfigure.shouldCollectAid()}")
+                // 必须在 UMConfigure.init() 之前调用
+                ZmdManager.disableCollectAid()
                 UMConfigure.init(
                     context,
                     metadata.getString("UMENG_APPKEY"),
