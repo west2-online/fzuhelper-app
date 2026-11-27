@@ -119,7 +119,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v7
         with:
-          path: fzuhelper-unsigned.ipa
+          path: ${{ github.event_name == 'pull_request' && 'fzuhelper-unsigned.ipa' || 'fzuhelper.ipa' }}
           archive: false
           if-no-files-found: error
           retention-days: 0

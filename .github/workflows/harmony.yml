@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-app:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     outputs:
       artifact-url: ${{ steps.upload.outputs.artifact-url }}
@@ -37,7 +37,7 @@ jobs:
       - name: Setup HarmonyOS CLI tools
         uses: west2-online/setup-ohos@v2
         with:
-          version: 6.1.1.300
+          version: 6.1.1.460
           cache: true
 
       - name: Setup Node.js
@@ -139,7 +139,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v7
         with:
-          path: harmony/output/fzuhelper-unsigned.hap
+          path: ${{ github.event_name == 'pull_request' && 'harmony/output/fzuhelper-unsigned.hap' || 'harmony/output/release.app' }}
           archive: false
           if-no-files-found: error
           retention-days: 0

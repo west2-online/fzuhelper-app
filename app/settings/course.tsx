@@ -54,7 +54,7 @@ export default function CourseSettingPage() {
       if (patch.exportExamToCourseTable === false) {
         await CourseCache.clearExamData();
       } else {
-        await CourseCache.syncWidgets();
+        await CourseCache.syncWidgetData();
       }
     } catch (error) {
       console.error('保存课程设置失败:', error);

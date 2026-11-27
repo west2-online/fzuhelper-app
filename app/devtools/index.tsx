@@ -207,6 +207,11 @@ export default function HomePage() {
                 <Text>WebView Tools</Text>
               </Button>
             </Link>
+            <Link href="/devtools/course-widget-tools" asChild>
+              <Button>
+                <Text>Course Widget Tools</Text>
+              </Button>
+            </Link>
 
             {/* Toast 示例 */}
             <Text className="m-3 my-4 text-lg font-bold">Toast</Text>

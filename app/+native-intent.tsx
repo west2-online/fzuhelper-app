@@ -1,5 +1,6 @@
 // DeepLink
 // https://docs.expo.dev/router/advanced/native-intent/
+import { refreshCourseWidgets } from '@/modules/native-widget';
 import * as Linking from 'expo-linking';
 
 export function redirectSystemPath({ path, initial }: { path: string; initial: boolean }) {
@@ -8,7 +9,11 @@ export function redirectSystemPath({ path, initial }: { path: string; initial: b
     const { hostname, queryParams } = Linking.parse(path);
     console.log('Parsed URL:', { hostname, queryParams });
 
-    if (hostname === 'friend_invite') {
+    if (hostname === 'course-widget') {
+      refreshCourseWidgets().catch(error => console.warn('从本地课表刷新小组件失败', error));
+      // 冷启动走正常入口，从后台打开则保留当前页面。
+      return initial ? '/' : null;
+    } else if (hostname === 'friend_invite') {
       // fzuhelper://friend_invite?code=ABCDEF
       const code = queryParams?.code;
       const target = encodeURIComponent(`/settings/friend/add?code=${code}`);

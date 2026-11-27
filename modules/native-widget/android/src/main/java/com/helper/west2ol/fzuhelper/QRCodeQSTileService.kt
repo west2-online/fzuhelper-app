@@ -14,6 +14,7 @@ class QRCodeQSTileService : TileService() {
         val intent = Intent().apply {
             data = "fzuhelper://qrcode".toUri()
             action = Intent.ACTION_VIEW
+            setPackage(packageName)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 

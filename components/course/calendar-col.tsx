@@ -48,17 +48,19 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
     // 主要的课程
     const mainCourses: CourseScheduleItemDataBase[] = [];
 
+    // 排课前统一过滤免听课程，兼容没有 examType 的旧版自定义课程
+    const visibleSchedules = setting.hiddenCoursesWithoutAttendances
+      ? schedulesOnDay.filter(s => !s.examType?.includes(COURSE_WITHOUT_ATTENDANCE))
+      : schedulesOnDay;
+
     // 先按优先级排本周的课和考试，重叠的不管
-    const today = schedulesOnDay
+    const today = visibleSchedules
       .filter(
         s =>
           isCourseScheduledInWeek(s, week) && // 检查是否在本周有课（含单双周）
           (s.type === COURSE_TYPE ||
             (setting.exportExamToCourseTable && s.type === EXAM_TYPE) ||
-            s.type === CUSTOM_TYPE) && // 判断课程类型
-          // 这边?是因为custom-course中DEFAULT_EMPTY_COURSE漏加examType字段，又因为as强转导致变为undefined，为向前兼容所加
-          // 后面如果有新加字段，也建议加?处理
-          (!setting.hiddenCoursesWithoutAttendances || !s.examType?.includes(COURSE_WITHOUT_ATTENDANCE)), // 是否隐藏免听课程
+            s.type === CUSTOM_TYPE), // 判断课程类型
       )
       .sort((a, b) => b.priority - a.priority);
 
@@ -106,8 +108,14 @@ const CalendarCol: React.FC<CalendarColProps> = ({ week, schedulesOnDay, flatLis
 
     // 再按优先级去排非本周课（不含考试等），重叠的也不管
     if (setting.showNonCurrentWeekCourses) {
-      const nonCurrentWeek = schedulesOnDay
-        .filter(s => !isCourseScheduledInWeek(s, week) && s.type === COURSE_TYPE)
+      // 同一节课可能合并了常规和调课周段，仅有调课周段的课程不显示为灰色占位
+      const nonCurrentWeek = visibleSchedules
+        .filter(
+          s =>
+            s.type === COURSE_TYPE &&
+            !isCourseScheduledInWeek(s, week) &&
+            s.weekSegments.some(segment => !segment.isAdjusted),
+        )
         .sort((a, b) => b.priority - a.priority);
 
       for (let s of nonCurrentWeek) {

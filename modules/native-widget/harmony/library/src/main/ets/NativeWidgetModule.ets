@@ -1,9 +1,10 @@
 import { preferences } from '@kit.ArkData';
 import { formBindingData, formProvider } from '@kit.FormKit';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { ExpoModule, ExpoModuleDefinition, ExpoFunction, ExpoValueTypes, ExpoRecordShape } from '@expo-harmony/expo-modules-core';
+import { ExpoModule, ExpoModuleDefinition, ExpoFunction, ExpoValueTypes } from '@expo-harmony/expo-modules-core';
 import {
   buildWidgetBindingData,
+  nextWidgetRefreshMinutes,
   WIDGET_DATA_KEY,
   WIDGET_FORM_IDS_KEY,
   WIDGET_STORE_NAME,
@@ -12,23 +13,32 @@ import { readWidgetConfig } from './widget/WidgetConfig';
 import { Want } from '@kit.AbilityKit';
 
 export class NativeWidgetModule extends ExpoModule {
+  private pendingUpdate: Promise<void> = Promise.resolve();
+
   override definition(): ExpoModuleDefinition {
     return new ExpoModuleDefinition().name('NativeWidget')
-      .asyncFunction('setWidgetData', ExpoFunction.typed2(ExpoValueTypes.string(), ExpoValueTypes.string(),
-        async (json: string, packageName: string): Promise<void> => this.setWidgetData(json, packageName)))
+      .asyncFunction('setWidgetData', ExpoFunction.typed1(ExpoValueTypes.string(),
+        (json: string): Promise<void> => this.updateWidgets(json)))
+      .asyncFunction('refreshCourseWidgets', ExpoFunction.typed0(
+        (): Promise<void> => this.updateWidgets()))
       .asyncFunction('requestPinAppWidget', ExpoFunction.typed1(ExpoValueTypes.number(),
         async (requestCode: number): Promise<number> => this.context.runOnUIQueue(() => this.requestPinAppWidget(requestCode))));
   }
   private static readonly FORM_ID_NOT_EXIST_ERROR_CODE: number = 16501001;
 
-  async setWidgetData(json: string, packageName: string): Promise<void> {
-    await this.updateWidgets(json);
+  private updateWidgets(newData?: string): Promise<void> {
+    // 串行发布，避免点击时读到的旧课表覆盖同时发生的课表同步。
+    const update = this.pendingUpdate.then(() => this.publishWidgets(newData));
+    this.pendingUpdate = update.catch(() => {});
+    return update;
   }
 
   async requestPinAppWidget(requestCode: number): Promise<number> {
     let formName = '';
     if (requestCode === 72201) {
       formName = 'NextClassCard';
+    } else if (requestCode === 72204) {
+      formName = 'CourseOverviewCard';
     } else if (requestCode === 72203) {
       return 2; // 锁屏组件不支持直接拉起添加，跳转文档页
     }
@@ -36,10 +46,10 @@ export class NativeWidgetModule extends ExpoModule {
       return 0;
     }
     const want: Want = {
-      bundleName: "com.west2online.fzuhelper.next",
-      abilityName: 'EntryAbility',
+      bundleName: this.context.uiAbilityContext.abilityInfo.bundleName,
+      abilityName: 'NextClassFormAbility',
       parameters: {
-        'ohos.extra.param.key.form_dimension': 2,
+        'ohos.extra.param.key.form_dimension': requestCode === 72204 ? 3 : 2,
         'ohos.extra.param.key.form_name': formName,
         'ohos.extra.param.key.module_name': 'entry'
       },
@@ -53,10 +63,13 @@ export class NativeWidgetModule extends ExpoModule {
     }
   }
 
-  private async updateWidgets(json: string): Promise<void> {
+  private async publishWidgets(newData?: string): Promise<void> {
     const store = await preferences.getPreferences(this.context.uiAbilityContext, WIDGET_STORE_NAME);
-    await store.put(WIDGET_DATA_KEY, json);
-    await store.flush();
+    if (newData !== undefined) {
+      await store.put(WIDGET_DATA_KEY, newData);
+      await store.flush();
+    }
+    const json = newData ?? store.getSync(WIDGET_DATA_KEY, '') as string;
     const formIds = await store.get(WIDGET_FORM_IDS_KEY, []) as string[];
     const retainedFormIds: string[] = [];
     const updateErrors: string[] = [];
@@ -65,10 +78,13 @@ export class NativeWidgetModule extends ExpoModule {
       try {
         const config = readWidgetConfig(store, formId);
         const data = formBindingData.createFormBindingData(
-          buildWidgetBindingData(json, config.showLastUpdateTime, config.verticalInset),
+          buildWidgetBindingData(json, config.showRemarks, config.previewTomorrow),
         );
         await formProvider.updateForm(formId, data);
         retainedFormIds.push(formId);
+        // Refresh scheduling can be throttled independently of publishing data.
+        formProvider.setFormNextRefreshTime(formId, nextWidgetRefreshMinutes(json))
+          .catch((error: BusinessError) => console.warn(`Widget refresh scheduling: ${error.code}`));
       } catch (error) {
         // The launcher can remove a form before onRemoveForm is delivered.
         // Remove only confirmed stale IDs. Other failures must remain visible

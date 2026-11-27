@@ -51,7 +51,7 @@ async function loadCourseAndExamData(
 
   const courses = normalizeV2Courses(fetchedData.data.data.courses ?? []);
 
-  let hasChanged = CourseCache.setCourses(courses);
+  let hasChanged = CourseCache.setCourses(courses, currentTerm.term);
 
   // 让本地的自定义课程与云端对齐（正常情况下就是覆盖，历史数据需要先迁移，见该函数注释）
   const customChanged = await reconcileCustomCourses(
