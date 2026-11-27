@@ -14,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getApiV1JwchTermList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
 import LastUpdateTime from '@/components/last-update-time';
-import { useUpdateEffect } from '@/hooks/use-update-effect';
 import useApiRequest from '@/hooks/useApiRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
 import { JWCH_TERM_LIST_KEY } from '@/lib/constants';
@@ -39,12 +38,6 @@ export default function CourseSettingPage() {
   useEffect(() => {
     readSettingsFromStorage();
   }, [readSettingsFromStorage]);
-
-  // 设置变化时保存设置
-  useUpdateEffect(() => {
-    // 保证设置同步到小部件
-    CourseCache.save();
-  }, [settings]);
 
   // 获取学期列表（当前用户），进入页面时进行预加载
   const {

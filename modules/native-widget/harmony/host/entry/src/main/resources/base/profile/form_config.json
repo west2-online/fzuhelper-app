@@ -16,10 +16,31 @@
       "formConfigAbility": "ability://WidgetConfigurationAbility",
       "updateEnabled": true,
       "updateDuration": 0,
-      "scheduledUpdateTime": "08:25",
-      "multiScheduledUpdateTime": "08:25,09:20,10:25,11:20,14:05,15:00,15:55,16:50,19:05,20:00,20:55",
+      "scheduledUpdateTime": "00:00",
+      "multiScheduledUpdateTime": "00:00,09:05,10:00,11:05,12:00,14:45,15:40,16:35,17:30,19:45,20:40,21:35",
       "defaultDimension": "2*2",
       "supportDimensions": ["2*2"]
+    },
+    {
+      "name": "CourseOverviewCard",
+      "displayName": "$string:widget_overview_display_name",
+      "description": "$string:widget_overview_desc",
+      "src": "./ets/widget/pages/CourseOverviewCard.ets",
+      "uiSyntax": "arkts",
+      "window": {
+        "designWidth": 720,
+        "autoDesignWidth": true
+      },
+      "colorMode": "auto",
+      "isDynamic": false,
+      "isDefault": false,
+      "formConfigAbility": "ability://WidgetConfigurationAbility",
+      "updateEnabled": true,
+      "updateDuration": 0,
+      "scheduledUpdateTime": "00:00",
+      "multiScheduledUpdateTime": "00:00,09:05,10:00,11:05,12:00,14:45,15:40,16:35,17:30,19:45,20:40,21:35",
+      "defaultDimension": "2*4",
+      "supportDimensions": ["2*4"]
     },
     {
       "name": "NextClassLockScreenCard",
@@ -37,10 +58,11 @@
       "isDefault": false,
       "updateEnabled": true,
       "updateDuration": 0,
-      "scheduledUpdateTime": "08:25",
-      "multiScheduledUpdateTime": "08:25,09:20,10:25,11:20,14:05,15:00,15:55,16:50,19:05,20:00,20:55",
+      "scheduledUpdateTime": "00:00",
+      "multiScheduledUpdateTime": "00:00,09:05,10:00,11:05,12:00,14:45,15:40,16:35,17:30,19:45,20:40,21:35",
       "defaultDimension": "1*2",
-      "supportDimensions": ["1*2"]
+      "supportDimensions": ["1*2"],
+      "formConfigAbility": "ability://WidgetConfigurationAbility"
     }
   ]
 }
