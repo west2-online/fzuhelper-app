@@ -54,6 +54,7 @@ dependencies {
     // 友盟统计SDK
     api 'com.umeng.umsdk:common:9.9.1'
     api 'com.umeng.umsdk:asms:1.8.7.2'
+    api 'com.umeng.umsdk:nns:1.1.0'
     // 友盟Push相关依赖
     api 'com.umeng.umsdk:push:6.7.6'
     // 小米
@@ -66,8 +67,8 @@ dependencies {
     api 'com.umeng.umsdk:oppo-umengaccs:2.2.0'
     api 'com.umeng.umsdk:oppo-push:3.5.3'
     // vivo
-    api 'com.umeng.umsdk:vivo-umengaccs:2.2.0'
-    api 'com.umeng.umsdk:vivo-push:4.0.6.0'
+    api 'com.umeng.umsdk:vivo-umengaccs:2.3.0'
+    api 'com.umeng.umsdk:vivo-push:4.1.3.0'
     // 荣耀
     api 'com.umeng.umsdk:honor-umengaccs:2.2.0'
     api 'com.umeng.umsdk:honor-push:8.0.12.307'
