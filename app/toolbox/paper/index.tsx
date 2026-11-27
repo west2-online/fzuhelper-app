@@ -4,14 +4,13 @@ import { Icon } from '@/components/Icon';
 import PageContainer from '@/components/page-container';
 import PaperList, { PaperType, type Paper } from '@/components/PaperList';
 import useApiRequest from '@/hooks/useApiRequest';
-import { useFocusEffect } from '@react-navigation/native';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useFocusEffect, useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
 
-interface PaperPageParam {
+type PaperPageParam = {
   path?: string;
-}
+};
 
 interface SearchButtonProps {
   currentPath: string;
@@ -33,7 +32,7 @@ function SearchButton({ currentPath, papers }: SearchButtonProps) {
 }
 
 export default function PaperPage() {
-  const { path } = useLocalSearchParams<PaperPageParam>();
+  const { path } = useLocalSearchParams<PaperPageParam & UnknownOutputParams>();
   const [currentPath, setCurrentPath] = useState(path !== undefined ? path : '/');
   const {
     data: paperData,

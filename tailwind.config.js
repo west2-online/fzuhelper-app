@@ -1,4 +1,4 @@
-const isHarmony = process.env.EXPO_HARMONY === '1';
+const isHarmony = process.env.EXPO_METRO_TARGET === 'harmony';
 const { hairlineWidth } = isHarmony ? require('@react-native-ohos/nativewind/theme') : require('nativewind/theme');
 
 /** @type {import('tailwindcss').Config} */

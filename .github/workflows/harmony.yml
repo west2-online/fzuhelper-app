@@ -26,8 +26,6 @@ jobs:
           path: |
             ${{ github.workspace }}/node_modules
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-
 
       - name: Install libgl1-mesa-dev
         run: |
@@ -61,32 +59,24 @@ jobs:
         run: |
           yarn install --frozen-lockfile --prefer-offline
 
-      - name: Prebuild
-        run: |
-          yarn prebuild:harmony
-
       - name: Restore OpenHarmony Cache
         uses: actions/cache@v5
         with:
-          path: |
-            ${{ github.workspace }}/harmony/oh_modules
-          key: ${{ runner.os }}-ohpm-${{ hashFiles('**/oh-package.json5') }}
+          path: ~/.ohpm/cache
+          key: ${{ runner.os }}-ohpm-${{ hashFiles('yarn.lock', 'modules/**/oh-package.json5') }}
           restore-keys: |
             ${{ runner.os }}-ohpm-
 
-      - name: Install OpenHarmony Dependencies
-        working-directory: harmony
-        run: |
-          ohpm install --all
+      - name: Build Release HAP
+        run: yarn expo-harmony build --variant release
 
       - name: Build Release APP
+        if: github.event_name != 'pull_request'
+        working-directory: harmony
         run: |
-          yarn expo-harmony export:embed
-          cd harmony
           EXPO_HARMONY_BUNDLE_PREBUILT=1 hvigorw assembleApp --mode project -p product=default -p buildMode=release --no-daemon
 
       - name: Prepare Unsigned HAP
-        if: github.event_name == 'pull_request'
         working-directory: harmony
         run: |
           mkdir -p output

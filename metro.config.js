@@ -22,45 +22,17 @@ function withHarmony(config) {
   ];
   const { withHarmonyConfig } = require('@expo-harmony/metro-config');
   const adapter = name => path.join(repositoryRoot, 'application-support/harmony-adapters', name);
-  const workletsRoot = path.dirname(require.resolve('@react-native-ohos/react-native-worklets/package.json'));
   const quickActionsRoot = path.dirname(require.resolve('expo-quick-actions/package.json'));
   const nativeWindRoot = path.dirname(require.resolve('@react-native-ohos/nativewind/package.json'));
-  const safeAreaRoot = path.dirname(require.resolve('react-native-safe-area-context/package.json'));
+  const safeAreaRequire = createRequire(require.resolve('@react-native-ohos/react-native-safe-area-context/package.json'));
+  const safeAreaRoot = path.dirname(safeAreaRequire.resolve('react-native-safe-area-context/package.json'));
   const nativeWindRequire = createRequire(path.join(nativeWindRoot, 'package.json'));
   const cssInteropRoot = path.dirname(nativeWindRequire.resolve('react-native-css-interop/package.json'));
 
-  // Harmony's ports forward to the upstream versions matching their native HARs.
-  const resolveBase = config.resolver.resolveRequest;
-  const screensRoot = path.dirname(require.resolve('react-native-screens-harmony/package.json'));
-  config.resolver.resolveRequest = (context, moduleName, platform) => {
-    let target = moduleName;
-    if (/^react-native-screens(?:\/|$)/u.test(moduleName)) {
-      target = moduleName.replace('react-native-screens', screensRoot);
-    } else if (
-      /^react-native-worklets(?:\/|$)/u.test(moduleName) &&
-      context.originModulePath.startsWith(workletsRoot + path.sep)
-    ) {
-      target = moduleName.replace(
-        'react-native-worklets',
-        path.join(workletsRoot, 'node_modules/react-native-worklets'),
-      );
-    }
-    return resolveBase ? resolveBase(context, target, platform) : context.resolveRequest(context, target, platform);
-  };
-
   const harmony = withHarmonyConfig(config, {
     projectRoot,
-    env: { IS_HARMONY: 'true' },
     aliases: {
       '@': repositoryRoot,
-      ...Object.fromEntries(
-        ['api', 'app', 'components', 'context', 'hooks', 'lib', 'modules', 'utils'].map(name => [
-          name,
-          path.join(repositoryRoot, name),
-        ]),
-      ),
-      // RNOH 0.84 uses React 19.2.3; Android and iOS use React 19.2.0 with RN 0.83.
-      react: 'react-harmony',
       // JSX, CSS registration and theme hooks must share the port's style registry.
       nativewind: nativeWindRoot,
       'react-native-css-interop': cssInteropRoot,
@@ -76,7 +48,6 @@ function withHarmony(config) {
       '@preeternal/react-native-cookie-manager': adapter('cookie-manager.harmony.js'),
       'react-native-keyboard-controller': adapter('react-native-keyboard-controller.harmony.js'),
       'react-native-safe-area-context': adapter('react-native-safe-area-context.harmony.js'),
-      'react-native-worklets/package.json': path.join(workletsRoot, 'node_modules/react-native-worklets/package.json'),
     },
     emptyModules: [/MaterialSymbols/u],
     resolveRequest({ moduleName, context }) {
@@ -90,13 +61,28 @@ function withHarmony(config) {
     },
   });
 
+  const serialize = harmony.serializer.customSerializer;
+  harmony.serializer.customSerializer = async (entryPoint, preModules, graph, options) => {
+    const result = await serialize(entryPoint, preModules, graph, options);
+    if (graph.transformOptions.platform === 'harmony' && result.artifacts) {
+      for (const artifact of result.artifacts) {
+        if (artifact.type !== 'map') continue;
+        const map = JSON.parse(artifact.source);
+        // Metro's require.context modules have no file for Expo Harmony to relativize.
+        map.sources = map.sources.map(source => source.replace(/^\/(.+\?ctx=[a-f0-9]+)$/u, '$1'));
+        artifact.source = JSON.stringify(map);
+      }
+    }
+    return result;
+  };
+
   return require('@react-native-ohos/nativewind/metro').withNativeWind(harmony, {
     input: path.join(repositoryRoot, 'global.css'),
     configPath: path.join(projectRoot, 'tailwind.config.js'),
   });
 }
 
-if (process.env.EXPO_HARMONY === '1') {
+if (process.env.EXPO_METRO_TARGET === 'harmony') {
   module.exports = withHarmony(config);
 } else {
   // https://github.com/expo/expo/issues/43614#issuecomment-3992041354
