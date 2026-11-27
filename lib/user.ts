@@ -11,6 +11,7 @@ import {
 } from '@/lib/constants';
 import { get } from '@/modules/native-request';
 import { Buffer } from '@craftzdog/react-native-buffer';
+import { DeviceEventEmitter } from 'react-native';
 import { LOCAL_USER_CREDENTIAL_KEY, LOCAL_USER_INFO_KEY } from './constants';
 import { CourseCache } from './course';
 import UserLogin from './user-login';
@@ -34,6 +35,7 @@ interface SSOCredentials {
 
 export const USER_TYPE_UNDERGRADUATE = 'undergraduate'; // 本科生
 export const USER_TYPE_POSTGRADUATE = 'graduate'; // 研究生
+export const USER_LOGOUT_EVENT = 'fzuhelper:userLogout';
 
 // LocalUser 维护了本地的用户模型，这样可以同时兼容研究生和本科生
 // 同时，通过这个 Class 屏蔽了页面中对于用户的直接操作（如登录和检查 Cookie），这样可以不必在页面中判断用户类型
@@ -294,4 +296,5 @@ export async function logoutUser() {
   queryClient.clear(); // 清除网络缓存
   // 避免账号切换残留学期、订阅链接、空教室校区偏好等数据
   await AsyncStorage.multiRemove([COURSE_SETTINGS_KEY, EMPTY_ROOM_SELECTED_CAMPUS_KEY]);
+  DeviceEventEmitter.emit(USER_LOGOUT_EVENT);
 }

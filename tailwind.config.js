@@ -1,5 +1,6 @@
 const isHarmony = process.env.EXPO_HARMONY === '1';
 const { hairlineWidth } = isHarmony ? require('@react-native-ohos/nativewind/theme') : require('nativewind/theme');
+const { pageBackgroundLightness, wallpaperOverlayOpacity } = require('./config/theme');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -8,11 +9,16 @@ module.exports = {
   presets: [isHarmony ? require('@react-native-ohos/nativewind/preset') : require('nativewind/preset')],
   theme: {
     extend: {
+      pageBackground: {
+        light: `0 0% ${pageBackgroundLightness.light}%`,
+        dark: `0 0% ${pageBackgroundLightness.dark}%`,
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
+        'wallpaper-overlay': `rgba(0, 0, 0, ${wallpaperOverlayOpacity})`,
         foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',

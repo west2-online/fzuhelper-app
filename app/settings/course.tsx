@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getApiV1JwchTermList } from '@/api/generate';
 import type { CourseSetting } from '@/api/interface';
+import { useTheme } from '@/components/app-theme-provider';
 import LastUpdateTime from '@/components/last-update-time';
 import useApiRequest from '@/hooks/useApiRequest';
 import { useSafeResponseSolve } from '@/hooks/useSafeResponseSolve';
@@ -20,24 +21,46 @@ import { JWCH_TERM_LIST_KEY } from '@/lib/constants';
 import { CourseCache, defaultCourseSetting, getCourseSetting, updateCourseSetting } from '@/lib/course';
 import { forceRefreshCourseData } from '@/lib/custom-course-sync';
 import { convertSemester, deConvertSemester } from '@/lib/locate-date';
+import { coursePalettes } from '@/lib/palettes';
 import { LocalUser, USER_TYPE_POSTGRADUATE } from '@/lib/user';
 
 export default function CourseSettingPage() {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [settings, setSettings] = useState<CourseSetting>(defaultCourseSetting);
+  const { courseColorScheme } = useTheme();
   const { handleError } = useSafeResponseSolve();
   const [isLoadingSemester, setLoadingSemester] = useState(false);
 
-  const readSettingsFromStorage = useCallback(async () => {
-    console.log('读取课程设置');
-    setSettings(await getCourseSetting());
+  useEffect(() => {
+    let active = true;
+    Promise.all([CourseCache.load(), getCourseSetting()])
+      .then(([, nextSettings]) => {
+        if (active) setSettings(nextSettings);
+      })
+      .catch(error => {
+        console.error('读取课程设置失败:', error);
+        if (active) toast.error('读取课程设置失败，请重新进入页面');
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  // 页面加载时读取设置
-  useEffect(() => {
-    readSettingsFromStorage();
-  }, [readSettingsFromStorage]);
+  const saveSettings = async (patch: Partial<CourseSetting>) => {
+    try {
+      await updateCourseSetting(patch);
+      setSettings(current => ({ ...current, ...patch }));
+      if (patch.exportExamToCourseTable === false) {
+        await CourseCache.clearExamData();
+      } else {
+        await CourseCache.syncWidgetData();
+      }
+    } catch (error) {
+      console.error('保存课程设置失败:', error);
+      toast.error('保存课程设置失败，请重试');
+    }
+  };
 
   // 获取学期列表（当前用户），进入页面时进行预加载
   const {
@@ -71,27 +94,15 @@ export default function CourseSettingPage() {
   }, [checkTermsAndShowPicker, isError, refetch]);
 
   // 确认选择学期
-  const handleConfirmTermSelectPicker = useCallback((selectedValue: string) => {
+  const handleConfirmTermSelectPicker = (selectedValue: string) => {
     setPickerVisible(false);
     // 对于研究生，我们内部存储的是和本科生等价的 202401 等字样
     const newValue =
       LocalUser.getUser().type === USER_TYPE_POSTGRADUATE ? convertSemester(selectedValue) : selectedValue;
-    setSettings(prevSettings => ({
-      ...prevSettings,
-      selectedSemester: newValue,
-    }));
-    updateCourseSetting({ selectedSemester: newValue });
-  }, []);
-
-  // 设置是否显示非本周课程
-  const handleShowNonCurrentWeekCourses = useCallback(() => {
-    const newValue = !settings.showNonCurrentWeekCourses;
-    setSettings(prevSettings => ({
-      ...prevSettings,
-      showNonCurrentWeekCourses: newValue,
-    }));
-    updateCourseSetting({ showNonCurrentWeekCourses: newValue });
-  }, [settings.showNonCurrentWeekCourses]);
+    if (newValue !== settings.selectedSemester) {
+      saveSettings({ selectedSemester: newValue });
+    }
+  };
 
   const handleForceRefresh = useCallback(async () => {
     if (isRefreshing) return;
@@ -115,30 +126,6 @@ export default function CourseSettingPage() {
   const handleExportToCalendar = useCallback(async () => {
     router.push('/settings/calendar');
   }, []);
-
-  // 控制导入考场到课表
-  const handleExportExamToCourseTable = useCallback(() => {
-    const newValue = !settings.exportExamToCourseTable;
-    if (!newValue) {
-      CourseCache.clearExamData();
-    }
-    setSettings(prevSettings => ({
-      ...prevSettings,
-      exportExamToCourseTable: newValue,
-    }));
-    updateCourseSetting({ exportExamToCourseTable: newValue });
-  }, [settings.exportExamToCourseTable]);
-
-  const handleHiddenCoursesWithoutAttendances = useCallback(() => {
-    const newValue = !settings.hiddenCoursesWithoutAttendances;
-    setSettings(prevSettings => {
-      return {
-        ...prevSettings,
-        hiddenCoursesWithoutAttendances: newValue,
-      };
-    });
-    updateCourseSetting({ hiddenCoursesWithoutAttendances: newValue });
-  }, [settings.hiddenCoursesWithoutAttendances]);
 
   return (
     <>
@@ -179,24 +166,34 @@ export default function CourseSettingPage() {
 
             <LabelEntry leftText="在系统日历中订阅课表" onPress={handleExportToCalendar} />
 
+            <Text className="mb-2 mt-4 text-sm text-text-secondary">课表外观</Text>
+
+            <LabelEntry
+              leftText="课程配色"
+              rightText={coursePalettes[courseColorScheme ?? settings.colorScheme].name}
+              onPress={() => router.push('/settings/course-colors')}
+            />
+
             <Text className="mb-2 mt-4 text-sm text-text-secondary">开关设置</Text>
 
             <LabelSwitch
               label="显示非本周课程"
               value={settings.showNonCurrentWeekCourses}
-              onValueChange={handleShowNonCurrentWeekCourses}
+              onValueChange={() => saveSettings({ showNonCurrentWeekCourses: !settings.showNonCurrentWeekCourses })}
             />
 
             <LabelSwitch
               label="隐藏免听课程"
               value={settings.hiddenCoursesWithoutAttendances}
-              onValueChange={handleHiddenCoursesWithoutAttendances}
+              onValueChange={() =>
+                saveSettings({ hiddenCoursesWithoutAttendances: !settings.hiddenCoursesWithoutAttendances })
+              }
             />
 
             <LabelSwitch
               label="显示本学期考场"
               value={settings.exportExamToCourseTable}
-              onValueChange={handleExportExamToCourseTable}
+              onValueChange={() => saveSettings({ exportExamToCourseTable: !settings.exportExamToCourseTable })}
             />
 
             <View className="space-y-4">

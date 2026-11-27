@@ -88,7 +88,7 @@ function FreeFriendsContent() {
       },
       staleTime: EXPIRE_ONE_DAY,
       retry: false,
-      select: (courses: JwchCourseListResponse_Course[]) => CourseCache.processFriendCourses(courses, friend.stu_id),
+      select: (courses: JwchCourseListResponse_Course[]) => CourseCache.processCourses(courses),
     }));
   }, [selectedFriends, selectedSemester]);
 

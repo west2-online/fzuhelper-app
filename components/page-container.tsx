@@ -39,7 +39,7 @@ export default function PageContainer({ className, refreshBackground, ...otherPr
     <>
       {hasCustomBackground ? (
         <ImageBackground source={getBackgroundImage(refreshBackground ?? false)} className="flex-1">
-          {darkenBackground && <View className="absolute h-full w-full bg-[#00000050]" />}
+          {darkenBackground && <View className="absolute h-full w-full bg-wallpaper-overlay" />}
           <View
             className={cn('flex-1', className)}
             style={{ paddingBottom: bottomTabBarHeight, paddingTop: safeHeaderHeight }}

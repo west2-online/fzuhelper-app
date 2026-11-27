@@ -2,9 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme, ThemeProvider as ReactNavigationThemeProvider } from '@react-navigation/native';
 import { colorScheme } from 'nativewind';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { type ColorSchemeName, ImageSourcePropType, useColorScheme as useSystemColorScheme } from 'react-native';
+import {
+  DeviceEventEmitter,
+  ImageSourcePropType,
+  useColorScheme as useSystemColorScheme,
+  type ColorSchemeName,
+} from 'react-native';
 
 import { DARKEN_BACKGROUND_KEY } from '@/lib/constants';
+import { getCourseSetting, updateCourseSetting } from '@/lib/course';
+import { DEFAULT_COURSE_COLOR_SCHEME, type CourseColorScheme } from '@/lib/palettes';
+import { USER_LOGOUT_EVENT } from '@/lib/user';
 import {
   checkCustomBackground,
   getBackgroundImagePath,
@@ -33,6 +41,9 @@ type ThemeContextValue = {
   currentTheme: ResolvedTheme;
   isDarkTheme: boolean;
   setThemeSetting: (theme: ThemeSetting) => Promise<void>;
+  courseColorScheme: CourseColorScheme | null | undefined;
+  loadCourseColorScheme: () => Promise<void>;
+  setCourseColorScheme: (scheme: CourseColorScheme) => Promise<void>;
   // 背景配置相关
   hasCustomBackground: boolean;
   darkenBackground: boolean;
@@ -58,6 +69,7 @@ const resolveTheme = (setting: ThemeSetting, systemTheme: ColorSchemeName): Reso
 export const AppThemeProvider = ({ children }: Props) => {
   const systemTheme = useSystemColorScheme();
   const [themeSetting, setThemeSettingState] = useState<ThemeSetting>('system');
+  const [courseColorScheme, setCourseColorSchemeState] = useState<CourseColorScheme | null>();
   const [hasCustomBackground, setHasCustomBackground] = useState(false);
   const [darkenBackground, setDarkenBackgroundState] = useState(false);
 
@@ -68,6 +80,22 @@ export const AppThemeProvider = ({ children }: Props) => {
     setThemeSettingState(nextTheme);
     await setThemePreference(nextTheme);
     colorScheme.set(nextTheme);
+  }, []);
+
+  const loadCourseColorScheme = useCallback(async () => {
+    setCourseColorSchemeState(current => current ?? undefined);
+    try {
+      const { colorScheme: storedScheme } = await getCourseSetting();
+      setCourseColorSchemeState(current => current ?? storedScheme);
+    } catch (error) {
+      console.error('读取课程配色失败:', error);
+      setCourseColorSchemeState(current => current ?? null);
+    }
+  }, []);
+
+  const setCourseColorScheme = useCallback(async (scheme: CourseColorScheme) => {
+    await updateCourseSetting({ colorScheme: scheme });
+    setCourseColorSchemeState(scheme);
   }, []);
 
   // 背景相关方法
@@ -117,12 +145,23 @@ export const AppThemeProvider = ({ children }: Props) => {
     initializeSettings().catch(() => undefined);
   }, [initializeSettings]);
 
+  useEffect(() => {
+    const logoutSubscription = DeviceEventEmitter.addListener(USER_LOGOUT_EVENT, () => {
+      setCourseColorSchemeState(DEFAULT_COURSE_COLOR_SCHEME);
+    });
+    loadCourseColorScheme();
+    return () => logoutSubscription.remove();
+  }, [loadCourseColorScheme]);
+
   const contextValue = useMemo<ThemeContextValue>(
     () => ({
       themeSetting,
       currentTheme: resolvedTheme,
       isDarkTheme: resolvedTheme === 'dark',
       setThemeSetting,
+      courseColorScheme,
+      loadCourseColorScheme,
+      setCourseColorScheme,
       hasCustomBackground,
       darkenBackground,
       setBackgroundImage,
@@ -138,6 +177,9 @@ export const AppThemeProvider = ({ children }: Props) => {
       hasCustomBackground,
       darkenBackground,
       setThemeSetting,
+      courseColorScheme,
+      loadCourseColorScheme,
+      setCourseColorScheme,
       setBackgroundImage,
       deleteBackgroundImage,
       setDarkenBackground,

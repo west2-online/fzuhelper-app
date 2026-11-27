@@ -6,7 +6,7 @@ import { Text } from '@/components/ui/text';
 import OverlapIcon from '@/assets/images/course/overlap.svg';
 import { SCHEDULE_ITEM_MARGIN, type CourseInfoMerged } from '@/lib/course';
 import { isWeekInSegment } from '@/lib/course-schedule';
-import { getCourseColor, getTextColor } from '@/utils/random-color';
+import { getCourseDisplayColor } from '@/utils/course-color-display';
 
 import { useTheme } from '../app-theme-provider';
 import ScheduleDetailsDialog from './schedule-detail-dialog';
@@ -16,13 +16,15 @@ interface ScheduleItemProps {
   itemHeight: number;
   span: number;
   color: string; // 课程的颜色
+  nonCurrentWeek: boolean;
   week: number;
 }
 
 // ScheduleItem 组件，用于显示课程表中的一节课
-const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color, week }) => {
+const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span, color, nonCurrentWeek, week }) => {
   const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const { isDarkTheme } = useTheme();
+  const { isDarkTheme, hasCustomBackground, darkenBackground } = useTheme();
+  const textColor = nonCurrentWeek ? '#00000033' : isDarkTheme ? '#FFFFFFDE' : '#FFFFFF';
 
   return (
     <>
@@ -30,23 +32,24 @@ const ScheduleItem: React.FC<ScheduleItemProps> = ({ schedules, itemHeight, span
         <Pressable
           className="flex flex-1 flex-col items-center justify-center overflow-hidden rounded-lg p-[1px]"
           style={{
-            backgroundColor: getCourseColor(color, isDarkTheme),
+            backgroundColor: getCourseDisplayColor(nonCurrentWeek ? '#DEDEDE' : color, isDarkTheme, {
+              hasCustomBackground,
+              darkenBackground,
+              compensate: !nonCurrentWeek,
+            }),
           }}
           onPress={() => setDetailsDialogOpen(true)}
         >
           <Text
             className={`${span > 1 ? 'line-clamp-3' : 'line-clamp-2'} truncate text-wrap break-all text-center text-[11px]`}
-            style={{ color: getTextColor(color, isDarkTheme) }}
+            style={{ color: textColor }}
           >
             {schedules[0].weekSegments.some(segment => segment.isAdjusted && isWeekInSegment(segment, week))
               ? '[调课] '
               : ''}
             {schedules[0].name}
           </Text>
-          <Text
-            className="mt-1 text-wrap break-all text-center text-[11px]"
-            style={{ color: getTextColor(color, isDarkTheme) }}
-          >
+          <Text className="mt-1 text-wrap break-all text-center text-[11px]" style={{ color: textColor }}>
             {schedules[0].location}
           </Text>
 
