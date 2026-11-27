@@ -18,6 +18,7 @@ import com.umeng.message.PushAgent
 import com.umeng.message.UmengNotificationClickHandler
 import com.umeng.message.api.UPushRegisterCallback
 import com.umeng.message.entity.UMessage
+import com.uyumao.nns.zmd.ZmdManager
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.records.Field
@@ -68,6 +69,8 @@ class ExpoUmengModule : Module() {
                     context.applicationInfo.packageName,
                     PackageManager.GET_META_DATA
                 ).metaData
+                // 必须在 UMConfigure.init() 之前调用
+                ZmdManager.disableCollectAid()
                 UMConfigure.init(
                     context,
                     metadata.getString("UMENG_APPKEY"),
