@@ -96,30 +96,33 @@ export struct CourseWidgetCard {
           .fontColor($r('app.color.widget_title'))
           .width('100%')
         if (compact && layout.showDetails) {
-          WidgetViewThatFits({ horizontal: true, content: (): void => this.compactDetails(event) })
-            .width('100%')
-            .clip(true)
+          if (event.location.length > 0) {
+            WidgetViewThatFits({ horizontal: true, content: (): void => this.compactDetails(event) })
+              .width('100%')
+              .clip(true)
+          } else {
+            Text(event.timeText)
+              .courseText(WidgetTypography.secondary)
+              .fontColor($r('app.color.widget_secondary'))
+          }
         } else if (layout.showDetails) {
-          Column({ space: WidgetSpacing.details }) {
-            if (this.showRemarks && layout.remarkLines > 0 && event.remark.length > 0) {
-              Text(event.remark)
-                .courseText(WidgetTypography.secondary, layout.remarkLines)
-                .fontColor($r('app.color.widget_secondary'))
-                .width('100%')
-            }
-            Column({ space: WidgetSpacing.detailRows }) {
+          if (this.showRemarks && layout.remarkLines > 0 && event.remark.length > 0) {
+            Text(event.remark)
+              .courseText(WidgetTypography.secondary, layout.remarkLines)
+              .fontColor($r('app.color.widget_secondary'))
+              .width('100%')
+          }
+          Column({ space: WidgetSpacing.detailRows }) {
+            if (event.location.length > 0) {
               Text(event.location)
                 .courseText(WidgetTypography.primaryDetail)
                 .fontColor($r('app.color.widget_detail'))
                 .width('100%')
-              Text(event.timeText)
-                .courseText(WidgetTypography.primaryDetail)
-                .fontColor($r('app.color.widget_detail'))
-                .width('100%')
             }
-            .width('100%')
-            .height(LayoutPolicy.fixAtIdealSize)
-            .alignItems(HorizontalAlign.Start)
+            Text(event.timeText)
+              .courseText(WidgetTypography.primaryDetail)
+              .fontColor($r('app.color.widget_detail'))
+              .width('100%')
           }
           .width('100%')
           .height(LayoutPolicy.fixAtIdealSize)

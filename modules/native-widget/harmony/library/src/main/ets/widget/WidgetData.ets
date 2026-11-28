@@ -165,8 +165,8 @@ function buildDay(snapshot: CourseWidgetSnapshot, date: Date, minute: number, to
     isTomorrow: tomorrow,
     events: remaining.map((event: WidgetCourseEvent): WidgetEventBinding => ({
       name: event.name,
-      location: event.location,
-      remark: event.remark,
+      location: event.location.trim(),
+      remark: event.remark.trim(),
       timeText: `${minuteText(event.startMinute)}-${minuteText(event.endMinute)}`,
     })),
     emptyText,
