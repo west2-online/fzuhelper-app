@@ -9,7 +9,6 @@ import android.util.SizeF
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.RemoteViews
-import android.widget.TextView
 import com.west2online.nativewidget.R
 import kotlin.math.roundToInt
 
@@ -167,10 +166,9 @@ internal class CourseWidgetRenderer(
     ): RemoteViews {
         val views = RemoteViews(context.packageName, if (compact) R.layout.course_widget_compact else R.layout.course_widget_event)
         val location = course.location.trim()
-        val hasLocation = location.isNotEmpty()
         views.setTextViewText(R.id.course_name, course.name)
         views.setTextViewText(R.id.course_room, location)
-        if (!hasLocation) views.setViewVisibility(R.id.course_room, View.GONE)
+        views.setViewVisibility(R.id.course_room, if (location.isEmpty()) View.GONE else View.VISIBLE)
         views.setTextViewText(R.id.course_time, course.timeText)
         if (!compact) {
             val remark = course.remark.trim()
@@ -180,18 +178,15 @@ internal class CourseWidgetRenderer(
             views.setViewVisibility(R.id.course_remark, if (showRemarks && remarkLines > 0 && remark.isNotEmpty()) View.VISIBLE else View.GONE)
         }
         if (!showDetails) views.setViewVisibility(R.id.course_details, View.GONE)
-        if (compact && showDetails && hasLocation) {
+        if (compact && showDetails && location.isNotEmpty()) {
             views.setTextViewText(R.id.course_time_stacked, course.timeText)
             val layout = views.apply(context, FrameLayout(context))
             layout.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
             val details = layout.findViewById<View>(R.id.course_details)
-            val room = layout.findViewById<TextView>(R.id.course_room)
-            val time = layout.findViewById<TextView>(R.id.course_time)
-            room.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-            time.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+            val availableWidth = details.measuredWidth
             // 同排放不下时将时间移到下一行，避免时间挤压教室。
-            val wrapTime = room.measuredWidth + time.measuredWidth + dimension(R.dimen.course_widget_inline_gap) > details.measuredWidth
-            views.setViewVisibility(R.id.course_inline_gap, if (wrapTime) View.GONE else View.VISIBLE)
+            details.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+            val wrapTime = details.measuredWidth > availableWidth
             views.setViewVisibility(R.id.course_time, if (wrapTime) View.GONE else View.VISIBLE)
             views.setViewVisibility(R.id.course_time_stacked, if (wrapTime) View.VISIBLE else View.GONE)
         }

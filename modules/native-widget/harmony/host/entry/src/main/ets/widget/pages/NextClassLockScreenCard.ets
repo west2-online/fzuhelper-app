@@ -18,8 +18,8 @@ struct NextClassLockScreenCard {
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .width('100%')
 
-        if (this.courseLocation.trim().length > 0) {
-          Text(this.courseLocation.trim())
+        if (this.courseLocation.length > 0) {
+          Text(this.courseLocation)
             .fontSize('10vp')
             .fontColor($r('app.color.widget_lockscreen_secondary_foreground'))
             .maxLines(1)

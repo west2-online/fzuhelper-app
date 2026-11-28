@@ -37,6 +37,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/course_widget_details_gap"
             android:baselineAligned="false"
+            android:divider="@drawable/course_widget_inline_gap"
+            android:showDividers="middle"
             android:orientation="horizontal">
             <TextView
                 style="@style/CourseWidgetSecondary"
@@ -46,11 +48,6 @@
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:textColor="@color/widget_secondary" />
-            <LinearLayout
-                android:id="@+id/course_inline_gap"
-                android:layout_width="@dimen/course_widget_inline_gap"
-                android:layout_height="0dp"
-                android:visibility="gone" />
             <TextView
                 style="@style/CourseWidgetSecondary"
                 android:id="@+id/course_time"

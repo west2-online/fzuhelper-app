@@ -212,8 +212,18 @@ struct CourseEventView: View {
   var remarkLines = 3
   var nameLines = 2
 
-  var body: some View {
+  @ViewBuilder
+  private var locationAndTime: some View {
     let location = course.trimmedLocation
+    let size: CGFloat = compact ? 11 : 13
+    if !location.isEmpty {
+      WidgetText(location, size: size)
+    }
+    WidgetText(course.timeText, size: size)
+  }
+
+  var body: some View {
+    let details = locationAndTime
     HStack(spacing: 4) {
       RoundedRectangle(cornerRadius: 2)
         .fill(Color(compact ? "WidgetLightBlue" : "WidgetBlue"))
@@ -221,37 +231,21 @@ struct CourseEventView: View {
       VStack(alignment: .leading, spacing: 2) {
         WidgetText(course.name, size: compact ? 11 : 15, lines: compact ? 1 : nameLines)
           .foregroundStyle(Color("WidgetTitle"))
-        if compact && !location.isEmpty {
+        if compact {
           // 同排放不下时将时间移到下一行，避免时间挤压教室。
           ViewThatFits(in: .horizontal) {
-            HStack(spacing: 2) {
-              WidgetText(location, size: 11)
-              WidgetText(course.timeText, size: 11)
-            }
-            VStack(alignment: .leading, spacing: 1) {
-              WidgetText(location, size: 11)
-              WidgetText(course.timeText, size: 11)
-            }
+            HStack(spacing: 2) { details }
+            VStack(alignment: .leading, spacing: 1) { details }
           }
           .foregroundStyle(Color("WidgetSecondary"))
-        } else if compact {
-          WidgetText(course.timeText, size: 11)
-            .foregroundStyle(Color("WidgetSecondary"))
         } else {
-          VStack(alignment: .leading, spacing: 2) {
-            let remark = course.trimmedRemark
-            if showRemarks && remarkLines > 0 && !remark.isEmpty {
-              WidgetText(remark, size: 11, lines: remarkLines)
-                .foregroundStyle(Color("WidgetSecondary"))
-            }
-            VStack(alignment: .leading, spacing: 1) {
-              if !location.isEmpty {
-                WidgetText(location, size: 13)
-              }
-              WidgetText(course.timeText, size: 13)
-            }
+          let remark = course.trimmedRemark
+          if showRemarks && remarkLines > 0 && !remark.isEmpty {
+            WidgetText(remark, size: 11, lines: remarkLines)
+              .foregroundStyle(Color("WidgetSecondary"))
           }
-          .foregroundStyle(Color("WidgetDetail"))
+          VStack(alignment: .leading, spacing: 1) { details }
+            .foregroundStyle(Color("WidgetDetail"))
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
