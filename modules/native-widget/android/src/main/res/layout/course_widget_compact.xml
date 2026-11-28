@@ -46,12 +46,16 @@
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:textColor="@color/widget_secondary" />
+            <LinearLayout
+                android:id="@+id/course_inline_gap"
+                android:layout_width="@dimen/course_widget_inline_gap"
+                android:layout_height="0dp"
+                android:visibility="gone" />
             <TextView
                 style="@style/CourseWidgetSecondary"
                 android:id="@+id/course_time"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/course_widget_secondary_line_height"
-                android:layout_marginStart="@dimen/course_widget_inline_gap"
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:textColor="@color/widget_secondary" />

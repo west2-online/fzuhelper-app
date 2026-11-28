@@ -17,6 +17,14 @@ struct WidgetCourseEvent: Codable {
   let startMinute: Int
   let endMinute: Int
 
+  var trimmedLocation: String {
+    location.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  var trimmedRemark: String {
+    remark.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
   var timeText: String {
     String(format: "%02d:%02d-%02d:%02d", startMinute / 60, startMinute % 60, endMinute / 60, endMinute % 60)
   }

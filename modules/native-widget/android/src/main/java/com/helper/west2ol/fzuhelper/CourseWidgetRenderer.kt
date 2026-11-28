@@ -115,7 +115,7 @@ internal class CourseWidgetRenderer(
             val course = day.events.first()
             val variants = buildList {
                 if (!day.isTomorrow) {
-                    if (showRemarks && course.remark.isNotEmpty()) {
+                    if (showRemarks && course.remark.isNotBlank()) {
                         for (lines in 2 downTo 0) add(eventView(course, false, width, remarkLines = lines))
                     }
                     add(eventView(course, false, width, remarkLines = 0, nameLines = 1))
@@ -166,17 +166,21 @@ internal class CourseWidgetRenderer(
         remarkLines: Int = 3, nameLines: Int = 2, showDetails: Boolean = true,
     ): RemoteViews {
         val views = RemoteViews(context.packageName, if (compact) R.layout.course_widget_compact else R.layout.course_widget_event)
+        val location = course.location.trim()
+        val hasLocation = location.isNotEmpty()
         views.setTextViewText(R.id.course_name, course.name)
-        views.setTextViewText(R.id.course_room, course.location)
+        views.setTextViewText(R.id.course_room, location)
+        if (!hasLocation) views.setViewVisibility(R.id.course_room, View.GONE)
         views.setTextViewText(R.id.course_time, course.timeText)
         if (!compact) {
+            val remark = course.remark.trim()
             views.setInt(R.id.course_name, "setMaxLines", nameLines)
-            views.setTextViewText(R.id.course_remark, course.remark)
+            views.setTextViewText(R.id.course_remark, remark)
             views.setInt(R.id.course_remark, "setMaxLines", remarkLines)
-            views.setViewVisibility(R.id.course_remark, if (showRemarks && remarkLines > 0 && course.remark.isNotEmpty()) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.course_remark, if (showRemarks && remarkLines > 0 && remark.isNotEmpty()) View.VISIBLE else View.GONE)
         }
         if (!showDetails) views.setViewVisibility(R.id.course_details, View.GONE)
-        if (compact && showDetails) {
+        if (compact && showDetails && hasLocation) {
             views.setTextViewText(R.id.course_time_stacked, course.timeText)
             val layout = views.apply(context, FrameLayout(context))
             layout.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
@@ -187,6 +191,7 @@ internal class CourseWidgetRenderer(
             time.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
             // 同排放不下时将时间移到下一行，避免时间挤压教室。
             val wrapTime = room.measuredWidth + time.measuredWidth + dimension(R.dimen.course_widget_inline_gap) > details.measuredWidth
+            views.setViewVisibility(R.id.course_inline_gap, if (wrapTime) View.GONE else View.VISIBLE)
             views.setViewVisibility(R.id.course_time, if (wrapTime) View.GONE else View.VISIBLE)
             views.setViewVisibility(R.id.course_time_stacked, if (wrapTime) View.VISIBLE else View.GONE)
         }

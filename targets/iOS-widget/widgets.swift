@@ -120,8 +120,11 @@ struct CourseWidgetView: View {
       if let snapshot = entry.snapshot {
         let day = snapshot.smallDay(at: entry.date, previewTomorrow: entry.previewTomorrow)
         if let course = day.events.first {
+          let location = course.trimmedLocation
           Text(course.name).font(.system(size: 17, weight: .semibold)).lineLimit(1)
-          Text(course.location).font(.system(size: 12)).lineLimit(1)
+          if !location.isEmpty {
+            Text(location).font(.system(size: 12)).lineLimit(1)
+          }
           Text("\(day.isTomorrow ? "明日 " : "")\(course.timeText)").font(.system(size: 12)).lineLimit(1)
         } else {
           Text(day.emptyText).font(.system(size: 17, weight: .semibold))
@@ -172,7 +175,7 @@ struct CourseDayView: View {
               courses(count: 1, showRemaining: true)
             }
             courses(count: 1, showRemaining: false)
-            if showRemarks && !day.events[0].remark.isEmpty {
+            if showRemarks && !day.events[0].trimmedRemark.isEmpty {
               ForEach((0...2).reversed(), id: \.self) { lines in
                 courses(count: 1, showRemaining: false, remarkLines: lines)
               }
@@ -210,6 +213,7 @@ struct CourseEventView: View {
   var nameLines = 2
 
   var body: some View {
+    let location = course.trimmedLocation
     HStack(spacing: 4) {
       RoundedRectangle(cornerRadius: 2)
         .fill(Color(compact ? "WidgetLightBlue" : "WidgetBlue"))
@@ -217,27 +221,33 @@ struct CourseEventView: View {
       VStack(alignment: .leading, spacing: 2) {
         WidgetText(course.name, size: compact ? 11 : 15, lines: compact ? 1 : nameLines)
           .foregroundStyle(Color("WidgetTitle"))
-        if compact {
+        if compact && !location.isEmpty {
           // 同排放不下时将时间移到下一行，避免时间挤压教室。
           ViewThatFits(in: .horizontal) {
             HStack(spacing: 2) {
-              WidgetText(course.location, size: 11)
+              WidgetText(location, size: 11)
               WidgetText(course.timeText, size: 11)
             }
             VStack(alignment: .leading, spacing: 1) {
-              WidgetText(course.location, size: 11)
+              WidgetText(location, size: 11)
               WidgetText(course.timeText, size: 11)
             }
           }
           .foregroundStyle(Color("WidgetSecondary"))
+        } else if compact {
+          WidgetText(course.timeText, size: 11)
+            .foregroundStyle(Color("WidgetSecondary"))
         } else {
           VStack(alignment: .leading, spacing: 2) {
-            if showRemarks && remarkLines > 0 && !course.remark.isEmpty {
-              WidgetText(course.remark, size: 11, lines: remarkLines)
+            let remark = course.trimmedRemark
+            if showRemarks && remarkLines > 0 && !remark.isEmpty {
+              WidgetText(remark, size: 11, lines: remarkLines)
                 .foregroundStyle(Color("WidgetSecondary"))
             }
             VStack(alignment: .leading, spacing: 1) {
-              WidgetText(course.location, size: 13)
+              if !location.isEmpty {
+                WidgetText(location, size: 13)
+              }
               WidgetText(course.timeText, size: 13)
             }
           }

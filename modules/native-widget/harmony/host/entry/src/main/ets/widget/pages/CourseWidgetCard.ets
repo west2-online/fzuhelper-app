@@ -46,7 +46,7 @@ export struct CourseWidgetCard {
         candidates.push({ count: 2, remaining: false, nameLines: 2, remarkLines: 3, showDetails: true });
         candidates.push({ count: 1, remaining: true, nameLines: 2, remarkLines: 3, showDetails: true });
       }
-      const hasRemark = this.showRemarks && day.events[0].remark.length > 0;
+      const hasRemark = this.showRemarks && day.events[0].remark.trim().length > 0;
       for (let remarkLines = hasRemark ? 3 : 0; remarkLines >= 0; remarkLines--) {
         candidates.push({ count: 1, remaining: false, nameLines: 2, remarkLines, showDetails: true });
       }
@@ -60,7 +60,7 @@ export struct CourseWidgetCard {
   private compactDetails(event: WidgetEventBinding) {
     // Give the room and time their own lines when their full widths do not fit side by side.
     Row({ space: WidgetSpacing.inlineDetails }) {
-      Text(event.location)
+      Text(event.location.trim())
         .courseText(WidgetTypography.secondary)
         .fontColor($r('app.color.widget_secondary')).flexShrink(0)
       Text(event.timeText)
@@ -70,7 +70,7 @@ export struct CourseWidgetCard {
     .width(LayoutPolicy.fixAtIdealSize)
     .height(LayoutPolicy.fixAtIdealSize)
     Column({ space: WidgetSpacing.detailRows }) {
-      Text(event.location)
+      Text(event.location.trim())
         .courseText(WidgetTypography.secondary)
         .fontColor($r('app.color.widget_secondary')).width('100%')
       Text(event.timeText)
@@ -96,22 +96,30 @@ export struct CourseWidgetCard {
           .fontColor($r('app.color.widget_title'))
           .width('100%')
         if (compact && layout.showDetails) {
-          WidgetViewThatFits({ horizontal: true, content: (): void => this.compactDetails(event) })
-            .width('100%')
-            .clip(true)
+          if (event.location.trim().length > 0) {
+            WidgetViewThatFits({ horizontal: true, content: (): void => this.compactDetails(event) })
+              .width('100%')
+              .clip(true)
+          } else {
+            Text(event.timeText)
+              .courseText(WidgetTypography.secondary)
+              .fontColor($r('app.color.widget_secondary'))
+          }
         } else if (layout.showDetails) {
           Column({ space: WidgetSpacing.details }) {
-            if (this.showRemarks && layout.remarkLines > 0 && event.remark.length > 0) {
-              Text(event.remark)
+            if (this.showRemarks && layout.remarkLines > 0 && event.remark.trim().length > 0) {
+              Text(event.remark.trim())
                 .courseText(WidgetTypography.secondary, layout.remarkLines)
                 .fontColor($r('app.color.widget_secondary'))
                 .width('100%')
             }
             Column({ space: WidgetSpacing.detailRows }) {
-              Text(event.location)
-                .courseText(WidgetTypography.primaryDetail)
-                .fontColor($r('app.color.widget_detail'))
-                .width('100%')
+              if (event.location.trim().length > 0) {
+                Text(event.location.trim())
+                  .courseText(WidgetTypography.primaryDetail)
+                  .fontColor($r('app.color.widget_detail'))
+                  .width('100%')
+              }
               Text(event.timeText)
                 .courseText(WidgetTypography.primaryDetail)
                 .fontColor($r('app.color.widget_detail'))
